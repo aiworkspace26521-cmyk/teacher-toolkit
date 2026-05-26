@@ -1,0 +1,260 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>座標獵人 Coordinate Hunter</title>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body {
+  background: #000;
+  color: #fff;
+  font-family: 'Courier New', monospace;
+  min-height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+.container { text-align: center; padding: 20px; }
+h1 { color: #ff8c00; font-size: 2em; margin-bottom: 20px; text-shadow: 2px 2px 4px rgba(255,140,0,0.3); }
+.stats {
+  display: flex; justify-content: center; gap: 40px;
+  margin-bottom: 20px; font-size: 1.2em;
+}
+.stats span { color: #ff8c00; }
+canvas {
+  display: block; margin: 0 auto;
+  border: 2px solid #ff8c00;
+  cursor: crosshair;
+  background: #111;
+}
+.input-area { margin-top: 20px; }
+.input-area input {
+  background: #222; border: 2px solid #555; color: #fff;
+  font-size: 1.2em; padding: 8px 16px; width: 180px;
+  font-family: 'Courier New', monospace; text-align: center;
+  outline: none;
+}
+.input-area input:focus { border-color: #ff8c00; }
+.input-area input::placeholder { color: #666; }
+.btn-area { margin-top: 15px; display: flex; justify-content: center; gap: 12px; }
+button {
+  background: #ff8c00; color: #000; border: none;
+  padding: 10px 24px; font-size: 1em; font-weight: bold;
+  cursor: pointer; font-family: 'Courier New', monospace;
+  border-radius: 4px;
+}
+button:hover { background: #ffa333; }
+button:disabled { background: #555; color: #888; cursor: not-allowed; }
+#message {
+  margin-top: 15px; font-size: 1.1em; min-height: 1.5em;
+}
+#result {
+  display: none;
+  margin-top: 20px; padding: 20px;
+  border: 2px solid #ff8c00; background: #1a1a1a;
+  font-size: 1.3em;
+}
+#result h2 { color: #ff8c00; margin-bottom: 10px; }
+.found-mark {
+  position: absolute; width: 24px; height: 24px;
+  background: #ff8c00; border-radius: 50%;
+  transform: translate(-50%,-50%); pointer-events: none;
+}
+</style>
+</head>
+<body>
+<div class="container">
+  <h1>🏹 座標獵人</h1>
+  <div class="stats">
+    <div>得分：<span id="score">0</span> / 10</div>
+    <div>時間：<span id="timer">60</span>s</div>
+  </div>
+  <canvas id="grid" width="550" height="550"></canvas>
+  <div class="input-area">
+    <input type="text" id="guessInput" placeholder="例：2,-3" maxlength="10"
+           autofocus>
+  </div>
+  <div class="btn-area">
+    <button id="guessBtn">🎯 猜測</button>
+    <button id="restartBtn">🔄 重新開始</button>
+  </div>
+  <div id="message"></div>
+  <div id="result">
+    <h2>🎉 遊戲結束！</h2>
+    <p>得分：<span id="finalScore">0</span> / 10</p>
+    <p style="font-size:0.9em;margin-top:10px;color:#aaa;">按「重新開始」再玩一次</p>
+  </div>
+</div>
+<script>
+const canvas = document.getElementById('grid');
+const ctx = canvas.getContext('2d');
+const scoreEl = document.getElementById('score');
+const timerEl = document.getElementById('timer');
+const messageEl = document.getElementById('message');
+const guessInput = document.getElementById('guessInput');
+const guessBtn = document.getElementById('guessBtn');
+const restartBtn = document.getElementById('restartBtn');
+const resultEl = document.getElementById('result');
+const finalScoreEl = document.getElementById('finalScore');
+
+const GRID_SIZE = 11;
+const RANGE = 5;
+const CELL_SIZE = 50;
+const PADDING = 50;
+const TOTAL_TARGETS = 10;
+const GAME_TIME = 60;
+
+let targets = [];
+let score = 0;
+let timeLeft = GAME_TIME;
+let timerId = null;
+let gameActive = false;
+let foundTargets = [];
+
+function generateTargets() {
+  const all = [];
+  for (let x = -RANGE; x <= RANGE; x++)
+    for (let y = -RANGE; y <= RANGE; y++)
+      all.push({ x, y });
+  const shuffled = all.sort(() => Math.random() - 0.5);
+  targets = shuffled.slice(0, TOTAL_TARGETS).map(t => ({ ...t, found: false }));
+}
+
+function toCanvasCoord(gx, gy) {
+  return {
+    cx: PADDING + (gx + RANGE) * CELL_SIZE + CELL_SIZE / 2,
+    cy: PADDING + (RANGE - gy) * CELL_SIZE + CELL_SIZE / 2
+  };
+}
+
+function drawGrid() {
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+  // grid lines
+  ctx.strokeStyle = '#333';
+  ctx.lineWidth = 1;
+  for (let i = 0; i < GRID_SIZE; i++) {
+    const x = PADDING + i * CELL_SIZE;
+    const y = PADDING + i * CELL_SIZE;
+    ctx.beginPath(); ctx.moveTo(x, PADDING); ctx.lineTo(x, PADDING + (GRID_SIZE-1) * CELL_SIZE); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(PADDING, y); ctx.lineTo(PADDING + (GRID_SIZE-1) * CELL_SIZE, y); ctx.stroke();
+  }
+
+  // axis lines (thicker)
+  ctx.strokeStyle = '#555';
+  ctx.lineWidth = 2;
+  const axisX = PADDING + RANGE * CELL_SIZE;
+  const axisY = PADDING + RANGE * CELL_SIZE;
+  ctx.beginPath(); ctx.moveTo(axisX, PADDING); ctx.lineTo(axisX, PADDING + (GRID_SIZE-1) * CELL_SIZE); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(PADDING, axisY); ctx.lineTo(PADDING + (GRID_SIZE-1) * CELL_SIZE, axisY); ctx.stroke();
+
+  // labels
+  ctx.fillStyle = '#888';
+  ctx.font = '12px monospace';
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'top';
+  for (let i = 0; i < GRID_SIZE; i++) {
+    const label = i - RANGE;
+    const x = PADDING + i * CELL_SIZE + CELL_SIZE / 2;
+    const y = PADDING + i * CELL_SIZE + CELL_SIZE / 2;
+    ctx.fillText(label, x, PADDING + (GRID_SIZE-1) * CELL_SIZE + 5);
+    ctx.textAlign = 'right'; ctx.textBaseline = 'middle';
+    ctx.fillText(label, PADDING - 8, y);
+    ctx.textAlign = 'center'; ctx.textBaseline = 'top';
+  }
+
+  // origin O
+  ctx.fillStyle = '#888';
+  ctx.textAlign = 'right'; ctx.textBaseline = 'top';
+  ctx.fillText('O', PADDING + RANGE * CELL_SIZE - 4, PADDING + RANGE * CELL_SIZE + 4);
+
+  // found targets
+  for (const t of targets) {
+    if (!t.found) continue;
+    const { cx, cy } = toCanvasCoord(t.x, t.y);
+    ctx.fillStyle = '#ff8c00';
+    ctx.beginPath();
+    ctx.arc(cx, cy, 12, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.fillStyle = '#000';
+    ctx.font = 'bold 14px monospace';
+    ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+    ctx.fillText('✓', cx, cy);
+  }
+}
+
+function initGame() {
+  generateTargets();
+  score = 0;
+  timeLeft = GAME_TIME;
+  gameActive = true;
+  foundTargets = [];
+  scoreEl.textContent = '0';
+  timerEl.textContent = GAME_TIME;
+  messageEl.textContent = '';
+  resultEl.style.display = 'none';
+  guessInput.disabled = false;
+  guessBtn.disabled = false;
+  guessInput.value = '';
+  guessInput.focus();
+  drawGrid();
+  if (timerId) clearInterval(timerId);
+  timerId = setInterval(() => {
+    timeLeft--;
+    timerEl.textContent = timeLeft;
+    if (timeLeft <= 0) endGame();
+  }, 1000);
+}
+
+function endGame() {
+  gameActive = false;
+  if (timerId) { clearInterval(timerId); timerId = null; }
+  finalScoreEl.textContent = score;
+  resultEl.style.display = 'block';
+  guessInput.disabled = true;
+  guessBtn.disabled = true;
+  messageEl.textContent = '⏰ 時間到！';
+}
+
+function handleGuess() {
+  if (!gameActive) { messageEl.textContent = '⚠️ 遊戲已結束，請重新開始'; return; }
+  const raw = guessInput.value.trim();
+  const match = raw.match(/^(-?\d+)\s*[,，]\s*(-?\d+)$/);
+  if (!match) {
+    messageEl.textContent = '⚠️ 格式錯誤，請輸入「x,y」（例：2,-3）';
+    return;
+  }
+  const gx = parseInt(match[1]);
+  const gy = parseInt(match[2]);
+  if (Math.abs(gx) > RANGE || Math.abs(gy) > RANGE) {
+    messageEl.textContent = `⚠️ 範圍是 -${RANGE} 到 ${RANGE}`;
+    return;
+  }
+  const hit = targets.find(t => t.x === gx && t.y === gy && !t.found);
+  if (hit) {
+    hit.found = true;
+    score++;
+    scoreEl.textContent = score;
+    messageEl.textContent = `🎯 命中！(${gx}, ${gy})`;
+    drawGrid();
+    if (score >= TOTAL_TARGETS) {
+      endGame();
+      messageEl.textContent = '🎉 全命中！太強了！';
+    }
+  } else {
+    const alreadyFound = targets.some(t => t.x === gx && t.y === gy && t.found);
+    messageEl.textContent = alreadyFound ? `ℹ️ (${gx}, ${gy}) 已經找到了` : `❌ (${gx}, ${gy}) 沒有目標`;
+  }
+  guessInput.value = '';
+  guessInput.focus();
+}
+
+guessBtn.addEventListener('click', handleGuess);
+guessInput.addEventListener('keydown', e => { if (e.key === 'Enter') handleGuess(); });
+restartBtn.addEventListener('click', initGame);
+
+initGame();
+</script>
+</body>
+</html>
