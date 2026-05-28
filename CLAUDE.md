@@ -12,10 +12,11 @@
 - 📋 GDrive 工作桌：`G:\我的云端硬盘\teacher-toolkit\`（自動跨電腦同步）
 - 🐙 GitHub repo：`aiworkspace26521-cmyk/teacher-toolkit`（公開，網頁的家）
 - 📘 Obsidian 駕駛艙：`secondbrain/teacher-toolkit/工作筆記.md`（想法的家）
-- 🔥 Firebase 專案：（待設定）
+- 🔥 Firebase 專案：`opencodefirebase`（Firestore + Hosting，從 `D:\20260521opencode` 沿用）
 
 ## 工具清單
 - **座標獵人** (`tools/coordinate-hunter/`) — 11×11 直角座標練習遊戲，隨機 10 個隱藏座標、60 秒限時。已上線 Pages
+- **學習 KPI 管理工具** (`tools/learning-kpi-dashboard/`) — Pokémon 風格遊戲化學習 KPI 系統，事件溯源 + Firestore。已從 `D:\20260521opencode` 導入，部署於 Firebase Hosting `/kpi`
 
 ## 工作注意事項
 - 學生資料一律去識別化（只用座號 + 班級代號）

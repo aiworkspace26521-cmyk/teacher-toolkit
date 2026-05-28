@@ -1,0 +1,939 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>📊 學習 KPI 管理系統 v1.0</title>
+  <script defer src="/__/firebase/12.13.0/firebase-app-compat.js"></script>
+  <script defer src="/__/firebase/12.13.0/firebase-auth-compat.js"></script>
+  <script defer src="/__/firebase/12.13.0/firebase-firestore-compat.js"></script>
+  <script defer src="/__/firebase/init.js?useEmulator=false"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;700;900&display=swap" rel="stylesheet">
+  <style>
+    :root { --kpi-blue: #3B4CCA; --kpi-red: #EE1515; --kpi-yellow: #FFCB05; --kpi-green: #27ae60; --kpi-dark: #222224; --kpi-bg: #f0f4f8; --kpi-card: #ffffff; }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: 'Nunito', '微軟正黑體', sans-serif; background: var(--kpi-bg); background-image: radial-gradient(#cbd5e1 1px, transparent 1px); background-size: 20px 20px; padding: 15px; display: flex; justify-content: center; min-height: 100vh; }
+    .container { background: var(--kpi-card); width: 100%; max-width: 520px; border-radius: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.15); overflow: hidden; border: 4px solid var(--kpi-dark); height: fit-content; }
+    .header { background: linear-gradient(135deg, var(--kpi-blue), #2c3e50); padding: 18px 20px; text-align: center; border-bottom: 6px solid var(--kpi-dark); position: relative; }
+    .header h1 { color: white; margin: 0; font-size: 20px; text-shadow: 2px 2px 0 var(--kpi-dark); letter-spacing: 1px; }
+    .header .subtitle { color: var(--kpi-yellow); font-size: 12px; font-weight: 700; margin-top: 3px; }
+    .content { padding: 15px; }
+    select.main-select { width: 100%; padding: 12px; margin-bottom: 10px; border-radius: 10px; border: 3px solid var(--kpi-blue); font-size: 18px; font-weight: 900; color: var(--kpi-dark); background: #f8faff; text-align: center; cursor: pointer; outline: none; }
+    .admin-panel { display: none; background: #2c3e50; border: 3px solid #f1c40f; border-radius: 10px; padding: 12px; margin-bottom: 12px; color: white; }
+    .admin-panel h3 { margin: 0 0 8px; color: #f1c40f; font-size: 14px; border-bottom: 1px dashed #7f8c8d; padding-bottom: 5px; }
+    .admin-group { display: flex; gap: 8px; margin-bottom: 8px; flex-wrap: wrap; align-items: center; font-size: 13px; }
+    .admin-group select { padding: 4px 8px; border-radius: 5px; background: #34495e; color: white; border: 1px solid #7f8c8d; font-weight: bold; }
+    .admin-btn { flex: 1; padding: 8px; font-size: 13px; font-weight: 700; cursor: pointer; background: #e67e22; color: white; border: none; border-radius: 5px; min-width: 80px; }
+    .admin-btn:hover { background: #d35400; }
+    #eventBanner { display: none; background: linear-gradient(135deg, #ffebee, #fff3e0); border: 2px dashed #e74c3c; color: #c0392b; padding: 10px; border-radius: 8px; margin-bottom: 10px; font-weight: 900; text-align: center; font-size: 14px; animation: pulse 1.5s infinite; }
+    @keyframes pulse { 0% { transform: scale(1); } 50% { transform: scale(1.02); } }
+    .dashboard-card { background: linear-gradient(135deg, #fffdf0, #fffae0); border: 3px solid var(--kpi-yellow); border-radius: 12px; padding: 15px; margin-bottom: 12px; text-align: center; display: none; }
+    .dashboard-card h3 { margin: 0 0 8px; color: var(--kpi-dark); font-size: 15px; font-weight: 900; }
+    .kpi-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-bottom: 12px; }
+    .kpi-box { background: white; border-radius: 8px; padding: 10px 5px; border: 2px solid #e0e0e0; font-weight: 700; color: #555; font-size: 12px; }
+    .kpi-box .val { font-size: 22px; display: block; color: var(--kpi-blue); margin-top: 2px; }
+    .kpi-box .val.lv-max { color: #e74c3c; animation: pulse 1s infinite; }
+    .badge-grid { display: flex; justify-content: center; gap: 6px; flex-wrap: wrap; margin: 8px 0; }
+    .badge-icon { font-size: 22px; filter: grayscale(100%); opacity: 0.2; transition: 0.3s; }
+    .badge-icon.earned { filter: grayscale(0); opacity: 1; transform: scale(1.1); }
+    .inventory-bar { display: flex; flex-wrap: wrap; justify-content: center; gap: 4px; margin: 8px 0; font-size: 12px; }
+    .inv-item { background: #f8f9fa; border: 1px solid #dee2e6; border-radius: 5px; padding: 3px 7px; font-weight: 700; }
+    .gym-preview { background: #fdedec; border: 2px dashed #e74c3c; border-radius: 8px; padding: 10px; font-size: 13px; font-weight: 700; color: #c0392b; line-height: 1.5; }
+    .category-card { background: #fafafa; border-radius: 12px; margin-bottom: 12px; padding: 12px; border: 2px solid #e0e0e0; }
+    .border-gym { border-left: 6px solid #e74c3c; }
+    .border-daily { border-left: 6px solid #3498db; }
+    .cat-title { font-size: 15px; font-weight: 900; color: var(--kpi-dark); margin-bottom: 6px; border-bottom: 2px dashed #ccc; padding-bottom: 5px; display: flex; justify-content: space-between; align-items: center; }
+    .cat-title .max-score { font-size: 12px; color: #888; font-weight: 400; }
+    .task-item { display: flex; align-items: center; margin: 5px 0; font-size: 14px; padding: 6px; border-radius: 6px; font-weight: 700; color: #444; }
+    .task-item:hover { background: #f0f4f8; }
+    .task-item input[type="checkbox"] { width: 20px; height: 20px; margin-right: 10px; cursor: pointer; accent-color: var(--kpi-red); flex-shrink: 0; }
+    .task-item label { cursor: pointer; flex: 1; }
+    .score-badge { font-size: 11px; padding: 2px 8px; border-radius: 12px; font-weight: 900; border: 1px solid #ccc; flex-shrink: 0; }
+    .decision-box { background: #f4f6f7; border: 3px solid var(--kpi-dark); border-radius: 12px; padding: 15px; margin: 12px 0; }
+    .decision-box h3 { margin: 0 0 10px; color: var(--kpi-dark); text-align: center; font-size: 15px; }
+    .action-option { background: white; border: 2px solid #bdc3c7; border-radius: 8px; padding: 10px; margin-bottom: 8px; cursor: pointer; transition: 0.2s; display: flex; align-items: center; font-weight: 700; color: #333; }
+    .action-option:hover { border-color: var(--kpi-blue); }
+    .action-option input[type="radio"] { margin-right: 12px; transform: scale(1.3); accent-color: var(--kpi-blue); }
+    .action-option.selected { border-color: var(--kpi-blue); background: #e3f2fd; }
+    #baitSelector, #trainSelector { display: none; background: #fff9db; padding: 10px; border-radius: 8px; border: 2px dashed #f1c40f; margin-bottom: 10px; text-align: center; font-size: 13px; font-weight: 700; }
+    #baitSelector select, #trainSelector select { padding: 6px; font-weight: 700; border-radius: 5px; margin-top: 5px; width: 100%; }
+    .preview-box { background: #e8f8f5; border: 2px dashed #1abc9c; border-radius: 10px; padding: 12px; margin-top: 10px; text-align: center; font-size: 14px; font-weight: 700; color: #16a085; }
+    .veto-warning { display: none; background: #fdedec; color: #c0392b; border: 2px dashed #e74c3c; border-radius: 10px; padding: 10px; margin-top: 10px; font-size: 13px; font-weight: 700; text-align: center; }
+    .button-row { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-top: 10px; }
+    .nav-btn { padding: 12px 4px; border-radius: 8px; font-size: 13px; border: 2px solid var(--kpi-dark); font-weight: 900; cursor: pointer; box-shadow: 2px 2px 0 var(--kpi-dark); transition: 0.1s; display: flex; align-items: center; justify-content: center; gap: 4px; background: var(--kpi-green); color: white; }
+    .nav-btn:active { transform: translate(2px, 2px); box-shadow: none; }
+    .nav-btn:disabled { filter: grayscale(100%); cursor: not-allowed; opacity: 0.6; box-shadow: none; }
+    .btn-collection { background: var(--kpi-green); }
+    .btn-shop { background: var(--kpi-yellow); color: var(--kpi-dark); }
+    .btn-arena { background: #e74c3c; }
+    .btn-challenge { background: #3498db; }
+    .submit-btn { width: 100%; padding: 14px; border-radius: 12px; font-size: 18px; background: var(--kpi-blue); color: white; border: 2px solid var(--kpi-dark); font-weight: 900; cursor: pointer; box-shadow: 3px 3px 0 var(--kpi-dark); transition: 0.1s; margin-top: 10px; }
+    .submit-btn:active { transform: translate(2px, 2px); box-shadow: 1px 1px 0; }
+    .submit-btn:disabled { filter: grayscale(100%); cursor: not-allowed; opacity: 0.6; box-shadow: none; }
+    .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); align-items: center; justify-content: center; z-index: 1000; }
+    .modal-content { background: white; padding: 20px; border-radius: 15px; width: 90%; max-width: 420px; border: 4px solid var(--kpi-yellow); max-height: 85vh; overflow-y: auto; text-align: center; }
+    .modal-content h3 { margin-top: 0; }
+    .close-btn { background: #95a5a6; color: white; border: none; padding: 10px; width: 100%; border-radius: 8px; font-weight: 700; cursor: pointer; margin-top: 15px; }
+    .close-btn:hover { background: #7f8c8d; }
+    .shop-item { border: 2px solid #ddd; padding: 10px; margin-bottom: 10px; border-radius: 8px; display: flex; justify-content: space-between; align-items: center; text-align: left; position: relative; }
+    .shop-item-info h4 { margin: 0 0 3px; color: var(--kpi-blue); font-size: 14px; }
+    .shop-item-info p { margin: 0; font-size: 12px; color: #666; }
+    .buy-btn { background: var(--kpi-red); color: white; border: none; padding: 8px 14px; border-radius: 6px; font-weight: 700; cursor: pointer; flex-shrink: 0; }
+    .buy-btn:disabled { background: #ccc; cursor: not-allowed; }
+    .shop-lock { position: absolute; width: 100%; height: 100%; top: 0; left: 0; background: rgba(255,255,255,0.85); display: flex; align-items: center; justify-content: center; font-weight: 700; color: #e74c3c; border-radius: 8px; z-index: 2; }
+    .evo-modal { background: rgba(0,0,0,0.9); color: white; }
+    @keyframes blink { 0% { opacity: 0.3; transform: scale(0.8); } 50% { opacity: 1; transform: scale(1.3); } 100% { opacity: 0.3; transform: scale(0.8); } }
+    .evo-sparkle { animation: blink 0.8s infinite; font-size: 50px; margin: 20px 0; }
+    .evo-new-name { color: #f1c40f; font-size: 28px; text-shadow: 0 0 15px rgba(241,196,15,0.8); margin: 15px 0; display: block; }
+    .collection-grid { display: grid; gap: 10px; margin-top: 10px; text-align: left; }
+    .collection-card { border: 2px solid #bdc3c7; border-radius: 8px; padding: 10px; background: #fafafa; }
+    .card-header { display: flex; justify-content: space-between; border-bottom: 1px dashed #ccc; padding-bottom: 5px; margin-bottom: 5px; font-size: 14px; }
+    .card-header strong { color: var(--kpi-blue); }
+    .exp-bar-bg { width: 100%; height: 8px; background: #ddd; border-radius: 4px; overflow: hidden; }
+    .exp-bar { height: 100%; background: var(--kpi-blue); width: 0%; transition: width 0.5s; }
+    .exp-text { font-size: 11px; color: #666; margin-top: 3px; }
+    .conflict-panel { background: #fff3cd; border: 2px solid #ffc107; border-radius: 8px; padding: 10px; margin: 10px 0; font-size: 12px; font-weight: 700; color: #856404; display: none; }
+    .loading-spinner { display: inline-block; width: 20px; height: 20px; border: 3px solid rgba(255,255,255,0.3); border-radius: 50%; border-top-color: white; animation: spin 0.8s ease-in-out infinite; margin-right: 8px; vertical-align: middle; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .test-badge { display: inline-block; background: #27ae60; color: white; padding: 2px 10px; border-radius: 10px; font-size: 11px; font-weight: 700; margin-left: 8px; }
+    @media (max-width: 480px) { .kpi-grid { grid-template-columns: repeat(2, 1fr); } .button-row { grid-template-columns: repeat(2, 1fr); } }
+  </style>
+</head>
+<body>
+<div class="container" id="app">
+  <div class="header">
+    <h1>📊 KPI 學習管理系統</h1>
+    <div class="subtitle">⚡ 每日任務 × 成就系統 × 獎勵商店</div>
+  </div>
+  <div class="content">
+    <select id="studentSelect" class="main-select">
+      <option value="">👉 選擇訓練家登入</option>
+      <option value="Neil">👦 Neil (苡逢)</option>
+      <option value="Emma">👧 Emma (苡瑄)</option>
+      <option value="Admin">👑 管理員</option>
+    </select>
+
+    <div id="adminPanel" class="admin-panel">
+      <h3>👑 系統管理面板</h3>
+      <div class="admin-group">
+        <label>⏱️ 模擬進度：</label>
+        <select id="devMonth"><option value="1">第 1 月</option><option value="3">第 3 月</option><option value="7">第 7 月</option><option value="9">第 9 月</option><option value="10">第 10 月</option></select>
+        <select id="devWeek"><option value="gym">一般週末 (道館)</option><option value="league">月底 (大會)</option></select>
+      </div>
+      <div class="admin-group">
+        <button class="admin-btn" onclick="devAdd('COIN',500)">💰 +500 幣</button>
+        <button class="admin-btn" onclick="devAdd('BADGE',4)">🏅 +4 徽章</button>
+        <button class="admin-btn" onclick="devAdd('EXP',2000)">✨ +2000 EXP</button>
+      </div>
+    </div>
+
+    <div id="eventBanner"></div>
+
+    <div id="dashboard" class="dashboard-card">
+      <h3>🏆 學習 KPI 儀表板</h3>
+      <div class="kpi-grid">
+        <div class="kpi-box">最高等級<span class="val" id="kpiLevel">Lv.5</span></div>
+        <div class="kpi-box">聯盟幣<span class="val" id="kpiCoins">0</span></div>
+        <div class="kpi-box">徽章數<span class="val" id="kpiBadges">0</span></div>
+      </div>
+      <div id="inventoryBar" class="inventory-bar"></div>
+      <div id="relicsBar" class="inventory-bar" style="border-top:1px dashed #ddd; padding-top:6px;"></div>
+      <div id="gymPreview" class="gym-preview">⚔️ 載入挑戰情報中...</div>
+    </div>
+
+    <div id="tasksArea">
+      <div class="category-card border-gym">
+        <div class="cat-title">📐 數理道館 <span class="max-score">滿分 30</span></div>
+        <label class="task-item"><input type="checkbox" value="15" class="task-cb"><label>劉威宏/南PC (代數先修)</label><span class="score-badge">+15</span></label>
+        <label class="task-item"><input type="checkbox" value="15" class="task-cb"><label>計算練習與私中魔王題</label><span class="score-badge">+15</span></label>
+      </div>
+      <div class="category-card border-gym">
+        <div class="cat-title">📖 國語道館 <span class="max-score">滿分 25</span></div>
+        <label class="task-item"><input type="checkbox" value="15" class="task-cb"><label>國學與字音字形特訓</label><span class="score-badge">+15</span></label>
+        <label class="task-item"><input type="checkbox" value="10" class="task-cb"><label>閱讀測驗與古詩文</label><span class="score-badge">+10</span></label>
+      </div>
+      <div class="category-card border-gym">
+        <div class="cat-title">🎧 英文道館 <span class="max-score">滿分 25</span></div>
+        <label class="task-item"><input type="checkbox" value="15" class="task-cb"><label>PET/FCE 與聽力特訓</label><span class="score-badge">+15</span></label>
+        <label class="task-item"><input type="checkbox" value="10" class="task-cb"><label>NonFiction 與雜誌閱讀</label><span class="score-badge">+10</span></label>
+      </div>
+      <div class="category-card border-daily">
+        <div class="cat-title">✨ 紀律與體能 <span class="max-score">滿分 20</span></div>
+        <label class="task-item"><input type="checkbox" value="5" id="cbEx" class="task-cb discipline"><label>跳繩500下 / 運動30分</label><span class="score-badge">+5</span></label>
+        <label class="task-item"><input type="checkbox" value="5" class="task-cb discipline"><label>小提琴專注練習</label><span class="score-badge">+5</span></label>
+        <label class="task-item"><input type="checkbox" value="5" class="task-cb discipline"><label>家務小幫手</label><span class="score-badge">+5</span></label>
+        <label class="task-item"><input type="checkbox" value="5" id="cbSleep" class="task-cb discipline"><label>晚上 22:15 前就寢</label><span class="score-badge">+5</span></label>
+      </div>
+    </div>
+
+    <div class="decision-box">
+      <h3>⚡ 今日戰略抉擇</h3>
+      <label class="action-option" id="optCapture"><input type="radio" name="actionType" value="capture"><div>🎯 挑戰新目標<br><span style="font-size:12px;color:#666;">依據分數解鎖新里程碑</span></div></label>
+      <div id="baitSelector">🎯 指定領域方向：<select id="baitAttr"><option value="隨機">🎲 隨機</option></select></div>
+      <label class="action-option" id="optTrain"><input type="radio" name="actionType" value="train"><div>✨ 強化現有技能<br><span style="font-size:12px;color:#666;">將分數轉為 EXP 灌注</span></div></label>
+      <div id="trainSelector">🎯 選擇強化對象：<select id="trainTarget"></select></div>
+      <div id="vetoWarning" class="veto-warning">⚠️ 健康違規！獎勵將被沒收！</div>
+      <div id="previewBox" class="preview-box">👆 請先完成任務並選擇戰略</div>
+    </div>
+
+    <div class="button-row">
+      <button class="nav-btn btn-collection" onclick="openCollection()">📖 成就圖鑑</button>
+      <button class="nav-btn btn-shop" onclick="openShop()">🛒 獎勵商城</button>
+      <button class="nav-btn btn-challenge" onclick="openChallenge()">🏆 每週挑戰</button>
+    </div>
+    <button id="submitBtn" class="submit-btn" disabled>請先登入</button>
+  </div>
+</div>
+
+<!-- Modals -->
+<div id="collectionModal" class="modal"><div class="modal-content" style="border-color:var(--kpi-green);">
+  <h3 style="color:var(--kpi-green);">📖 成就圖鑑</h3>
+  <div id="collectionInventory" style="background:#e8f8f5;border:2px dashed var(--kpi-green);border-radius:8px;padding:8px;margin-bottom:10px;font-size:13px;font-weight:700;"></div>
+  <div id="collectionList" class="collection-grid"></div>
+  <button class="close-btn" onclick="closeModal('collectionModal')">關閉</button>
+</div></div>
+
+<div id="shopModal" class="modal"><div class="modal-content" style="border-color:var(--kpi-yellow);">
+  <h3 style="color:var(--kpi-blue);">🛒 獎勵商城</h3>
+  <div style="background:#fdfaf0;border:2px dashed #f1c40f;padding:8px;border-radius:8px;margin-bottom:12px;font-weight:700;">持有：<strong id="shopCoins" style="color:#f39c12;">0</strong> 幣</div>
+  <div id="shopList"></div>
+  <button class="close-btn" onclick="closeModal('shopModal')">關閉</button>
+</div></div>
+
+<div id="challengeModal" class="modal"><div class="modal-content" style="border-color:#3498db;">
+  <h3 style="color:#2980b9;">🏆 每週挑戰</h3>
+  <div id="challengeContent" style="text-align:left;">
+    <p style="font-size:14px;font-weight:700;margin-bottom:10px;">📊 本週 KPI 戰報</p>
+    <div id="challengeStats"></div>
+    <div style="text-align:center;margin-top:15px;">
+      <button class="buy-btn" style="background:#27ae60;padding:12px 24px;font-size:16px;" onclick="refreshChallenge()">🔄 重新整理數據</button>
+    </div>
+  </div>
+  <button class="close-btn" onclick="closeModal('challengeModal')">關閉</button>
+</div></div>
+
+<div id="evoCutscene" class="modal evo-modal">
+  <div id="evoStep1" style="text-align:center;display:none;">
+    <h2 style="font-size:22px;line-height:1.5;">咦？<br><span id="evoOldName" style="color:#f1c40f;"></span><br>的樣子有點怪怪的...</h2>
+    <div class="evo-sparkle">✨ 💫 ✨</div>
+  </div>
+  <div id="evoStep2" style="text-align:center;display:none;">
+    <h2 style="font-size:28px;color:#f1c40f;">🌟 里程碑達成！</h2>
+    <p style="font-size:18px;font-weight:700;margin-top:20px;">
+      <span id="evoOldName2"></span><br>
+      <span id="evoActionText">進化成了...</span>
+    </p>
+    <span id="evoNewName" class="evo-new-name"></span>
+    <button class="buy-btn" style="margin-top:25px;font-size:18px;padding:14px 28px;" onclick="confirmEvo()">🎉 太棒了！</button>
+  </div>
+</div>
+
+<div id="toast" style="display:none;position:fixed;bottom:20px;left:50%;transform:translateX(-50%);background:#333;color:white;padding:12px 24px;border-radius:8px;font-weight:700;z-index:9999;box-shadow:0 4px 12px rgba(0,0,0,0.3);font-size:14px;text-align:center;max-width:90%;"></div>
+
+<script>
+let db;
+let globalData = { roster: [], highestLevel: 5, lockedGymLevel: 5, coins: 0, badges: 0, potions: 0, revives: 0, candies: 0, maxPotions: 0, maxRevives: 0, hasExpShare: false, hasExpertBelt: false, hasEviolite: false, hasChampionCloak: false, hasAmuletCoin: false, todayCompleted: false, todayBattles: 0, weekGymWins: 0, monthLeagueWins: 0 };
+let isAdmin = false, activeEvent = null, pendingSave = null;
+
+function $(id) { return document.getElementById(id); }
+
+function toast(msg, duration = 3000) {
+  const t = $('toast'); t.innerHTML = msg; t.style.display = 'block';
+  setTimeout(() => { t.style.display = 'none'; }, duration);
+}
+
+function closeModal(id) { $(id).style.display = 'none'; }
+
+function getMonthDiff() {
+  if (isAdmin) return parseInt($('devMonth').value);
+  const d = new Date();
+  return Math.max(1, (d.getFullYear() - 2026) * 12 + d.getMonth() - 3 + 1);
+}
+function checkIsLeague() {
+  if (isAdmin) return $('devWeek').value === 'league';
+  const d = new Date();
+  return d.getDate() >= new Date(d.getFullYear(), d.getMonth() + 1, 0).getDate() - 2;
+}
+
+function getSeededRandom(str) {
+  let h = 0;
+  for (let i = 0; i < String(str).length; i++) h = String(str).charCodeAt(i) + ((h << 5) - h);
+  const x = Math.sin(h) * 10000;
+  return Math.abs(x - Math.floor(x));
+}
+
+function calcLevelAndExp(totalExp, initialLevel) {
+  let lvl = initialLevel || 5, expNeeded = lvl * 100, cur = totalExp;
+  while (cur >= expNeeded) { cur -= expNeeded; lvl++; expNeeded = lvl * 100; if (lvl >= 99) { lvl = 99; cur = expNeeded; break; } }
+  if (lvl >= 99) { lvl = 99; cur = 9900; expNeeded = 9900; }
+  return { level: lvl, expProgress: cur, expNeeded };
+}
+
+function getStartOfWeek(date) {
+  const d = new Date(date); const day = d.getDay() || 7;
+  d.setHours(0, 0, 0, 0); d.setDate(d.getDate() - day + 1); return d;
+}
+function getStartOfMonth(date) {
+  const d = new Date(date); d.setDate(1); d.setHours(0, 0, 0, 0); return d;
+}
+
+async function recalculateStudentState(studentId, events) {
+  console.log(`recalculateStudentState: ${events ? events.length : 0} events`);
+  if (!events || events.length === 0) return null;
+  let state = {
+    studentId, level: 5, totalExp: 0, coins: 0, badges: 0,
+    lockedGymLevel: 5, highestLevel: 5,
+    potions: 0, revives: 0, candies: 0, maxPotions: 0, maxRevives: 0,
+    hasExpShare: false, hasExpertBelt: false, hasEviolite: false,
+    hasChampionCloak: false, hasAmuletCoin: false,
+    todayCompleted: false, daysSinceLastBadge: 0,
+    lastBadgeTime: null, firstLogTime: null,
+    todayBattles: 0, weekGymWins: 0, monthLeagueWins: 0,
+    roster: { P0: { id: 'P0', baseName: '🐾 伊布 (一般系)', totalExp: 0, initialLevel: 5, catchDate: '初始夥伴' } }
+  };
+  const dNow = new Date(), todayStr = dNow.toDateString();
+  const startOfWeek = getStartOfWeek(dNow).getTime(), startOfMonth = getStartOfMonth(dNow).getTime();
+
+  for (const evt of events) {
+    const rowDate = evt.timestamp ? (evt.timestamp.toDate ? evt.timestamp.toDate() : new Date(evt.timestamp)) : new Date();
+    const { action, score, expGained, coinsGained, badgeChange, note } = evt;
+    const rowExp = expGained || 0, rowCoins = coinsGained || 0, rowBadges = badgeChange || 0;
+    const safeNote = String(note || ''), rowAction = String(action || '');
+
+    if (!state.firstLogTime) state.firstLogTime = rowDate.getTime();
+    state.badges += rowBadges;
+    if (rowBadges > 0) {
+      console.log(`recalc badge: +${rowBadges} total=${state.badges} note=${safeNote.substring(0,20)}`);
+      state.lastBadgeTime = rowDate.getTime();
+    }
+    state.coins += rowCoins;
+
+    if (rowDate.toDateString() === todayStr && !['商城兌換','戰鬥消耗','物品消耗','E','戰鬥勝利','系統測試'].includes(rowAction)) {
+      state.todayCompleted = true;
+    }
+    if (rowAction === '商城兌換') {
+      const cm = safeNote.match(/花費(\d+)幣/);
+      if (cm) state.coins -= parseInt(cm[1]);
+      if (safeNote.includes('好傷藥')) state.potions++;
+      if (safeNote.includes('活力塊')) state.revives++;
+      if (safeNote.includes('神奇糖果')) state.candies++;
+      if (safeNote.includes('全滿藥')) state.maxPotions++;
+      if (safeNote.includes('元氣藥塊')) state.maxRevives++;
+      if (safeNote.includes('學習裝置')) state.hasExpShare = true;
+      if (safeNote.includes('進化奇石')) state.hasEviolite = true;
+      if (safeNote.includes('達人帶')) state.hasExpertBelt = true;
+      if (safeNote.includes('護符金幣')) state.hasAmuletCoin = true;
+      if (safeNote.includes('冠軍披風')) state.hasChampionCloak = true;
+    }
+    let m;
+    if ((m = safeNote.match(/消耗(\d+)瓶好傷藥/))) state.potions -= parseInt(m[1]);
+    if ((m = safeNote.match(/消耗(\d+)個活力塊/))) state.revives -= parseInt(m[1]);
+    if ((m = safeNote.match(/消耗(\d+)顆神奇糖果/))) state.candies -= parseInt(m[1]);
+    if ((m = safeNote.match(/消耗(\d+)瓶全滿藥/))) state.maxPotions -= parseInt(m[1]);
+    if ((m = safeNote.match(/消耗(\d+)個元氣塊/))) state.maxRevives -= parseInt(m[1]);
+
+    if (rowAction === 'A' || rowAction === '捕捉') {
+      const pid = (safeNote.match(/ID:(P\d+(?:_LEG)?|legacy_\d+)/)||[])[1] || 'legacy_'+evt.id;
+      const pNameRaw = ((safeNote.match(/獲得:\s*([^|]+)/)||[])[1] || '未知寶可夢 (一般系)').trim();
+      let initLv = Math.min(99, Math.max(5, Math.max(5, state.lockedGymLevel) + (score === 100 ? 3 : (score >= 80 ? 2 : 0))));
+      const lvMatch = pNameRaw.match(/(.+?)\s*\(Lv\.(\d+)\)/);
+      if (lvMatch) initLv = parseInt(lvMatch[2], 10);
+      const cleanName = pNameRaw.includes('(') ? pNameRaw : pNameRaw + ' (一般系)';
+      if (!state.roster[pid]) {
+        state.roster[pid] = { id: pid, baseName: cleanName, totalExp: 0, initialLevel: initLv,
+          catchDate: `${rowDate.getFullYear()}/${(rowDate.getMonth()+1).toString().padStart(2,'0')}/${rowDate.getDate().toString().padStart(2,'0')}` };
+      }
+    } else if (rowAction === 'B' || rowAction === '糖果升級') {
+      const pid = (safeNote.match(/ID:(P\d+(?:_LEG)?|legacy_\d+)/)||[])[1];
+      if (pid) for (const k in state.roster) state.roster[k].totalExp += (k === pid ? rowExp : Math.floor(rowExp * (state.hasExpShare ? 0.2 : 0.1)));
+    } else if (rowAction === '戰鬥勝利') {
+      const match = safeNote.match(/參與(?:者)?:\s*([^|]+)/);
+      const parts = match ? match[1].split(',').map(s => s.trim()) : [];
+      for (const k in state.roster) state.roster[k].totalExp += parts.includes(k) ? rowExp : Math.floor(rowExp * (state.hasExpShare ? 0.2 : 0.1));
+      const bossMatch = safeNote.match(/🏆 捕獲:\s*([^|]+)/);
+      if (bossMatch) {
+        const bossId = 'P' + rowDate.getTime() + '_LEG';
+        const bossName = (bossMatch[1].trim().includes('(') ? bossMatch[1].trim() : bossMatch[1].trim() + ' (一般系)');
+        if (!state.roster[bossId]) state.roster[bossId] = { id: bossId, baseName: bossName, totalExp: 0,
+          initialLevel: Math.min(99, Math.max(5, state.lockedGymLevel) + 5),
+          catchDate: `${rowDate.getFullYear()}/${(rowDate.getMonth()+1).toString().padStart(2,'0')}/${rowDate.getDate().toString().padStart(2,'0')}` };
+      }
+      if (rowDate.toDateString() === todayStr && (safeNote.includes('[Daily]')||safeNote.includes('路人')||safeNote.includes('Raid'))) state.todayBattles++;
+      if (rowDate.getTime() >= startOfWeek && (safeNote.includes('[Gym]')||safeNote.includes('道館'))) state.weekGymWins++;
+      if (rowDate.getTime() >= startOfMonth && (safeNote.includes('[League]')||safeNote.includes('大會')||safeNote.includes('魔王'))) state.monthLeagueWins++;
+    } else if (rowAction === 'E') {
+      const nm = safeNote.match(/獲得:\s*([^|]+)/);
+      if (nm && state.roster['P0']) state.roster['P0'].baseName = nm[1].trim().includes('(') ? nm[1].trim() : nm[1].trim() + ' (一般系)';
+    } else if (rowAction === '滿級轉化') { state.coins += rowCoins; }
+
+    let currentIterLevel = 5;
+    for (const k in state.roster) { const l = calcLevelAndExp(state.roster[k].totalExp, state.roster[k].initialLevel).level; if (l > currentIterLevel) currentIterLevel = l; }
+    state.highestLevel = currentIterLevel;
+    if (rowBadges > 0) state.lockedGymLevel = state.highestLevel;
+  }
+
+  state.daysSinceLastBadge = state.lastBadgeTime ? (Date.now() - state.lastBadgeTime)/86400000 : (state.firstLogTime ? (Date.now() - state.firstLogTime)/86400000 : 0);
+  const rosterArray = []; let finalHighestLevel = 5;
+  for (const k in state.roster) {
+    const p = state.roster[k]; const lvlInfo = calcLevelAndExp(p.totalExp, p.initialLevel);
+    p.currentLevel = lvlInfo.level; p.expProgress = lvlInfo.expProgress; p.expNeeded = lvlInfo.expNeeded;
+    if (p.currentLevel > finalHighestLevel) finalHighestLevel = p.currentLevel;
+    rosterArray.push(p);
+  }
+  return { studentId: state.studentId, highestLevel: finalHighestLevel, lockedGymLevel: state.lockedGymLevel,
+    coins: state.coins, badges: state.badges, potions: state.potions, revives: state.revives,
+    candies: state.candies, maxPotions: state.maxPotions, maxRevives: state.maxRevives,
+    hasExpShare: state.hasExpShare, hasExpertBelt: state.hasExpertBelt, hasEviolite: state.hasEviolite,
+    hasChampionCloak: state.hasChampionCloak, hasAmuletCoin: state.hasAmuletCoin,
+    todayCompleted: state.todayCompleted, daysSinceLastBadge: state.daysSinceLastBadge, roster: rosterArray,
+    todayBattles: state.todayBattles, weekGymWins: state.weekGymWins, monthLeagueWins: state.monthLeagueWins };
+}
+
+async function fetchStudentData(studentId, pendingEvent = null) {
+  if (!studentId) return;
+  if (!db) { toast('Firebase 初始化中...'); return; }
+
+  isAdmin = (studentId === 'Admin');
+  $('adminPanel').style.display = isAdmin ? 'block' : 'none';
+  const btn = $('submitBtn'); btn.disabled = true; btn.innerHTML = '<span class="loading-spinner"></span> 讀取中...';
+
+  try {
+    const snapshot = await db.collection('kpi_events')
+      .where('studentId', '==', studentId)
+      .orderBy('timestamp', 'asc')
+      .get();
+
+    const events = snapshot.docs.map(d => ({ id: d.id, ...d.data() }));
+    console.log(`fetchStudentData: got ${events.length} events from FS`);
+
+    // Append pending event if Firestore index hasn't caught up yet
+    if (pendingEvent) {
+      console.log(`pendingEvent id=${pendingEvent.id} action=${pendingEvent.action} badgeChg=${pendingEvent.badgeChange}`);
+      const found = events.some(e => e.id === pendingEvent.id);
+      console.log(`pendingEvent in results? ${found}`);
+      if (!found) {
+        events.push(pendingEvent);
+        console.log(`appended pendingEvent, total=${events.length}`);
+      }
+    }
+
+    const state = await recalculateStudentState(studentId, events);
+
+    if (state) {
+      globalData = { ...state };
+      delete globalData.cached;
+      await db.collection('kpi_students').doc(studentId).set(state);
+    } else {
+      globalData = { studentId, roster: [], highestLevel: 5, lockedGymLevel: 5, coins: 0, badges: 0,
+        potions: 0, revives: 0, candies: 0, maxPotions: 0, maxRevives: 0,
+        hasExpShare: false, hasExpertBelt: false, hasEviolite: false, hasChampionCloak: false,
+        hasAmuletCoin: false, todayCompleted: false, todayBattles: 0, weekGymWins: 0, monthLeagueWins: 0 };
+    }
+    if (isAdmin) globalData.todayCompleted = false;
+
+    if (!globalData.roster || !globalData.roster.length) {
+      globalData.roster = [{ id: 'P0', baseName: '🐾 伊布 (一般系)', totalExp: 0, initialLevel: 5, currentLevel: 5, expProgress: 0, expNeeded: 500, catchDate: '初始夥伴' }];
+    }
+
+    updateDashboard(); renderActions();
+
+    if (globalData.todayCompleted && !isAdmin) {
+      btn.innerHTML = '✅ 今日已完成'; btn.disabled = true;
+      document.querySelectorAll('.task-cb, input[name="actionType"]').forEach(el => { el.checked = false; el.disabled = true; });
+      document.querySelectorAll('.action-option').forEach(el => el.classList.remove('selected'));
+      $('previewBox').innerHTML = '🌟 今日任務已完成！明日再來挑戰！';
+    } else {
+      btn.disabled = false; btn.textContent = '🚀 送出今日紀錄';
+      document.querySelectorAll('.task-cb, input[name="actionType"]').forEach(el => el.disabled = false);
+    }
+  } catch (e) {
+    console.error('fetchStudentData error:', e);
+    toast('⚠️ 讀取錯誤：' + e.message);
+    btn.textContent = '連線失敗'; btn.disabled = false;
+  }
+}
+
+async function saveEventToFirestore(eventData) {
+  try {
+    const docRef = await db.collection('kpi_events').add({
+      ...eventData,
+      timestamp: firebase.firestore.Timestamp.now()
+    });
+    return { success: true, eventId: docRef.id };
+  } catch (e) {
+    console.error('saveEvent error:', e);
+    toast('❌ 儲存失敗：' + e.message);
+    return null;
+  }
+}
+
+function updateDashboard() {
+  const d = globalData;
+  const md = getMonthDiff();
+  const badges = d.badges || 0;
+
+  $('kpiLevel').innerHTML = d.highestLevel >= 99 ? '<span class="lv-max">Lv.99 MAX</span>' : `Lv.${d.highestLevel}`;
+  $('kpiCoins').textContent = d.coins || 0;
+  $('kpiBadges').textContent = badges;
+  $('shopCoins').textContent = d.coins || 0;
+  $('dashboard').style.display = 'block';
+
+  const inv = $('inventoryBar'); inv.innerHTML = '';
+  const items = [
+    ['💊 好傷藥', d.potions], ['🧪 全滿藥', d.maxPotions],
+    ['💛 活力塊', d.revives], ['💖 元氣塊', d.maxRevives],
+    ['🍬 糖果', d.candies]
+  ];
+  items.forEach(([name, count]) => {
+    if (count > 0) inv.innerHTML += `<span class="inv-item">${name} ×${count}</span>`;
+  });
+
+  const relics = $('relicsBar'); relics.innerHTML = '';
+  const relicItems = [
+    [d.hasExpShare, '🎒 學習裝置'], [d.hasEviolite, '🛡️ 進化奇石'],
+    [d.hasExpertBelt, '💎 達人帶'], [d.hasAmuletCoin, '🪙 護符金幣'],
+    [d.hasChampionCloak, '👑 冠軍披風']
+  ];
+  relicItems.forEach(([has, name]) => {
+    if (has) relics.innerHTML += `<span class="inv-item">${name}</span>`;
+  });
+
+  const bg = Math.floor((badges === 0 ? 0 : badges - 1) / 8);
+  const db = badges === 0 ? 0 : (badges % 8 === 0 ? 8 : badges % 8);
+  const regionNames = ['關都地區', '城都地區', '豐緣地區', '神奧地區', '帕底亞地區'];
+
+  const bp = $('gymPreview');
+  const isLeague = checkIsLeague();
+  const recLvl = isLeague ? Math.min(109, d.lockedGymLevel + 5) : d.lockedGymLevel;
+
+  if (isLeague) {
+    bp.innerHTML = `[預報] 🏆 月底大會即將開打<br>推薦等級: Lv.${recLvl} 以上`;
+  } else {
+    const attrs = ['水系', '火系', '草系', '電系', '飛行系'];
+    const yBase = new Date().getFullYear() * 100 + badges;
+    const attrSat = attrs[(yBase + 6) % attrs.length];
+    const attrSun = attrs[(yBase + 0) % attrs.length];
+    bp.innerHTML = `[預報] ⚔️ 週末道館即將開打<br>週六: ${attrSat} / 週日: ${attrSun}<br>推薦等級: Lv.${recLvl} 以上`;
+  }
+
+  checkDailyEvent($('studentSelect').value);
+}
+
+function renderActions() {
+  const sel = $('trainTarget'); sel.innerHTML = '';
+  globalData.roster.forEach(p => {
+    sel.appendChild(new Option(`${p.baseName} (Lv.${p.currentLevel})`, p.id));
+  });
+  updateBaitOptions(globalData.badges || 0);
+}
+
+function checkDailyEvent(name) {
+  const str = (name || '') + new Date().toDateString();
+  let h = 0; for (let i = 0; i < str.length; i++) h = str.charCodeAt(i) + ((h << 5) - h);
+  const rnd = Math.abs(h) % 100;
+  const banner = $('eventBanner');
+  if (rnd < 8) { activeEvent = 'EXP_BOOST'; banner.innerHTML = '🚨 大量發生中！今日 EXP 提升 1.5 倍！'; banner.style.display = 'block'; }
+  else if (rnd >= 8 && rnd < 15) { activeEvent = 'COIN_BOOST'; banner.innerHTML = '💰 喵喵的報恩！今日聯盟幣 ×2 倍！'; banner.style.display = 'block'; }
+  else { activeEvent = null; banner.style.display = 'none'; }
+}
+
+function updateBaitOptions(badges) {
+  const attrs = ['水系', '火系', '草系', '電系', '飛行系', '超能系', '格鬥系', '地面系', '龍系', '妖精系', '惡系', '鋼系', '冰系'];
+  const sel = $('baitAttr');
+  const cur = sel.value;
+  sel.innerHTML = '<option value="隨機">🎲 隨機</option>';
+  attrs.forEach(a => sel.appendChild(new Option(a, a)));
+  if (Array.from(sel.options).some(o => o.value === cur)) sel.value = cur;
+}
+
+function updatePreview() {
+  const name = $('studentSelect').value;
+  let score = 0, discCount = 0;
+  document.querySelectorAll('.task-cb:checked').forEach(cb => {
+    score += parseInt(cb.value);
+    if (cb.classList.contains('discipline')) discCount += parseInt(cb.value);
+  });
+
+  const hasBoth = $('cbEx').checked && $('cbSleep').checked;
+  $('vetoWarning').style.display = (!hasBoth && score >= 50) ? 'block' : 'none';
+
+  const act = document.querySelector('input[name="actionType"]:checked');
+  const actVal = act ? act.value : null;
+  $('baitSelector').style.display = (actVal === 'capture' && discCount === 20) ? 'block' : 'none';
+  $('trainSelector').style.display = (actVal === 'train') ? 'block' : 'none';
+
+  document.querySelectorAll('.action-option').forEach(el => el.classList.remove('selected'));
+  if (actVal === 'capture') $('optCapture').classList.add('selected');
+  else if (actVal === 'train') $('optTrain').classList.add('selected');
+
+  const pb = $('previewBox');
+  if (score === 0 || !actVal) { pb.innerHTML = score === 0 ? '👆 請先完成任務！' : '👆 請選擇戰略！'; return; }
+
+  const effScore = (!hasBoth && score >= 80) ? 79 : score;
+  const multExp = activeEvent === 'EXP_BOOST' ? 1.5 : 1.0;
+  const multCoin = activeEvent === 'COIN_BOOST' ? 2 : 1;
+  let baseCoins = (!hasBoth && score >= 50) ? 0 : (score === 100 ? 50 : (score >= 80 ? 30 : (score >= 50 ? 10 : 0)));
+  let cs = Math.floor(baseCoins * multCoin);
+  let bonusHtml = multCoin > 1 && baseCoins > 0 ? ' <span style="color:#c0392b;">(💰雙倍)</span>' : '';
+  if (globalData.hasAmuletCoin && cs > 0) { cs = Math.ceil(cs * 1.5); bonusHtml += ' <span style="color:#d35400;">(護符)</span>'; }
+
+  const bL = globalData.lockedGymLevel || 5;
+  const bns = effScore === 100 ? 3 : (effScore >= 80 ? 2 : 0);
+  const pL = Math.min(99, Math.max(5, bL + bns));
+
+  if (actVal === 'capture') {
+    const attr = (discCount === 20) ? $('baitAttr').value : '隨機';
+    pb.innerHTML = `🎯 預計收服：<br><span style="font-size:18px;color:#e67e22;">✨ 神秘 [${attr}] 目標</span><br>保證等級 Lv.${pL}${effScore === 100 ? ' 🌟菁英' : ''}<br>獲得：${cs} 幣${bonusHtml}`;
+  } else {
+    const tid = $('trainTarget').value;
+    const tg = globalData.roster.find(p => p.id === tid);
+    if (!tg) { pb.innerHTML = '請選擇對象！'; return; }
+
+    let baseExp = Math.floor(score * 10 * Math.max(1, bL / 5) * multExp);
+    let finalExp = baseExp;
+    let rubberMsg = '';
+    if (tg.currentLevel < bL) { finalExp = Math.floor(baseExp * 1.5); rubberMsg = '<br><span style="color:#27ae60;">🚀 追趕紅利！</span>'; }
+    else if (tg.currentLevel > bL + 5) { finalExp = Math.floor(baseExp * 0.3); rubberMsg = '<br><span style="color:#e74c3c;">⚠️ 等級壓制</span>'; }
+
+    const cN = tg.baseName;
+    const nL = calcLevelAndExp(tg.totalExp + finalExp, tg.initialLevel);
+    const nN = '✨ ' + cN.split(' ').slice(0, 2).join(' ') + ' Lv.' + nL.level;
+
+    if (tg.currentLevel >= 99) { cs += Math.floor(finalExp / 10); bonusHtml += ' <span style="color:#8e44ad;">(滿級鍊金)</span>'; }
+
+    const expHtml = multExp > 1 ? `<span style="color:#c0392b;font-size:20px;font-weight:900;">+${finalExp} EXP 🚨1.5倍！</span>` : `<span style="font-size:18px;">+${finalExp} EXP</span>`;
+    let html = `✨ 強化【${cN}】：<br>${expHtml}${rubberMsg}<br>獲得：${cs} 幣${bonusHtml}`;
+    if (nL.level > tg.currentLevel) html += `<br><span style="color:#27ae60;">⬆️ 升至 Lv.${nL.level}！</span>`;
+    if (tg.currentLevel >= 16 && tg.id === 'P0' && tg.baseName.includes('伊布')) html += `<br><span style="color:#e74c3c;">🌟 進化條件觸發！</span>`;
+    pb.innerHTML = html;
+  }
+}
+
+async function submitData() {
+  const u = $('studentSelect').value;
+  if (!u) { toast('請先選擇訓練家登入！'); return; }
+  if (globalData.todayCompleted && !isAdmin) { toast('🌟 今日已完成！'); return; }
+
+  const score = Array.from(document.querySelectorAll('.task-cb:checked')).reduce((s, c) => s + parseInt(c.value), 0);
+  const hasBoth = $('cbEx').checked && $('cbSleep').checked;
+  const act = document.querySelector('input[name="actionType"]:checked');
+  if (score === 0 || !act) { toast('⚠️ 請完成任務並選擇戰略！'); return; }
+
+  const actVal = act.value;
+  const ts = Array.from(document.querySelectorAll('.task-cb:checked')).map(c => c.nextElementSibling.textContent.trim());
+  const effScore = (!hasBoth && score >= 80) ? 79 : score;
+  const multExp = activeEvent === 'EXP_BOOST' ? 1.5 : 1.0;
+  const multCoin = activeEvent === 'COIN_BOOST' ? 2 : 1;
+  const bL = globalData.lockedGymLevel || 5;
+  const bns = effScore === 100 ? 3 : (effScore >= 80 ? 2 : 0);
+  const pL = Math.min(99, Math.max(5, bL + bns));
+
+  let expGained = 0, coinsGained = 0, badgeChange = 0, note = '';
+
+  if (actVal === 'capture') {
+    const attr = (Array.from(document.querySelectorAll('.discipline:checked')).length === 4) ? $('baitAttr').value : '隨機';
+    const rosterLen = globalData.roster ? globalData.roster.length : 0;
+    const seed = u + new Date().toDateString() + effScore + attr + '_' + rosterLen;
+    const r1 = getSeededRandom(seed);
+
+    const evolutions = ['💧 傑尼龜 (水系)', '🔥 小火龍 (火系)', '🍃 妙蛙種子 (草/毒系)', '⚡ 皮丘 (電系)', '🦅 波波 (一般/飛行系)', '🔮 凱西 (超能系)', '🥋 腕力 (格鬥系)', '👻 鬼斯 (幽靈/毒系)', '🐉 迷你龍 (龍系)', '✨ 皮寶寶 (妖精系)'];
+    const caught = evolutions[Math.floor(r1 * evolutions.length)];
+    note = `捕捉 | ID:P${Date.now()} | 獲得: ${caught} (Lv.${pL})`;
+    const baseCoins = (!hasBoth && score >= 50) ? 0 : (score === 100 ? 50 : (score >= 80 ? 30 : (score >= 50 ? 10 : 0)));
+    coinsGained = Math.floor(baseCoins * multCoin);
+    if (globalData.hasAmuletCoin && coinsGained > 0) coinsGained = Math.ceil(coinsGained * 1.5);
+
+    pendingSave = { studentId: u, tasks: ts, score: effScore, action: 'A', expGained: 0, coinsGained, badgeChange: 0, note };
+    $('evoOldName').textContent = `✨ [${attr}] 新目標`;
+    $('evoOldName2').textContent = '新夥伴的真面目是...';
+    $('evoActionText').textContent = '';
+    $('evoNewName').innerHTML = `${caught}<br><span style="font-size:18px;color:#e74c3c;">(Lv.${pL})</span>`;
+    $('evoStep1').style.display = 'block';
+    $('evoStep2').style.display = 'none';
+    $('evoCutscene').style.display = 'flex';
+    setTimeout(() => { $('evoStep1').style.display = 'none'; $('evoStep2').style.display = 'block'; }, 2500);
+    return;
+  } else {
+    const tid = $('trainTarget').value;
+    const tg = globalData.roster.find(p => p.id === tid);
+    let baseExp = Math.floor(score * 10 * Math.max(1, bL / 5) * multExp);
+    let expVal = baseExp;
+    if (tg.currentLevel < bL) expVal = Math.floor(baseExp * 1.5);
+    else if (tg.currentLevel > bL + 5) expVal = Math.floor(baseExp * 0.3);
+    expGained = expVal;
+
+    const baseCoins = (!hasBoth && score >= 50) ? 0 : (score === 100 ? 50 : (score >= 80 ? 30 : (score >= 50 ? 10 : 0)));
+    coinsGained = Math.floor(baseCoins * multCoin);
+    if (globalData.hasAmuletCoin && coinsGained > 0) coinsGained = Math.ceil(coinsGained * 1.5);
+
+    if (tg.currentLevel >= 99) { const x = Math.floor(expGained / 10); coinsGained += x; note += ' | 滿級轉化'; }
+
+    note = `特訓 | ID:${tid}` + (multExp > 1 ? ' | 🚨活動加倍' : '') + (multCoin > 1 ? ' | 💰活動加倍' : '');
+
+    const cN = tg.baseName;
+    const nL = calcLevelAndExp(tg.totalExp + expGained, tg.initialLevel);
+
+    pendingSave = { studentId: u, tasks: ts, score: effScore, action: 'B', expGained, coinsGained, badgeChange: 0, note };
+    $('evoOldName').textContent = cN;
+    $('evoOldName2').textContent = cN;
+    $('evoActionText').textContent = nL.level > tg.currentLevel ? '升級至 Lv.' + nL.level + '！' : '獲得大量經驗值！';
+    $('evoNewName').textContent = cN + (nL.level > tg.currentLevel ? ` → Lv.${nL.level}` : '');
+    $('evoStep1').style.display = 'block';
+    $('evoStep2').style.display = 'none';
+    $('evoCutscene').style.display = 'flex';
+    setTimeout(() => { $('evoStep1').style.display = 'none'; $('evoStep2').style.display = 'block'; }, 2000);
+    return;
+  }
+}
+
+async function confirmEvo() {
+  $('evoCutscene').style.display = 'none';
+  if (!pendingSave) return;
+  const btn = $('submitBtn'); btn.disabled = true; btn.innerHTML = '<span class="loading-spinner"></span> 儲存中...';
+
+  const result = await saveEventToFirestore(pendingSave);
+  if (result && result.success) {
+    toast('✅ 資料已成功儲存！');
+    const savedEvent = { ...pendingSave, id: result.eventId, timestamp: firebase.firestore.Timestamp.now() };
+    console.log(`submitData saved eventId=${result.eventId}`);
+    pendingSave = null;
+    await fetchStudentData($('studentSelect').value, savedEvent);
+  } else {
+    btn.textContent = '🚀 送出今日紀錄';
+    btn.disabled = false;
+    toast('❌ 儲存失敗，請重試');
+  }
+}
+
+async function openCollection() {
+  if (!globalData.roster || !globalData.roster.length) { toast('尚無資料'); return; }
+  const invDiv = $('collectionInventory');
+  invDiv.innerHTML = `
+    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:5px;font-size:13px;">
+      <span>💊 傷藥: <b>${globalData.potions || 0}</b></span>
+      <span>🧪 全滿藥: <b>${globalData.maxPotions || 0}</b></span>
+      <span>💛 活力塊: <b>${globalData.revives || 0}</b></span>
+      <span>💖 元氣塊: <b>${globalData.maxRevives || 0}</b></span>
+      <span>🍬 糖果: <b>${globalData.candies || 0}</b></span>
+      <span>🏅 徽章: <b>${globalData.badges || 0}</b></span>
+    </div>
+    <div style="margin-top:8px;">收集數：<b>${globalData.roster.length}</b></div>
+  `;
+
+  const list = $('collectionList'); list.innerHTML = '';
+  globalData.roster.forEach(p => {
+    const pc = Math.min(100, Math.floor((p.expProgress / p.expNeeded) * 100));
+    const candyBtn = globalData.candies > 0 && p.currentLevel < 99
+      ? `<button class="buy-btn" style="padding:4px 8px;font-size:11px;background:#9b59b6;" onclick="useCandy('${p.id}')">🍬 餵糖果</button>`
+      : (p.currentLevel >= 99 ? '<span style="font-size:11px;color:#e74c3c;font-weight:700;">MAX</span>' : '');
+    list.innerHTML += `
+      <div class="collection-card">
+        <div class="card-header"><strong>${p.baseName}</strong><span>Lv.${p.currentLevel}</span></div>
+        <div class="exp-bar-bg"><div class="exp-bar" style="width:${pc}%"></div></div>
+        <div class="exp-text">EXP: ${p.expProgress}/${p.expNeeded}</div>
+        <div style="font-size:11px;color:#888;">📅 ${p.catchDate || '未知'}</div>
+        ${candyBtn}
+      </div>
+    `;
+  });
+  $('collectionModal').style.display = 'flex';
+}
+
+async function useCandy(pId) {
+  if (globalData.candies <= 0) { toast('🍬 糖果不足！'); return; }
+  const p = globalData.roster.find(r => r.id === pId);
+  if (!p) return;
+  const expGained = p.currentLevel * 100;
+  const result = await saveEventToFirestore({
+    studentId: $('studentSelect').value,
+    tasks: ['餵食糖果'],
+    score: 0,
+    action: '糖果升級',
+    expGained,
+    coinsGained: 0,
+    badgeChange: 0,
+    note: `消耗1顆神奇糖果|ID:${pId}`
+  });
+  if (result && result.success) {
+    toast(`🍬 成功餵食 ${p.baseName}！`);
+    closeModal('collectionModal');
+    const savedEvent = { studentId: $('studentSelect').value, tasks: ['餵食糖果'], score: 0,
+      action: '糖果升級', expGained, coinsGained: 0, badgeChange: 0,
+      note: `消耗1顆神奇糖果|ID:${pId}`, id: result.eventId, timestamp: firebase.firestore.Timestamp.now() };
+    await fetchStudentData($('studentSelect').value, savedEvent);
+  }
+}
+
+async function openShop() {
+  $('shopCoins').textContent = globalData.coins || 0;
+  const list = $('shopList');
+  list.innerHTML = '<h4 style="margin:0 0 8px;color:#555;border-bottom:1px dashed #ccc;padding-bottom:5px;">💊 消耗品</h4>';
+
+  const items = [
+    { n: '好傷藥', d: '恢復 50% HP', c: 50, req: 0 },
+    { n: '活力塊', d: '戰死復活 (50%)', c: 150, req: 0 },
+    { n: '神奇糖果', d: '保底直升 1 級', c: 300, req: 4 },
+    { n: '全滿藥', d: '恢復 100% HP', c: 100, req: 12 },
+    { n: '元氣藥塊', d: '復活滿血', c: 250, req: 20 }
+  ];
+  items.forEach(i => {
+    const locked = (globalData.badges || 0) < i.req;
+    list.innerHTML += `<div class="shop-item" style="border-color:${locked?'#ddd':'#e74c3c'}">${locked ? '<div class="shop-lock">🔒 '+i.req+' 徽章</div>' : ''}<div class="shop-item-info"><h4>${i.n}</h4><p>${i.d}</p></div><button class="buy-btn" onclick="buyItem('${i.n}',${i.c})" ${locked?'disabled':''}>${i.c} 幣</button></div>`;
+  });
+
+  list.innerHTML += '<h4 style="margin:12px 0 8px;color:#555;border-bottom:1px dashed #ccc;padding-bottom:5px;">🌟 永久神器</h4>';
+  const relics = [
+    { n: '學習裝置', d: '經驗分享 20%', c: 600, req: 8, k: globalData.hasExpShare },
+    { n: '進化奇石', d: '未滿36級減傷 20%', c: 800, req: 16, k: globalData.hasEviolite },
+    { n: '達人帶', d: '效果絕佳傷害 2.4 倍', c: 1000, req: 24, k: globalData.hasExpertBelt },
+    { n: '護符金幣', d: '任務聯盟幣 1.5 倍', c: 1200, req: 28, k: globalData.hasAmuletCoin },
+    { n: '冠軍披風', d: '免疫屬性剋制', c: 1500, req: 32, k: globalData.hasChampionCloak }
+  ];
+  relics.forEach(r => {
+    const locked = (globalData.badges || 0) < r.req;
+    list.innerHTML += `<div class="shop-item">${locked ? '<div class="shop-lock">🔒 '+r.req+' 徽章</div>' : ''}<div class="shop-item-info"><h4>${r.n}</h4><p>${r.d}</p></div><button class="buy-btn" onclick="buyItem('${r.n}',${r.c})" ${r.k||locked?'disabled':''}>${r.k?'已擁有':r.c+' 幣'}</button></div>`;
+  });
+  $('shopModal').style.display = 'flex';
+}
+
+async function buyItem(name, cost) {
+  const u = $('studentSelect').value;
+  if (!u) return;
+  if ((globalData.coins || 0) < cost) { toast('❌ 聯盟幣不足！'); return; }
+  closeModal('shopModal');
+  toast('⏳ 購買中...');
+  const result = await saveEventToFirestore({
+    studentId: u,
+    tasks: ['商城兌換'],
+    score: 0,
+    action: '商城兌換',
+    expGained: 0,
+    coinsGained: 0,
+    badgeChange: 0,
+    note: `花費${cost}幣|購買：${name}`
+  });
+  if (result && result.success) {
+    toast(`✅ 成功購買【${name}】！`);
+    const savedEvent = { studentId: u, tasks: ['商城兌換'], score: 0, action: '商城兌換',
+      expGained: 0, coinsGained: 0, badgeChange: 0, note: `花費${cost}幣|購買：${name}`,
+      id: result.eventId, timestamp: firebase.firestore.Timestamp.now() };
+    await fetchStudentData(u, savedEvent);
+  } else {
+    toast('❌ 購買失敗');
+  }
+}
+
+async function openChallenge() {
+  const u = $('studentSelect').value;
+  if (!u) { toast('請先登入'); return; }
+
+  const d = globalData;
+  const statsDiv = $('challengeStats');
+  const dNow = new Date();
+  const dayOfWeek = dNow.getDay();
+  const isWeekend = dayOfWeek === 0 || dayOfWeek === 6;
+  const maxDaily = isWeekend ? 5 : 3;
+
+  statsDiv.innerHTML = `
+    <div style="background:#eaf2f8;border:2px dashed #3498db;border-radius:8px;padding:12px;margin-bottom:10px;">
+      <p style="margin:5px 0;"><strong>📅 今日路人戰</strong> ${d.todayBattles || 0}/${maxDaily}</p>
+      <p style="margin:5px 0;"><strong>🏅 本週道館勝場</strong> ${d.weekGymWins || 0}/1</p>
+      <p style="margin:5px 0;"><strong>🏆 本月大會勝場</strong> ${d.monthLeagueWins || 0}/1</p>
+      <p style="margin:5px 0;"><strong>💰 持有聯盟幣</strong> ${d.coins || 0}</p>
+      <p style="margin:5px 0;"><strong>🏅 徽章總數</strong> ${d.badges || 0}</p>
+      <p style="margin:5px 0;"><strong>⭐ 最高等級</strong> Lv.${d.highestLevel || 5}</p>
+    </div>
+    <div style="background:#fef9e7;border:2px dashed #f1c40f;border-radius:8px;padding:12px;">
+      <p style="font-weight:700;color:#856404;margin:0 0 8px;">📋 KPI 達成建議</p>
+      <ul style="text-align:left;font-size:13px;line-height:1.8;padding-left:20px;">
+        ${d.todayBattles >= maxDaily ? '<li style="color:#27ae60;">✅ 路人戰已達標</li>' : '<li style="color:#e74c3c;">❌ 路人戰尚未完成</li>'}
+        ${d.weekGymWins >= 1 ? '<li style="color:#27ae60;">✅ 本週道館已通關</li>' : '<li style="color:#e74c3c;">❌ 本週道館待挑戰</li>'}
+        ${d.highestLevel >= 30 ? '<li style="color:#27ae60;">✅ 等級已達 30+</li>' : `<li>⬆️ 目標 Lv.30，目前 Lv.${d.highestLevel}</li>`}
+        ${d.badges >= 8 ? '<li style="color:#27ae60;">✅ 徽章 8+ 已達第一地區</li>' : `<li>⬆️ 目標 8 徽章，目前 ${d.badges}</li>`}
+      </ul>
+    </div>
+  `;
+  $('challengeModal').style.display = 'flex';
+}
+
+function refreshChallenge() {
+  toast('🔄 重新整理中...');
+  setTimeout(() => fetchStudentData($('studentSelect').value), 100);
+  setTimeout(() => openChallenge(), 1500);
+}
+
+async function devAdd(type, amount) {
+  if (!isAdmin) return;
+  const u = $('studentSelect').value;
+  toast('⏳ 管理員操作中...');
+  const result = await saveEventToFirestore({
+    studentId: u,
+    tasks: ['管理員操作'],
+    score: 0,
+    action: '系統測試',
+    expGained: type === 'EXP' ? amount : 0,
+    coinsGained: type === 'COIN' ? amount : 0,
+    badgeChange: type === 'BADGE' ? amount : 0,
+    note: `管理員發放：${type}+${amount}`
+  });
+  if (result && result.success) {
+    toast(`✅ 發放 ${type} +${amount}！`);
+    console.log(`devAdd saved eventId=${result.eventId}`);
+    const savedEvent = { studentId: u, tasks: ['管理員操作'], score: 0, action: '系統測試',
+      expGained: type === 'EXP' ? amount : 0, coinsGained: type === 'COIN' ? amount : 0,
+      badgeChange: type === 'BADGE' ? amount : 0, note: `管理員發放：${type}+${amount}`,
+      id: result.eventId, timestamp: firebase.firestore.Timestamp.now() };
+    console.log(`devAdd savedEvent id=${savedEvent.id}`);
+    await fetchStudentData(u, savedEvent);
+  }
+}
+
+document.addEventListener('DOMContentLoaded', async () => {
+  try {
+    await new Promise((resolve) => {
+      const check = () => {
+        if (typeof firebase !== 'undefined' && firebase.apps && firebase.apps.length) {
+          db = firebase.firestore();
+          if (location.hostname === 'localhost' || location.hostname === '127.0.0.1') {
+            db.useEmulator('localhost', 8080);
+          }
+          resolve();
+        } else {
+          setTimeout(check, 200);
+        }
+      };
+      check();
+    });
+    console.log('Firebase SDK initialized');
+  } catch (e) {
+    console.error('Firebase init error:', e);
+    toast('⚠️ Firebase 初始化失敗：' + e.message);
+  }
+
+  $('studentSelect').addEventListener('change', function() {
+    document.querySelectorAll('.task-cb, input[name="actionType"]').forEach(el => { el.checked = false; el.disabled = true; });
+    document.querySelectorAll('.action-option').forEach(el => el.classList.remove('selected'));
+    $('baitSelector').style.display = 'none';
+    $('trainSelector').style.display = 'none';
+    $('previewBox').innerHTML = '👆 請完成任務並選擇戰略';
+
+    if (!this.value) {
+      $('submitBtn').textContent = '請先登入';
+      $('submitBtn').disabled = true;
+      $('dashboard').style.display = 'none';
+      $('adminPanel').style.display = 'none';
+      return;
+    }
+    fetchStudentData(this.value);
+  });
+
+  $('submitBtn').addEventListener('click', submitData);
+
+  document.querySelectorAll('.task-cb, input[name="actionType"], #baitAttr, #trainTarget').forEach(el => {
+    el.addEventListener('change', updatePreview);
+  });
+});
+</script>
+</body>
+</html>

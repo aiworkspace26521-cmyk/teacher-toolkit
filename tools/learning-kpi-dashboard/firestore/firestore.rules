@@ -1,0 +1,36 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // kpi_events: 僅可新增+讀取，不可修改/刪除（事件溯源）
+    match /kpi_events/{eventId} {
+      allow create: if request.resource.data.keys().hasAll(['studentId', 'action', 'timestamp']);
+      allow read: if true;
+      allow update, delete: if false;
+    }
+
+    // kpi_students: 學生可讀寫自己的快取資料
+    match /kpi_students/{studentId} {
+      allow read: if true;
+      allow write: if request.resource.data.studentId == studentId;
+    }
+
+    // kpi_subjects: 公開唯讀
+    match /kpi_subjects/{subjectId} {
+      allow read: if true;
+      allow write: if false;
+    }
+
+    // kpi_achievements: 公開唯讀
+    match /kpi_achievements/{achievementId} {
+      allow read: if true;
+      allow write: if false;
+    }
+
+    // 其餘全部拒絕
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}

@@ -1,0 +1,20 @@
+{
+  "firestore": {
+    "database": "(default)",
+    "location": "asia-east1",
+    "rules": "tools/learning-kpi-dashboard/firestore/firestore.rules",
+    "indexes": "tools/learning-kpi-dashboard/firestore/firestore.indexes.json"
+  },
+  "hosting": {
+    "public": "public",
+    "ignore": [
+      "firebase.json",
+      "**/.*",
+      "**/node_modules/**"
+    ],
+    "rewrites": [
+      { "source": "/kpi", "destination": "/kpi-dashboard.html" },
+      { "source": "**", "destination": "/index.html" }
+    ]
+  }
+}
