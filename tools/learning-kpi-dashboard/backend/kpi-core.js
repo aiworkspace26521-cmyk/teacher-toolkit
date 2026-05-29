@@ -22,17 +22,24 @@ function getStartOfMonth(date) {
   return d;
 }
 
+function getExpNeeded(lvl) {
+  if (lvl <= 20) return lvl * 100;
+  if (lvl <= 40) return lvl * 150;
+  if (lvl <= 60) return lvl * 200;
+  if (lvl <= 80) return lvl * 300;
+  return lvl * 500;
+}
 function calcLevelAndExp(totalExp, initialLevel) {
   let lvl = initialLevel || 5;
-  let expNeeded = lvl * 100;
   let currentExp = totalExp;
+  let expNeeded = getExpNeeded(lvl);
   while (currentExp >= expNeeded) {
     currentExp -= expNeeded;
     lvl++;
-    expNeeded = lvl * 100;
-    if (lvl >= 99) { lvl = 99; currentExp = expNeeded; break; }
+    expNeeded = getExpNeeded(lvl);
+    if (lvl >= 99) { lvl = 99; currentExp = 0; expNeeded = 0; break; }
   }
-  if (lvl >= 99) { lvl = 99; currentExp = 9900; expNeeded = 9900; }
+  if (lvl >= 99) { lvl = 99; currentExp = 0; expNeeded = 0; }
   return { level: lvl, expProgress: currentExp, expNeeded };
 }
 
@@ -266,6 +273,6 @@ async function getDefaultSubjects() {
 }
 
 module.exports = {
-  getStartOfWeek, getStartOfMonth, calcLevelAndExp,
+  getStartOfWeek, getStartOfMonth, getExpNeeded, calcLevelAndExp,
   getStudentEvents, recalculateStudentState, getDefaultSubjects
 };

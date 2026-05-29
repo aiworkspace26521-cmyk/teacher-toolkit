@@ -224,7 +224,7 @@
     <div class="decision-box">
       <h3>⚡ 今日戰略抉擇</h3>
       <label class="action-option" id="optCapture"><input type="radio" name="actionType" value="capture"><div>🎯 挑戰新目標<br><span style="font-size:12px;color:#666;">依據分數解鎖新里程碑</span></div></label>
-      <div id="baitSelector">🎯 指定領域方向：<select id="baitAttr"><option value="隨機">🎲 隨機</option></select></div>
+      <div id="baitSelector">🎯 指定屬性領域：<select id="baitAttr"><option value="隨機">🎲 隨機</option><option value="一般">一般</option><option value="火">火</option><option value="水">水</option><option value="草">草</option><option value="電">電</option><option value="冰">冰</option><option value="格鬥">格鬥</option><option value="毒">毒</option><option value="地面">地面</option><option value="飛行">飛行</option><option value="超能力">超能力</option><option value="蟲">蟲</option><option value="岩石">岩石</option><option value="幽靈">幽靈</option><option value="龍">龍</option><option value="惡">惡</option><option value="鋼">鋼</option><option value="妖精">妖精</option></select></div>
       <label class="action-option" id="optTrain"><input type="radio" name="actionType" value="train"><div>✨ 強化現有技能<br><span style="font-size:12px;color:#666;">將分數轉為 EXP 灌注</span></div></label>
       <div id="trainSelector">🎯 選擇強化對象：<select id="trainTarget"></select></div>
       <div id="vetoWarning" class="veto-warning">⚠️ 健康違規！獎勵將被沒收！</div>
@@ -362,10 +362,18 @@ function getSeededRandom(str) {
   var x = Math.sin(h) * 10000;
   return Math.abs(x - Math.floor(x));
 }
+function getExpNeeded(lvl) {
+  if (lvl <= 20) return lvl * 100;
+  if (lvl <= 40) return lvl * 150;
+  if (lvl <= 60) return lvl * 200;
+  if (lvl <= 80) return lvl * 300;
+  return lvl * 500;
+}
 function calcLevelAndExp(totalExp, initialLevel) {
-  var lvl = initialLevel || 5, expNeeded = lvl * 100, cur = totalExp;
-  while (cur >= expNeeded) { cur -= expNeeded; lvl++; expNeeded = lvl * 100; if (lvl >= 99) { lvl = 99; cur = expNeeded; break; } }
-  if (lvl >= 99) { lvl = 99; cur = 9900; expNeeded = 9900; }
+  var lvl = initialLevel || 5, cur = totalExp;
+  var expNeeded = getExpNeeded(lvl);
+  while (cur >= expNeeded) { cur -= expNeeded; lvl++; expNeeded = getExpNeeded(lvl); if (lvl >= 99) { lvl = 99; cur = 0; expNeeded = 0; break; } }
+  if (lvl >= 99) { lvl = 99; cur = 0; expNeeded = 0; }
   return { level: lvl, expProgress: cur, expNeeded: expNeeded };
 }
 function getStartOfWeek(date) {
@@ -731,6 +739,63 @@ var POKEMON_TIERS = {
   ]
 };
 
+var POKEMON_SPECIES_TYPES = {
+  "波波":["一般","飛行"],"比比鳥":["一般","飛行"],"大比鳥":["一般","飛行"],
+  "烈雀":["一般","飛行"],"大嘴雀":["一般","飛行"],
+  "小拉達":["一般"],"拉達":["一般"],
+  "胖丁":["一般","妖精"],"胖可丁":["一般","妖精"],
+  "皮皮":["妖精"],"皮可西":["妖精"],
+  "咕咕":["一般","飛行"],"貓頭夜鷹":["一般","飛行"],
+  "尾立":["一般"],"大尾立":["一般"],
+  "土狼犬":["惡"],"大狼犬":["惡"],
+  "蛇紋熊":["一般"],"直衝熊":["一般"],
+  "姆克兒":["一般","飛行"],"姆克鳥":["一般","飛行"],"姆克鷹":["一般","飛行"],
+  "小貓怪":["電"],"勒克貓":["電"],"倫琴貓":["電"],
+  "伊布":["一般"],
+  "水伊布":["水"],"雷伊布":["電"],"火伊布":["火"],
+  "太陽伊布":["超能力"],"月亮伊布":["惡"],
+  "葉伊布":["草"],"冰伊布":["冰"],"仙子伊布":["妖精"],
+  "小火龍":["火"],"火恐龍":["火"],"噴火龍":["火","飛行"],
+  "妙蛙種子":["草","毒"],"妙蛙草":["草","毒"],"妙蛙花":["草","毒"],
+  "傑尼龜":["水"],"卡咪龜":["水"],"水箭龜":["水"],
+  "電擊怪":["電"],"電擊獸":["電"],"電擊魔獸":["電"],
+  "鴨嘴寶寶":["火"],"鴨嘴火獸":["火"],"鴨嘴炎獸":["火"],
+  "迷你龍":["龍"],"哈克龍":["龍"],"快龍":["龍","飛行"],
+  "由基拉":["岩石","地面"],"沙基拉":["岩石","地面"],"班基拉斯":["岩石","惡"],
+  "寶貝龍":["龍"],"甲殼龍":["龍"],"暴飛龍":["龍","飛行"],
+  "鐵啞鈴":["鋼","超能力"],"金屬怪":["鋼","超能力"],"巨金怪":["鋼","超能力"],
+  "利歐路":["格鬥"],"路卡利歐":["格鬥","鋼"],
+  "拉魯拉絲":["超能力","妖精"],"奇魯莉安":["超能力","妖精"],"沙奈朵":["超能力","妖精"],"艾路雷朵":["超能力","格鬥"],
+  "圓陸鯊":["龍","地面"],"尖牙陸鯊":["龍","地面"],"烈咬陸鯊":["龍","地面"],
+  "黏黏寶":["龍"],"黏美兒":["龍"],"黏美龍":["龍"],
+  "心鱗寶":["龍"],"鱗甲龍":["龍","格鬥"],"杖尾鱗甲龍":["龍","格鬥"],
+  "火稚雞":["火"],"力壯雞":["火","格鬥"],"火焰雞":["火","格鬥"],
+  "木守宮":["草"],"森林蜥蜴":["草"],"蜥蜴王":["草"],
+  "水躍魚":["水"],"沼躍魚":["水","地面"],"巨沼怪":["水","地面"],
+  "菊草葉":["草"],"月桂葉":["草"],"大菊花":["草"],
+  "火球鼠":["火"],"火岩鼠":["火"],"火爆獸":["火"],
+  "小鋸鱷":["水"],"藍鱷":["水"],"大力鱷":["水"],
+  "藤藤蛇":["草"],"青藤蛇":["草"],"君主蛇":["草"],
+  "暖暖豬":["火"],"炒炒豬":["火","格鬥"],"炎武王":["火","格鬥"],
+  "球海獅":["水"],"花漾海獅":["水"],"西獅海壬":["水","妖精"],
+  "木木梟":["草","飛行"],"投羽梟":["草","飛行"],"狙射樹梟":["草","幽靈"],
+  "火斑喵":["火"],"炎熱喵":["火"],"熾焰咆哮虎":["火","惡"],
+  "淚眼蜥":["水"],"變澀蜥":["水"],"千面避役":["水"],
+  "敲音猴":["草"],"啪咚猴":["草"],"轟擂金剛猩":["草"],
+  "炎兔兒":["火"],"騰蹴小將":["火"],"閃焰王牌":["火"],
+  "超夢":["超能力"],
+  "洛奇亞":["超能力","飛行"],"鳳王":["火","飛行"],
+  "蓋歐卡":["水"],"固拉多":["地面"],"烈空坐":["龍","飛行"],
+  "帝牙盧卡":["鋼","龍"],"帕路奇亞":["水","龍"],"騎拉帝納":["幽靈","龍"],
+  "阿爾宙斯":["一般"],
+  "萊希拉姆":["龍","火"],"捷克羅姆":["龍","電"],"酋雷姆":["龍","冰"],
+  "哲爾尼亞斯":["妖精"],"伊裴爾塔爾":["惡","飛行"],"基格爾德":["龍","地面"],
+  "索爾迦雷歐":["超能力","鋼"],"露奈雅拉":["超能力","幽靈"],
+  "無極汰那":["毒","龍"],
+  "故勒頓":["格鬥","龍"],"密勒頓":["電","龍"],
+  "厄鬼椪":["草","幽靈"],"太樂巴戈斯":["一般","岩石"]
+};
+
 var TYPE_CHART = {
   "一般": { "一般":1,"格鬥":1,"飛行":1,"毒":1,"地面":1,"岩石":0.5,"蟲":1,"幽靈":0,"鋼":0.5,"火":1,"水":1,"草":1,"電":1,"超能力":1,"冰":1,"龍":1,"惡":1,"妖精":1 },
   "格鬥": { "一般":2,"格鬥":1,"飛行":0.5,"毒":0.5,"地面":1,"岩石":2,"蟲":0.5,"幽靈":0,"鋼":2,"火":1,"水":1,"草":1,"電":1,"超能力":0.5,"冰":2,"龍":1,"惡":2,"妖精":0.5 },
@@ -754,7 +819,18 @@ var TYPE_CHART = {
 
 function getTypeColor(type) {
   var c = { "一般":"#A8A878","格鬥":"#C03028","飛行":"#A890F0","毒":"#A040A0","地面":"#E0C068","岩石":"#B8A038","蟲":"#A8B820","幽靈":"#705898","鋼":"#B8B8D0","火":"#F08030","水":"#6890F0","草":"#78C850","電":"#F8D030","超能力":"#F85888","冰":"#98D8D8","龍":"#7038F8","惡":"#705848","妖精":"#EE99AC" };
-  return c[type] || "#A8A878";
+  var firstType = type.split("/")[0].trim();
+  return c[firstType] || "#A8A878";
+}
+function renderTypeBadges(typeStr) {
+  var types = typeStr.split("/");
+  var html = "";
+  for (var i = 0; i < types.length; i++) {
+    var t = types[i].trim();
+    var color = getTypeColor(t);
+    html += "<span style=\"background:"+color+";padding:1px 6px;border-radius:8px;font-size:12px;color:#fff;margin:0 1px;\">"+t+"</span>";
+  }
+  return html;
 }
 
 function getEvolutionName(baseName) {
@@ -885,6 +961,9 @@ function getPokemonStats(baseName, level) {
 }
 
 function getPokemonType(baseName) {
+  var raw = baseName.replace(/^[🐾⭐🌟✨]\s*/,"").replace(/\s*\(.*\)/,"");
+  var types = POKEMON_SPECIES_TYPES[raw];
+  if (types) return types.join("/");
   var m = baseName.match(/\((.+?)\)/);
   return m ? m[1] : "一般";
 }
@@ -909,36 +988,20 @@ function generateEnemy(trainerLevel, isGym, isLeague) {
   var roll = Math.random();
   if (isLeague) { tier = "傳說"; levelBonus = Math.floor(trainerLevel * 0.6); }
   else if (isGym) { tier = "稀有"; levelBonus = Math.floor(trainerLevel * 0.4); }
-  else if (roll < 0.1) { tier = "傳說"; levelBonus = Math.floor(trainerLevel * 0.3); }
-  else if (roll < 0.35) { tier = "稀有"; levelBonus = Math.floor(trainerLevel * 0.2); }
+  else if (roll < 0.03) { tier = "傳說"; levelBonus = Math.floor(trainerLevel * 0.3); }
+  else if (roll < 0.25) { tier = "稀有"; levelBonus = Math.floor(trainerLevel * 0.2); }
 
   if (POKEMON_TIERS[tier].length === 0) tier = "一般";
   var species = POKEMON_TIERS[tier][Math.floor(Math.random() * POKEMON_TIERS[tier].length)];
   var baseLevel = Math.max(5, trainerLevel + levelBonus + Math.floor(Math.random() * 3));
-  var finalName = species.legendary ? ("✨ " + species.name + " (傳說)") : species.evolutions ? ("⭐ " + species.evolutions[species.evolutions.length-1] + " (一般)") : ("🐾 " + species.name + " (一般)");
+  var evoName = species.name;
   if (species.evolutions && species.evolutions.length > 0) {
     var evoIdx = Math.min(Math.floor(baseLevel / 15), species.evolutions.length - 1);
-    var evoName = species.evolutions[evoIdx];
-    var types = ["一般","火","水","草","電","冰","格鬥","毒","地面","飛行","超能力","蟲","岩石","幽靈","龍","惡","鋼","妖精"];
-    var pt = "一般";
-    if (evoName === "噴火龍" || evoName === "火焰鳥" || evoName === "萊希拉姆") pt = "火";
-    else if (evoName === "水箭龜" || evoName === "蓋歐卡") pt = "水";
-    else if (evoName === "妙蛙花" || evoName === "時拉比") pt = "草";
-    else if (["皮卡丘","雷公","捷克羅姆","閃電鳥"].indexOf(evoName) !== -1) pt = "電";
-    else if (["冰伊布","急凍鳥","酋雷姆"].indexOf(evoName) !== -1) pt = "冰";
-    else if (["怪力","路卡利歐","火焰雞"].indexOf(evoName) !== -1) pt = "格鬥";
-    else if (["耿鬼","騎拉帝納","露奈雅拉"].indexOf(evoName) !== -1) pt = "幽靈";
-    else if (["烈咬陸鯊","快龍","烈空坐","帝牙盧卡","帕路奇亞"].indexOf(evoName) !== -1) pt = "龍";
-    else if (["班基拉斯","固拉多"].indexOf(evoName) !== -1) pt = "地面";
-    else if (["巨金怪","索爾迦雷歐"].indexOf(evoName) !== -1) pt = "鋼";
-    else if (["超夢","沙奈朵","太陽伊布"].indexOf(evoName) !== -1) pt = "超能力";
-    else if (["鳳王","洛奇亞","大比鳥"].indexOf(evoName) !== -1) pt = "飛行";
-    else if (["烈空坐","捷拉奧拉","雷公"].indexOf(evoName) !== -1) pt = "電";
-    else if (["月亮伊布","瑪狃拉"].indexOf(evoName) !== -1) pt = "惡";
-    else if (["仙子伊布","哲爾尼亞斯"].indexOf(evoName) !== -1) pt = "妖精";
-    else if (["熾焰咆哮虎","炎武王","鳳王"].indexOf(evoName) !== -1) pt = "火";
-    finalName = (species.legendary ? "✨ " : "⭐ ") + evoName + " (" + pt + ")";
+    evoName = species.evolutions[evoIdx];
   }
+  var speciesTypes = POKEMON_SPECIES_TYPES[evoName] || ["一般"];
+  var pt = speciesTypes.join("/");
+  var finalName = (species.legendary ? "✨ " : "⭐ ") + evoName + " (" + pt + ")";
   return createEnemyPokemon(finalName, baseLevel, isGym, isLeague);
 }
 
@@ -1269,7 +1332,7 @@ function endBattle(playerWon) {
 
     var captureText = "";
     var canCapture = battleState.isGym || battleState.isLeague || battleState.isWeeklyBoss;
-    if (canCapture && Math.random() < 0.4) {
+    if (canCapture && Math.random() < 0.15) {
       captureText = " | 🏆 捕獲: " + battleState.enemy.name;
     }
 
@@ -1325,8 +1388,7 @@ function updateArenaUI() {
   $("playerHpBar").className = "hp-bar-fill " + (phpPct > 50 ? "hp-green" : phpPct > 25 ? "hp-yellow" : "hp-red");
   $("playerHpText").innerHTML = pp.currentHp + "/" + pp.maxHp;
   $("playerStatus").innerHTML = pp.status ? "狀態: " + pp.status : "";
-  var typeColor = getTypeColor(pp.type);
-  $("playerTypeIcon").innerHTML = "<span style=\"background:"+typeColor+";padding:1px 6px;border-radius:8px;font-size:12px;color:#fff;\">"+pp.type+"</span>";
+  $("playerTypeIcon").innerHTML = renderTypeBadges(pp.type);
 
   var ep = battleState.enemy;
   $("enemyPkmnName").innerHTML = ep.name + " Lv." + ep.level;
@@ -1335,8 +1397,7 @@ function updateArenaUI() {
   $("enemyHpBar").className = "hp-bar-fill " + (ehpPct > 50 ? "hp-green" : ehpPct > 25 ? "hp-yellow" : "hp-red");
   $("enemyHpText").innerHTML = ep.currentHp + "/" + ep.maxHp;
   $("enemyStatus").innerHTML = ep.status ? "狀態: " + ep.status : "";
-  var etypeColor = getTypeColor(ep.type);
-  $("enemyTypeIcon").innerHTML = "<span style=\"background:"+etypeColor+";padding:1px 6px;border-radius:8px;font-size:12px;color:#fff;\">"+ep.type+"</span>";
+  $("enemyTypeIcon").innerHTML = renderTypeBadges(ep.type);
 
   var moveBtns = $("playerMoveBtns");
   moveBtns.innerHTML = "";
@@ -1407,8 +1468,8 @@ function updateBattleButtons() {
   if (!arena) return;
   if (!globalData || globalData.todayCompleted) { arena.style.display = "none"; return; }
   var battlesToday = globalData.todayBattles || 0;
-  arena.style.display = battlesToday >= 3 ? "none" : "inline-block";
-  arena.innerHTML = "⚔️ 路人戰 (" + (3 - battlesToday) + "/3)";
+  arena.style.display = battlesToday >= 5 ? "none" : "inline-block";
+  arena.innerHTML = "⚔️ 路人戰 (" + (5 - battlesToday) + "/5)";
 }
 
 function startBattle(isGym, isLeague) {
@@ -1636,7 +1697,8 @@ function updateDashboard() {
     for (var i = 0; i < Math.min(6, display.length); i++) {
       var p = display[i];
       var card = document.createElement("div"); card.className = "pkmn-card";
-      var typeColor = getTypeColor(p.baseName.match(/\((.+?)\)/)?.[1] || "一般");
+      var pType = getPokemonType(p.baseName);
+      var typeColor = getTypeColor(pType);
       var leg = checkIsLegendary(p.baseName);
       card.style.borderLeft = "4px solid " + typeColor;
       var nameDisplay = p.baseName;
@@ -1680,6 +1742,30 @@ function updateDashboard() {
   updateBattleButtons();
 }
 
+function populateTrainTarget() {
+  var sel = $("trainTarget");
+  if (!sel || !globalData || !globalData.roster) return;
+  sel.innerHTML = "";
+  var display = globalData.roster.slice();
+  if (globalData.partyIds && globalData.partyIds.length) {
+    var ordered = [];
+    for (var i = 0; i < globalData.partyIds.length; i++) {
+      var match = globalData.roster.find(function(p){ return p.id === globalData.partyIds[i]; });
+      if (match) ordered.push(match);
+    }
+    for (var j = 0; j < globalData.roster.length; j++) {
+      if (ordered.indexOf(globalData.roster[j]) === -1) ordered.push(globalData.roster[j]);
+    }
+    display = ordered;
+  }
+  for (var k = 0; k < display.length; k++) {
+    var opt = document.createElement("option");
+    opt.value = display[k].id;
+    opt.text = display[k].baseName + " Lv." + display[k].currentLevel;
+    sel.appendChild(opt);
+  }
+}
+
 function updatePreview() {
   var score = 0, tasks = [], scoreBreakdown = [];
   var cbs = document.querySelectorAll(".task-cb:checked");
@@ -1702,12 +1788,33 @@ function updatePreview() {
   if (checkIsLeague()) { multi = 2; }
   var finalScore = score * multi;
 
+  var actionType = document.querySelector("input[name=\"actionType\"]:checked");
+  var actionVal = actionType ? actionType.value : "";
+  var captureHint = "";
+  if (actionVal === "capture") {
+    if (finalScore >= 95) captureHint = "🔥 可捕獲傳說級！";
+    else if (finalScore >= 75) captureHint = "⭐ 可捕獲稀有級 (5% 傳說)";
+    else if (finalScore >= 50) captureHint = "🐾 可捕獲一般級";
+    else if (finalScore > 0) captureHint = "⚠️ 分數不足 50 無法捕捉，再加把勁！";
+  }
+  var trainHint = "";
+  if (actionVal === "train") {
+    var target = $("trainTarget");
+    if (target && target.value) {
+      var targetPkmn = globalData.roster.find(function(p){ return p.id === target.value; });
+      var trainExp = finalScore * 10;
+      if (targetPkmn) trainHint = "🎯 " + targetPkmn.baseName + " 獲得 " + trainExp + " EXP（集中訓練）";
+    }
+  }
+
   var html = "";
   if (scoreBreakdown.length) html += "📋 " + scoreBreakdown.join("<br>📋 ") + "<br>";
   if (actionLabel) html += "🎯 類型: " + actionLabel + " (+" + actionBonus + ")<br>";
   html += "💰 基礎分數: " + score + "<br>";
   if (multi > 1) html += "🔥 聯盟加乘 x" + multi + "<br>";
   html += "<strong>🏆 總分: " + finalScore + "</strong>";
+  if (captureHint) html += "<br><span style='color:#e74c3c;'>" + captureHint + "</span>";
+  if (trainHint) html += "<br><span style='color:#27ae60;'>" + trainHint + "</span>";
 
   $("previewBox").innerHTML = html;
   $("hiddenScore").value = finalScore;
@@ -1790,7 +1897,8 @@ function openCollection() {
   var sorted = globalData.roster.slice().sort(function(a,b){ return b.currentLevel - a.currentLevel; });
   for (var i = 0; i < sorted.length; i++) {
     var p = sorted[i];
-    var typeColor2 = getTypeColor(p.baseName.match(/\((.+?)\)/)?.[1] || "一般");
+    var pType2 = getPokemonType(p.baseName);
+    var typeColor2 = getTypeColor(pType2);
     var leg2 = checkIsLegendary(p.baseName);
     var card = document.createElement("div"); card.className = "pkmn-collection-card";
     card.style.borderLeft = "4px solid " + typeColor2;
@@ -1863,6 +1971,39 @@ async function buyItem(itemId, cost, itemName) {
   toast("✅ 購買成功！");
 }
 
+function generateCapturePokemon(tier, targetType, level) {
+  var pool = POKEMON_TIERS[tier] || POKEMON_TIERS["一般"];
+  var candidates = [];
+  for (var i = 0; i < pool.length; i++) {
+    var s = pool[i];
+    var evoName = s.name;
+    if (s.evolutions) {
+      var evoI = Math.min(Math.floor(level / 15), s.evolutions.length - 1);
+      evoName = s.evolutions[evoI];
+    }
+    if (targetType === "隨機") { candidates.push(evoName); continue; }
+    var speciesT = POKEMON_SPECIES_TYPES[evoName] || ["一般"];
+    if (speciesT.indexOf(targetType) !== -1) candidates.push(evoName);
+  }
+  if (candidates.length === 0) {
+    var finalPool = (targetType !== "隨機" && tier === "一般") ? pool : pool;
+    var fallback = finalPool[Math.floor(Math.random() * finalPool.length)];
+    if (fallback.evolutions) {
+      var fi = Math.min(Math.floor(level / 15), fallback.evolutions.length - 1);
+      candidates = [fallback.evolutions[fi]];
+    } else {
+      candidates = [fallback.name];
+    }
+  }
+  var chosenName = candidates[Math.floor(Math.random() * candidates.length)];
+  var chosenTypes = POKEMON_SPECIES_TYPES[chosenName] || ["一般"];
+  var typeLabel = chosenTypes.join("/");
+  var isLeg = checkIsLegendary(chosenName);
+  var prefix = isLeg ? "✨ " : "⭐ ";
+  var displayName = prefix + chosenName + " (" + typeLabel + ")";
+  return { name: displayName, id: "P" + Date.now() + "_" + Math.random().toString(36).substr(2,4), level: level, types: chosenTypes, isLegendary: isLeg };
+}
+
 async function submitData() {
   if (!globalData) return;
   if (globalData.todayCompleted && !isAdmin) { toast("今日已完成！"); return; }
@@ -1873,17 +2014,56 @@ async function submitData() {
   var action = $("hiddenAction").value || "";
   var month = getMonthDiff();
   var monthName = ["","一月","二月","三月","四月","五月","六月","七月","八月","九月","十月","十一月","十二月"][(month + 2) % 12 + 1] || (month + "月");
-
-  var expGain = score * 10;
-  var coinsGain = score * 2;
-  var badgeChange = 0;
-  var note = "📅 " + monthName + " | 任務: " + tasks.join(", ") + (action ? " | 加分: " + action : "");
   var studentId = globalData.studentId;
 
-  var record = { user: studentId, studentId: studentId, totalScore: score, score: score, action: "每日提交", expGained: expGain, coinsGained: coinsGain, badgeChange: badgeChange, tasks: tasks, note: note, extraNote: note };
-  await executeSave(record, function() {
-    toast("🎉 今日紀錄已送出！獲得 " + expGain + " EXP, " + coinsGain + " 金幣！");
-  }, true);
+  var actionTypeEl = document.querySelector("input[name=\"actionType\"]:checked");
+  var actionType = actionTypeEl ? actionTypeEl.value : "";
+
+  if (actionType === "capture") {
+    if (score < 50) { toast("分數不足 50，無法捕捉新寶可夢！"); return; }
+    var tier = "一般";
+    var captureLevel = Math.max(5, Math.floor(score / 8));
+    if (score >= 95) {
+      tier = Math.random() < 0.15 ? "傳說" : (Math.random() < 0.6 ? "稀有" : "一般");
+      captureLevel = Math.max(5, Math.floor(score / 4));
+    } else if (score >= 75) {
+      tier = Math.random() < 0.05 ? "傳說" : (Math.random() < 0.35 ? "稀有" : "一般");
+      captureLevel = Math.max(5, Math.floor(score / 6));
+    } else if (score >= 60) {
+      tier = Math.random() < 0.15 ? "稀有" : "一般";
+      captureLevel = Math.max(5, Math.floor(score / 8));
+    }
+    var targetType = $("baitAttr").value;
+    var captured = generateCapturePokemon(tier, targetType, captureLevel);
+    var expGain = Math.floor(score * 8);
+    var coinsGain = Math.floor(score * 1.5);
+    var note = "📅 " + monthName + " | 捕捉: " + captured.name + " | ID:" + captured.id + " | 類型: " + targetType;
+    var record = { user: studentId, studentId: studentId, totalScore: score, score: score, action: "捕捉", expGained: expGain, coinsGained: coinsGain, badgeChange: 0, tasks: tasks, note: note, extraNote: note };
+    await executeSave(record, function() {
+      toast("🎉 捕捉到 " + captured.name + " Lv." + captured.level + "！" + (captured.isLegendary ? " 🌟 傳說級！" : ""));
+    }, true);
+  } else if (actionType === "train") {
+    var targetId = $("trainTarget").value;
+    if (!targetId) { toast("請選擇強化目標！"); return; }
+    var targetName = "指定寶可夢";
+    var targetPkmn = globalData.roster.find(function(p){ return p.id === targetId; });
+    if (targetPkmn) targetName = targetPkmn.baseName;
+    var expGain = score * 10;
+    var coinsGain = Math.floor(score * 1.5);
+    var note = "📅 " + monthName + " | 強化: " + targetName + " | 集中訓練 +" + expGain + " EXP | ID:" + targetId;
+    var record = { user: studentId, studentId: studentId, totalScore: score, score: score, action: "糖果升級", expGained: expGain, coinsGained: coinsGain, badgeChange: 0, tasks: tasks, note: note, extraNote: note };
+    await executeSave(record, function() {
+      toast("🎯 " + targetName + " 獲得 " + expGain + " EXP（集中訓練）！");
+    }, true);
+  } else {
+    var expGain = score * 10;
+    var coinsGain = score * 2;
+    var note = "📅 " + monthName + " | 任務: " + tasks.join(", ") + (action ? " | 加分: " + action : "");
+    var record = { user: studentId, studentId: studentId, totalScore: score, score: score, action: "每日提交", expGained: expGain, coinsGained: coinsGain, badgeChange: 0, tasks: tasks, note: note, extraNote: note };
+    await executeSave(record, function() {
+      toast("🎉 今日紀錄已送出！獲得 " + expGain + " EXP, " + coinsGain + " 金幣！");
+    }, true);
+  }
 }
 
 async function evolveEevee(evolution) {
@@ -1931,7 +2111,23 @@ document.addEventListener("DOMContentLoaded", function() {
   });
 
   document.querySelectorAll("input[name=\"actionType\"]").forEach(function(rb) {
-    rb.addEventListener("change", updatePreview);
+    rb.addEventListener("change", function() {
+      var val = this.value;
+      var baitSel = $("baitSelector");
+      var trainSel = $("trainSelector");
+      if (val === "capture") {
+        baitSel.style.display = "block";
+        trainSel.style.display = "none";
+      } else if (val === "train") {
+        trainSel.style.display = "block";
+        baitSel.style.display = "none";
+        populateTrainTarget();
+      } else {
+        baitSel.style.display = "none";
+        trainSel.style.display = "none";
+      }
+      updatePreview();
+    });
   });
 
   $("studentSelect").addEventListener("change", function() {
