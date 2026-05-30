@@ -153,6 +153,19 @@
     .item-badge { display: inline-block; padding: 4px 10px; margin: 2px; background: #f0f0f0; border-radius: 12px; font-size: 12px; font-weight: 700; }
     .loading-spinner { display: inline-block; width: 14px; height: 14px; border: 2px solid #fff; border-top-color: transparent; border-radius: 50%; animation: spin 0.6s linear infinite; vertical-align: middle; }
     @keyframes spin { to { transform: rotate(360deg); } }
+    @keyframes shake { 0%,100% { transform: translateX(0); } 10%,30%,50%,70%,90% { transform: translateX(-6px); } 20%,40%,60%,80% { transform: translateX(6px); } }
+    @keyframes flash-dmg { 0%,100% { opacity:1; } 25% { opacity:0.2; } 50% { opacity:1; } 75% { opacity:0.2; } }
+    @keyframes large-text-in { 0% { opacity:0; transform:scale(0.3) rotate(-10deg); } 60% { transform:scale(1.2) rotate(3deg); } 100% { opacity:1; transform:scale(1) rotate(0); } }
+    @keyframes faint-out { 0% { opacity:1; transform:scale(1); } 50% { opacity:0.5; transform:scale(0.5) rotate(10deg); } 100% { opacity:0; transform:scale(0) rotate(30deg); } }
+    @keyframes entry-in { 0% { opacity:0; transform:translateY(40px) scale(0.5); } 60% { transform:translateY(-10px) scale(1.05); } 100% { opacity:1; transform:translateY(0) scale(1); } }
+    .shake { animation: shake 0.4s ease-in-out; }
+    .flash-dmg { animation: flash-dmg 0.3s ease; }
+    .hp-bar-fill { transition: width 0.15s ease; }
+    .large-text-overlay { position:absolute; top:50%; left:50%; transform:translate(-50%,-50%); z-index:100; pointer-events:none; font-size:32px; font-weight:900; text-shadow:-2px -2px 0 #000,2px -2px 0 #000,-2px 2px 0 #000,2px 2px 0 #000,0 0 20px rgba(255,255,255,0.5); animation:large-text-in 0.5s cubic-bezier(0.175,0.885,0.32,1.275) forwards; text-align:center; line-height:1.3; }
+    .faint-animation { animation: faint-out 0.6s ease-in forwards; }
+    .entry-animation { animation: entry-in 0.5s ease-out forwards; }
+    .status-icon { font-size:16px; margin-left:4px; display:inline-block; animation:pulse 1s infinite; vertical-align:middle; }
+    .hp-bar-fill.anim-drain { transition: width 1.2s linear; }
   </style>
 </head>
 <body>
@@ -273,6 +286,7 @@
     <h3 style="color:#c0392b;margin-top:0;" id="battleTitle">⚔️ 戰鬥台</h3>
     <div id="arenaBattlePhase">
       <div id="weatherDisplay" style="display:none;text-align:center;padding:5px;margin-bottom:8px;border-radius:6px;font-weight:700;font-size:14px;"></div>
+      <div id="largeTextOverlay" class="large-text-overlay" style="display:none;"></div>
       <div class="arena-hp-section" style="background:#fdedec;border-radius:8px;padding:10px;margin-bottom:10px;">
         <div class="hp-label"><span id="enemyPkmnName">???</span> <span id="enemyTypeIcon"></span> <span id="enemyStatus" style="font-size:11px;color:#e67e22;"></span></div>
         <div class="hp-bar-bg"><div class="hp-bar-fill hp-red" id="enemyHpBar" style="width:100%"></div></div>
@@ -1546,6 +1560,76 @@ function executeTurn(playerAtk, playerDef, enemyAtk, enemyDef, moveName, isPlaye
   return result;
 }
 
+function showLargeText(text, color, duration) {
+  duration = duration || 1200;
+  var el = $("largeTextOverlay");
+  if (!el) return;
+  el.innerHTML = text;
+  el.style.color = color || "#fff";
+  el.style.display = "block";
+  el.style.animation = "none";
+  void el.offsetWidth;
+  el.style.animation = "large-text-in 0.5s cubic-bezier(0.175,0.885,0.32,1.275) forwards";
+  clearTimeout(el._hideTimer);
+  el._hideTimer = setTimeout(function(){ el.style.display = "none"; }, duration);
+}
+
+function animateHpBar(barId, textId, currentHp, maxHp, callback) {
+  var bar = $(barId);
+  var txt = $(textId);
+  if (!bar) { if (callback) callback(); return; }
+  var targetPct = Math.round(currentHp / maxHp * 100);
+  bar.style.transition = "width 1.2s linear";
+  bar.style.width = targetPct + "%";
+  bar.className = "hp-bar-fill anim-drain " + (targetPct > 50 ? "hp-green" : targetPct > 25 ? "hp-yellow" : "hp-red");
+  if (txt) txt.innerHTML = currentHp + "/" + maxHp;
+  setTimeout(function(){
+    bar.style.transition = "width 0.15s ease";
+    if (callback) callback();
+  }, 1250);
+}
+
+function shakeElement(id) {
+  var el = typeof id === "string" ? $(id) : id;
+  if (!el) return;
+  el.classList.remove("shake");
+  void el.offsetWidth;
+  el.classList.add("shake");
+  setTimeout(function(){ el.classList.remove("shake"); }, 500);
+}
+
+function flashElement(id) {
+  var el = typeof id === "string" ? $(id) : id;
+  if (!el) return;
+  el.classList.remove("flash-dmg");
+  void el.offsetWidth;
+  el.classList.add("flash-dmg");
+  setTimeout(function(){ el.classList.remove("flash-dmg"); }, 350);
+}
+
+function faintAnimation(id, callback) {
+  var el = typeof id === "string" ? $(id) : id;
+  if (!el) return;
+  el.classList.add("faint-animation");
+  setTimeout(function(){ el.classList.remove("faint-animation"); if (callback) callback(); }, 650);
+}
+
+function getTypeColor(typeName) {
+  var colors = {
+    "一般":"#A8A878","火":"#F08030","水":"#6890F0","草":"#78C850",
+    "電":"#F8D030","冰":"#98D8D8","格鬥":"#C03028","毒":"#A040A0",
+    "地面":"#E0C068","飛行":"#A890F0","超能":"#F85888","蟲":"#A8B820",
+    "岩石":"#B8A038","幽靈":"#705898","龍":"#7038F8","鋼":"#B8B8D0",
+    "妖精":"#EE99AC","惡":"#705848"
+  };
+  return colors[typeName] || "#A8A878";
+}
+
+function getStatusIcon(status) {
+  var map = { burn:"🔥", paralyze:"⚡", freeze:"❄️", poison:"☠️", sleep:"💤" };
+  return map[status] || "";
+}
+
 function performAttack(moveName, isPlayer) {
   if (!battleState) return;
   var log = [];
@@ -1559,17 +1643,36 @@ function performAttack(moveName, isPlayer) {
   var result = executeTurn(pAtk, pDef, battleState.enemy, battleState.playerPokemon, moveName, isPlayer, log);
   renderBattleLog(log);
 
+  var attSide = isPlayer ? "player" : "enemy";
+  var defSide = isPlayer ? "enemy" : "player";
+  var moveDetails = getMoveDetails(moveName);
+  var typeColor = getTypeColor(moveDetails.type);
+
+  shakeElement(defSide + "PkmnName");
+  flashElement(defSide + "PkmnName");
+  if (result.dmg > 0) {
+    var defHp = isPlayer ? battleState.enemy : battleState.playerPokemon;
+    animateHpBar(defSide + "HpBar", defSide + "HpText", defHp.currentHp, defHp.maxHp);
+    if (result.crit) showLargeText("💢 會心一擊！", "#ffd700");
+    else if (result.effectiveness > 1) showLargeText("💥 效果絕佳！", typeColor);
+    else if (result.effectiveness > 0 && result.effectiveness < 1) showLargeText("⚠️ 效果不好...", "#aaa");
+  }
   if (result.ko) {
-    if (!isPlayer) {
-      battleState.playerWon = true;
-      endBattle(true);
-    } else {
-      if (battleState.enemy.currentHp <= 0) {
-        battleState.playerWon = true;
-        endBattle(true);
-      }
-    }
-    if (battleState) battleState.turnLock = false;
+    setTimeout(function(){
+      faintAnimation(defSide + "PkmnName");
+      setTimeout(function(){
+        if (!isPlayer) {
+          battleState.playerWon = true;
+          endBattle(true);
+        } else {
+          if (battleState.enemy.currentHp <= 0) {
+            battleState.playerWon = true;
+            endBattle(true);
+          }
+        }
+        if (battleState) battleState.turnLock = false;
+      }, 650);
+    }, 300);
     return;
   }
 
@@ -1583,6 +1686,7 @@ function performAttack(moveName, isPlayer) {
       battleState.playerPokemon = nextAlly;
       log.push("🔄 換上 " + nextAlly.name + "！");
       renderBattleLog(log);
+      setTimeout(function(){ shakeElement("playerPkmnName"); }, 100);
     } else {
       battleState.playerWon = false;
       endBattle(false);
@@ -1599,27 +1703,51 @@ function performAttack(moveName, isPlayer) {
       var eLog = [];
       var eResult = executeTurn(battleState.enemy, battleState.playerPokemon, battleState.playerPokemon, battleState.enemy, enemyMove, false, eLog);
       renderBattleLog(eLog);
-      if (eResult.ko) {
-        if (battleState.playerPokemon.currentHp <= 0) {
-          var nextAlly2 = null;
-          for (var j = 0; j < battleState.playerParty.length; j++) {
-            if (battleState.playerParty[j].currentHp > 0) { nextAlly2 = battleState.playerParty[j]; break; }
-          }
-          if (nextAlly2) {
-            battleState.playerPokemon = nextAlly2;
-            eLog.push("🔄 換上 " + nextAlly2.name + "！");
-            renderBattleLog(eLog);
-            processBurnAndLeech(battleState.playerPokemon, battleState.enemy, eLog);
-          } else {
-            battleState.playerWon = false;
-            endBattle(false);
-          }
-        }
+
+      shakeElement("playerPkmnName");
+      flashElement("playerPkmnName");
+      if (eResult.dmg > 0) {
+        animateHpBar("playerHpBar", "playerHpText", battleState.playerPokemon.currentHp, battleState.playerPokemon.maxHp);
+        if (eResult.crit) showLargeText("💢 會心一擊！", "#ffd700");
+        else if (eResult.effectiveness > 1) showLargeText("💥 效果絕佳！", getTypeColor(getMoveDetails(enemyMove).type));
+        else if (eResult.effectiveness > 0 && eResult.effectiveness < 1) showLargeText("⚠️ 效果不好...", "#aaa");
       }
-      updateArenaUI();
-      if (battleState) processWeatherDecay(eLog);
-      if (battleState && !battleState.playerWon) battleState.turnLock = false;
-    }, 800);
+
+      if (eResult.ko) {
+        setTimeout(function(){
+          if (battleState.playerPokemon.currentHp <= 0) {
+            var nextAlly2 = null;
+            for (var j = 0; j < battleState.playerParty.length; j++) {
+              if (battleState.playerParty[j].currentHp > 0) { nextAlly2 = battleState.playerParty[j]; break; }
+            }
+            if (nextAlly2) {
+              faintAnimation("playerPkmnName");
+              setTimeout(function(){
+                battleState.playerPokemon = nextAlly2;
+                eLog.push("🔄 換上 " + nextAlly2.name + "！");
+                renderBattleLog(eLog);
+                processBurnAndLeech(battleState.playerPokemon, battleState.enemy, eLog);
+                updateArenaUI();
+                setTimeout(function(){ shakeElement("playerPkmnName"); }, 100);
+                if (battleState) processWeatherDecay(eLog);
+                if (battleState && !battleState.playerWon) battleState.turnLock = false;
+              }, 700);
+            } else {
+              faintAnimation("playerPkmnName");
+              setTimeout(function(){
+                battleState.playerWon = false;
+                endBattle(false);
+                if (battleState) battleState.turnLock = false;
+              }, 700);
+            }
+          }
+        }, 300);
+      } else {
+        updateArenaUI();
+        if (battleState) processWeatherDecay(eLog);
+        if (battleState && !battleState.playerWon) battleState.turnLock = false;
+      }
+    }, 1200);
   } else {
     if (battleState) processWeatherDecay(log);
     updateArenaUI();
@@ -1752,49 +1880,8 @@ function startNextWave() {
   var gi = battleState.gymInfo;
   $("battleTitle").innerHTML = "🏛️ " + gi.emoji + " " + gi.name + " (波次 " + (nextIdx + 1) + "/" + battleState.totalWaves + ")";
   updateArenaUI();
-}
-
-function finishGymVictory() {
-  battleState.battleOver = true;
-  battleState.playerWon = true;
-  var totalExpGain = 0, partyUsed = [];
-  for (var i = 0; i < battleState.playerParty.length; i++) {
-    var pk = battleState.playerParty[i];
-    if (pk.currentHp > 0 && partyUsed.length < 6) partyUsed.push(pk);
-  }
-  var cumulativeExp = 0;
-  for (var wi = 0; wi < battleState.totalWaves; wi++) {
-    var we = battleState.gymWaves[wi];
-    var baseExp = ARENA_EXP_BASE + Math.floor(we.level * 3);
-    var waveMult = we.isLastWave ? 2.5 : 1.2;
-    baseExp = Math.floor(baseExp * 1.8 * waveMult);
-    var legBonus = checkIsLegendary(we.name) ? 1.5 : 1;
-    baseExp = Math.floor(baseExp * (globalData.hasAmuletCoin ? 1.5 : 1) * legBonus);
-    baseExp = Math.floor(baseExp * (globalData.hasChampionCloak ? 1.5 : 1));
-    cumulativeExp += baseExp;
-  }
-  cumulativeExp = Math.floor(cumulativeExp);
-  for (var j = 0; j < partyUsed.length; j++) {
-    var share = j === 0 ? Math.floor(cumulativeExp * 1.2) : Math.floor(cumulativeExp * 0.3);
-    totalExpGain += share;
-  }
-  var coinsGain = 15 + Math.floor(battleState.enemy.level * 0.8);
-  var badgeGain = 0;
-  if (battleState.isGym && globalData.daysSinceLastBadge >= 1) { badgeGain = 1; }
-  var gi = battleState.gymInfo;
-  var captureText = "";
-  if (Math.random() < 0.15) {
-    captureText = " | 🏆 捕獲: " + battleState.enemy.name;
-  }
-  var msg = "🏆 道館制霸！擊敗 " + gi.leader + " 獲得 " + totalExpGain + " 經驗值, " + coinsGain + " 金幣" + captureText;
-  if (badgeGain) msg += " + 🏅 " + badgeGain + " 枚徽章！";
-  var noteContent = "⚔️ 道館勝利 | 館主: " + gi.leader + " (" + gi.name + ") [Gym] | 波次:" + battleState.totalWaves + " | 參與者: " + partyUsed.map(function(p){return p.id;}).join(",") + captureText;
-  executeSave({ studentId: globalData.studentId, score: 0, action: "戰鬥勝利", expGained: totalExpGain, coinsGained: coinsGain, badgeChange: badgeGain, note: noteContent, extraNote: noteContent, totalScore: 0, user: globalData.studentId }, function() {
-    $("resultMessage").innerHTML = msg;
-    $("resultMessage").style.display = "block";
-  }, false);
-  battleState = null;
-  setTimeout(function() { closeModal("battleModal"); $("resultMessage").style.display = "none"; }, 3000);
+  var enemyBox = $("enemyPkmnName");
+  if (enemyBox) { enemyBox.classList.remove("entry-animation"); void enemyBox.offsetWidth; enemyBox.classList.add("entry-animation"); }
 }
 
 function finishGymVictory() {
@@ -1917,6 +2004,7 @@ function openArenaWithWaves(waveEnemies, gymInfo) {
     gymWaves: waveEnemies, currentWave: 0, totalWaves: waveEnemies.length, gymInfo: gymInfo,
     weather: null
   };
+  $("battleLog").innerHTML = "<p style=\"color:#f1c40f;\">⚔️ 戰鬥開始！</p>";
   $("battleModal").style.display = "flex";
   $("arenaBattlePhase").style.display = "block";
   $("arenaResultPhase").style.display = "none";
@@ -1925,6 +2013,8 @@ function openArenaWithWaves(waveEnemies, gymInfo) {
   var gymName = gymInfo.emoji + " " + gymInfo.name + " — " + gymInfo.leader;
   $("battleTitle").innerHTML = "🏛️ " + gymName + " (波次 1/" + waveEnemies.length + ")";
   updateArenaUI();
+  var enemyBox = $("enemyPkmnName");
+  if (enemyBox) { enemyBox.classList.remove("entry-animation"); void enemyBox.offsetWidth; enemyBox.classList.add("entry-animation"); }
 }
 
 function openArena(enemy) {
@@ -1947,6 +2037,7 @@ function openArena(enemy) {
     weather: null
   };
 
+  $("battleLog").innerHTML = "<p style=\"color:#f1c40f;\">⚔️ 戰鬥開始！</p>";
   $("battleModal").style.display = "flex";
   $("arenaBattlePhase").style.display = "block";
   $("arenaResultPhase").style.display = "none";
@@ -1954,6 +2045,8 @@ function openArena(enemy) {
   $("resultMessage").style.display = "none";
   $("battleTitle").innerHTML = (enemy.isGym ? "🏛️ 道館挑戰" : enemy.isLeague ? "🏆 聯盟大會" : enemy.isWeeklyBoss ? "👑 魔王戰" : "⚔️ 路人戰") + " vs " + enemy.name + " Lv." + enemy.level;
   updateArenaUI();
+  var enemyBox = $("enemyPkmnName");
+  if (enemyBox) { enemyBox.classList.remove("entry-animation"); void enemyBox.offsetWidth; enemyBox.classList.add("entry-animation"); }
 }
 
 function updateArenaUI() {
@@ -1976,7 +2069,7 @@ function updateArenaUI() {
   $("playerHpBar").style.width = phpPct + "%";
   $("playerHpBar").className = "hp-bar-fill " + (phpPct > 50 ? "hp-green" : phpPct > 25 ? "hp-yellow" : "hp-red");
   $("playerHpText").innerHTML = pp.currentHp + "/" + pp.maxHp;
-  $("playerStatus").innerHTML = pp.status ? "狀態: " + pp.status : "";
+  $("playerStatus").innerHTML = pp.status ? "<span class=\"status-icon\">" + getStatusIcon(pp.status) + "</span>" : "";
   $("playerTypeIcon").innerHTML = renderTypeBadges(pp.type);
 
   var ep = battleState.enemy;
@@ -1985,7 +2078,7 @@ function updateArenaUI() {
   $("enemyHpBar").style.width = ehpPct + "%";
   $("enemyHpBar").className = "hp-bar-fill " + (ehpPct > 50 ? "hp-green" : ehpPct > 25 ? "hp-yellow" : "hp-red");
   $("enemyHpText").innerHTML = ep.currentHp + "/" + ep.maxHp;
-  $("enemyStatus").innerHTML = ep.status ? "狀態: " + ep.status : "";
+  $("enemyStatus").innerHTML = ep.status ? "<span class=\"status-icon\">" + getStatusIcon(ep.status) + "</span>" : "";
   $("enemyTypeIcon").innerHTML = renderTypeBadges(ep.type);
 
   var moveBtns = $("playerMoveBtns");

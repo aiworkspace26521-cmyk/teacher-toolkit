@@ -12,6 +12,14 @@
       "**/.*",
       "**/node_modules/**"
     ],
+    "headers": [
+      {
+        "source": "**/*.html",
+        "headers": [
+          { "key": "Cache-Control", "value": "no-cache, must-revalidate" }
+        ]
+      }
+    ],
     "rewrites": [
       { "source": "/kpi", "destination": "/kpi-dashboard.html" },
       { "source": "**", "destination": "/index.html" }
