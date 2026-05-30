@@ -134,6 +134,7 @@
     .pkmn-slot.selected-swap { border-color: #e74c3c; background: #fdedec; transform: scale(1.05); box-shadow: 0 0 8px rgba(231,76,60,0.5); }
     .pkmn-slot.empty { background: #eee; color: #999; border-style: dashed; box-shadow: none; font-size: 13px; font-weight: bold; min-height: 50px; }
     .arena-hp-section { margin-bottom: 12px; }
+    #weatherDisplay { transition: 0.3s; }
     .arena-hp-section .hp-label { font-size: 13px; font-weight: 700; margin-bottom: 2px; }
     .pkmn-card, .pkmn-collection-card { border: 2px solid #e0e0e0; border-radius: 8px; padding: 10px; margin-bottom: 8px; background: white; box-shadow: 1px 1px 4px rgba(0,0,0,0.08); }
     .pkmn-collection-card { margin-bottom: 6px; padding: 8px 10px; }
@@ -271,6 +272,7 @@
   <div class="modal-content" style="border-color:#e74c3c;width:95%;">
     <h3 style="color:#c0392b;margin-top:0;" id="battleTitle">⚔️ 戰鬥台</h3>
     <div id="arenaBattlePhase">
+      <div id="weatherDisplay" style="display:none;text-align:center;padding:5px;margin-bottom:8px;border-radius:6px;font-weight:700;font-size:14px;"></div>
       <div class="arena-hp-section" style="background:#fdedec;border-radius:8px;padding:10px;margin-bottom:10px;">
         <div class="hp-label"><span id="enemyPkmnName">???</span> <span id="enemyTypeIcon"></span> <span id="enemyStatus" style="font-size:11px;color:#e67e22;"></span></div>
         <div class="hp-bar-bg"><div class="hp-bar-fill hp-red" id="enemyHpBar" style="width:100%"></div></div>
@@ -565,7 +567,11 @@ var MOVE_DATABASE = {
   "鐵尾":   { power: 100, type: "鋼",    category: "物理", desc: "可能降低對手防禦" },
   "魔法閃耀": { power: 80, type: "妖精", category: "特殊", desc: "發出耀眼光芒" },
   "龍之波動": { power: 85, type: "龍",   category: "特殊", desc: "釋放龍之能量" },
-  "冰雹":   { power: 40,  type: "冰",    category: "物理", desc: "投擲冰塊攻擊" },
+  "冰雹":   { power: 0,   type: "冰",    category: "變化", desc: "天氣變成冰雹", effect: "weather_hail" },
+  "冰礫":   { power: 40,  type: "冰",    category: "物理", desc: "先制攻擊" },
+  "祈雨":   { power: 0,   type: "水",    category: "變化", desc: "天氣變成下雨", effect: "weather_rain" },
+  "大晴天": { power: 0,   type: "火",    category: "變化", desc: "天氣變成大晴天", effect: "weather_sun" },
+  "沙暴":   { power: 0,   type: "岩石",  category: "變化", desc: "天氣變成沙暴", effect: "weather_sand" },
   "翅膀攻擊": { power: 60, type: "飛行", category: "物理", desc: "用翅膀攻擊" },
   "蟲鳴":   { power: 90,  type: "蟲",    category: "特殊", desc: "可能降低特防" },
   "咬碎":   { power: 80,  type: "惡",    category: "物理", desc: "可能降低防禦" },
@@ -731,8 +737,8 @@ var MOVE_DATABASE = {
 };
 
 var TYPE_MOVE_POOL = {
-  "水":   ["撞擊","水槍","水之波動","衝浪","水炮"],
-  "火":   ["火花","火焰牙","噴射火焰","大字爆炎","大字爆"],
+  "水":   ["撞擊","祈雨","水之波動","衝浪","水炮"],
+  "火":   ["火花","大晴天","噴射火焰","大字爆炎","大字爆"],
   "草":   ["藤鞭","飛葉快刀","種子炸彈","能量球","日光束"],
   "電":   ["電擊","電光一閃","雷電拳","十萬伏特","打雷"],
   "飛行": ["起風","翅膀攻擊","鑽啄","颱風","勇鳥猛攻"],
@@ -746,9 +752,9 @@ var TYPE_MOVE_POOL = {
   "毒":   ["毒針","溶解液","污泥炸彈","垃圾射擊","垃圾射擊"],
   "鋼":   ["金屬爪","鐵頭","重磅衝撞","鐵尾","加農光炮"],
   "惡":   ["抓","暗襲要害","咬碎","突襲","暗黑洞"],
-  "冰":   ["冰雹","冰凍之風","冰凍牙","冰凍光束","暴風雪"],
+  "冰":   ["冰礫","冰雹","冰凍牙","冰凍光束","暴風雪"],
   "蟲":   ["蟲咬","蟲鳴","十字剪","十字剪","超級角擊"],
-  "岩石": ["落石","岩石封鎖","岩崩","尖石攻擊","雙刃頭錘"]
+  "岩石": ["落石","沙暴","岩崩","尖石攻擊","雙刃頭錘"]
 };
 
 var SIGNATURE_MOVES = {
@@ -998,11 +1004,6 @@ function getRegionInfo(badges) {
     symbols: badgeSymbols,
     earned: displayed,
     idx: regionIdx
-  };
-}
-    symbols: badgeSymbols,
-    earned: displayed,
-    total: Math.min(badges, total)
   };
 }
 
@@ -1273,7 +1274,7 @@ function getPokemonMoveset(baseName, level) {
   else if (raw === "太陽伊布") pool = ["精神強念","預知未來","高速星星","月亮之力"];
   else if (raw === "月亮伊布") pool = ["暗影球","咬住","月光","電磁波"];
   else if (raw === "葉伊布") pool = ["飛葉快刀","劍舞","光合作用","十字剪"];
-  else if (raw === "冰伊布") pool = ["冷凍光束","冰雹","鏡面反射","水槍"];
+  else if (raw === "冰伊布") pool = ["冷凍光束","冰礫","鏡面反射","水槍"];
   else if (raw === "仙子伊布") pool = ["月亮之力","巨聲","吸取之吻","電光一閃"];
   else {
     var tPool = TYPE_MOVE_POOL[primaryType] || TYPE_MOVE_POOL["一般"];
@@ -1439,20 +1440,32 @@ function calculateMovePower(move, attacker, defender, isPlayerAttacker) {
     var baseDamage = Math.floor((((attacker.level * 2 / 5 + 2) * power * atkStat / defStat) / 50) + 2);
   } else {
     var spatkStat = attacker.spatk * Math.pow(1.1, attacker.statStages.spatk);
-    var spdefStat = defender.spdef * Math.pow(1.1, defender.statStages.spdef) * evioliteDef;
+    var sandSpDef = (battleState && battleState.weather && battleState.weather.type === "sand" && defender.type.indexOf("岩石") !== -1) ? 1.5 : 1;
+    var spdefStat = defender.spdef * Math.pow(1.1, defender.statStages.spdef) * evioliteDef * sandSpDef;
     var baseDamage = Math.floor((((attacker.level * 2 / 5 + 2) * power * spatkStat / spdefStat) / 50) + 2);
   }
   if (legAtk && legDef) baseDamage = Math.floor(baseDamage * 1.5);
   if (eff > 1) baseDamage = Math.floor(baseDamage * eff);
   else if (eff < 1 && eff > 0 && details.type !== "一般") baseDamage = Math.floor(baseDamage * eff);
   else if (eff === 0) return 0;
+  if (battleState && battleState.weather) {
+    var wt = battleState.weather.type;
+    if (wt === "rain") {
+      if (details.type === "水") baseDamage = Math.floor(baseDamage * 1.5);
+      else if (details.type === "火") baseDamage = Math.floor(baseDamage * 2 / 3);
+    } else if (wt === "sun") {
+      if (details.type === "火") baseDamage = Math.floor(baseDamage * 1.5);
+      else if (details.type === "水") baseDamage = Math.floor(baseDamage * 2 / 3);
+    }
+  }
   baseDamage = Math.max(1, baseDamage);
   if (isPlayerAttacker && eff > 1 && globalData && globalData.hasExpertBelt) baseDamage = Math.floor(baseDamage * 1.2);
   var variance = 0.85 + Math.random() * 0.15;
   var finalDamage = Math.floor(baseDamage * variance);
   var crit = Math.random() < 0.0625;
-  return { damage: Math.min(finalDamage, defender.currentHp), crit: crit, effectiveness: eff, moveType: details.type };
-}
+  var weatherText = "";
+  if (battleState && battleState.weather) weatherText = battleState.weather.type;
+  return { damage: Math.min(finalDamage, defender.currentHp), crit: crit, effectiveness: eff, moveType: details.type, weather: weatherText };
 }
 
 function applyStatusEffect(move, defender) {
@@ -1476,8 +1489,10 @@ function applyStatusEffect(move, defender) {
   if (eff === "debuff_def") { attacker.statStages.def = Math.max(-6, attacker.statStages.def - 1); return "⬇️ " + attacker.name + " 防禦降低了！"; }
   if (eff === "protect") { defender.protect = true; return "🛡️ " + defender.name + " 使用了守住！"; }
   if (eff === "leech_seed") { defender.leechSeed = true; return "🌱 " + defender.name + " 被寄生種子了！"; }
-  if (eff === "weather_rain") { battleState.weather = "rain"; return "🌧️ 天氣變成下雨了！"; }
-  if (eff === "weather_sun") { battleState.weather = "sun"; return "☀️ 天氣變成大晴天了！"; }
+  if (eff === "weather_rain") { battleState.weather = { type: "rain", duration: 5 }; return "🌧️ 天氣變成下雨了！（持續5回合）"; }
+  if (eff === "weather_sun") { battleState.weather = { type: "sun", duration: 5 }; return "☀️ 天氣變成大晴天了！（持續5回合）"; }
+  if (eff === "weather_sand") { battleState.weather = { type: "sand", duration: 5 }; return "🌪️ 天氣變成沙暴了！（持續5回合）"; }
+  if (eff === "weather_hail") { battleState.weather = { type: "hail", duration: 5 }; return "❄️ 天氣變成冰雹了！（持續5回合）"; }
   return "";
 }
 
@@ -1602,9 +1617,11 @@ function performAttack(moveName, isPlayer) {
         }
       }
       updateArenaUI();
+      if (battleState) processWeatherDecay(eLog);
       if (battleState && !battleState.playerWon) battleState.turnLock = false;
     }, 800);
   } else {
+    if (battleState) processWeatherDecay(log);
     updateArenaUI();
     battleState.turnLock = false;
   }
@@ -1615,6 +1632,38 @@ function processBurnAndLeech(player, enemy, log) {
   if (enemy.status === "burn") { var d2 = Math.floor(enemy.maxHp * 0.0625); enemy.currentHp = Math.max(0, enemy.currentHp - d2); log.push("🔥 " + enemy.name + " 因燒傷損失 " + d2 + " HP！"); }
   if (player.leechSeed && enemy.currentHp > 0) { var sd = Math.floor(enemy.maxHp * 0.0833); enemy.currentHp = Math.max(0, enemy.currentHp - sd); player.currentHp = Math.min(player.maxHp, player.currentHp + sd); log.push("🌱 寄生種子吸取了 " + sd + " HP！"); }
   if (enemy.leechSeed && player.currentHp > 0) { var sd2 = Math.floor(player.maxHp * 0.0833); player.currentHp = Math.max(0, player.currentHp - sd2); enemy.currentHp = Math.min(enemy.maxHp, enemy.currentHp + sd2); log.push("🌱 寄生種子吸取了 " + sd2 + " HP！"); }
+  if (battleState && battleState.weather) {
+    var wt = battleState.weather.type;
+    if (wt === "sand") {
+      [player, enemy].forEach(function(p) {
+        if (p.currentHp <= 0) return;
+        if (p.type.indexOf("岩石") === -1 && p.type.indexOf("地面") === -1 && p.type.indexOf("鋼") === -1) {
+          var sd3 = Math.floor(p.maxHp * 0.0625); p.currentHp = Math.max(0, p.currentHp - sd3);
+          log.push("🌪️ " + p.name + " 受到沙暴傷害 " + sd3 + " HP！");
+          if (p.currentHp <= 0) { p.currentHp = 0; log.push("💀 " + p.name + " 倒下了！"); }
+        }
+      });
+    } else if (wt === "hail") {
+      [player, enemy].forEach(function(p) {
+        if (p.currentHp <= 0) return;
+        if (p.type.indexOf("冰") === -1) {
+          var hd = Math.floor(p.maxHp * 0.0625); p.currentHp = Math.max(0, p.currentHp - hd);
+          log.push("❄️ " + p.name + " 受到冰雹傷害 " + hd + " HP！");
+          if (p.currentHp <= 0) { p.currentHp = 0; log.push("💀 " + p.name + " 倒下了！"); }
+        }
+      });
+    }
+  }
+}
+
+function processWeatherDecay(log) {
+  if (!battleState || !battleState.weather) return;
+  battleState.weather.duration--;
+  if (battleState.weather.duration <= 0) {
+    var wNames = { rain: "🌧️ 下雨", sun: "☀️ 大晴天", sand: "🌪️ 沙暴", hail: "❄️ 冰雹" };
+    log.push((wNames[battleState.weather.type] || "天氣") + " 結束了！");
+    battleState.weather = null;
+  }
 }
 
 var pendingItemSave = null;
@@ -1865,7 +1914,8 @@ function openArenaWithWaves(waveEnemies, gymInfo) {
   battleState = {
     playerPokemon: firstPkmn, playerParty: party, enemy: waveEnemies[0],
     isGym: true, isLeague: false, turnLock: false, battleOver: false, playerWon: false,
-    gymWaves: waveEnemies, currentWave: 0, totalWaves: waveEnemies.length, gymInfo: gymInfo
+    gymWaves: waveEnemies, currentWave: 0, totalWaves: waveEnemies.length, gymInfo: gymInfo,
+    weather: null
   };
   $("battleModal").style.display = "flex";
   $("arenaBattlePhase").style.display = "block";
@@ -1893,7 +1943,8 @@ function openArena(enemy) {
 
   battleState = {
     playerPokemon: firstPkmn, playerParty: party, enemy: enemy,
-    isGym: enemy.isGym, isLeague: enemy.isLeague, turnLock: false, battleOver: false, playerWon: false
+    isGym: enemy.isGym, isLeague: enemy.isLeague, turnLock: false, battleOver: false, playerWon: false,
+    weather: null
   };
 
   $("battleModal").style.display = "flex";
@@ -1907,6 +1958,18 @@ function openArena(enemy) {
 
 function updateArenaUI() {
   if (!battleState) return;
+  var wd = $("weatherDisplay");
+  if (battleState.weather) {
+    var wIcons = { rain: "🌧️", sun: "☀️", sand: "🌪️", hail: "❄️" };
+    var wNames = { rain: "下雨", sun: "大晴天", sand: "沙暴", hail: "冰雹" };
+    var wColors = { rain: "#3498db", sun: "#e67e22", sand: "#d4a853", hail: "#85c1e9" };
+    wd.style.display = "block";
+    wd.style.background = wColors[battleState.weather.type] + "22";
+    wd.style.border = "2px solid " + (wColors[battleState.weather.type] || "#999");
+    wd.innerHTML = wIcons[battleState.weather.type] + " " + wNames[battleState.weather.type] + "（剩餘 " + battleState.weather.duration + " 回合）";
+  } else {
+    wd.style.display = "none";
+  }
   var pp = battleState.playerPokemon;
   $("playerPkmnName").innerHTML = pp.name + " Lv." + pp.level;
   var phpPct = Math.round(pp.currentHp / pp.maxHp * 100);
@@ -2422,7 +2485,6 @@ function updatePreview() {
     } else if (finalScore > 0) {
       captureHint = "分數低於 50 無法捕捉，再多加把勁！";
     }
-  }
   }
   var trainHint = "";
   if (actionVal === "train") {
