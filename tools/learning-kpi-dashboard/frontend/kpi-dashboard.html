@@ -633,15 +633,12 @@ var MOVE_DATABASE = {
   "交錯火焰": { power: 100, type: "火",  category: "特殊", desc: "與交錯閃電同時使用威力提升" },
   "交錯閃電": { power: 100, type: "電",  category: "特殊", desc: "與交錯火焰同時使用威力提升" },
   "颱風":   { power: 110, type: "飛行",  category: "特殊", desc: "可能讓對手混亂" },
-  "噴射火焰(火系)": { power: 90, type: "火", category: "特殊", desc: "可能燒傷對手", effect: "burn" },
-  "捨身衝撞(一般系)": { power: 120, type: "一般", category: "物理", desc: "承受反傷" },
   "地球上投": { power: 80, type: "格鬥", category: "物理", desc: "摔投技" },
   "吸收":   { power: 20,  type: "草",    category: "特殊", desc: "回復傷害一半HP" },
   "百萬噸吸收": { power: 40, type: "草", category: "特殊", desc: "回復傷害一半HP" },
   "寄生種子": { power: 0,   type: "草",  category: "變化", desc: "吸取對手HP", effect: "leech_seed" },
   "玩水":   { power: 0,   type: "水",    category: "變化", desc: "降低火系威力", effect: "weaken_fire" },
   "變硬":   { power: 0,   type: "一般",  category: "變化", desc: "提升防禦", effect: "buff_def" },
-  "叫聲(一般系)": { power: 0, type: "一般", category: "變化", desc: "降低對手攻擊", effect: "debuff_atk" },
   "搖尾巴": { power: 0,   type: "一般",  category: "變化", desc: "降低對手防禦", effect: "debuff_def" },
   "潑沙":   { power: 0,   type: "地面",  category: "變化", desc: "降低命中率", effect: "debuff_accuracy" },
   "電光一閃": { power: 40, type: "一般", category: "物理", desc: "先制攻擊" },
@@ -649,7 +646,6 @@ var MOVE_DATABASE = {
   "高速移動": { power: 0,   type: "超能力", category: "變化", desc: "大幅提升速度", effect: "buff_speed" },
   "瞪眼":   { power: 0,   type: "一般",  category: "變化", desc: "降低對手防禦", effect: "debuff_def" },
   "纏繞":   { power: 10,  type: "一般",  category: "物理", desc: "持續傷害" },
-  "撞擊(一般系)": { power: 40, type: "一般", category: "物理", desc: "用身體撞向對手" },
   "泡沫":   { power: 40,  type: "水",    category: "特殊", desc: "降低對手速度" },
   "泡沫光線": { power: 65, type: "水",   category: "特殊", desc: "降低對手速度" },
   "鹽水":   { power: 65,  type: "水",    category: "特殊", desc: "HP一半以下威力加倍" },
@@ -665,6 +661,103 @@ var MOVE_DATABASE = {
   "雙重攻擊": { power: 35, type: "一般", category: "物理", desc: "連續攻擊2次" },
   "玉石俱碎": { power: 200, type: "一般", category: "物理", desc: "自己也昏厥", effect: "self_kill" },
   "大爆炸": { power: 250, type: "一般",  category: "物理", desc: "自己也昏厥", effect: "self_kill" },
+  "流星閃衝": { power: 100, type: "鋼",   category: "物理", desc: "以流星速度衝撞" },
+  "火焰踢": { power: 85,  type: "火",    category: "物理", desc: "可能燒傷對手", effect: "burn" },
+  "木角":   { power: 75,  type: "草",    category: "物理", desc: "回復傷害一半HP" },
+  "木槌":   { power: 120, type: "草",    category: "物理", desc: "承受反傷" },
+  "鼓擊":   { power: 80,  type: "草",    category: "物理", desc: "降低對手速度" },
+  "火焰球": { power: 120, type: "火",    category: "特殊", desc: "可能燒傷對手", effect: "burn" },
+  "飛膝踢": { power: 120, type: "格鬥",  category: "物理", desc: "失誤時會受傷" },
+  "縫影":   { power: 80,  type: "幽靈",  category: "物理", desc: "無法逃走" },
+  "熱風":   { power: 95,  type: "火",    category: "特殊", desc: "可能燒傷對手", effect: "burn" },
+  "子彈拳": { power: 40,  type: "鋼",    category: "物理", desc: "先制攻擊" },
+  "太晶爆發": { power: 80, type: "一般", category: "特殊", desc: "太晶化時屬性變化" },
+  "大地之力": { power: 90, type: "地面", category: "特殊", desc: "可能降低特防" },
+  "龍之怒": { power: 40,  type: "龍",    category: "特殊", desc: "固定傷害" },
+  "幫助":   { power: 0,   type: "一般",  category: "變化", desc: "提升隊友攻擊", effect: "buff_atk" },
+  "月光":   { power: 0,   type: "妖精",  category: "變化", desc: "回復HP", effect: "heal_50" },
+  "吸取之吻": { power: 50, type: "妖精", category: "特殊", desc: "回復傷害一半HP" },
+  "鏡面反射": { power: 60, type: "超能力", category: "特殊", desc: "將傷害加倍返還" },
+  "拍擊":   { power: 40,  type: "一般",  category: "物理", desc: "用手掌攻擊" },
+  "劈開":   { power: 70,  type: "一般",  category: "物理", desc: "用利刃劈開對手" },
+  "破壞光線": { power: 150, type: "一般", category: "特殊", desc: "需要一回合準備" },
+  "水之波動": { power: 60, type: "水",   category: "特殊", desc: "可能讓對手混亂" },
+  "衝浪":   { power: 90,  type: "水",    category: "特殊", desc: "召喚巨浪攻擊" },
+  "大字爆炎": { power: 110, type: "火",  category: "特殊", desc: "可能燒傷對手", effect: "burn" },
+  "火焰牙": { power: 65,  type: "火",    category: "物理", desc: "可能燒傷或畏縮", effect: "burn" },
+  "藤鞭":   { power: 45,  type: "草",    category: "物理", desc: "用藤蔓抽打" },
+  "種子炸彈": { power: 80, type: "草",   category: "物理", desc: "投擲炸彈果實" },
+  "電擊":   { power: 40,  type: "電",    category: "特殊", desc: "可能麻痹對手", effect: "paralyze" },
+  "起風":   { power: 40,  type: "飛行",  category: "特殊", desc: "颳起風攻擊" },
+  "鑽啄":   { power: 80,  type: "飛行",  category: "物理", desc: "旋轉鑽擊" },
+  "勇鳥猛攻": { power: 120, type: "飛行", category: "物理", desc: "承受反傷" },
+  "冰凍牙": { power: 65,  type: "冰",    category: "物理", desc: "可能凍結或畏縮", effect: "freeze" },
+  "碎岩":   { power: 40,  type: "格鬥",  category: "物理", desc: "擊碎岩石" },
+  "空手劈": { power: 50,  type: "格鬥",  category: "物理", desc: "用手刀劈擊" },
+  "地獄翻滾": { power: 80, type: "格鬥", category: "物理", desc: "捨身攻擊" },
+  "毒針":   { power: 15,  type: "毒",    category: "物理", desc: "可能中毒對手", effect: "poison" },
+  "溶解液": { power: 40,  type: "毒",    category: "特殊", desc: "溶解對手" },
+  "垃圾射擊": { power: 120, type: "毒",  category: "物理", desc: "投擲垃圾攻擊" },
+  "重踏":   { power: 60,  type: "地面",  category: "物理", desc: "踩踏地面" },
+  "念力":   { power: 50,  type: "超能力", category: "特殊", desc: "可能讓對手畏縮" },
+  "幻象光線": { power: 65, type: "超能力", category: "特殊", desc: "可能讓對手混亂" },
+  "蟲咬":   { power: 60,  type: "蟲",    category: "物理", desc: "啃咬對手" },
+  "十字剪": { power: 80,  type: "蟲",    category: "物理", desc: "用鉗子交叉剪擊" },
+  "落石":   { power: 50,  type: "岩石",  category: "物理", desc: "投擲小石頭" },
+  "岩崩":   { power: 75,  type: "岩石",  category: "物理", desc: "讓岩石掉落" },
+  "尖石攻擊": { power: 100, type: "岩石", category: "物理", desc: "用尖銳岩石攻擊" },
+  "舌舔":   { power: 30,  type: "幽靈",  category: "物理", desc: "可能麻痹對手", effect: "paralyze" },
+  "龍捲風": { power: 40,  type: "龍",    category: "特殊", desc: "捲起龍捲風" },
+  "龍爪":   { power: 80,  type: "龍",    category: "物理", desc: "用龍爪撕裂" },
+  "逆鱗":   { power: 120, type: "龍",    category: "物理", desc: "攻擊後陷入混亂" },
+  "金屬爪": { power: 50,  type: "鋼",    category: "物理", desc: "可能提升攻擊" },
+  "加農光炮": { power: 80, type: "鋼",   category: "特殊", desc: "發射光線" },
+  "妖精之風": { power: 40, type: "妖精", category: "特殊", desc: "颳起妖精之風" },
+  "攀瀑":   { power: 80,  type: "水",    category: "物理", desc: "逆流而上攻擊" },
+  "魔法葉": { power: 60,  type: "草",    category: "特殊", desc: "必定命中" },
+  "催眠粉": { power: 0,   type: "草",    category: "變化", desc: "讓對手睡著", effect: "sleep" },
+  "光合作用": { power: 0,  type: "草",    category: "變化", desc: "回復一半HP", effect: "heal_50" },
+  "精神擊破": { power: 100, type: "超能力", category: "特殊", desc: "超夢的專屬招式" },
+  "縮入殼中": { power: 0,   type: "水",    category: "變化", desc: "提升防禦", effect: "buff_def" },
+  "毒粉":   { power: 0,   type: "毒",    category: "變化", desc: "讓對手中毒", effect: "poison" },
+  "泡沫光線": { power: 65, type: "水",   category: "特殊", desc: "降低對手速度" },
+  "咬住":   { power: 60,  type: "惡",    category: "物理", desc: "可能讓對手畏縮" },
+  "高速星星": { power: 60, type: "一般", category: "特殊", desc: "必定命中" },
+  "神鳥猛擊": { power: 140, type: "飛行",  category: "物理", desc: "需要一回合準備" },
+  "畫龍點睛": { power: 120, type: "飛行",  category: "物理", desc: "烈空坐的專屬招式" },
+  "氣旋攻擊": { power: 100, type: "飛行",  category: "特殊", desc: "洛奇亞的專屬招式" },
+  "神聖之火": { power: 100, type: "火",    category: "物理", desc: "鳳王的專屬招式" },
+  "時光咆哮": { power: 150, type: "龍",    category: "特殊", desc: "帝牙盧卡的專屬招式" },
+};
+
+var TYPE_MOVE_POOL = {
+  "水":   ["撞擊","水槍","水之波動","衝浪","水炮"],
+  "火":   ["火花","火焰牙","噴射火焰","大字爆炎","大字爆"],
+  "草":   ["藤鞭","飛葉快刀","種子炸彈","能量球","日光束"],
+  "電":   ["電擊","電光一閃","雷電拳","十萬伏特","打雷"],
+  "飛行": ["起風","翅膀攻擊","鑽啄","颱風","勇鳥猛攻"],
+  "一般": ["撞擊","電光一閃","摔打","巨聲","破壞光線"],
+  "龍":   ["龍捲風","龍之波動","龍爪","逆鱗","龍星群"],
+  "妖精": ["妖精之風","魔法閃耀","月亮之力","月亮之力","月亮之力"],
+  "地面": ["潑沙","泥巴射擊","重踏","地震","斷崖之劍"],
+  "格鬥": ["碎岩","空手劈","地獄翻滾","近身戰","真氣彈"],
+  "超能力":["念力","幻象光線","精神強念","預知未來","創造完"],
+  "幽靈": ["舌舔","影子偷襲","暗影球","暗影球","暗影球"],
+  "毒":   ["毒針","溶解液","污泥炸彈","垃圾射擊","垃圾射擊"],
+  "鋼":   ["金屬爪","鐵頭","重磅衝撞","鐵尾","加農光炮"],
+  "惡":   ["抓","暗襲要害","咬碎","突襲","暗黑洞"],
+  "冰":   ["冰雹","冰凍之風","冰凍牙","冰凍光束","暴風雪"],
+  "蟲":   ["蟲咬","蟲鳴","十字剪","十字剪","超級角擊"],
+  "岩石": ["落石","岩石封鎖","岩崩","尖石攻擊","雙刃頭錘"]
+};
+
+var SIGNATURE_MOVES = {
+  "超夢":    { name:"精神擊破", type:"超能力", power:100, category:"特殊" },
+  "火焰鳥":  { name:"神鳥猛擊", type:"飛行",   power:140, category:"物理" },
+  "烈空坐":  { name:"畫龍點睛", type:"飛行",   power:120, category:"物理" },
+  "洛奇亞":  { name:"氣旋攻擊", type:"飛行",   power:100, category:"特殊" },
+  "鳳王":    { name:"神聖之火", type:"火",     power:100, category:"物理" },
+  "帝牙盧卡":{ name:"時光咆哮", type:"龍",     power:150, category:"特殊" }
 };
 
 var POKEMON_TIERS = {
@@ -805,6 +898,41 @@ var POKEMON_TIERS = {
   ]
 };
 
+var TYPE_RATIO = {
+  "水":    [1.1,0.9,1.2,1.0,1.1,0.7],
+  "火":    [0.9,1.1,0.8,1.3,0.9,1.0],
+  "草":    [1.1,0.9,1.1,1.1,1.1,0.7],
+  "電":    [0.8,0.9,0.8,1.2,0.9,1.4],
+  "飛行":  [0.9,1.1,0.9,0.9,0.9,1.3],
+  "一般":  [1.2,1.0,1.0,0.8,1.0,1.0],
+  "龍":    [1.1,1.3,1.0,1.1,1.0,0.5],
+  "妖精":  [1.1,0.7,0.9,1.2,1.3,0.8],
+  "地面":  [1.2,1.2,1.2,0.7,0.9,0.8],
+  "格鬥":  [1.0,1.4,1.0,0.6,0.9,1.1],
+  "超能力":[0.8,0.6,0.8,1.4,1.3,1.1],
+  "幽靈":  [0.8,1.1,0.9,1.2,1.0,1.0],
+  "毒":    [1.0,1.1,1.1,0.9,1.0,0.9],
+  "鋼":    [1.0,1.2,1.4,0.8,1.2,0.4],
+  "惡":    [1.0,1.3,0.9,1.0,0.9,1.1],
+  "冰":    [1.0,1.0,0.9,1.3,0.9,1.0],
+  "蟲":    [0.9,1.1,1.2,0.8,1.1,1.0],
+  "岩石":  [1.0,1.3,1.4,0.6,0.9,0.6]
+};
+var EVO_STAGE_MAP = (function(){
+  var m = {};
+  for (var t in POKEMON_TIERS) {
+    for (var i = 0; i < POKEMON_TIERS[t].length; i++) {
+      var e = POKEMON_TIERS[t][i];
+      m[e.name] = 0;
+      if (e.evolutions) {
+        for (var j = 0; j < e.evolutions.length; j++) {
+          m[e.evolutions[j]] = j + 1;
+        }
+      }
+    }
+  }
+  return m;
+})();
 // GYM LEADERS — 16 道館館主資料 (方案 B 步驟 2)
 var GYM_LEADERS = [
   { region: "關都", badge: 1,  leader: "小剛", type: "岩石",    emoji: "🪨", name: "尼比道館",   waves: 3, lvBonus: 0, desc: "岩石般的基礎計算" },
@@ -1040,20 +1168,30 @@ function getMoveDetails(moveName) {
 function getPokemonMoveset(baseName, level) {
   var raw = baseName.replace(/^[🐾⭐🌟✨]\s*/,"").replace(/\s*\(.*\)/,"");
   var isHigh = level >= 30;
+  var types = POKEMON_SPECIES_TYPES[raw] || ["一般"];
+  var primaryType = types[0];
+  var leg = checkIsLegendary(raw);
+  var stats = getPokemonStats(baseName, Math.min(level, 50));
+  var isPhys = stats.atk >= stats.spatk;
   var pool = [];
-  if (raw === "超夢") pool = ["精神強念","暗影球","冰凍光束","真氣彈"];
-  else if (raw === "烈空坐") pool = ["龍星群","創造完","颱風","地震"];
+
+  if (raw === "超夢") pool = ["精神擊破","暗影球","冰凍光束","真氣彈"];
+  else if (raw === "烈空坐") pool = ["畫龍點睛","龍星群","颱風","地震"];
   else if (raw === "蓋歐卡") pool = ["根源波動","水炮","暴風雪","打雷"];
   else if (raw === "固拉多") pool = ["斷崖之劍","地震","岩石封鎖","大字爆"];
   else if (raw === "阿爾宙斯") pool = ["創造完","精神強念","大字爆","打雷"];
   else if (raw === "騎拉帝納") pool = ["龍星群","暗影球","暗黑洞","地震"];
-  else if (raw === "帝牙盧卡") pool = ["龍星群","打雷","大字爆","鐵尾"];
+  else if (raw === "帝牙盧卡") pool = ["時光咆哮","打雷","大字爆","鐵尾"];
   else if (raw === "帕路奇亞") pool = ["龍星群","水炮","精神強念","地震"];
   else if (raw === "萊希拉姆") pool = ["大字爆","龍星群","噴射火焰","暗影球"];
   else if (raw === "捷克羅姆") pool = ["打雷","龍星群","閃電強襲","咬碎"];
   else if (raw === "酋雷姆") pool = ["暴風雪","龍星群","冷凍光束","暗影球"];
-  else if (raw === "鳳王") pool = ["大字爆","颱風","地震","精神強念"];
-  else if (raw === "洛奇亞") pool = ["颱風","精神強念","水炮","冷凍光束"];
+  else if (raw === "鳳王") pool = ["神聖之火","颱風","地震","精神強念"];
+  else if (raw === "洛奇亞") pool = ["氣旋攻擊","精神強念","水炮","冷凍光束"];
+  else if (raw === "火焰鳥") pool = ["神鳥猛擊","大字爆","噴射火焰","颱風"];
+  else if (raw === "急凍鳥") pool = ["暴風雪","冷凍光束","冰凍之風","精神強念"];
+  else if (raw === "閃電鳥") pool = ["打雷","十萬伏特","鑽啄","颱風"];
+  else if (raw === "夢幻") pool = ["精神強念","水炮","大字爆","十萬伏特"];
   else if (raw === "索爾迦雷歐") pool = ["流星閃衝","意念頭錘","火焰拳","地震"];
   else if (raw === "露奈雅拉") pool = ["暗影球","月亮之力","精神強念","冷凍光束"];
   else if (raw === "哲爾尼亞斯") pool = ["月亮之力","精神強念","十萬伏特","地震"];
@@ -1073,18 +1211,18 @@ function getPokemonMoveset(baseName, level) {
   else if (raw === "班基拉斯") pool = ["咬碎","岩石封鎖","地震","鐵尾"];
   else if (raw === "暴飛龍") pool = ["龍星群","大字爆","噴射火焰","咬碎"];
   else if (raw === "巨金怪") pool = ["流星閃衝","地震","鐵頭","精神強念"];
-  else if (raw === "烈咬陸鯊") pool = ["龍星群","地震","毒擊","咬碎"];
+  else if (raw === "烈咬陸鯊") pool = ["逆鱗","地震","毒擊","咬碎"];
   else if (raw === "路卡利歐") pool = ["近身戰","真氣彈","暗影球","子彈拳"];
   else if (raw === "沙奈朵") pool = ["月亮之力","精神強念","十萬伏特","暗影球"];
   else if (raw === "火焰雞") pool = ["火焰踢","近身戰","電光一閃","岩石封鎖"];
   else if (raw === "蜥蜴王") pool = ["飛葉風暴","真氣彈","龍之波動","電光一閃"];
   else if (raw === "巨沼怪") pool = ["水炮","地震","冷凍光束","岩石封鎖"];
   else if (raw === "大菊花") pool = ["日光束","地震","鐵尾","能量球"];
-  else if (raw === "火爆獸") pool = ["大字爆","噴射火焰","雷電拳","地震"];
+  else if (raw === "火爆獸") pool = ["大字爆炎","噴射火焰","雷電拳","地震"];
   else if (raw === "大力鱷") pool = ["水炮","咬碎","冰凍拳","地震"];
   else if (raw === "倫琴貓") pool = ["打雷","十萬伏特","咬碎","電光一閃"];
-  else if (raw === "姆克鷹") pool = ["近身戰","颱風","翅膀攻擊","電光一閃"];
-  else if (raw === "君主蛇") pool = ["飛葉風暴","能量球","覺醒力量","水炮"];
+  else if (raw === "姆克鷹") pool = ["勇鳥猛攻","近身戰","翅膀攻擊","電光一閃"];
+  else if (raw === "君主蛇") pool = ["飛葉風暴","能量球","魔法葉","水炮"];
   else if (raw === "炎武王") pool = ["大字爆","近身戰","地震","火焰踢"];
   else if (raw === "大比鳥") pool = ["颱風","翅膀攻擊","電光一閃","熱風"];
   else if (raw === "西獅海壬") pool = ["月亮之力","水炮","暴風雪","巨聲"];
@@ -1094,40 +1232,80 @@ function getPokemonMoveset(baseName, level) {
   else if (raw === "轟擂金剛猩") pool = ["木槌","地震","近身戰","鼓擊"];
   else if (raw === "閃焰王牌") pool = ["火焰球","飛膝踢","電光一閃","鐵頭"];
   else if (raw === "黏美龍") pool = ["龍星群","水炮","污泥炸彈","地震"];
-  else if (raw === "杖尾鱗甲龍") pool = ["龍星群","近身戰","地震","毒擊"];
+  else if (raw === "杖尾鱗甲龍") pool = ["逆鱗","近身戰","地震","毒擊"];
   else if (raw === "鴨嘴炎獸") pool = ["大字爆","噴射火焰","真氣彈","雷電拳"];
   else if (raw === "電擊魔獸") pool = ["打雷","十萬伏特","地震","冷凍拳"];
-  else if (raw.includes("伊布") || raw === "伊布") {
-    pool = ["撞擊","叫聲","潑沙","電光一閃"];
-  } else if (["水伊布","雷伊布","火伊布","太陽伊布","月亮伊布","葉伊布","冰伊布","仙子伊布"].indexOf(raw) !== -1) {
-    if (raw === "水伊布") pool = ["水炮","冷凍光束","幫助","守住"];
-    else if (raw === "雷伊布") pool = ["十萬伏特","電球","高速移動","潑沙"];
-    else if (raw === "火伊布") pool = ["噴射火焰","火焰牙","嬉鬧","電光一閃"];
-    else if (raw === "太陽伊布") pool = ["精神強念","預知未來","高速星星","月亮之力"];
-    else if (raw === "月亮伊布") pool = ["暗影球","咬住","月光","電磁波"];
-    else if (raw === "葉伊布") pool = ["飛葉快刀","劍舞","光合作用","十字剪"];
-    else if (raw === "冰伊布") pool = ["冷凍光束","冰雹","鏡面反射","水槍"];
-    else if (raw === "仙子伊布") pool = ["月亮之力","巨聲","吸取之吻","電光一閃"];
-  } else if (["比比鳥","大嘴雀","拉達","胖可丁","皮可西","貓頭夜鷹","大尾立","大狼犬","直衝熊","姆克鳥"].indexOf(raw) !== -1) {
-    pool = ["撞擊","電光一閃","翅膀攻擊","高速移動"];
-  } else if (["奇魯莉安","艾路雷朵","力壯雞","森林蜥蜴","沼躍魚","月桂葉","火岩鼠","藍鱷","青藤蛇","炒炒豬"].indexOf(raw) !== -1) {
-    pool = ["撞擊","電光一閃","摔打","踩踏"];
-  } else {
-    pool = ["撞擊","電光一閃","摔打","踩踏"];
+  else if (raw === "水伊布") pool = ["水炮","冷凍光束","幫助","守住"];
+  else if (raw === "雷伊布") pool = ["十萬伏特","電球","高速移動","潑沙"];
+  else if (raw === "火伊布") pool = ["噴射火焰","火焰牙","嬉鬧","電光一閃"];
+  else if (raw === "太陽伊布") pool = ["精神強念","預知未來","高速星星","月亮之力"];
+  else if (raw === "月亮伊布") pool = ["暗影球","咬住","月光","電磁波"];
+  else if (raw === "葉伊布") pool = ["飛葉快刀","劍舞","光合作用","十字剪"];
+  else if (raw === "冰伊布") pool = ["冷凍光束","冰雹","鏡面反射","水槍"];
+  else if (raw === "仙子伊布") pool = ["月亮之力","巨聲","吸取之吻","電光一閃"];
+  else {
+    var tPool = TYPE_MOVE_POOL[primaryType] || TYPE_MOVE_POOL["一般"];
+    pool.push(tPool[0] || "撞擊");
+    if (level >= 36) pool.push(tPool[tPool.length - 1]);
+    else if (level >= 16) pool.push(tPool[1] || tPool[0]);
+    else pool.push(tPool[1] || "電光一閃");
+    if (level >= 16) {
+      var covMoves = isPhys ? ["冰凍牙","地震","咬碎","攀瀑"] : ["冰凍光束","暗影球","幻象光線","魔法葉"];
+      var cov = "撞擊";
+      for (var ci = 0; ci < covMoves.length; ci++) {
+        var d = getMoveDetails(covMoves[ci]);
+        if (d && types.indexOf(d.type) === -1) { cov = covMoves[ci]; break; }
+      }
+      pool.push(cov);
+    } else {
+      pool.push(tPool[1] || "電光一閃");
+    }
+    if (level >= 36) {
+      var sPool = [];
+      if (["草","蟲","毒"].indexOf(primaryType) !== -1) sPool = ["催眠粉","光合作用","劍舞"];
+      else if (["超能力","幽靈","妖精"].indexOf(primaryType) !== -1) sPool = ["冥想","自我再生","電磁波"];
+      else if (isPhys) sPool = ["劍舞","電磁波","自我再生"];
+      else sPool = ["冥想","電磁波","自我再生"];
+      var si = raw.charCodeAt(0) % sPool.length;
+      pool.push(sPool[si]);
+    }
+    if (level >= 50 && leg && SIGNATURE_MOVES[raw]) {
+      pool[pool.length - 1] = SIGNATURE_MOVES[raw].name;
+    }
+    var uniq = [], fallback = ["撞擊","抓","電光一閃","拍擊"];
+    for (var ui = 0; ui < pool.length; ui++) {
+      if (uniq.indexOf(pool[ui]) === -1) uniq.push(pool[ui]);
+    }
+    var fi = 0;
+    while (uniq.length < 4) {
+      if (fallback.indexOf(fallback[fi]) !== -1 && uniq.indexOf(fallback[fi]) === -1) uniq.push(fallback[fi]);
+      fi++;
+    }
+    pool = uniq.slice(0, 4);
   }
   return pool;
 }
 
 function getPokemonStats(baseName, level) {
   var raw = baseName.replace(/^[🐾⭐🌟✨]\s*/,"").replace(/\s*\(.*\)/,"");
-  var hp = 40 + level * 3, atk = 30 + level * 2, def = 30 + level * 2, spatk = 30 + level * 2, spdef = 30 + level * 2, speed = 30 + level * 2;
   var leg = checkIsLegendary(raw);
-  if (leg) { hp *= 1.2; atk *= 1.3; def *= 1.2; spatk *= 1.3; spdef *= 1.2; speed *= 1.15; }
-  if (["超夢","烈空坐","阿爾宙斯","帝牙盧卡","帕路奇亞","騎拉帝納"].indexOf(raw) !== -1) { hp *= 1.35; atk *= 1.45; def *= 1.35; spatk *= 1.5; spdef *= 1.35; speed *= 1.3; }
-  var finalEvo = ["噴火龍","水箭龜","妙蛙花","快龍","班基拉斯","暴飛龍","巨金怪","烈咬陸鯊","路卡利歐","沙奈朵","火焰雞","蜥蜴王","巨沼怪","大菊花","火爆獸","大力鱷","倫琴貓","姆克鷹","君主蛇","炎武王","大比鳥","西獅海壬","狙射樹梟","熾焰咆哮虎","千面避役","轟擂金剛猩","閃焰王牌","黏美龍","杖尾鱗甲龍","鴨嘴炎獸","電擊魔獸","水伊布","雷伊布","火伊布","太陽伊布","月亮伊布","葉伊布","冰伊布","仙子伊布"].indexOf(raw) !== -1;
-  if (finalEvo && !leg) { atk *= 1.1; def *= 1.05; }
-  hp = Math.floor(hp); atk = Math.floor(atk); def = Math.floor(def); spatk = Math.floor(spatk); spdef = Math.floor(spdef); speed = Math.floor(speed);
-  return { hp: Math.max(1,hp), atk: Math.max(1,atk), def: Math.max(1,def), spatk: Math.max(1,spatk), spdef: Math.max(1,spdef), speed: Math.max(1,speed), type: getPokemonType(baseName) };
+  var types = getPokemonType(baseName).split("/");
+  var primaryType = types[0];
+  var stage = EVO_STAGE_MAP[raw] !== undefined ? EVO_STAGE_MAP[raw] : 0;
+  var baseTotal = leg ? 600 : (300 + Math.min(stage, 2) * 100);
+  var ratios = TYPE_RATIO[primaryType] || TYPE_RATIO["一般"];
+  var avgBase = baseTotal / 6;
+  var bs_hp = Math.floor(avgBase * ratios[0]), bs_atk = Math.floor(avgBase * ratios[1]), bs_def = Math.floor(avgBase * ratios[2]);
+  var bs_spa = Math.floor(avgBase * ratios[3]), bs_spd = Math.floor(avgBase * ratios[4]), bs_spe = Math.floor(avgBase * ratios[5]);
+  var hp = Math.floor(((bs_hp * 2 + 31) * level) / 100) + level + 10;
+  var atk = Math.floor(((bs_atk * 2 + 31) * level) / 100) + 5;
+  var def = Math.floor(((bs_def * 2 + 31) * level) / 100) + 5;
+  var spa = Math.floor(((bs_spa * 2 + 31) * level) / 100) + 5;
+  var spd = Math.floor(((bs_spd * 2 + 31) * level) / 100) + 5;
+  var spe = Math.floor(((bs_spe * 2 + 31) * level) / 100) + 5;
+  if (leg) { hp = Math.floor(hp * 1.2); atk = Math.floor(atk * 1.3); def = Math.floor(def * 1.2); spa = Math.floor(spa * 1.3); spd = Math.floor(spd * 1.2); spe = Math.floor(spe * 1.15); }
+  if (["超夢","烈空坐","阿爾宙斯","帝牙盧卡","帕路奇亞","騎拉帝納"].indexOf(raw) !== -1) { hp = Math.floor(hp * 1.35); atk = Math.floor(atk * 1.45); def = Math.floor(def * 1.35); spa = Math.floor(spa * 1.5); spd = Math.floor(spd * 1.35); spe = Math.floor(spe * 1.3); }
+  return { hp: Math.max(1,hp), atk: Math.max(1,atk), def: Math.max(1,def), spatk: Math.max(1,spa), spdef: Math.max(1,spd), speed: Math.max(1,spe), type: getPokemonType(baseName) };
 }
 
 function getPokemonType(baseName) {
@@ -1180,7 +1358,8 @@ function createEnemyPokemon(name, level, isGym, isLeague) {
   var moveset = getPokemonMoveset(name, level);
   var selectedMoves = [];
   var pool = moveset.slice();
-  for (var mi = 0; mi < Math.min(4, pool.length); mi++) {
+  var maxMoves = Math.min(4, moveset.length);
+  for (var mi = 0; mi < maxMoves; mi++) {
     var ri = Math.floor(Math.random() * pool.length);
     selectedMoves.push(pool.splice(ri, 1)[0]);
   }
