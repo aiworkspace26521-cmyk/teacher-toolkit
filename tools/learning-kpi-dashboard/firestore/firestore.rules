@@ -28,6 +28,12 @@ service cloud.firestore {
       allow write: if false;
     }
 
+    // gyms: 公開唯讀（道館資料）
+    match /gyms/{gymId} {
+      allow read: if true;
+      allow write: if false;
+    }
+
     // 其餘全部拒絕
     match /{document=**} {
       allow read, write: if false;
