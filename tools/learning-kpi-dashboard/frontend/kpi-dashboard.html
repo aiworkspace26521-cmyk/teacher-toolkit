@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿<!DOCTYPE html>
 <html lang="zh-TW">
 <head>
   <meta charset="utf-8">
@@ -16,8 +16,8 @@
     body { font-family: 'Nunito', '微軟正黑體', sans-serif; background: var(--kpi-bg); background-image: radial-gradient(#cbd5e1 1px, transparent 1px); background-size: 20px 20px; padding: 15px; display: flex; justify-content: center; min-height: 100vh; }
     .container { background: var(--kpi-card); width: 100%; max-width: 520px; border-radius: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.15); overflow: hidden; border: 4px solid var(--kpi-dark); height: fit-content; }
     .header { background: linear-gradient(135deg, var(--kpi-blue), #2c3e50); padding: 18px 20px; text-align: center; border-bottom: 6px solid var(--kpi-dark); position: relative; }
-    .header h1 { color: white; margin: 0; font-size: 20px; text-shadow: 2px 2px 0 var(--kpi-dark); letter-spacing: 1px; }
-    .header .subtitle { color: var(--kpi-yellow); font-size: 12px; font-weight: 700; margin-top: 3px; }
+    .header h1 { color: white; margin: 0; font-size: clamp(16px, 4.5vw, 20px); text-shadow: 2px 2px 0 var(--kpi-dark); letter-spacing: 1px; }
+    .header .subtitle { color: var(--kpi-yellow); font-size: clamp(10px, 3vw, 12px); font-weight: 700; margin-top: 3px; }
     .content { padding: 15px; }
     select.main-select { width: 100%; padding: 12px; margin-bottom: 10px; border-radius: 10px; border: 3px solid var(--kpi-blue); font-size: 18px; font-weight: 900; color: var(--kpi-dark); background: #f8faff; text-align: center; cursor: pointer; outline: none; }
     .admin-panel { display: none; background: #2c3e50; border: 3px solid #f1c40f; border-radius: 10px; padding: 12px; margin-bottom: 12px; color: white; }
@@ -96,7 +96,76 @@
     .conflict-panel { background: #fff3cd; border: 2px solid #ffc107; border-radius: 8px; padding: 10px; margin: 10px 0; font-size: 12px; font-weight: 700; color: #856404; display: none; }
     .loading-spinner { display: inline-block; width: 20px; height: 20px; border: 3px solid rgba(255,255,255,0.3); border-radius: 50%; border-top-color: white; animation: spin 0.8s ease-in-out infinite; margin-right: 8px; vertical-align: middle; }
     @keyframes spin { to { transform: rotate(360deg); } }
-    @media (max-width: 480px) { .kpi-grid { grid-template-columns: repeat(2, 1fr); } .button-row { grid-template-columns: repeat(3, 1fr); } }
+    @media (max-width: 480px) {
+      .container { border-width: 3px; border-radius: 16px; }
+      body { padding: 10px; }
+      .content { padding: 12px; }
+      .kpi-grid { grid-template-columns: repeat(2, 1fr); }
+      .kpi-box .val { font-size: 20px; }
+      .header { padding: 14px 14px; }
+      .header h1 { font-size: 17px; }
+      .header .subtitle { font-size: 11px; }
+      .nav-btn { font-size: 12px; padding: 10px 4px; }
+      .category-card { padding: 10px; }
+      .cat-title { font-size: 14px; }
+      .task-item { font-size: 13px; padding: 5px; }
+      .decision-box { padding: 12px; }
+      .decision-box h3 { font-size: 14px; }
+      .action-option { padding: 8px; font-size: 13px; }
+      .modal-content { padding: 15px; width: 92%; }
+      .battle-controls { grid-template-columns: 1fr 1fr; }
+      .moveset-grid { grid-template-columns: 1fr 1fr; gap: 6px; }
+      .move-btn { padding: 10px 4px; font-size: 13px; }
+      .b-btn { font-size: 12px; padding: 8px; }
+      .submit-btn { font-size: 16px; padding: 12px; }
+      .admin-group { gap: 5px; }
+      .admin-btn { font-size: 12px; padding: 6px; min-width: 60px; }
+      select.main-select { font-size: 16px; padding: 10px; }
+      .arena-hp-section { padding: 8px; }
+      .pc-grid-party { grid-template-columns: repeat(3, 1fr); }
+      .pc-grid-box { grid-template-columns: repeat(2, 1fr); }
+    }
+    @media (max-width: 380px) {
+      body { padding: 6px; }
+      .container { border-radius: 12px; border-width: 2px; }
+      .content { padding: 8px; }
+      .header h1 { font-size: 15px; }
+      .header { padding: 10px 10px; border-bottom-width: 4px; }
+      .kpi-box { padding: 8px 4px; font-size: 11px; }
+      .kpi-box .val { font-size: 18px; }
+      .button-row { grid-template-columns: repeat(2, 1fr); gap: 6px; }
+      .nav-btn { font-size: 11px; padding: 8px 3px; min-height: 44px; }
+      .battle-controls { grid-template-columns: 1fr 1fr; gap: 5px; }
+      .moveset-grid { grid-template-columns: 1fr; gap: 5px; }
+      .move-btn { font-size: 12px; padding: 8px; }
+      .pc-grid-party { grid-template-columns: repeat(2, 1fr); }
+      .pc-grid-box { grid-template-columns: repeat(2, 1fr); }
+      .collection-grid { grid-template-columns: 1fr; }
+      .pvp-split { flex-direction: column; gap: 8px; }
+      .submit-btn { font-size: 14px; padding: 10px; }
+      #battleLog, #pvpLog { height: 120px; font-size: 12px; }
+    }
+    @media (min-width: 768px) and (max-width: 1024px) {
+      .container { max-width: 600px; }
+      .kpi-grid { grid-template-columns: repeat(3, 1fr); }
+      .button-row { grid-template-columns: repeat(3, 1fr); }
+      .moveset-grid { grid-template-columns: 1fr 1fr; }
+    }
+    @media (orientation: landscape) and (max-height: 500px) {
+      .header { padding: 8px 12px; }
+      .header h1 { font-size: 14px; }
+      .header .subtitle { display: none; }
+      .content { padding: 8px; }
+      .dashboard-card { padding: 10px; margin-bottom: 8px; }
+      .kpi-box { padding: 6px 4px; }
+      .kpi-box .val { font-size: 16px; }
+      .category-card { padding: 8px; margin-bottom: 8px; }
+      .task-item { font-size: 12px; padding: 4px; }
+      .nav-btn { font-size: 11px; padding: 6px 3px; min-height: 36px; }
+      .decision-box { padding: 8px; margin: 8px 0; }
+      .modal-content { max-height: 90vh; }
+      .modal-content h3 { font-size: 14px; }
+    }
     .battle-arena { text-align: left; }
     .enemy-box { background: #fdedec; border: 2px dashed #e74c3c; border-radius: 8px; padding: 12px; margin-bottom: 15px; position: relative; }
     .enemy-indicators { display: flex; gap: 5px; margin-bottom: 8px; }
@@ -166,6 +235,24 @@
     .entry-animation { animation: entry-in 0.5s ease-out forwards; }
     .status-icon { font-size:16px; margin-left:4px; display:inline-block; animation:pulse 1s infinite; vertical-align:middle; }
     .hp-bar-fill.anim-drain { transition: width 1.2s linear; }
+    @keyframes particle-up { 0% { opacity:1; transform:translateY(0) scale(1); } 100% { opacity:0; transform:translateY(-80px) scale(0.2); } }
+    @keyframes particle-spark { 0% { opacity:1; transform:translate(0,0) scale(1); } 100% { opacity:0; transform:translate(var(--px), var(--py)) scale(0); } }
+    @keyframes screen-shake { 0%,100% { transform:translateX(0); } 10% { transform:translateX(-4px); } 30% { transform:translateX(4px); } 50% { transform:translateX(-2px); } 70% { transform:translateX(2px); } }
+    @keyframes hit-ring { 0% { transform:scale(0.5); opacity:1; } 100% { transform:scale(2); opacity:0; } }
+    @keyframes skeleton-pulse { 0% { opacity:0.6; } 50% { opacity:1; } 100% { opacity:0.6; } }
+    .skeleton { background: linear-gradient(90deg, #e0e0e0 25%, #f0f0f0 50%, #e0e0e0 75%); background-size: 200% 100%; animation: skeleton-pulse 1.5s ease-in-out infinite; border-radius: 6px; color: transparent !important; user-select: none; pointer-events: none; }
+    .skeleton-text { display: inline-block; height: 16px; width: 80%; margin: 4px 0; }
+    .skeleton-title { height: 22px; width: 60%; margin: 8px auto; display: block; }
+    .skeleton-box { height: 60px; border-radius: 8px; }
+    .skeleton-avatar { width: 40px; height: 40px; border-radius: 50%; display: inline-block; }
+    .skeleton-btn { height: 44px; border-radius: 8px; display: block; }
+    .skeleton-hp { height: 8px; border-radius: 4px; margin: 8px 0; }
+    .skeleton-badge { width: 30px; height: 30px; border-radius: 50%; display: inline-block; margin: 3px; }
+    .particle-container { position:absolute; top:0; left:0; width:100%; height:100%; pointer-events:none; overflow:hidden; z-index:50; }
+    .particle { position:absolute; width:8px; height:8px; border-radius:50%; pointer-events:none; }
+    .particle.star { width:12px; height:12px; background:transparent !important; clip-path: polygon(50% 0%, 61% 35%, 98% 35%, 68% 57%, 79% 91%, 50% 70%, 21% 91%, 32% 57%, 2% 35%, 39% 35%); }
+    .hit-ring { position:absolute; top:var(--ring-y); left:var(--ring-x); width:40px; height:40px; margin-left:-20px; margin-top:-20px; border:3px solid var(--ring-color,#fff); border-radius:50%; animation:hit-ring 0.5s ease-out forwards; pointer-events:none; z-index:60; }
+    .screen-shake { animation: screen-shake 0.3s ease; }
   </style>
 </head>
 <body>
@@ -189,9 +276,9 @@
         <select id="devWeek" onchange="if(isAdmin)forceAdminUpdate()"><option value="gym">一般週末 (道館)</option><option value="league">月底 (大會)</option></select>
       </div>
       <div class="admin-group">
-        <button class="admin-btn" onclick="devAdd('COIN',500)">💰 +500 幣</button>
-        <button class="admin-btn" onclick="devAdd('BADGE',4)">🏅 +4 徽章</button>
-        <button class="admin-btn" onclick="devAdd('EXP',2000)">✨ +2000 EXP</button>
+        <button class="admin-btn" onclick="sfx.click();devAdd('COIN',500)">💰 +500 幣</button>
+        <button class="admin-btn" onclick="sfx.click();devAdd('BADGE',4)">🏅 +4 徽章</button>
+        <button class="admin-btn" onclick="sfx.click();devAdd('EXP',2000)">✨ +2000 EXP</button>
       </div>
     </div>
     <div id="eventBanner"></div><span id="leagueBadge" style="display:none;font-size:12px;color:#e74c3c;font-weight:900;">🔥 聯盟期間</span>
@@ -253,12 +340,12 @@
     <input type="hidden" id="hiddenAction" value="">
     <div id="actionContainer"></div>
     <div class="button-row" style="grid-template-columns:repeat(3,1fr);">
-      <button class="nav-btn btn-collection" onclick="openCollection()">📖 成就圖鑑</button>
-      <button class="nav-btn btn-pcbox" onclick="openPCBoxModal()">💻 電腦</button>
-      <button class="nav-btn btn-shop" onclick="openShop()">🛒 商城</button>
-      <button class="nav-btn btn-pvp" onclick="openPvPModal()">🆚 宿敵</button>
-      <button class="nav-btn btn-daily" id="arenaBattleBtn" onclick="startBattle(false,false)">🚶 路人戰</button>
-      <button class="nav-btn btn-gym" id="btnGymBattle" onclick="startBattle(true,false)">⚔️ 道館戰</button>
+      <button class="nav-btn btn-collection" onclick="sfx.click();openCollection()">📖 成就圖鑑</button>
+      <button class="nav-btn btn-pcbox" onclick="sfx.click();openPCBoxModal()">💻 電腦</button>
+      <button class="nav-btn btn-shop" onclick="sfx.click();openShop()">🛒 商城</button>
+      <button class="nav-btn btn-pvp" onclick="sfx.click();openPvPModal()">🆚 宿敵</button>
+      <button class="nav-btn btn-daily" id="arenaBattleBtn" onclick="sfx.click();startBattle(false,false)">🚶 路人戰</button>
+      <button class="nav-btn btn-gym" id="btnGymBattle" onclick="sfx.click();startBattle(true,false)">⚔️ 道館戰</button>
     </div>
     <button id="submitBtn" class="submit-btn" disabled>請先登入</button>
   </div>
@@ -348,6 +435,63 @@
 // ===== Core utility functions =====
 function $(id) { return document.getElementById(id); }
 var toastTimeout;
+var sfx = {
+  _ctx: null,
+  _init: function() {
+    if (this._ctx) return;
+    try { this._ctx = new (window.AudioContext || window.webkitAudioContext)(); } catch(e) {}
+  },
+  _play: function(freq, duration, type, volume) {
+    try {
+      this._init();
+      if (!this._ctx) return;
+      type = type || "square";
+      volume = volume || 0.12;
+      var osc = this._ctx.createOscillator();
+      var gain = this._ctx.createGain();
+      osc.type = type;
+      osc.frequency.setValueAtTime(freq, this._ctx.currentTime);
+      gain.gain.setValueAtTime(volume, this._ctx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.001, this._ctx.currentTime + duration);
+      osc.connect(gain);
+      gain.connect(this._ctx.destination);
+      osc.start();
+      osc.stop(this._ctx.currentTime + duration);
+    } catch(e) {}
+  },
+  _noise: function(duration, volume) {
+    try {
+      this._init();
+      if (!this._ctx) return;
+      volume = volume || 0.05;
+      var sr = this._ctx.sampleRate;
+      var len = sr * duration;
+      var buf = this._ctx.createBuffer(1, len, sr);
+      var data = buf.getChannelData(0);
+      for (var i = 0; i < len; i++) data[i] = Math.random() * 2 - 1;
+      var src = this._ctx.createBufferSource();
+      src.buffer = buf;
+      var gain = this._ctx.createGain();
+      gain.gain.setValueAtTime(volume, this._ctx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.001, this._ctx.currentTime + duration);
+      src.connect(gain);
+      gain.connect(this._ctx.destination);
+      src.start();
+      src.stop(this._ctx.currentTime + duration);
+    } catch(e) {}
+  },
+  hit: function() { this._play(200, 0.15, "sawtooth", 0.10); this._noise(0.08, 0.06); },
+  crit: function() { this._play(523, 0.1, "square", 0.08); this._play(659, 0.1, "square", 0.08); this._play(784, 0.15, "square", 0.08); },
+  faint: function() { this._play(400, 0.2, "sawtooth", 0.08); setTimeout(function(){ sfx._play(300, 0.3, "sawtooth", 0.06); }, 200); setTimeout(function(){ sfx._play(200, 0.4, "sawtooth", 0.04); }, 400); },
+  levelup: function() { this._play(523, 0.1, "square", 0.08); setTimeout(function(){ sfx._play(659, 0.1, "square", 0.08); }, 100); setTimeout(function(){ sfx._play(784, 0.15, "square", 0.08); }, 200); setTimeout(function(){ sfx._play(1047, 0.3, "square", 0.08); }, 300); },
+  capture: function() { this._play(440, 0.08, "sine", 0.08); setTimeout(function(){ sfx._play(587, 0.08, "sine", 0.08); }, 80); setTimeout(function(){ sfx._play(440, 0.08, "sine", 0.08); }, 160); setTimeout(function(){ sfx._play(587, 0.08, "sine", 0.08); }, 240); setTimeout(function(){ sfx._play(880, 0.2, "sine", 0.10); }, 320); },
+  click: function() { this._play(800, 0.04, "square", 0.04); },
+  error: function() { this._play(200, 0.3, "sawtooth", 0.06); },
+  heal: function() { this._play(523, 0.15, "sine", 0.06); setTimeout(function(){ sfx._play(659, 0.15, "sine", 0.06); }, 150); setTimeout(function(){ sfx._play(784, 0.2, "sine", 0.06); }, 300); },
+  weather: function() { this._play(300, 0.3, "triangle", 0.04); this._noise(0.2, 0.03); },
+  entry: function() { this._play(440, 0.08, "sine", 0.06); setTimeout(function(){ sfx._play(554, 0.08, "sine", 0.06); }, 80); setTimeout(function(){ sfx._play(659, 0.12, "sine", 0.06); }, 160); }
+};
+
 function toast(msg, duration) {
   duration = duration || 3000;
   if (toastTimeout) clearTimeout(toastTimeout);
@@ -504,11 +648,28 @@ async function recalculateStudentState(studentId, events) {
   return { studentId: state.studentId, highestLevel: finalHighestLevel, lockedGymLevel: state.lockedGymLevel, coins: state.coins, badges: state.badges, potions: state.potions, revives: state.revives, candies: state.candies, maxPotions: state.maxPotions, maxRevives: state.maxRevives, hasExpShare: state.hasExpShare, hasExpertBelt: state.hasExpertBelt, hasEviolite: state.hasEviolite, hasChampionCloak: state.hasChampionCloak, hasAmuletCoin: state.hasAmuletCoin, todayCompleted: state.todayCompleted, daysSinceLastBadge: state.daysSinceLastBadge, roster: rosterArray, todayBattles: state.todayBattles, weekGymWins: state.weekGymWins, monthLeagueWins: state.monthLeagueWins };
 }
 
+function showSkeletonDashboard() {
+  var existing = $("skeletonOverlay"); if (existing) return;
+  var overlay = document.createElement("div");
+  overlay.id = "skeletonOverlay";
+  overlay.style.cssText = "position:absolute;inset:0;background:rgba(255,255,255,0.92);z-index:50;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:40px 20px;border-radius:12px;";
+  overlay.innerHTML = "<div class=\"skeleton skeleton-title\" style=\"width:70%;height:24px;\"> </div><div style=\"display:grid;grid-template-columns:repeat(3,1fr);gap:8px;width:100%;margin:20px 0;\"><div class=\"skeleton skeleton-box\" style=\"height:70px;\"> </div><div class=\"skeleton skeleton-box\" style=\"height:70px;\"> </div><div class=\"skeleton skeleton-box\" style=\"height:70px;\"> </div></div><div style=\"display:flex;gap:8px;justify-content:center;margin:10px 0;\"><span class=\"skeleton skeleton-badge\" style=\"width:36px;height:36px;\"> </span><span class=\"skeleton skeleton-badge\" style=\"width:36px;height:36px;\"> </span><span class=\"skeleton skeleton-badge\" style=\"width:36px;height:36px;\"> </span><span class=\"skeleton skeleton-badge\" style=\"width:36px;height:36px;\"> </span></div><div class=\"skeleton skeleton-box\" style=\"height:44px;width:100%;\"> </div>";
+  var container = $("dashboard");
+  if (container) { container.style.position = "relative"; container.appendChild(overlay); }
+  var gp = $("gymPreview"); if (gp) gp.innerHTML = "<span class=\"skeleton skeleton-text\" style=\"width:90%;display:inline-block;\">Loading...</span>";
+}
+
+function hideSkeleton() {
+  var overlay = $("skeletonOverlay");
+  if (overlay) overlay.remove();
+}
+
 async function fetchStudentData(studentId, pendingEvent) {
   if (!studentId) return;
   if (!db) { toast("Firebase initializing..."); return; }
   isAdmin = (studentId === "Admin");
   $("adminPanel").style.display = isAdmin ? "block" : "none";
+  showSkeletonDashboard();
   var btn = $("submitBtn"); btn.disabled = true; btn.innerHTML = "<span class=\"loading-spinner\"></span> Loading...";
   try {
     var snapshot = await db.collection("kpi_events").where("studentId", "==", studentId).orderBy("timestamp", "asc").get();
@@ -527,12 +688,12 @@ async function fetchStudentData(studentId, pendingEvent) {
     globalData.partyIds = [];
     if (savedParty) { try { var parsed = JSON.parse(savedParty); globalData.partyIds = parsed.filter(function(id){ return globalData.roster.some(function(p){return p.id === id;}); }); } catch(e) {} }
     if (globalData.partyIds.length === 0) { var sorted = globalData.roster.slice().sort(function(a,b){ return b.currentLevel - a.currentLevel; }); globalData.partyIds = sorted.slice(0, 6).map(function(p){ return p.id; }); }
-    updateDashboard(); renderActions(); updateBattleButtons();
+    hideSkeleton(); updateDashboard(); renderActions(); updateBattleButtons();
     if (globalData.todayCompleted && !isAdmin) { btn.innerHTML = "\u2705 Done"; btn.disabled = true; document.querySelectorAll(".task-cb, input[name=\"actionType\"]").forEach(function(el){ el.checked = false; el.disabled = true; }); document.querySelectorAll(".action-option").forEach(function(el){ el.classList.remove("selected"); }); $("previewBox").innerHTML = "\u{1F31F} Today done!"; }
     else { btn.disabled = false; btn.textContent = "\u{1F680} Submit"; document.querySelectorAll(".task-cb, input[name=\"actionType\"]").forEach(function(el){ el.disabled = false; }); }
     var ev = globalData.roster.find(function(p){ return p.id === "P0" && p.baseName.indexOf("\u4F0A\u5E03") !== -1; });
     if (ev && ev.currentLevel >= 16 && !globalData.todayCompleted && ev.baseName === "\u{1F43E} \u4F0A\u5E03 (\u4E00\u822C\u7CFB)") $("eeveeModal").style.display = "flex";
-  } catch (e) { console.error("fetchStudentData error:", e); toast("Error: " + e.message); btn.textContent = "Failed"; btn.disabled = false; }
+  } catch (e) { console.error("fetchStudentData error:", e); hideSkeleton(); toast("Error: " + e.message); btn.textContent = "Failed"; btn.disabled = false; }
 }
 
 async function saveEventToFirestore(eventData) {
@@ -1162,22 +1323,16 @@ var TYPE_CHART = {
   "妖精": { "一般":1,"格鬥":2,"飛行":1,"毒":0.5,"地面":1,"岩石":1,"蟲":1,"幽靈":1,"鋼":0.5,"火":0.5,"水":1,"草":1,"電":1,"超能力":1,"冰":1,"龍":2,"惡":2,"妖精":1 }
 };
 
-function getTypeColor(type) {
-  var c = { "一般":"#A8A878","格鬥":"#C03028","飛行":"#A890F0","毒":"#A040A0","地面":"#E0C068","岩石":"#B8A038","蟲":"#A8B820","幽靈":"#705898","鋼":"#B8B8D0","火":"#F08030","水":"#6890F0","草":"#78C850","電":"#F8D030","超能力":"#F85888","冰":"#98D8D8","龍":"#7038F8","惡":"#705848","妖精":"#EE99AC" };
-  var firstType = type.split("/")[0].trim();
-  return c[firstType] || "#A8A878";
-}
-function renderTypeBadges(typeStr) {
-  var types = typeStr.split("/");
+  var types = Array.isArray(typeStr) ? typeStr : typeStr.split("/");
   var html = "";
   for (var i = 0; i < types.length; i++) {
-    var t = types[i].trim();
+    var t = (types[i] || "").trim();
+    if (!t) continue;
     var color = getTypeColor(t);
     html += "<span style=\"background:"+color+";padding:1px 6px;border-radius:8px;font-size:12px;color:#fff;margin:0 1px;\">"+t+"</span>";
   }
   return html;
 }
-
 function getEvolutionName(baseName) {
   var m = baseName.match(/(.+?)\s*\((.+?)\)/);
   if (!m) return baseName;
@@ -1336,7 +1491,7 @@ function getPokemonMoveset(baseName, level) {
 function getPokemonStats(baseName, level) {
   var raw = baseName.replace(/^[🐾⭐🌟✨]\s*/,"").replace(/\s*\(.*\)/,"");
   var leg = checkIsLegendary(raw);
-  var types = getPokemonType(baseName).split("/");
+  var types = getPokemonType(baseName);
   var primaryType = types[0];
   var stage = EVO_STAGE_MAP[raw] !== undefined ? EVO_STAGE_MAP[raw] : 0;
   var baseTotal = leg ? 600 : (300 + Math.min(stage, 2) * 100);
@@ -1352,30 +1507,30 @@ function getPokemonStats(baseName, level) {
   var spe = Math.floor(((bs_spe * 2 + 31) * level) / 100) + 5;
   if (leg) { hp = Math.floor(hp * 1.2); atk = Math.floor(atk * 1.3); def = Math.floor(def * 1.2); spa = Math.floor(spa * 1.3); spd = Math.floor(spd * 1.2); spe = Math.floor(spe * 1.15); }
   if (["超夢","烈空坐","阿爾宙斯","帝牙盧卡","帕路奇亞","騎拉帝納"].indexOf(raw) !== -1) { hp = Math.floor(hp * 1.35); atk = Math.floor(atk * 1.45); def = Math.floor(def * 1.35); spa = Math.floor(spa * 1.5); spd = Math.floor(spd * 1.35); spe = Math.floor(spe * 1.3); }
-  return { hp: Math.max(1,hp), atk: Math.max(1,atk), def: Math.max(1,def), spatk: Math.max(1,spa), spdef: Math.max(1,spd), speed: Math.max(1,spe), type: getPokemonType(baseName) };
+  return { hp: Math.max(1,hp), atk: Math.max(1,atk), def: Math.max(1,def), spatk: Math.max(1,spa), spdef: Math.max(1,spd), speed: Math.max(1,spe), type: getPokemonType(baseName).join("/") };
 }
 
 function getPokemonType(baseName) {
-  var raw = baseName.replace(/^[🐾⭐🌟✨]\s*/,"").replace(/\s*\(.*\)/,"");
+  var raw = baseName.replace(/^[??????]\s*/,"").replace(/\s*\(.*\)/,"");
   var types = POKEMON_SPECIES_TYPES[raw];
-  if (types) return types.join("/");
+  if (types) return types.slice();
   var m = baseName.match(/\((.+?)\)/);
-  return m ? m[1] : "一般";
+  return m ? m[1].split("/") : ["一般"];
 }
-
-function getMatchupInfo(atkType, defType) {
-  if (TYPE_CHART[atkType] && TYPE_CHART[atkType][defType] !== undefined) {
-    var eff = TYPE_CHART[atkType][defType];
-    var label = "", mult = 1;
-    if (eff >= 2) { label = "💥 效果絕佳！"; mult = 2; }
-    else if (eff <= 0) { label = "🚫 沒有效果！"; mult = 0; }
-    else if (eff <= 0.5) { label = "⚠️ 效果不好..."; mult = 0.5; }
-    else { label = "普通"; mult = 1; }
-    return { text: label, multiplier: mult };
+function getMatchupInfo(atkType, defTypes) {
+  var defArr = Array.isArray(defTypes) ? defTypes : defTypes.split("/");
+  var total = 1;
+  for (var di = 0; di < defArr.length; di++) {
+    var t = defArr[di].trim();
+    if (TYPE_CHART[atkType] && TYPE_CHART[atkType][t] !== undefined) total *= TYPE_CHART[atkType][t];
   }
-  return { text: "普通", multiplier: 1 };
+  var label = "", mult = 1;
+  if (total >= 2) { label = "?? Ч���^�ѣ�"; mult = total; }
+  else if (total <= 0) { label = "?? �]��Ч����"; mult = 0; }
+  else if (total <= 0.5) { label = "?? Ч������..."; mult = total; }
+  else { label = "��ͨ"; mult = 1; }
+  return { text: label, multiplier: mult };
 }
-// ===== BATTLE SYSTEM =====
 var ARENA_EXP_BASE = 80, BATTLE_MAP = {}, battleState = null;
 
 function generateEnemy(trainerLevel, isGym, isLeague) {
@@ -1432,7 +1587,7 @@ function createPlayerPokemon(pokemon) {
 }
 
 function getEffectiveness(atkType, defTypes) {
-  var defArr = defTypes.split("/");
+  var defArr = Array.isArray(defTypes) ? defTypes : defTypes.split("/");
   var total = 1;
   for (var di = 0; di < defArr.length; di++) {
     var t = defArr[di].trim();
@@ -1614,20 +1769,83 @@ function faintAnimation(id, callback) {
   setTimeout(function(){ el.classList.remove("faint-animation"); if (callback) callback(); }, 650);
 }
 
-function getTypeColor(typeName) {
+function getTypeColor(type) {
   var colors = {
-    "一般":"#A8A878","火":"#F08030","水":"#6890F0","草":"#78C850",
-    "電":"#F8D030","冰":"#98D8D8","格鬥":"#C03028","毒":"#A040A0",
-    "地面":"#E0C068","飛行":"#A890F0","超能":"#F85888","蟲":"#A8B820",
-    "岩石":"#B8A038","幽靈":"#705898","龍":"#7038F8","鋼":"#B8B8D0",
-    "妖精":"#EE99AC","惡":"#705848"
+    "һ��":"#A8A878","��":"#F08030","ˮ":"#6890F0","��":"#78C850",
+    "�":"#F8D030","��":"#98D8D8","���Y":"#C03028","��":"#A040A0",
+    "����":"#E0C068","�w��":"#A890F0","����":"#F85888","�x":"#A8B820",
+    "��ʯ":"#B8A038","���":"#705898","��":"#7038F8","�":"#B8B8D0",
+    "����":"#EE99AC","��":"#705848"
   };
-  return colors[typeName] || "#A8A878";
+  if (Array.isArray(type)) type = type[0];
+  else if (type.indexOf("/") !== -1) type = type.split("/")[0].trim();
+  return colors[type] || "#A8A878";
 }
 
 function getStatusIcon(status) {
   var map = { burn:"🔥", paralyze:"⚡", freeze:"❄️", poison:"☠️", sleep:"💤" };
   return map[status] || "";
+}
+
+function spawnParticles(x, y, count, color, type) {
+  type = type || "circle";
+  var container = $("particleContainer");
+  if (!container) {
+    container = document.createElement("div");
+    container.id = "particleContainer";
+    container.className = "particle-container";
+    var battleContent = document.querySelector("#battleModal .modal-content");
+    if (battleContent) battleContent.style.position = "relative";
+    if (battleContent) battleContent.appendChild(container);
+  }
+  var rect = container.getBoundingClientRect();
+  for (var i = 0; i < count; i++) {
+    var p = document.createElement("div");
+    p.className = "particle" + (type === "star" ? " star" : "");
+    p.style.background = color || "#fff";
+    p.style.left = (x - rect.left) + "px";
+    p.style.top = (y - rect.top) + "px";
+    var angle = Math.random() * Math.PI * 2;
+    var dist = 30 + Math.random() * 60;
+    p.style.setProperty("--px", Math.cos(angle) * dist + "px");
+    p.style.setProperty("--py", Math.sin(angle) * dist + "px");
+    p.style.animation = "particle-spark 0.6s ease-out forwards";
+    p.style.animationDelay = (Math.random() * 0.1) + "s";
+    p.style.width = (4 + Math.random() * 8) + "px";
+    p.style.height = p.style.width;
+    container.appendChild(p);
+    setTimeout(function(el){ el.remove(); }, 800, p);
+  }
+}
+
+function spawnHitRing(x, y, color) {
+  var ring = document.createElement("div");
+  ring.className = "hit-ring";
+  ring.style.setProperty("--ring-x", x + "px");
+  ring.style.setProperty("--ring-y", y + "px");
+  ring.style.setProperty("--ring-color", color || "#fff");
+  var battleContent = document.querySelector("#battleModal .modal-content");
+  if (battleContent) {
+    battleContent.style.position = "relative";
+    battleContent.appendChild(ring);
+  }
+  setTimeout(function(){ ring.remove(); }, 600);
+}
+
+function screenShake() {
+  var el = document.querySelector("#battleModal .modal-content");
+  if (!el) return;
+  el.classList.remove("screen-shake");
+  void el.offsetWidth;
+  el.classList.add("screen-shake");
+  setTimeout(function(){ el.classList.remove("screen-shake"); }, 350);
+}
+
+function getElementCenter(id) {
+  var el = typeof id === "string" ? $(id) : id;
+  if (!el) return null;
+  var r = el.getBoundingClientRect();
+  return { x: r.left + r.width/2, y: r.top + r.height/2 };
 }
 
 function performAttack(moveName, isPlayer) {
@@ -1648,16 +1866,23 @@ function performAttack(moveName, isPlayer) {
   var moveDetails = getMoveDetails(moveName);
   var typeColor = getTypeColor(moveDetails.type);
 
+  sfx.hit();
   shakeElement(defSide + "PkmnName");
   flashElement(defSide + "PkmnName");
+  var center = getElementCenter(defSide + "PkmnName");
+  if (center) {
+    spawnParticles(center.x, center.y, 8, typeColor);
+    spawnHitRing(center.x, center.y, typeColor);
+  }
   if (result.dmg > 0) {
     var defHp = isPlayer ? battleState.enemy : battleState.playerPokemon;
     animateHpBar(defSide + "HpBar", defSide + "HpText", defHp.currentHp, defHp.maxHp);
-    if (result.crit) showLargeText("💢 會心一擊！", "#ffd700");
-    else if (result.effectiveness > 1) showLargeText("💥 效果絕佳！", typeColor);
+    if (result.crit) { sfx.crit(); showLargeText("💢 會心一擊！", "#ffd700"); screenShake(); }
+    else if (result.effectiveness > 1) { showLargeText("💥 效果絕佳！", typeColor); if (center) spawnParticles(center.x, center.y, 12, typeColor, "star"); }
     else if (result.effectiveness > 0 && result.effectiveness < 1) showLargeText("⚠️ 效果不好...", "#aaa");
   }
   if (result.ko) {
+    sfx.faint();
     setTimeout(function(){
       faintAnimation(defSide + "PkmnName");
       setTimeout(function(){
@@ -1704,16 +1929,21 @@ function performAttack(moveName, isPlayer) {
       var eResult = executeTurn(battleState.enemy, battleState.playerPokemon, battleState.playerPokemon, battleState.enemy, enemyMove, false, eLog);
       renderBattleLog(eLog);
 
+      sfx.hit();
       shakeElement("playerPkmnName");
       flashElement("playerPkmnName");
+      var pCenter = getElementCenter("playerPkmnName");
+      if (pCenter) {
+        spawnParticles(pCenter.x, pCenter.y, 8, getTypeColor(getMoveDetails(enemyMove).type));
+        spawnHitRing(pCenter.x, pCenter.y, getTypeColor(getMoveDetails(enemyMove).type));
+      }
       if (eResult.dmg > 0) {
         animateHpBar("playerHpBar", "playerHpText", battleState.playerPokemon.currentHp, battleState.playerPokemon.maxHp);
-        if (eResult.crit) showLargeText("💢 會心一擊！", "#ffd700");
-        else if (eResult.effectiveness > 1) showLargeText("💥 效果絕佳！", getTypeColor(getMoveDetails(enemyMove).type));
+        if (eResult.crit) { sfx.crit(); showLargeText("💢 會心一擊！", "#ffd700"); screenShake(); }
+        else if (eResult.effectiveness > 1) { showLargeText("💥 效果絕佳！", getTypeColor(getMoveDetails(enemyMove).type)); if (pCenter) spawnParticles(pCenter.x, pCenter.y, 12, getTypeColor(getMoveDetails(enemyMove).type), "star"); }
         else if (eResult.effectiveness > 0 && eResult.effectiveness < 1) showLargeText("⚠️ 效果不好...", "#aaa");
       }
-
-      if (eResult.ko) {
+      if (eResult.ko) { sfx.faint();
         setTimeout(function(){
           if (battleState.playerPokemon.currentHp <= 0) {
             var nextAlly2 = null;
@@ -1939,6 +2169,7 @@ function endBattle(playerWon) {
   }
   battleState.battleOver = true;
   if (playerWon) {
+    sfx.levelup();
     var totalExpGain = 0, partyUsed = [];
     for (var i = 0; i < battleState.playerParty.length; i++) {
       var pk = battleState.playerParty[i];
@@ -2467,17 +2698,16 @@ function updateDashboard() {
       var p = display[i];
       var card = document.createElement("div"); card.className = "pkmn-card";
       var pType = getPokemonType(p.baseName);
+      var typesHtml = renderTypeBadges(pType);
       var typeColor = getTypeColor(pType);
       var leg = checkIsLegendary(p.baseName);
       card.style.borderLeft = "4px solid " + typeColor;
       var nameDisplay = p.baseName;
-      if (leg && nameDisplay.indexOf("✨") === -1) nameDisplay = "✨ " + nameDisplay;
-      card.innerHTML = "<div style=\"font-weight:bold;font-size:14px;\">" + nameDisplay + "</div>" +
+      if (leg && nameDisplay.indexOf("?") === -1) nameDisplay = "★ " + nameDisplay;
+      card.innerHTML = "<div style=\"font-weight:bold;font-size:14px;\">" + nameDisplay + " " + typesHtml + "</div>" +
         "<div style=\"font-size:12px;color:#666;\">Lv." + p.currentLevel + " | EXP " + p.expProgress + "/" + p.expNeeded + "</div>" +
         "<div style=\"margin-top:4px;background:#e0e0e0;border-radius:4px;height:6px;\"><div style=\"width:" + Math.round(p.expProgress / (p.expNeeded||1) * 100) + "%;background:" + typeColor + ";height:6px;border-radius:4px;\"></div></div>";
-      rosterDiv.appendChild(card);
-    }
-  }
+
 
   var bagDiv = $("bagDisplay");
   if (bagDiv) {
@@ -2682,6 +2912,7 @@ function openCollection() {
   for (var i = 0; i < sorted.length; i++) {
     var p = sorted[i];
     var pType2 = getPokemonType(p.baseName);
+    var typesHtml2 = renderTypeBadges(pType2);
     var typeColor2 = getTypeColor(pType2);
     var leg2 = checkIsLegendary(p.baseName);
     var card = document.createElement("div"); card.className = "pkmn-collection-card";
@@ -2690,8 +2921,7 @@ function openCollection() {
     if (leg2 && nameD.indexOf("✨") === -1) nameD = "✨ " + nameD;
     var inParty = (globalData.partyIds || []).indexOf(p.id) !== -1;
     card.innerHTML = "<div style=\"display:flex;justify-content:space-between;align-items:center;\">" +
-      "<div><strong>" + nameD + "</strong> Lv." + p.currentLevel + "</div>" +
-      (inParty ? "<span style=\"font-size:12px;color:green;\">📋 隊伍中</span>" : "") +
+      "<div><strong>" + nameD + "</strong> Lv." + p.currentLevel + " " + typesHtml2 + "</div>" +
       "</div>" +
       "<div style=\"font-size:12px;color:#666;\">EXP: " + p.expProgress + "/" + p.expNeeded + " | 捕獲: " + (p.catchDate || "未知") + "</div>" +
       "<div style=\"margin-top:4px;background:#e0e0e0;border-radius:4px;height:6px;\"><div style=\"width:" + Math.round(p.expProgress / (p.expNeeded||1) * 100) + "%;background:" + typeColor2 + ";height:6px;border-radius:4px;\"></div></div>";
@@ -3025,4 +3255,4 @@ function resetGymsCache() {
 }
 </script>
 <script src="pokemon-gen2-9.js"></script>
-</html>
+</html>
