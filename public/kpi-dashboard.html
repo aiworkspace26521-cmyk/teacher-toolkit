@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="zh-TW">
 <head>
   <meta charset="utf-8">
@@ -204,6 +204,7 @@
     .pkmn-slot.empty { background: #eee; color: #999; border-style: dashed; box-shadow: none; font-size: 13px; font-weight: bold; min-height: 50px; }
     .arena-hp-section { margin-bottom: 12px; }
     #weatherDisplay { transition: 0.3s; }
+    .ability-tag { font-size: 10px; color: #8e44ad; background: #f4ecf7; padding: 1px 5px; border-radius: 8px; font-weight: 400; margin-left: 4px; vertical-align: middle; }
     .arena-hp-section .hp-label { font-size: 13px; font-weight: 700; margin-bottom: 2px; }
     .pkmn-card, .pkmn-collection-card { border: 2px solid #e0e0e0; border-radius: 8px; padding: 10px; margin-bottom: 8px; background: white; box-shadow: 1px 1px 4px rgba(0,0,0,0.08); }
     .pkmn-collection-card { margin-bottom: 6px; padding: 8px 10px; }
@@ -523,11 +524,12 @@ function getSeededRandom(str) {
   return Math.abs(x - Math.floor(x));
 }
 function getExpNeeded(lvl) {
-  if (lvl <= 20) return lvl * 100;
-  if (lvl <= 40) return lvl * 150;
-  if (lvl <= 60) return lvl * 200;
-  if (lvl <= 80) return lvl * 300;
-  return lvl * 500;
+  if (lvl <= 10) return lvl * 30;
+  if (lvl <= 20) return lvl * 60;
+  if (lvl <= 35) return lvl * 120;
+  if (lvl <= 55) return lvl * 200;
+  if (lvl <= 75) return lvl * 300;
+  return lvl * 450;
 }
 function calcLevelAndExp(totalExp, initialLevel) {
   var lvl = initialLevel || 5, cur = totalExp;
@@ -604,8 +606,9 @@ async function recalculateStudentState(studentId, events) {
       var m;
       if ((m = safeNote.match(/\u6D88\u8017(\d+)\u74F6\u597D\u50B7\u85E5/))) state.potions -= parseInt(m[1]);
       if ((m = safeNote.match(/\u6D88\u8017(\d+)\u74F6\u5168\u6EFF\u85E5/))) state.maxPotions -= parseInt(m[1]);
-      if ((m = safeNote.match(/\u6D88\u8017(\d+)\u500B\u6D3B\u529B\u584A/))) state.revives -= parseInt(m[1]);
-      if ((m = safeNote.match(/\u6D88\u8017(\d+)\u500B\u5143\u6C23\u584A/))) state.maxRevives -= parseInt(m[1]);
+      if ((m = safeNote.match(/\u6D88\u8017(\d+)\u74F6\u6D3B\u529B\u584A/))) state.revives -= parseInt(m[1]);
+      if ((m = safeNote.match(/\u6D88\u8017(\d+)\u74F6\u5143\u6C23\u85E5\u584A/))) state.maxRevives -= parseInt(m[1]);
+      if ((m = safeNote.match(/\u6D88\u8017(\d+)\u74F6\u795E\u5947\u7CD6\u679C/))) state.candies -= parseInt(m[1]);
     }
     if (rowAction === "A" || rowAction === "\u6355\u6349") {
       var pid = (safeNote.match(/ID:(P\d+(?:_LEG)?|legacy_\d+)/)||[])[1] || "legacy_"+evt.id;
@@ -632,7 +635,7 @@ async function recalculateStudentState(studentId, events) {
       if (rowDate.getTime() >= startOfWeek && (safeNote.indexOf("[Gym]") !== -1 || safeNote.indexOf("\u9053\u9928") !== -1)) state.weekGymWins++;
       if (rowDate.getTime() >= startOfMonth && (safeNote.indexOf("[League]") !== -1 || safeNote.indexOf("\u5927\u6703") !== -1 || safeNote.indexOf("\u9B54\u738B") !== -1)) state.monthLeagueWins++;
     } else if (rowAction === "E") {
-      var nm = safeNote.match(/獲得:\s*([^|]+)/);
+      var nm = safeNote.match(/\u7372\u5F97:\s*([^|]+)/);
       if (nm && state.roster['P0']) state.roster['P0'].baseName = nm[1].trim();
     }
     var currentIterLevel = 5;
@@ -944,6 +947,16 @@ var SIGNATURE_MOVES = {
   "帝牙盧卡":{ name:"時光咆哮", type:"龍",     power:150, category:"特殊" }
 };
 
+var ABILITY_EFFECTS = {
+  "猛火":{trigger:"hpBoost",type:"火",mult:1.5,hpThresh:0.33},"激流":{trigger:"hpBoost",type:"水",mult:1.5,hpThresh:0.33},"茂盛":{trigger:"hpBoost",type:"草",mult:1.5,hpThresh:0.33},"蟲族警報":{trigger:"hpBoost",type:"蟲",mult:1.5,hpThresh:0.33},"猛獸":{trigger:"hpBoost",type:"一般",mult:1.5,hpThresh:0.33},"鬥爭心":{trigger:"hpBoost",type:"格鬥",mult:1.5,hpThresh:0.33},"毒刺":{trigger:"hpBoost",type:"毒",mult:1.5,hpThresh:0.33},"堅石":{trigger:"hpBoost",type:"岩石",mult:1.5,hpThresh:0.33},"大地之力":{trigger:"hpBoost",type:"地面",mult:1.5,hpThresh:0.33},"飛行警覺":{trigger:"hpBoost",type:"飛行",mult:1.5,hpThresh:0.33},"超感知":{trigger:"hpBoost",type:"超能力",mult:1.5,hpThresh:0.33},"鐵壁":{trigger:"hpBoost",type:"鋼",mult:1.5,hpThresh:0.33},"寒冰":{trigger:"hpBoost",type:"冰",mult:1.5,hpThresh:0.33},"龍之怒":{trigger:"hpBoost",type:"龍",mult:1.5,hpThresh:0.33},"幽靈纏身":{trigger:"hpBoost",type:"幽靈",mult:1.5,hpThresh:0.33},"惡意":{trigger:"hpBoost",type:"惡",mult:1.5,hpThresh:0.33},"妖精之力":{trigger:"hpBoost",type:"妖精",mult:1.5,hpThresh:0.33},"電氣引擎":{trigger:"hpBoost",type:"電",mult:1.5,hpThresh:0.33},"乾旱":{trigger:"weatherEntry",weather:"sun"},"毛毛雨":{trigger:"weatherEntry",weather:"rain"},"揚沙":{trigger:"weatherEntry",weather:"sand"},"降雪":{trigger:"weatherEntry",weather:"hail"},"柔軟":{trigger:"immune",status:"paralyze"},"不眠":{trigger:"immune",status:"sleep"},"水幕":{trigger:"immune",status:"burn"},"免疫":{trigger:"immune",status:"poison"},"威嚇":{trigger:"intimidate",stat:"atk",stages:-1},"粗糙皮膚":{trigger:"contactDmg",pct:0.125},"鐵刺":{trigger:"contactDmg",pct:0.125},"悠游自如":{trigger:"weatherSpeed",weather:"rain",mult:2},"葉綠素":{trigger:"weatherSpeed",weather:"sun",mult:2},"結實":{trigger:"sturdy"}
+};
+var POKEMON_ABILITIES = {
+  "小火龍":"猛火","火恐龍":"猛火","噴火龍":"猛火","傑尼龜":"激流","卡咪龜":"激流","水箭龜":"激流","妙蛙種子":"茂盛","妙蛙草":"茂盛","妙蛙花":"茂盛","綠毛蟲":"蟲族警報","鐵甲蛹":"蟲族警報","巴大蝶":"蟲族警報","獨角蟲":"蟲族警報","鐵殼蛹":"蟲族警報","大針蜂":"蟲族警報","波波":"飛行警覺","比比鳥":"飛行警覺","大比鳥":"飛行警覺","小拉達":"猛獸","拉達":"猛獸","烈雀":"飛行警覺","大嘴雀":"飛行警覺","阿柏蛇":"威嚇","阿柏怪":"威嚇","皮卡丘":"電氣引擎","雷丘":"電氣引擎","穿山鼠":"堅石","穿山王":"堅石","尼多蘭":"毒刺","尼多娜":"毒刺","尼多后":"毒刺","尼多朗":"毒刺","尼多力諾":"毒刺","尼多王":"毒刺","皮皮":"妖精之力","皮可西":"妖精之力","六尾":"猛火","九尾":"猛火","胖丁":"柔軟","胖可丁":"柔軟","超音蝠":"飛行警覺","大嘴蝠":"飛行警覺","叉字蝠":"飛行警覺","走路草":"茂盛","臭臭花":"茂盛","霸王花":"茂盛","派拉斯":"蟲族警報","派拉斯特":"蟲族警報","地鼠":"大地之力","三地鼠":"大地之力","喵喵":"猛獸","貓老大":"猛獸","可達鴨":"激流","哥達鴨":"激流","猴怪":"鬥爭心","火爆猴":"鬥爭心","卡蒂狗":"威嚇","風速狗":"威嚇","蚊香蝌蚪":"悠游自如","蚊香君":"悠游自如","蚊香泳士":"悠游自如","凱西":"超感知","勇基拉":"超感知","胡地":"超感知","腕力":"鬥爭心","豪力":"鬥爭心","怪力":"鬥爭心","喇叭芽":"葉綠素","口呆花":"葉綠素","大食花":"葉綠素","小海獅":"寒冰","白海獅":"寒冰","臭泥":"免疫","臭臭泥":"免疫","大舌貝":"結實","刺甲貝":"結實","鬼斯":"幽靈纏身","鬼斯通":"幽靈纏身","耿鬼":"幽靈纏身","大岩蛇":"結實","大鋼蛇":"結實","催眠貘":"不眠","引夢貘人":"不眠","霹靂電球":"電氣引擎","頑皮雷彈":"電氣引擎","蛋蛋":"茂盛","椰蛋樹":"茂盛","可拉可拉":"堅石","嘎啦嘎啦":"堅石","飛腿郎":"柔軟","快拳郎":"鬥爭心","大舌頭":"免疫","卡比獸":"免疫","毒刺水母":"毒刺","小磁怪":"鐵壁","三合一磁怪":"鐵壁","嘟嘟":"飛行警覺","嘟嘟利":"飛行警覺","墨海馬":"悠游自如","海刺龍":"悠游自如","金魚王":"悠游自如","海星星":"激流","寶石海星":"激流","魔牆人偶":"超感知","飛天螳螂":"蟲族警報","迷唇姐":"寒冰","電擊獸":"電氣引擎","鴨嘴火獸":"猛火","凱羅斯":"蟲族警報","肯泰羅":"威嚇","鯉魚王":"悠游自如","暴鯉龍":"威嚇","拉普拉斯":"結實","多邊獸":"鐵壁","多邊獸Ⅱ":"鐵壁","菊石獸":"激流","多刺菊石獸":"激流","化石盔":"結實","鐮刀盔":"結實","化石翼龍":"飛行警覺","急凍鳥":"降雪","閃電鳥":"電氣引擎","火焰鳥":"乾旱","迷你龍":"龍之怒","哈克龍":"龍之怒","快龍":"龍之怒","超夢":"超感知","夢幻":"超感知","菊草葉":"茂盛","月桂葉":"茂盛","大菊花":"茂盛","火球鼠":"猛火","火岩鼠":"猛火","火爆獸":"猛火","小鋸鱷":"激流","藍鱷":"激流","大力鱷":"激流","尾立":"猛獸","大尾立":"猛獸","咕咕":"不眠","貓頭夜鷹":"不眠","天然雀":"超感知","天然鳥":"超感知","咩利羊":"電氣引擎","綿綿":"電氣引擎","電龍":"電氣引擎","榛果球":"鐵刺","佛烈託斯":"鐵刺","壺壺":"結實","赫拉剋羅斯":"蟲族警報","熊寶寶":"猛獸","圈圈熊":"猛獸","熔岩蟲":"猛火","熔岩蝸牛":"猛火","小山豬":"寒冰","長毛豬":"寒冰","太陽珊瑚":"結實","章魚桶":"激流","巨翅飛魚":"悠游自如","盔甲鳥":"鐵壁","戴魯比":"威嚇","黑魯加":"威嚇","驚角鹿":"威嚇","圖圖犬":"柔軟","大奶罐":"免疫","雷公":"電氣引擎","炎帝":"乾旱","水君":"毛毛雨","幼基拉斯":"揚沙","沙基拉斯":"揚沙","班基拉斯":"揚沙","洛奇亞":"超感知","鳳王":"乾旱","雪拉比":"茂盛"
+};
+function getPokemonAbility(baseName) {
+  var raw = baseName.replace(/^[🐾⭐🌟✨👑]\s*/,"").replace(/\s*\(.*\)/,"");
+  return POKEMON_ABILITIES[raw] || null;
+}
 var POKEMON_TIERS = {
   "一般": [
     { name: "波波", evolutions: ["比比鳥","大比鳥"] },
@@ -1326,22 +1339,16 @@ var TYPE_CHART = {
   "妖精": { "一般":1,"格鬥":2,"飛行":1,"毒":0.5,"地面":1,"岩石":1,"蟲":1,"幽靈":1,"鋼":0.5,"火":0.5,"水":1,"草":1,"電":1,"超能力":1,"冰":1,"龍":2,"惡":2,"妖精":1 }
 };
 
-function getTypeColor(type) {
-  var c = { "一般":"#A8A878","格鬥":"#C03028","飛行":"#A890F0","毒":"#A040A0","地面":"#E0C068","岩石":"#B8A038","蟲":"#A8B820","幽靈":"#705898","鋼":"#B8B8D0","火":"#F08030","水":"#6890F0","草":"#78C850","電":"#F8D030","超能力":"#F85888","冰":"#98D8D8","龍":"#7038F8","惡":"#705848","妖精":"#EE99AC" };
-  var firstType = type.split("/")[0].trim();
-  return c[firstType] || "#A8A878";
-}
-function renderTypeBadges(typeStr) {
-  var types = typeStr.split("/");
+  var types = Array.isArray(typeStr) ? typeStr : typeStr.split("/");
   var html = "";
   for (var i = 0; i < types.length; i++) {
-    var t = types[i].trim();
+    var t = (types[i] || "").trim();
+    if (!t) continue;
     var color = getTypeColor(t);
     html += "<span style=\"background:"+color+";padding:1px 6px;border-radius:8px;font-size:12px;color:#fff;margin:0 1px;\">"+t+"</span>";
   }
   return html;
 }
-
 function getEvolutionName(baseName) {
   var m = baseName.match(/(.+?)\s*\((.+?)\)/);
   if (!m) return baseName;
@@ -1500,7 +1507,7 @@ function getPokemonMoveset(baseName, level) {
 function getPokemonStats(baseName, level) {
   var raw = baseName.replace(/^[🐾⭐🌟✨]\s*/,"").replace(/\s*\(.*\)/,"");
   var leg = checkIsLegendary(raw);
-  var types = getPokemonType(baseName).split("/");
+  var types = getPokemonType(baseName);
   var primaryType = types[0];
   var stage = EVO_STAGE_MAP[raw] !== undefined ? EVO_STAGE_MAP[raw] : 0;
   var baseTotal = leg ? 600 : (300 + Math.min(stage, 2) * 100);
@@ -1516,30 +1523,30 @@ function getPokemonStats(baseName, level) {
   var spe = Math.floor(((bs_spe * 2 + 31) * level) / 100) + 5;
   if (leg) { hp = Math.floor(hp * 1.2); atk = Math.floor(atk * 1.3); def = Math.floor(def * 1.2); spa = Math.floor(spa * 1.3); spd = Math.floor(spd * 1.2); spe = Math.floor(spe * 1.15); }
   if (["超夢","烈空坐","阿爾宙斯","帝牙盧卡","帕路奇亞","騎拉帝納"].indexOf(raw) !== -1) { hp = Math.floor(hp * 1.35); atk = Math.floor(atk * 1.45); def = Math.floor(def * 1.35); spa = Math.floor(spa * 1.5); spd = Math.floor(spd * 1.35); spe = Math.floor(spe * 1.3); }
-  return { hp: Math.max(1,hp), atk: Math.max(1,atk), def: Math.max(1,def), spatk: Math.max(1,spa), spdef: Math.max(1,spd), speed: Math.max(1,spe), type: getPokemonType(baseName) };
+  return { hp: Math.max(1,hp), atk: Math.max(1,atk), def: Math.max(1,def), spatk: Math.max(1,spa), spdef: Math.max(1,spd), speed: Math.max(1,spe), type: getPokemonType(baseName).join("/") };
 }
 
 function getPokemonType(baseName) {
-  var raw = baseName.replace(/^[🐾⭐🌟✨]\s*/,"").replace(/\s*\(.*\)/,"");
+  var raw = baseName.replace(/^[??????]\s*/,"").replace(/\s*\(.*\)/,"");
   var types = POKEMON_SPECIES_TYPES[raw];
-  if (types) return types.join("/");
+  if (types) return types.slice();
   var m = baseName.match(/\((.+?)\)/);
-  return m ? m[1] : "一般";
+  return m ? m[1].split("/") : ["一般"];
 }
-
-function getMatchupInfo(atkType, defType) {
-  if (TYPE_CHART[atkType] && TYPE_CHART[atkType][defType] !== undefined) {
-    var eff = TYPE_CHART[atkType][defType];
-    var label = "", mult = 1;
-    if (eff >= 2) { label = "💥 效果絕佳！"; mult = 2; }
-    else if (eff <= 0) { label = "🚫 沒有效果！"; mult = 0; }
-    else if (eff <= 0.5) { label = "⚠️ 效果不好..."; mult = 0.5; }
-    else { label = "普通"; mult = 1; }
-    return { text: label, multiplier: mult };
+function getMatchupInfo(atkType, defTypes) {
+  var defArr = Array.isArray(defTypes) ? defTypes : defTypes.split("/");
+  var total = 1;
+  for (var di = 0; di < defArr.length; di++) {
+    var t = defArr[di].trim();
+    if (TYPE_CHART[atkType] && TYPE_CHART[atkType][t] !== undefined) total *= TYPE_CHART[atkType][t];
   }
-  return { text: "普通", multiplier: 1 };
+  var label = "", mult = 1;
+  if (total >= 2) { label = "?? Ч���^�ѣ�"; mult = total; }
+  else if (total <= 0) { label = "?? �]��Ч����"; mult = 0; }
+  else if (total <= 0.5) { label = "?? Ч������..."; mult = total; }
+  else { label = "��ͨ"; mult = 1; }
+  return { text: label, multiplier: mult };
 }
-// ===== BATTLE SYSTEM =====
 var ARENA_EXP_BASE = 80, BATTLE_MAP = {}, battleState = null;
 
 function generateEnemy(trainerLevel, isGym, isLeague) {
@@ -1547,7 +1554,7 @@ function generateEnemy(trainerLevel, isGym, isLeague) {
   var roll = Math.random();
   if (isLeague) { tier = "傳說"; levelBonus = Math.floor(trainerLevel * 0.6); }
   else if (isGym) { tier = "稀有"; levelBonus = Math.floor(trainerLevel * 0.4); }
-  else if (roll < 0.03) { tier = "傳說"; levelBonus = Math.floor(trainerLevel * 0.3); }
+  else if (roll < 0.02) { tier = "傳說"; levelBonus = Math.floor(trainerLevel * 0.3); }
   else if (roll < 0.25) { tier = "稀有"; levelBonus = Math.floor(trainerLevel * 0.2); }
 
   if (POKEMON_TIERS[tier].length === 0) tier = "一般";
@@ -1574,11 +1581,14 @@ function createEnemyPokemon(name, level, isGym, isLeague) {
     var ri = Math.floor(Math.random() * pool.length);
     selectedMoves.push(pool.splice(ri, 1)[0]);
   }
+  var abilName = getPokemonAbility(name);
+  var abilData = abilName ? (ABILITY_EFFECTS[abilName] || null) : null;
   return {
     name: name, level: level, maxHp: stats.hp, currentHp: stats.hp,
     atk: stats.atk, def: stats.def, spatk: stats.spatk, spdef: stats.spdef, speed: stats.speed,
     type: stats.type, moves: selectedMoves, isGym: isGym || false, isLeague: isLeague || false,
-    status: null, statStages: { atk:0,def:0,spatk:0,spdef:0,speed:0,evasion:0,accuracy:0 }
+    status: null, statStages: { atk:0,def:0,spatk:0,spdef:0,speed:0,evasion:0,accuracy:0 },
+    ability: abilData, abilityName: abilName
   };
 }
 
@@ -1586,17 +1596,20 @@ function createPlayerPokemon(pokemon) {
   var stats = getPokemonStats(pokemon.baseName, pokemon.currentLevel);
   var moveset = getPokemonMoveset(pokemon.baseName, pokemon.currentLevel);
   var selectedMoves = moveset.slice(0, Math.min(4, moveset.length));
+  var abilName = getPokemonAbility(pokemon.baseName);
+  var abilData = abilName ? (ABILITY_EFFECTS[abilName] || null) : null;
   return {
     id: pokemon.id, name: pokemon.baseName, level: pokemon.currentLevel,
     maxHp: stats.hp, currentHp: stats.hp,
     atk: stats.atk, def: stats.def, spatk: stats.spatk, spdef: stats.spdef, speed: stats.speed,
     type: stats.type, moves: selectedMoves, isGym: false, isLeague: false,
-    status: null, statStages: { atk:0,def:0,spatk:0,spdef:0,speed:0,evasion:0,accuracy:0 }
+    status: null, statStages: { atk:0,def:0,spatk:0,spdef:0,speed:0,evasion:0,accuracy:0 },
+    ability: abilData, abilityName: abilName
   };
 }
 
 function getEffectiveness(atkType, defTypes) {
-  var defArr = defTypes.split("/");
+  var defArr = Array.isArray(defTypes) ? defTypes : defTypes.split("/");
   var total = 1;
   for (var di = 0; di < defArr.length; di++) {
     var t = defArr[di].trim();
@@ -1634,9 +1647,14 @@ function calculateMovePower(move, attacker, defender, isPlayerAttacker) {
     } else if (wt === "sun") {
       if (details.type === "火") baseDamage = Math.floor(baseDamage * 1.5);
       else if (details.type === "水") baseDamage = Math.floor(baseDamage * 2 / 3);
+    } else if (wt === "sand") {
+      if (details.type === "岩石") baseDamage = Math.floor(baseDamage * 1.5);
+    } else if (wt === "hail") {
+      if (details.type === "冰") baseDamage = Math.floor(baseDamage * 1.5);
     }
   }
   baseDamage = Math.max(1, baseDamage);
+  if (attacker.ability && attacker.ability.trigger === "hpBoost" && attacker.currentHp < attacker.maxHp * attacker.ability.hpThresh && details.type === attacker.ability.type) baseDamage = Math.floor(baseDamage * attacker.ability.mult);
   if (isPlayerAttacker && eff > 1 && globalData && globalData.hasExpertBelt) baseDamage = Math.floor(baseDamage * 1.2);
   var variance = 0.85 + Math.random() * 0.15;
   var finalDamage = Math.floor(baseDamage * variance);
@@ -1649,6 +1667,10 @@ function calculateMovePower(move, attacker, defender, isPlayerAttacker) {
 function applyStatusEffect(move, defender) {
   var details = getMoveDetails(move);
   var eff = details.effect || "";
+  if (defender && defender.ability && defender.ability.trigger === "immune") {
+    var immMap = { burn:"burn",paralyze:"paralyze",freeze:"freeze",poison:"poison",sleep:"sleep" };
+    if (immMap[eff] === defender.ability.status) return "🛡️ " + defender.name + " 的「" + defender.abilityName + "」抵銷了狀態！";
+  }
   if (eff === "burn" && Math.random() < 0.3 && !defender.status) { defender.status = "burn"; return "🔥 " + defender.name + " 被燒傷了！"; }
   if (eff === "paralyze" && Math.random() < 0.3 && !defender.status) { defender.status = "paralyze"; return "⚡ " + defender.name + " 被麻痹了！"; }
   if (eff === "freeze" && Math.random() < 0.2 && !defender.status) { defender.status = "freeze"; return "❄️ " + defender.name + " 被凍結了！"; }
@@ -1667,10 +1689,10 @@ function applyStatusEffect(move, defender) {
   if (eff === "debuff_def") { attacker.statStages.def = Math.max(-6, attacker.statStages.def - 1); return "⬇️ " + attacker.name + " 防禦降低了！"; }
   if (eff === "protect") { defender.protect = true; return "🛡️ " + defender.name + " 使用了守住！"; }
   if (eff === "leech_seed") { defender.leechSeed = true; return "🌱 " + defender.name + " 被寄生種子了！"; }
-  if (eff === "weather_rain") { battleState.weather = { type: "rain", duration: 5 }; return "🌧️ 天氣變成下雨了！（持續5回合）"; }
-  if (eff === "weather_sun") { battleState.weather = { type: "sun", duration: 5 }; return "☀️ 天氣變成大晴天了！（持續5回合）"; }
-  if (eff === "weather_sand") { battleState.weather = { type: "sand", duration: 5 }; return "🌪️ 天氣變成沙暴了！（持續5回合）"; }
-  if (eff === "weather_hail") { battleState.weather = { type: "hail", duration: 5 }; return "❄️ 天氣變成冰雹了！（持續5回合）"; }
+  if (eff === "weather_rain") { battleState.weather = { type: "rain", duration: 5 }; if (typeof sfx !== "undefined") sfx.weather(); return "🌧️ 天氣變成下雨了！（持續5回合）"; }
+  if (eff === "weather_sun") { battleState.weather = { type: "sun", duration: 5 }; if (typeof sfx !== "undefined") sfx.weather(); return "☀️ 天氣變成大晴天了！（持續5回合）"; }
+  if (eff === "weather_sand") { battleState.weather = { type: "sand", duration: 5 }; if (typeof sfx !== "undefined") sfx.weather(); return "🌪️ 天氣變成沙暴了！（持續5回合）"; }
+  if (eff === "weather_hail") { battleState.weather = { type: "hail", duration: 5 }; if (typeof sfx !== "undefined") sfx.weather(); return "❄️ 天氣變成冰雹了！（持續5回合）"; }
   return "";
 }
 
@@ -1712,14 +1734,25 @@ function executeTurn(playerAtk, playerDef, enemyAtk, enemyDef, moveName, isPlaye
     else if (dmgInfo.effectiveness > 0 && dmgInfo.effectiveness < 1) effLabel = " ⚠️ 效果不好...";
     var critLabel = dmgInfo.crit ? " 💢 會心一擊！" : "";
     log.push((isPlayer ? "👤 " : "👹 ") + attacker.name + " 使用了 " + moveName + "！" + effLabel + critLabel + " (造成 " + dmgInfo.damage + " 點傷害)");
+    if (defender.ability && defender.ability.trigger === "contactDmg" && details.category === "物理" && attacker.currentHp > 0) {
+      var cd = Math.max(1, Math.floor(attacker.maxHp * defender.ability.pct));
+      attacker.currentHp = Math.max(0, attacker.currentHp - cd);
+      log.push("🌵 " + defender.name + " 的「" + defender.abilityName + "」讓攻擊者受到 " + cd + " 傷害！");
+      if (attacker.currentHp <= 0) { attacker.currentHp = 0; result.ko = true; log.push("💀 " + attacker.name + " 倒下了！"); }
+    }
     var statusText = applyStatusEffect(moveName, defender);
     if (statusText) log.push(statusText);
   }
 
   if (defender.currentHp <= 0) {
-    defender.currentHp = 0;
-    result.ko = true;
-    log.push("💀 " + defender.name + " 倒下了！");
+    if (defender.ability && defender.ability.trigger === "sturdy" && (defender.currentHp + dmgInfo.damage) >= defender.maxHp * 0.99) {
+      defender.currentHp = 1;
+      log.push("🛡️ " + defender.name + " 的「" + defender.abilityName + "」讓他撐住了！");
+    } else {
+      defender.currentHp = 0;
+      result.ko = true;
+      log.push("💀 " + defender.name + " 倒下了！");
+    }
   }
   return result;
 }
@@ -1778,15 +1811,17 @@ function faintAnimation(id, callback) {
   setTimeout(function(){ el.classList.remove("faint-animation"); if (callback) callback(); }, 650);
 }
 
-function getTypeColor(typeName) {
+function getTypeColor(type) {
   var colors = {
-    "一般":"#A8A878","火":"#F08030","水":"#6890F0","草":"#78C850",
-    "電":"#F8D030","冰":"#98D8D8","格鬥":"#C03028","毒":"#A040A0",
-    "地面":"#E0C068","飛行":"#A890F0","超能":"#F85888","蟲":"#A8B820",
-    "岩石":"#B8A038","幽靈":"#705898","龍":"#7038F8","鋼":"#B8B8D0",
-    "妖精":"#EE99AC","惡":"#705848"
+    "һ��":"#A8A878","��":"#F08030","ˮ":"#6890F0","��":"#78C850",
+    "�":"#F8D030","��":"#98D8D8","���Y":"#C03028","��":"#A040A0",
+    "����":"#E0C068","�w��":"#A890F0","����":"#F85888","�x":"#A8B820",
+    "��ʯ":"#B8A038","���":"#705898","��":"#7038F8","�":"#B8B8D0",
+    "����":"#EE99AC","��":"#705848"
   };
-  return colors[typeName] || "#A8A878";
+  if (Array.isArray(type)) type = type[0];
+  else if (type.indexOf("/") !== -1) type = type.split("/")[0].trim();
+  return colors[type] || "#A8A878";
 }
 
 function getStatusIcon(status) {
@@ -2269,13 +2304,47 @@ function openArena(enemy) {
   }
   var firstPkmn = party[0];
 
+  var initialWeather = null;
+  var enemyRaw = enemy.name.replace(/^[✨⭐👑]\s*/,"").replace(/\s*\(.*\)/,"");
+  if (enemyRaw.indexOf("蓋歐卡") !== -1) { initialWeather = { type: "rain", duration: 99 }; }
+  else if (enemyRaw.indexOf("固拉多") !== -1) { initialWeather = { type: "sun", duration: 99 }; }
+  else if (enemyRaw.indexOf("烈空坐") !== -1) { }
+  else if (!enemy.isGym && !enemy.isLeague && Math.random() < 0.1) {
+    var wTypes = ["rain","sun","sand","hail"]; initialWeather = { type: wTypes[Math.floor(Math.random()*4)], duration: 5 };
+  }
   battleState = {
     playerPokemon: firstPkmn, playerParty: party, enemy: enemy,
     isGym: enemy.isGym, isLeague: enemy.isLeague, turnLock: false, battleOver: false, playerWon: false,
-    weather: null
+    weather: initialWeather
   };
+  var wLog = [];
+  if (initialWeather) {
+    var wNames = { rain:"🌧️ 下雨", sun:"☀️ 大晴天", sand:"🌪️ 沙暴", hail:"❄️ 冰雹" };
+    var durText = initialWeather.duration === 99 ? "（永續）" : "（持續"+initialWeather.duration+"回合）";
+    wLog.push(wNames[initialWeather.type] + " 籠罩了戰場！" + durText);
+    if (typeof sfx !== "undefined") sfx.weather();
+  }
+  var abilityLog = [];
+  if (enemy.ability && enemy.ability.trigger === "intimidate") {
+    battleState.playerPokemon.statStages.atk = Math.max(-6, (battleState.playerPokemon.statStages.atk||0) - 1);
+    abilityLog.push("👹 " + enemy.abilityName + "：我方攻擊下降！");
+  } else if (enemy.ability && enemy.ability.trigger === "weatherEntry" && !initialWeather) {
+    var wTypes = {sun:"☀️ 大晴天",rain:"🌧️ 下雨",sand:"🌪️ 沙暴",hail:"❄️ 冰雹"};
+    battleState.weather = { type: enemy.ability.weather, duration: 5 };
+    wLog.push(wTypes[enemy.ability.weather] + " 籠罩了戰場！（持續5回合）");
+    if (typeof sfx !== "undefined") sfx.weather();
+  }
+  if (firstPkmn.ability && firstPkmn.ability.trigger === "intimidate") {
+    battleState.enemy.statStages.atk = Math.max(-6, (battleState.enemy.statStages.atk||0) - 1);
+    abilityLog.push("👤 " + firstPkmn.abilityName + "：敵方攻擊下降！");
+  } else if (firstPkmn.ability && firstPkmn.ability.trigger === "weatherEntry" && !initialWeather && !battleState.weather) {
+    var wTypes2 = {sun:"☀️ 大晴天",rain:"🌧️ 下雨",sand:"🌪️ 沙暴",hail:"❄️ 冰雹"};
+    battleState.weather = { type: firstPkmn.ability.weather, duration: 5 };
+    wLog.push(wTypes2[firstPkmn.ability.weather] + " 籠罩了戰場！（持續5回合）");
+    if (typeof sfx !== "undefined") sfx.weather();
+  }
 
-  $("battleLog").innerHTML = "<p style=\"color:#f1c40f;\">⚔️ 戰鬥開始！</p>";
+  $("battleLog").innerHTML = "<p style=\"color:#f1c40f;\">⚔️ 戰鬥開始！</p>" + (wLog.length ? "<p>"+wLog.join(" ")+"</p>" : "") + (abilityLog.length ? "<p>"+abilityLog.join(" ")+"</p>" : "");
   $("battleModal").style.display = "flex";
   $("arenaBattlePhase").style.display = "block";
   $("arenaResultPhase").style.display = "none";
@@ -2302,7 +2371,7 @@ function updateArenaUI() {
     wd.style.display = "none";
   }
   var pp = battleState.playerPokemon;
-  $("playerPkmnName").innerHTML = pp.name + " Lv." + pp.level;
+  $("playerPkmnName").innerHTML = pp.name + " Lv." + pp.level + (pp.abilityName ? " <span class=\"ability-tag\">[" + pp.abilityName + "]</span>" : "");
   var phpPct = Math.round(pp.currentHp / pp.maxHp * 100);
   $("playerHpBar").style.width = phpPct + "%";
   $("playerHpBar").className = "hp-bar-fill " + (phpPct > 50 ? "hp-green" : phpPct > 25 ? "hp-yellow" : "hp-red");
@@ -2311,7 +2380,7 @@ function updateArenaUI() {
   $("playerTypeIcon").innerHTML = renderTypeBadges(pp.type);
 
   var ep = battleState.enemy;
-  $("enemyPkmnName").innerHTML = ep.name + " Lv." + ep.level;
+  $("enemyPkmnName").innerHTML = ep.name + " Lv." + ep.level + (ep.abilityName ? " <span class=\"ability-tag\">[" + ep.abilityName + "]</span>" : "");
   var ehpPct = Math.round(ep.currentHp / ep.maxHp * 100);
   $("enemyHpBar").style.width = ehpPct + "%";
   $("enemyHpBar").className = "hp-bar-fill " + (ehpPct > 50 ? "hp-green" : ehpPct > 25 ? "hp-yellow" : "hp-red");
@@ -2705,17 +2774,16 @@ function updateDashboard() {
       var p = display[i];
       var card = document.createElement("div"); card.className = "pkmn-card";
       var pType = getPokemonType(p.baseName);
+      var typesHtml = renderTypeBadges(pType);
       var typeColor = getTypeColor(pType);
       var leg = checkIsLegendary(p.baseName);
       card.style.borderLeft = "4px solid " + typeColor;
       var nameDisplay = p.baseName;
-      if (leg && nameDisplay.indexOf("✨") === -1) nameDisplay = "✨ " + nameDisplay;
-      card.innerHTML = "<div style=\"font-weight:bold;font-size:14px;\">" + nameDisplay + "</div>" +
+      if (leg && nameDisplay.indexOf("?") === -1) nameDisplay = "★ " + nameDisplay;
+      card.innerHTML = "<div style=\"font-weight:bold;font-size:14px;\">" + nameDisplay + " " + typesHtml + "</div>" +
         "<div style=\"font-size:12px;color:#666;\">Lv." + p.currentLevel + " | EXP " + p.expProgress + "/" + p.expNeeded + "</div>" +
         "<div style=\"margin-top:4px;background:#e0e0e0;border-radius:4px;height:6px;\"><div style=\"width:" + Math.round(p.expProgress / (p.expNeeded||1) * 100) + "%;background:" + typeColor + ";height:6px;border-radius:4px;\"></div></div>";
-      rosterDiv.appendChild(card);
-    }
-  }
+
 
   var bagDiv = $("bagDisplay");
   if (bagDiv) {
@@ -2920,6 +2988,7 @@ function openCollection() {
   for (var i = 0; i < sorted.length; i++) {
     var p = sorted[i];
     var pType2 = getPokemonType(p.baseName);
+    var typesHtml2 = renderTypeBadges(pType2);
     var typeColor2 = getTypeColor(pType2);
     var leg2 = checkIsLegendary(p.baseName);
     var card = document.createElement("div"); card.className = "pkmn-collection-card";
@@ -2928,8 +2997,7 @@ function openCollection() {
     if (leg2 && nameD.indexOf("✨") === -1) nameD = "✨ " + nameD;
     var inParty = (globalData.partyIds || []).indexOf(p.id) !== -1;
     card.innerHTML = "<div style=\"display:flex;justify-content:space-between;align-items:center;\">" +
-      "<div><strong>" + nameD + "</strong> Lv." + p.currentLevel + "</div>" +
-      (inParty ? "<span style=\"font-size:12px;color:green;\">📋 隊伍中</span>" : "") +
+      "<div><strong>" + nameD + "</strong> Lv." + p.currentLevel + " " + typesHtml2 + "</div>" +
       "</div>" +
       "<div style=\"font-size:12px;color:#666;\">EXP: " + p.expProgress + "/" + p.expNeeded + " | 捕獲: " + (p.catchDate || "未知") + "</div>" +
       "<div style=\"margin-top:4px;background:#e0e0e0;border-radius:4px;height:6px;\"><div style=\"width:" + Math.round(p.expProgress / (p.expNeeded||1) * 100) + "%;background:" + typeColor2 + ";height:6px;border-radius:4px;\"></div></div>";
@@ -3050,7 +3118,7 @@ async function submitData() {
     var captureLevel = Math.max(5, Math.floor(score / 8));
     if (score >= 95) {
       if (fullUnlock) {
-        tier = Math.random() < 0.3 ? "傳說" : (Math.random() < 0.6 ? "稀有" : "一般");
+        tier = Math.random() < 0.15 ? "傳說" : (Math.random() < 0.6 ? "稀有" : "一般");
       } else if (canLegendary) {
         tier = Math.random() < 0.15 ? "傳說" : (Math.random() < 0.6 ? "稀有" : "一般");
       } else {
@@ -3266,4 +3334,4 @@ function resetGymsCache() {
 }
 </script>
 <script src="pokemon-gen2-9.js"></script>
-</html>
+</html>

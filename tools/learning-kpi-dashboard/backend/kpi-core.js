@@ -23,11 +23,12 @@ function getStartOfMonth(date) {
 }
 
 function getExpNeeded(lvl) {
-  if (lvl <= 20) return lvl * 100;
-  if (lvl <= 40) return lvl * 150;
-  if (lvl <= 60) return lvl * 200;
-  if (lvl <= 80) return lvl * 300;
-  return lvl * 500;
+  if (lvl <= 10) return lvl * 30;
+  if (lvl <= 20) return lvl * 60;
+  if (lvl <= 35) return lvl * 120;
+  if (lvl <= 55) return lvl * 200;
+  if (lvl <= 75) return lvl * 300;
+  return lvl * 450;
 }
 function calcLevelAndExp(totalExp, initialLevel) {
   let lvl = initialLevel || 5;
@@ -123,10 +124,10 @@ async function recalculateStudentState(studentId) {
 
     let m;
     if ((m = safeNote.match(/消耗(\d+)瓶好傷藥/))) state.potions -= parseInt(m[1]);
-    if ((m = safeNote.match(/消耗(\d+)個活力塊/))) state.revives -= parseInt(m[1]);
-    if ((m = safeNote.match(/消耗(\d+)顆神奇糖果/))) state.candies -= parseInt(m[1]);
+    if ((m = safeNote.match(/消耗(\d+)瓶活力塊/))) state.revives -= parseInt(m[1]);
+    if ((m = safeNote.match(/消耗(\d+)瓶神奇糖果/))) state.candies -= parseInt(m[1]);
     if ((m = safeNote.match(/消耗(\d+)瓶全滿藥/))) state.maxPotions -= parseInt(m[1]);
-    if ((m = safeNote.match(/消耗(\d+)個元氣塊/))) state.maxRevives -= parseInt(m[1]);
+    if ((m = safeNote.match(/消耗(\d+)瓶元氣藥塊/))) state.maxRevives -= parseInt(m[1]);
 
     if (rowAction === 'A' || rowAction === '捕捉') {
       const pid = (safeNote.match(/ID:(P\d+(?:_LEG)?|legacy_\d+)/) || [])[1] || 'legacy_' + evt.id;
