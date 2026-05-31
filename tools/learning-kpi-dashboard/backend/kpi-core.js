@@ -22,6 +22,51 @@ function getStartOfMonth(date) {
   return d;
 }
 
+function getDefaultQuestProgress() {
+  var today = new Date();
+  var weekStart = getStartOfWeek(today);
+  return {
+    daily: { resetKey: today.toDateString(), progress: {}, claimed: {} },
+    weekly: { resetKey: weekStart.toDateString(), progress: {}, claimed: {} }
+  };
+}
+
+function computeQuestProgress(events) {
+  if (!events || events.length === 0) return getDefaultQuestProgress();
+  var qp = getDefaultQuestProgress();
+  var now = new Date();
+  var todayStr = now.toDateString();
+  var weekStart = getStartOfWeek(now).getTime();
+
+  for (var i = 0; i < events.length; i++) {
+    var evt = events[i];
+    var rowDate = evt.timestamp instanceof Timestamp
+      ? evt.timestamp.toDate()
+      : new Date(evt.timestamp);
+    var action = String(evt.action || "");
+    var safeNote = String(evt.note || "");
+
+    if (rowDate.toDateString() === todayStr) {
+      if (action !== "系統測試") qp.daily.progress["LOGIN"] = (qp.daily.progress["LOGIN"] || 0) + 1;
+      if (action === "每日提交") qp.daily.progress["DAILY_SUBMIT"] = (qp.daily.progress["DAILY_SUBMIT"] || 0) + 1;
+      if (action === "戰鬥勝利" && (safeNote.indexOf("路人") !== -1 || safeNote.indexOf("[Daily]") !== -1 || safeNote.indexOf("Raid") !== -1)) {
+        qp.daily.progress["BATTLE_3"] = (qp.daily.progress["BATTLE_3"] || 0) + 1;
+      }
+      if (action === "捕捉" || action === "A") qp.daily.progress["CAPTURE_1"] = (qp.daily.progress["CAPTURE_1"] || 0) + 1;
+    }
+
+    if (rowDate.getTime() >= weekStart) {
+      if (action === "戰鬥勝利" && (safeNote.indexOf("[Gym]") !== -1 || safeNote.indexOf("道館") !== -1)) {
+        qp.weekly.progress["GYM_3"] = (qp.weekly.progress["GYM_3"] || 0) + 1;
+      }
+      if (action === "捕捉" || action === "A") qp.weekly.progress["CAPTURE_5"] = (qp.weekly.progress["CAPTURE_5"] || 0) + 1;
+      if (action === "戰鬥勝利") qp.weekly.progress["BATTLE_10"] = (qp.weekly.progress["BATTLE_10"] || 0) + 1;
+      if (action === "PvP") qp.weekly.progress["PVP_2"] = (qp.weekly.progress["PVP_2"] || 0) + 1;
+    }
+  }
+  return qp;
+}
+
 function getExpNeeded(lvl) {
   if (lvl <= 10) return lvl * 30;
   if (lvl <= 20) return lvl * 60;
@@ -209,6 +254,27 @@ async function recalculateStudentState(studentId) {
     rosterArray.push(p);
   }
 
+  // F4: quest progress
+  const quests = computeQuestProgress(events);
+  // Preserve claimed status from existing Firestore data
+  try {
+    const existingDoc = await db.collection(STUDENTS_COL).doc(studentId).get();
+    if (existingDoc.exists && existingDoc.data().quests) {
+      const eq = existingDoc.data().quests;
+      const now = new Date();
+      const todayStr = now.toDateString();
+      const weekStartStr = getStartOfWeek(now).toDateString();
+      if (eq.daily && eq.daily.resetKey === todayStr) {
+        for (const k in eq.daily.claimed) quests.daily.claimed[k] = eq.daily.claimed[k];
+      }
+      if (eq.weekly && eq.weekly.resetKey === weekStartStr) {
+        for (const k in eq.weekly.claimed) quests.weekly.claimed[k] = eq.weekly.claimed[k];
+      }
+    }
+  } catch(e) {
+    // ignore read errors
+  }
+
   return {
     studentId: state.studentId,
     highestLevel: finalHighestLevel,
@@ -231,6 +297,7 @@ async function recalculateStudentState(studentId) {
     todayBattles: state.todayBattles,
     weekGymWins: state.weekGymWins,
     monthLeagueWins: state.monthLeagueWins,
+    quests: quests,
     lastUpdated: Timestamp.now()
   };
 }
@@ -275,5 +342,6 @@ async function getDefaultSubjects() {
 
 module.exports = {
   getStartOfWeek, getStartOfMonth, getExpNeeded, calcLevelAndExp,
-  getStudentEvents, recalculateStudentState, getDefaultSubjects
+  getStudentEvents, recalculateStudentState, getDefaultSubjects,
+  computeQuestProgress
 };

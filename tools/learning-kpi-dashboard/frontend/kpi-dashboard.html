@@ -119,6 +119,23 @@
     .trophy-card.locked .trophy-icon { filter: grayscale(100%); }
     .trophy-progress { font-size: 12px; color: #888; margin-top: 8px; }
     .trophy-progress span { font-weight: 700; color: #f39c12; }
+    .quest-area { background: #eef6ff; border: 2px solid #5dade2; border-radius: 12px; padding: 12px; margin-bottom: 12px; }
+    .quest-header { font-size: 14px; font-weight: 900; color: #2c3e50; margin-bottom: 6px; display: flex; justify-content: space-between; align-items: center; }
+    .quest-timer { font-size: 11px; color: #888; font-weight: 400; }
+    .quest-grid { display: flex; flex-direction: column; gap: 5px; }
+    .quest-item { display: flex; align-items: center; gap: 8px; padding: 7px 10px; background: white; border-radius: 8px; border: 1px solid #d5e8f8; font-size: 13px; }
+    .quest-item .q-icon { font-size: 18px; flex-shrink: 0; width: 24px; text-align: center; }
+    .quest-item .q-info { flex: 1; }
+    .quest-item .q-name { font-weight: 700; color: #2c3e50; font-size: 13px; }
+    .quest-item .q-desc { font-size: 11px; color: #888; }
+    .quest-item .q-progress { display: flex; align-items: center; gap: 6px; flex-shrink: 0; }
+    .quest-item .q-bar { width: 60px; height: 7px; background: #e0e0e0; border-radius: 4px; overflow: hidden; }
+    .quest-item .q-fill { height: 100%; background: #5dade2; border-radius: 4px; transition: width 0.3s; }
+    .quest-item .q-text { font-size: 11px; color: #666; font-weight: 700; min-width: 30px; text-align: right; }
+    .quest-item .q-claim { padding: 4px 12px; font-size: 12px; font-weight: 700; border: none; border-radius: 6px; cursor: pointer; background: #27ae60; color: white; flex-shrink: 0; }
+    .quest-item .q-claim:disabled { background: #bdc3c7; cursor: default; }
+    .quest-item.completed { border-color: #27ae60; background: #f0faf4; }
+    .quest-item.claimed { opacity: 0.7; }
     @keyframes trophy-unlock { 0% { transform: scale(1); } 30% { transform: scale(1.15); } 50% { transform: scale(0.95); } 70% { transform: scale(1.05); } 100% { transform: scale(1); } }
     .trophy-unlock-anim { animation: trophy-unlock 0.6s ease-out; }
     .loading-spinner { display: inline-block; width: 20px; height: 20px; border: 3px solid rgba(255,255,255,0.3); border-radius: 50%; border-top-color: white; animation: spin 0.8s ease-in-out infinite; margin-right: 8px; vertical-align: middle; }
@@ -325,6 +342,12 @@
       <div id="inventoryBar" class="inventory-bar"></div>
       <div id="relicsBar" class="inventory-bar" style="border-top:1px dashed #ddd;padding-top:6px;"></div>
       <div id="gymPreview" class="gym-preview">⚔️ 載入挑戰情報中...</div>
+    </div>
+    <div id="questArea" class="quest-area" style="display:none;">
+      <div class="quest-header">📋 每日任務 <span class="quest-timer" id="dailyTimer"></span></div>
+      <div id="dailyQuestGrid" class="quest-grid"></div>
+      <div class="quest-header" style="margin-top:10px;">📋 每週任務 <span class="quest-timer" id="weeklyTimer"></span></div>
+      <div id="weeklyQuestGrid" class="quest-grid"></div>
     </div>
     <div id="tasksArea">
       <div class="category-card border-gym">
@@ -767,6 +790,16 @@ async function fetchStudentData(studentId, pendingEvent) {
     if (globalData.partyIds.length === 0) { var sorted = globalData.roster.slice().sort(function(a,b){ return b.currentLevel - a.currentLevel; }); globalData.partyIds = sorted.slice(0, 6).map(function(p){ return p.id; }); }
     hideSkeleton(); updateDashboard(); renderActions(); updateBattleButtons();
     await checkAndUnlockAchievements(globalData, events, studentId);
+    // F4: quest progress
+    var existingQuests = await loadQuestsFromFirestore(studentId);
+    var computedQuests = computeQuestProgress(events);
+    globalQuestProgress = mergeQuestProgress(existingQuests, computedQuests);
+    // LOGIN quest auto-completes on dashboard load
+    if (events && events.length > 0) {
+      globalQuestProgress.daily.progress["LOGIN"] = Math.max(1, globalQuestProgress.daily.progress["LOGIN"] || 0);
+    }
+    saveQuestsToFirestore(studentId, globalQuestProgress);
+    renderQuests();
     updateTradeBadge();
     if (globalData.todayCompleted && !isAdmin) { btn.innerHTML = "\u2705 Done"; btn.disabled = true; document.querySelectorAll(".task-cb, input[name=\"actionType\"]").forEach(function(el){ el.checked = false; el.disabled = true; }); document.querySelectorAll(".action-option").forEach(function(el){ el.classList.remove("selected"); }); $("previewBox").innerHTML = "\u{1F31F} Today done!"; }
     else { btn.disabled = false; btn.textContent = "\u{1F680} Submit"; document.querySelectorAll(".task-cb, input[name=\"actionType\"]").forEach(function(el){ el.disabled = false; }); }
@@ -1255,6 +1288,22 @@ var ACHIEVEMENTS = [
 ];
 var ACHIEVEMENT_TIERS = { 1: "初階", 2: "進階", 3: "大師" };
 var globalAchievements = {};
+
+var QUESTS = {
+  daily: [
+    { id: "LOGIN", name: "每日登入", desc: "登入系統並查看儀表板", icon: "🎁", target: 1, rewardExp: 15, rewardCoins: 3 },
+    { id: "DAILY_SUBMIT", name: "提交任務", desc: "提交今日學習任務", icon: "📚", target: 1, rewardExp: 40, rewardCoins: 10 },
+    { id: "BATTLE_3", name: "對戰練習", desc: "進行 3 場路人戰", icon: "⚔️", target: 3, rewardExp: 30, rewardCoins: 5 },
+    { id: "CAPTURE_1", name: "捕捉收集", desc: "捕捉 1 隻寶可夢", icon: "🎯", target: 1, rewardExp: 25, rewardCoins: 5 }
+  ],
+  weekly: [
+    { id: "GYM_3", name: "道館挑戰者", desc: "道館戰獲勝 3 次", icon: "🏛️", target: 3, rewardExp: 150, rewardCoins: 30 },
+    { id: "CAPTURE_5", name: "大量捕捉", desc: "捕捉 5 隻寶可夢", icon: "🎯", target: 5, rewardExp: 100, rewardCoins: 25 },
+    { id: "BATTLE_10", name: "戰鬥狂人", desc: "進行 10 場戰鬥", icon: "⚔️", target: 10, rewardExp: 80, rewardCoins: 20 },
+    { id: "PVP_2", name: "宿敵對決", desc: "PvP 對戰 2 次", icon: "🆚", target: 2, rewardExp: 60, rewardCoins: 15 }
+  ]
+};
+var globalQuestProgress = null;
 
 var gymsCache = null;
 
@@ -3778,6 +3827,200 @@ function openTrophyCabinet() {
   $("trophyEarnedCount").innerHTML = earned;
   $("trophyTotalCount").innerHTML = ACHIEVEMENTS.length;
   modal.style.display = "flex";
+}
+
+// ===== F4: DAILY/WEEKLY QUEST SYSTEM =====
+function getDefaultQuestProgress() {
+  var today = new Date();
+  var weekStart = getStartOfWeek(today);
+  return {
+    daily: { resetKey: today.toDateString(), progress: {}, claimed: {} },
+    weekly: { resetKey: weekStart.toDateString(), progress: {}, claimed: {} }
+  };
+}
+
+function computeQuestProgress(events) {
+  if (!events) return getDefaultQuestProgress();
+  var qp = getDefaultQuestProgress();
+  var now = new Date();
+  var todayStr = now.toDateString();
+  var weekStart = getStartOfWeek(now).getTime();
+
+  for (var i = 0; i < events.length; i++) {
+    var evt = events[i];
+    var rowDate = evt.timestamp ? (evt.timestamp.toDate ? evt.timestamp.toDate() : new Date(evt.timestamp)) : new Date();
+    var action = String(evt.action || "");
+    var safeNote = String(evt.note || "");
+
+    if (rowDate.toDateString() === todayStr) {
+      // LOGIN: any event today counts as login
+      if (action !== "系統測試") {
+        qp.daily.progress["LOGIN"] = (qp.daily.progress["LOGIN"] || 0) + 1;
+      }
+      // DAILY_SUBMIT: count daily task submissions
+      if (action === "每日提交") {
+        qp.daily.progress["DAILY_SUBMIT"] = (qp.daily.progress["DAILY_SUBMIT"] || 0) + 1;
+      }
+      // BATTLE_3: count battle wins tagged as daily/路人
+      if (action === "戰鬥勝利" && (safeNote.indexOf("路人") !== -1 || safeNote.indexOf("[Daily]") !== -1 || safeNote.indexOf("Raid") !== -1)) {
+        qp.daily.progress["BATTLE_3"] = (qp.daily.progress["BATTLE_3"] || 0) + 1;
+      }
+      // CAPTURE_1: count capture events
+      if (action === "捕捉" || action === "A") {
+        qp.daily.progress["CAPTURE_1"] = (qp.daily.progress["CAPTURE_1"] || 0) + 1;
+      }
+    }
+
+    if (rowDate.getTime() >= weekStart) {
+      // GYM_3: gym wins this week
+      if (action === "戰鬥勝利" && (safeNote.indexOf("[Gym]") !== -1 || safeNote.indexOf("道館") !== -1)) {
+        qp.weekly.progress["GYM_3"] = (qp.weekly.progress["GYM_3"] || 0) + 1;
+      }
+      // CAPTURE_5: all captures this week
+      if (action === "捕捉" || action === "A") {
+        qp.weekly.progress["CAPTURE_5"] = (qp.weekly.progress["CAPTURE_5"] || 0) + 1;
+      }
+      // BATTLE_10: all battle wins this week
+      if (action === "戰鬥勝利") {
+        qp.weekly.progress["BATTLE_10"] = (qp.weekly.progress["BATTLE_10"] || 0) + 1;
+      }
+      // PVP_2: PvP events
+      if (action === "PvP") {
+        qp.weekly.progress["PVP_2"] = (qp.weekly.progress["PVP_2"] || 0) + 1;
+      }
+    }
+  }
+  return qp;
+}
+
+function loadQuestsFromFirestore(studentId) {
+  return new Promise(function(resolve) {
+    if (!db || !studentId) { resolve(null); return; }
+    db.collection("kpi_students").doc(studentId).get().then(function(doc) {
+      if (doc.exists && doc.data().quests) {
+        resolve(doc.data().quests);
+      } else {
+        resolve(null);
+      }
+    }).catch(function() { resolve(null); });
+  });
+}
+
+function saveQuestsToFirestore(studentId, quests) {
+  if (!db || !studentId) return Promise.resolve();
+  return db.collection("kpi_students").doc(studentId).set({ studentId: studentId, quests: quests }, { merge: true }).catch(function(e) {
+    console.error("saveQuests error:", e);
+  });
+}
+
+function mergeQuestProgress(existing, computed) {
+  // Keep claimed status from existing, but recompute progress from events
+  var result = getDefaultQuestProgress();
+  var now = new Date();
+  var todayStr = now.toDateString();
+  var weekStart = getStartOfWeek(now).toDateString();
+
+  // Check daily reset
+  if (existing && existing.daily && existing.daily.resetKey === todayStr) {
+    for (var k in existing.daily.claimed) result.daily.claimed[k] = existing.daily.claimed[k];
+  }
+  // Check weekly reset
+  if (existing && existing.weekly && existing.weekly.resetKey === weekStart) {
+    for (var k2 in existing.weekly.claimed) result.weekly.claimed[k2] = existing.weekly.claimed[k2];
+  }
+
+  // Use computed progress
+  for (var period in computed) {
+    for (var qid in computed[period].progress) {
+      result[period].progress[qid] = computed[period].progress[qid];
+    }
+  }
+  return result;
+}
+
+function renderQuests() {
+  if (!globalData || !globalQuestProgress) { var qa = $("questArea"); if (qa) qa.style.display = "none"; return; }
+
+  var now = new Date();
+  var dailyTimer = $("dailyTimer");
+  if (dailyTimer) {
+    var endOfDay = new Date(now); endOfDay.setHours(23, 59, 59, 999);
+    var remain = Math.floor((endOfDay - now) / 1000);
+    var h = Math.floor(remain / 3600); var m = Math.floor((remain % 3600) / 60);
+    dailyTimer.innerHTML = "重置 " + (h > 0 ? h + "h " : "") + m + "m";
+  }
+  var weeklyTimer = $("weeklyTimer");
+  if (weeklyTimer) {
+    var endOfWeek = getStartOfWeek(now); endOfWeek.setDate(endOfWeek.getDate() + 7);
+    var remainW = Math.floor((endOfWeek - now) / 1000);
+    var d = Math.floor(remainW / 86400); var h2 = Math.floor((remainW % 86400) / 3600);
+    weeklyTimer.innerHTML = "重置 " + d + "d " + h2 + "h";
+  }
+
+  var qa = $("questArea"); if (qa) qa.style.display = "block";
+
+  function renderPeriod(period, gridId) {
+    var grid = $(gridId); if (!grid) return;
+    grid.innerHTML = "";
+    var quests = QUESTS[period];
+    var qp = globalQuestProgress[period];
+    for (var i = 0; i < quests.length; i++) {
+      var q = quests[i];
+      var progress = qp.progress[q.id] || 0;
+      var target = q.target;
+      var completed = progress >= target;
+      var claimed = !!qp.claimed[q.id];
+      var pct = Math.min(100, Math.round(progress / target * 100));
+      var item = document.createElement("div");
+      item.className = "quest-item";
+      if (completed && !claimed) item.classList.add("completed");
+      if (claimed) item.classList.add("claimed");
+      item.innerHTML =
+        "<span class='q-icon'>" + (claimed ? "✅" : completed ? "⭐" : q.icon) + "</span>" +
+        "<div class='q-info'>" +
+          "<div class='q-name'>" + q.name + "</div>" +
+          "<div class='q-desc'>" + q.desc + " (+" + q.rewardExp + " EXP, +" + q.rewardCoins + " 幣)</div>" +
+        "</div>" +
+        "<div class='q-progress'>" +
+          "<div class='q-bar'><div class='q-fill' style='width:" + pct + "%'></div></div>" +
+          "<span class='q-text'>" + progress + "/" + target + "</span>" +
+        "</div>" +
+        "<button class='q-claim' " + (completed && !claimed ? "" : "disabled") + " onclick='claimQuestReward(\"" + period + "\",\"" + q.id + "\"," + q.rewardExp + "," + q.rewardCoins + ")' data-period='" + period + "' data-qid='" + q.id + "'>" + (claimed ? "✅" : completed ? "領取" : "進行中") + "</button>";
+      grid.appendChild(item);
+    }
+  }
+
+  renderPeriod("daily", "dailyQuestGrid");
+  renderPeriod("weekly", "weeklyQuestGrid");
+}
+
+async function claimQuestReward(period, questId, rewardExp, rewardCoins) {
+  if (!globalData || !globalQuestProgress) return;
+  var qp = globalQuestProgress[period];
+  if (!qp || qp.claimed[questId]) { toast("已領取過獎勵！"); return; }
+
+  qp.claimed[questId] = true;
+  renderQuests();
+  saveQuestsToFirestore(globalData.studentId, globalQuestProgress);
+
+  // Create reward event
+  var now = new Date();
+  var month = getMonthDiff();
+  var monthName = ["","一月","二月","三月","四月","五月","六月","七月","八月","九月","十月","十一月","十二月"][(month + 2) % 12 + 1] || (month + "月");
+  var questName = "";
+  var periodList = QUESTS[period] || [];
+  for (var i = 0; i < periodList.length; i++) { if (periodList[i].id === questId) { questName = periodList[i].name; break; } }
+  var note = "📅 " + monthName + " | 完成" + (period === "daily" ? "每日" : "每週") + "任務: " + questName + " | 獎勵 +" + rewardExp + " EXP, +" + rewardCoins + " 幣";
+
+  var record = {
+    user: globalData.studentId, studentId: globalData.studentId, totalScore: 0, score: 0,
+    action: "系統測試", expGained: rewardExp, coinsGained: rewardCoins, badgeChange: 0,
+    tasks: [(period === "daily" ? "每日" : "每週") + "任務: " + questName],
+    note: note, extraNote: note
+  };
+  await executeSave(record, function() {
+    toast("🎉 " + questName + " 完成！獲得 +" + rewardExp + " EXP, +" + rewardCoins + " 幣！");
+  }, true);
 }
 
 // ===== F1: TRADING SYSTEM =====
