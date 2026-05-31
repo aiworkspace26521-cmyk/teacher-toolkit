@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="zh-TW">
 <head>
   <meta charset="utf-8">
@@ -631,6 +631,9 @@ async function recalculateStudentState(studentId, events) {
       if (rowDate.toDateString() === todayStr && (safeNote.indexOf("[Daily]") !== -1 || safeNote.indexOf("\u8DEF\u4EBA") !== -1 || safeNote.indexOf("Raid") !== -1)) state.todayBattles++;
       if (rowDate.getTime() >= startOfWeek && (safeNote.indexOf("[Gym]") !== -1 || safeNote.indexOf("\u9053\u9928") !== -1)) state.weekGymWins++;
       if (rowDate.getTime() >= startOfMonth && (safeNote.indexOf("[League]") !== -1 || safeNote.indexOf("\u5927\u6703") !== -1 || safeNote.indexOf("\u9B54\u738B") !== -1)) state.monthLeagueWins++;
+    } else if (rowAction === "E") {
+      var nm = safeNote.match(/獲得:\s*([^|]+)/);
+      if (nm && state.roster['P0']) state.roster['P0'].baseName = nm[1].trim();
     }
     var currentIterLevel = 5;
     for (var k3 in state.roster) { var l = calcLevelAndExp(state.roster[k3].totalExp, state.roster[k3].initialLevel).level; if (l > currentIterLevel) currentIterLevel = l; }
@@ -3107,6 +3110,9 @@ async function evolveEevee(evolution) {
   await executeSave({ studentId: globalData.studentId, score: 0, action: "E", expGained: 0, coinsGained: 0, badgeChange: 0, note: "進化: 獲得: " + newName, extraNote: "進化: 獲得: " + newName, totalScore: 0, user: globalData.studentId }, function() {
     toast("🎉 伊布進化為 " + evolution + "！");
     closeModal("eeveeModal");
+    if (globalData.roster && globalData.roster[0]) {
+      globalData.roster[0].baseName = newName;
+    }
   }, false);
 }
 // ===== EVENT LISTENERS =====
