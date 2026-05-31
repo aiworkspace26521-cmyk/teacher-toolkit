@@ -111,7 +111,8 @@ async function recalculateStudentState(studentId) {
     highestLevel: 5,
     potions: 0, revives: 0, candies: 0,
     maxPotions: 0, maxRevives: 0,
-    hasExpShare: false, hasExpertBelt: false,
+    expSharePurchased: false,
+    hasExpertBelt: false,
     hasEviolite: false, hasChampionCloak: false, hasAmuletCoin: false,
     電擊盒: false, 岩漿盒: false, '龍之鱗片': false, 護具: false, 金屬膜: false, '王者之證': false,
     todayCompleted: false,
@@ -121,7 +122,7 @@ async function recalculateStudentState(studentId) {
     todayBattles: 0,
     weekGymWins: 0,
     monthLeagueWins: 0,
-    roster: { P0: { id: 'P0', baseName: '🐾 伊布 (一般系)', totalExp: 0, initialLevel: 5, catchDate: '初始夥伴' } },
+    roster: { P0: { id: 'P0', baseName: '🐾 伊布 (一般系)', totalExp: 0, initialLevel: 5, catchDate: '初始夥伴', heldItem: '' } },
     lastEventTimestamp: null,
     lastUpdated: Timestamp.now()
   };
@@ -182,7 +183,7 @@ async function recalculateStudentState(studentId) {
       if (safeNote.includes('神奇糖果')) state.candies++;
       if (safeNote.includes('全滿藥')) state.maxPotions++;
       if (safeNote.includes('元氣藥塊')) state.maxRevives++;
-      if (safeNote.includes('學習裝置')) state.hasExpShare = true;
+      if (safeNote.includes('學習裝置')) state.expSharePurchased = true;
       if (safeNote.includes('進化奇石')) state.hasEviolite = true;
       if (safeNote.includes('達人帶')) state.hasExpertBelt = true;
       if (safeNote.includes('護符金幣')) state.hasAmuletCoin = true;
@@ -212,21 +213,39 @@ async function recalculateStudentState(studentId) {
       if (!state.roster[pid]) {
         state.roster[pid] = {
           id: pid, baseName: cleanName, totalExp: 0, initialLevel: initLv,
-          catchDate: `${rowDate.getFullYear()}/${(rowDate.getMonth() + 1).toString().padStart(2, '0')}/${rowDate.getDate().toString().padStart(2, '0')}`
+          catchDate: `${rowDate.getFullYear()}/${(rowDate.getMonth() + 1).toString().padStart(2, '0')}/${rowDate.getDate().toString().padStart(2, '0')}`,
+          heldItem: ''
         };
+      }
+    } else if (rowAction === '道具裝備') {
+      const equipMatch = safeNote.match(/裝備學習裝置給\s*ID:(\S+)/);
+      if (equipMatch && state.roster[equipMatch[1]]) {
+        // 清除其他 Pokémon 的學習裝置
+        for (const ek in state.roster) {
+          if (state.roster[ek].heldItem === 'expShare') state.roster[ek].heldItem = '';
+        }
+        state.roster[equipMatch[1]].heldItem = 'expShare';
+      }
+      const unequipMatch = safeNote.match(/卸下學(?:習裝置|習裝置)/);
+      if (unequipMatch) {
+        for (const ek in state.roster) {
+          if (state.roster[ek].heldItem === 'expShare') state.roster[ek].heldItem = '';
+        }
       }
     } else if (rowAction === 'B' || rowAction === '糖果升級') {
       const pid = (safeNote.match(/ID:(P\d+(?:_LEG)?|legacy_\d+)/) || [])[1];
       if (pid) {
         for (const k in state.roster) {
-          state.roster[k].totalExp += (k === pid ? rowExp : Math.floor(rowExp * (state.hasExpShare ? 0.2 : 0.1)));
+          const isHolder = state.roster[k].heldItem === 'expShare';
+          state.roster[k].totalExp += (k === pid || isHolder) ? rowExp : Math.floor(rowExp * 0.5);
         }
       }
     } else if (rowAction === '戰鬥勝利') {
       const match = safeNote.match(/參與(?:者)?:\s*([^|]+)/);
       const parts = match ? match[1].split(',').map(s => s.trim()) : [];
       for (const k in state.roster) {
-        state.roster[k].totalExp += parts.includes(k) ? rowExp : Math.floor(rowExp * (state.hasExpShare ? 0.2 : 0.1));
+        const isHolder = state.roster[k].heldItem === 'expShare';
+        state.roster[k].totalExp += (parts.includes(k) || isHolder) ? rowExp : Math.floor(rowExp * 0.5);
       }
       const bossMatch = safeNote.match(/🏆 捕獲:\s*([^|]+)/);
       if (bossMatch) {
@@ -236,7 +255,8 @@ async function recalculateStudentState(studentId) {
           state.roster[bossId] = {
             id: bossId, baseName: bossName, totalExp: 0,
             initialLevel: Math.min(99, Math.max(5, state.lockedGymLevel) + 5),
-            catchDate: `${rowDate.getFullYear()}/${(rowDate.getMonth() + 1).toString().padStart(2, '0')}/${rowDate.getDate().toString().padStart(2, '0')}`
+            catchDate: `${rowDate.getFullYear()}/${(rowDate.getMonth() + 1).toString().padStart(2, '0')}/${rowDate.getDate().toString().padStart(2, '0')}`,
+            heldItem: ''
           };
         }
       }
@@ -324,7 +344,7 @@ async function recalculateStudentState(studentId) {
     candies: state.candies,
     maxPotions: state.maxPotions,
     maxRevives: state.maxRevives,
-    hasExpShare: state.hasExpShare,
+    expSharePurchased: state.expSharePurchased || false,
     hasExpertBelt: state.hasExpertBelt,
     hasEviolite: state.hasEviolite,
     hasChampionCloak: state.hasChampionCloak,
