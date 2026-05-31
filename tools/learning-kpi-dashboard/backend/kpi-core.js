@@ -113,6 +113,7 @@ async function recalculateStudentState(studentId) {
     maxPotions: 0, maxRevives: 0,
     hasExpShare: false, hasExpertBelt: false,
     hasEviolite: false, hasChampionCloak: false, hasAmuletCoin: false,
+    電擊盒: false, 岩漿盒: false, '龍之鱗片': false, 護具: false, 金屬膜: false, '王者之證': false,
     todayCompleted: false,
     daysSinceLastBadge: 0,
     lastBadgeTime: null,
@@ -152,6 +153,27 @@ async function recalculateStudentState(studentId) {
       state.todayCompleted = true;
     }
 
+    // 親密度統計
+    if (!state._happinessEvents) state._happinessEvents = {};
+    if (rowAction === '每日提交' || rowAction === '捕捉' || rowAction === 'A') {
+      for (const hid in state.roster) {
+        if (!state._happinessEvents[hid]) state._happinessEvents[hid] = 0;
+        state._happinessEvents[hid]++;
+      }
+    }
+    if (rowAction === '戰鬥勝利') {
+      const pMatch = safeNote.match(/參與(?:者)?:\s*([^|]+)/);
+      if (pMatch) {
+        const pIds = pMatch[1].split(',').map(s => s.trim());
+        for (const pid of pIds) {
+          if (pid && state.roster[pid]) {
+            if (!state._happinessEvents[pid]) state._happinessEvents[pid] = 0;
+            state._happinessEvents[pid] += 2;
+          }
+        }
+      }
+    }
+
     if (rowAction === '商城兌換') {
       const costMatch = safeNote.match(/花費(\d+)幣/);
       if (costMatch) state.coins -= parseInt(costMatch[1]);
@@ -165,6 +187,12 @@ async function recalculateStudentState(studentId) {
       if (safeNote.includes('達人帶')) state.hasExpertBelt = true;
       if (safeNote.includes('護符金幣')) state.hasAmuletCoin = true;
       if (safeNote.includes('冠軍披風')) state.hasChampionCloak = true;
+    if (safeNote.includes('電擊盒')) state.電擊盒 = true;
+    if (safeNote.includes('岩漿盒')) state.岩漿盒 = true;
+    if (safeNote.includes('龍之鱗片')) state['龍之鱗片'] = true;
+    if (safeNote.includes('護具')) state.護具 = true;
+    if (safeNote.includes('金屬膜')) state.金屬膜 = true;
+    if (safeNote.includes('王者之證')) state['王者之證'] = true;
     }
 
     let m;
@@ -224,6 +252,11 @@ async function recalculateStudentState(studentId) {
         const newName = (nm[1].trim().includes('(') ? nm[1].trim() : nm[1].trim() + ' (一般系)');
         state.roster['P0'].baseName = newName;
       }
+      // 新格式: 進化ID:{pokemonId} => {newName}
+      const evoMatch = safeNote.match(/進化ID:(\S+)\s*=>\s*(.+)/);
+      if (evoMatch && state.roster[evoMatch[1]]) {
+        state.roster[evoMatch[1]].baseName = evoMatch[2].trim();
+      }
     } else if (rowAction === '滿級轉化') {
       state.coins += rowCoins;
     }
@@ -250,6 +283,11 @@ async function recalculateStudentState(studentId) {
     p.currentLevel = lvlInfo.level;
     p.expProgress = lvlInfo.expProgress;
     p.expNeeded = lvlInfo.expNeeded;
+    if (state._happinessEvents && state._happinessEvents[p.id]) {
+      p.happiness = (p.happiness || 0) + state._happinessEvents[p.id];
+    } else {
+      p.happiness = p.happiness || 0;
+    }
     if (p.currentLevel > finalHighestLevel) finalHighestLevel = p.currentLevel;
     rosterArray.push(p);
   }
@@ -291,6 +329,12 @@ async function recalculateStudentState(studentId) {
     hasEviolite: state.hasEviolite,
     hasChampionCloak: state.hasChampionCloak,
     hasAmuletCoin: state.hasAmuletCoin,
+    '電擊盒': state.電擊盒 || false,
+    '岩漿盒': state.岩漿盒 || false,
+    '龍之鱗片': state['龍之鱗片'] || false,
+    '護具': state.護具 || false,
+    '金屬膜': state.金屬膜 || false,
+    '王者之證': state['王者之證'] || false,
     todayCompleted: state.todayCompleted,
     daysSinceLastBadge: state.daysSinceLastBadge,
     roster: rosterArray,
