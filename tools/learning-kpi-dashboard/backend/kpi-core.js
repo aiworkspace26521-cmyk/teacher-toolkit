@@ -114,6 +114,7 @@ async function recalculateStudentState(studentId) {
     expSharePurchased: false,
     hasExpertBelt: false,
     hasEviolite: false, hasChampionCloak: false, hasAmuletCoin: false,
+    hasQuickClaw: false, hasFocusLens: false, hasShellBell: false, hasLifeOrb: false, hasAssaultVest: false,
     電擊盒: false, 岩漿盒: false, '龍之鱗片': false, 護具: false, 金屬膜: false, '王者之證': false,
     todayCompleted: false,
     daysSinceLastBadge: 0,
@@ -188,6 +189,11 @@ async function recalculateStudentState(studentId) {
       if (safeNote.includes('達人帶')) state.hasExpertBelt = true;
       if (safeNote.includes('護符金幣')) state.hasAmuletCoin = true;
       if (safeNote.includes('冠軍披風')) state.hasChampionCloak = true;
+      if (safeNote.includes('先制之爪')) state.hasQuickClaw = true;
+      if (safeNote.includes('焦點鏡')) state.hasFocusLens = true;
+      if (safeNote.includes('貝殼之鈴')) state.hasShellBell = true;
+      if (safeNote.includes('生命寶珠')) state.hasLifeOrb = true;
+      if (safeNote.includes('AV背心')) state.hasAssaultVest = true;
     if (safeNote.includes('電擊盒')) state.電擊盒 = true;
     if (safeNote.includes('岩漿盒')) state.岩漿盒 = true;
     if (safeNote.includes('龍之鱗片')) state['龍之鱗片'] = true;
@@ -218,18 +224,16 @@ async function recalculateStudentState(studentId) {
         };
       }
     } else if (rowAction === '道具裝備') {
-      const equipMatch = safeNote.match(/裝備學習裝置給\s*ID:(\S+)/);
-      if (equipMatch && state.roster[equipMatch[1]]) {
-        // 清除其他 Pokémon 的學習裝置
-        for (const ek in state.roster) {
-          if (state.roster[ek].heldItem === 'expShare') state.roster[ek].heldItem = '';
+      const HELD_NAMES = { expShare: '學習裝置', quickClaw: '先制之爪', focusLens: '焦點鏡', shellBell: '貝殼之鈴', lifeOrb: '生命寶珠', assaultVest: 'AV背心' };
+      for (const [hid, hname] of Object.entries(HELD_NAMES)) {
+        const ep = new RegExp(`裝備${hname}給\\s*ID:(\\S+)`);
+        const em = safeNote.match(ep);
+        if (em && state.roster[em[1]]) {
+          for (const ek in state.roster) { if (state.roster[ek].heldItem === hid) state.roster[ek].heldItem = ''; }
+          state.roster[em[1]].heldItem = hid;
         }
-        state.roster[equipMatch[1]].heldItem = 'expShare';
-      }
-      const unequipMatch = safeNote.match(/卸下學(?:習裝置|習裝置)/);
-      if (unequipMatch) {
-        for (const ek in state.roster) {
-          if (state.roster[ek].heldItem === 'expShare') state.roster[ek].heldItem = '';
+        if (safeNote.includes('卸下' + hname)) {
+          for (const ek in state.roster) { if (state.roster[ek].heldItem === hid) state.roster[ek].heldItem = ''; }
         }
       }
     } else if (rowAction === 'B' || rowAction === '糖果升級') {
@@ -349,6 +353,11 @@ async function recalculateStudentState(studentId) {
     hasEviolite: state.hasEviolite,
     hasChampionCloak: state.hasChampionCloak,
     hasAmuletCoin: state.hasAmuletCoin,
+    hasQuickClaw: state.hasQuickClaw,
+    hasFocusLens: state.hasFocusLens,
+    hasShellBell: state.hasShellBell,
+    hasLifeOrb: state.hasLifeOrb,
+    hasAssaultVest: state.hasAssaultVest,
     '電擊盒': state.電擊盒 || false,
     '岩漿盒': state.岩漿盒 || false,
     '龍之鱗片': state['龍之鱗片'] || false,
