@@ -497,6 +497,14 @@
   </div>
 </div>
 
+<div id="tmModal" class="modal">
+  <div class="modal-content" style="border-color:#9b59b6;max-width:550px;width:95%;padding:15px;">
+    <h3 style="color:#8e44ad;margin-top:0;">📀 招式學習器</h3>
+    <div id="tmModalBody"></div>
+    <button class="close-btn" onclick="closeModal('tmModal')">關閉</button>
+  </div>
+</div>
+
 <div id="pvpModal" class="modal"><div class="modal-content" style="border-color:#8e44ad;width:95%;"><h3 style="color:#8e44ad;margin-top:0;">🆚 PvP對戰</h3><div id="pvpSelection"></div><div id="pvpBattle"></div><button class="close-btn" onclick="closeModal('pvpModal')">離開</button></div></div>
 
 <div id="tradeModal" class="modal"><div class="modal-content" style="border-color:#e67e22;">
@@ -678,6 +686,9 @@ async function recalculateStudentState(studentId, events) {
     hasExpertBelt: false, hasEviolite: false,
     hasChampionCloak: false, hasAmuletCoin: false,
     hasQuickClaw: false, hasFocusLens: false, hasShellBell: false, hasLifeOrb: false, hasAssaultVest: false,
+    hasFocusSash: false, hasEjectButton: false, hasRockyHelmet: false, hasWeaknessPolicy: false,
+    oranBerries: 0, cheriBerries: 0, lumBerries: 0, chilanBerries: 0,
+    tms: {},
     todayCompleted: false, daysSinceLastBadge: 0,
     lastBadgeTime: null, firstLogTime: null,
     todayBattles: 0, weekGymWins: 0, monthLeagueWins: 0,
@@ -733,6 +744,16 @@ async function recalculateStudentState(studentId, events) {
       if (safeNote.indexOf("\u8C9D\u6BBB\u4E4B\u9234") !== -1) state.hasShellBell = true;
       if (safeNote.indexOf("\u751F\u547D\u5BF6\u73E0") !== -1) state.hasLifeOrb = true;
       if (safeNote.indexOf("AV\u80CC\u5FC3") !== -1) state.hasAssaultVest = true;
+      if (safeNote.indexOf("\u6A59\u6A59\u679C") !== -1) state.oranBerries = (state.oranBerries||0) + 1;
+      if (safeNote.indexOf("\u5947\u7570\u679C") !== -1) state.cheriBerries = (state.cheriBerries||0) + 1;
+      if (safeNote.indexOf("\u6728\u5B50\u679C") !== -1) state.lumBerries = (state.lumBerries||0) + 1;
+      if (safeNote.indexOf("\u6297\u6027\u679C") !== -1) state.chilanBerries = (state.chilanBerries||0) + 1;
+      if (safeNote.indexOf("\u6C23\u52E2\u62AB\u5E36") !== -1) state.hasFocusSash = true;
+      if (safeNote.indexOf("\u9003\u812B\u6309\u9215") !== -1) state.hasEjectButton = true;
+      if (safeNote.indexOf("\u51F8\u51F8\u982D\u76D4") !== -1) state.hasRockyHelmet = true;
+      if (safeNote.indexOf("\u5F31\u9EDE\u4FDD\u96AA") !== -1) state.hasWeaknessPolicy = true;
+      var tmMatch2 = safeNote.match(/TM\u5B78\u7FD2\u5668:\s*(\S+)/);
+      if (tmMatch2) { if (!state.tms) state.tms = {}; state.tms[tmMatch2[1]] = (state.tms[tmMatch2[1]]||0)+1; }
       // 進化道具
       for (var ei2 in EVO_ITEMS) {
         if (safeNote.indexOf(ei2) !== -1) state[ei2] = true;
@@ -745,6 +766,13 @@ async function recalculateStudentState(studentId, events) {
       if ((m = safeNote.match(/\u6D88\u8017(\d+)\u74F6\u6D3B\u529B\u584A/))) state.revives -= parseInt(m[1]);
       if ((m = safeNote.match(/\u6D88\u8017(\d+)\u74F6\u5143\u6C23\u85E5\u584A/))) state.maxRevives -= parseInt(m[1]);
       if ((m = safeNote.match(/\u6D88\u8017(\d+)\u74F6\u795E\u5947\u7CD6\u679C/))) state.candies -= parseInt(m[1]);
+      if ((m = safeNote.match(/\u6D88\u8017(\d+)\u500B\u6A59\u6A59\u679C/))) state.oranBerries = Math.max(0, (state.oranBerries||0) - parseInt(m[1]));
+      if ((m = safeNote.match(/\u6D88\u8017(\d+)\u500B\u5947\u7570\u679C/))) state.cheriBerries = Math.max(0, (state.cheriBerries||0) - parseInt(m[1]));
+      if ((m = safeNote.match(/\u6D88\u8017(\d+)\u500B\u6728\u5B50\u679C/))) state.lumBerries = Math.max(0, (state.lumBerries||0) - parseInt(m[1]));
+      if ((m = safeNote.match(/\u6D88\u8017(\d+)\u500B\u6297\u6027\u679C/))) state.chilanBerries = Math.max(0, (state.chilanBerries||0) - parseInt(m[1]));
+      if ((m = safeNote.match(/\u6D88\u8017(\d+)\u500B\u6C23\u52E2\u62AB\u5E36/))) state.hasFocusSash = false;
+      if ((m = safeNote.match(/\u6D88\u8017(\d+)\u500B\u5F31\u9EDE\u4FDD\u96AA/))) state.hasWeaknessPolicy = false;
+      if ((m = safeNote.match(/\u6D88\u8017(\d+)\u500BTM\u5B78\u7FD2\u5668/))) { var tmN = safeNote.match(/TM\u5B78\u7FD2\u5668:\s*(\S+)/); if (tmN && state.tms) state.tms[tmN[1]] = Math.max(0, (state.tms[tmN[1]]||0) - parseInt(m[1])); }
     }
     if (rowAction === "A" || rowAction === "\u6355\u6349") {
       var pid = (safeNote.match(/ID:(P\d+(?:_LEG)?|legacy_\d+)/)||[])[1] || "legacy_"+evt.id;
@@ -818,7 +846,7 @@ async function recalculateStudentState(studentId, events) {
     if (p.currentLevel > finalHighestLevel) finalHighestLevel = p.currentLevel;
     rosterArray.push(p);
   }
-  return { studentId: state.studentId, highestLevel: finalHighestLevel, lockedGymLevel: state.lockedGymLevel, coins: state.coins, badges: state.badges, potions: state.potions, revives: state.revives, candies: state.candies, maxPotions: state.maxPotions, maxRevives: state.maxRevives, expSharePurchased: state.expSharePurchased, hasExpertBelt: state.hasExpertBelt, hasEviolite: state.hasEviolite, hasChampionCloak: state.hasChampionCloak, hasAmuletCoin: state.hasAmuletCoin, hasQuickClaw: state.hasQuickClaw, hasFocusLens: state.hasFocusLens, hasShellBell: state.hasShellBell, hasLifeOrb: state.hasLifeOrb, hasAssaultVest: state.hasAssaultVest, todayCompleted: state.todayCompleted, daysSinceLastBadge: state.daysSinceLastBadge, roster: rosterArray, todayBattles: state.todayBattles, weekGymWins: state.weekGymWins, monthLeagueWins: state.monthLeagueWins };
+  return { studentId: state.studentId, highestLevel: finalHighestLevel, lockedGymLevel: state.lockedGymLevel, coins: state.coins, badges: state.badges, potions: state.potions, revives: state.revives, candies: state.candies, maxPotions: state.maxPotions, maxRevives: state.maxRevives, expSharePurchased: state.expSharePurchased, hasExpertBelt: state.hasExpertBelt, hasEviolite: state.hasEviolite, hasChampionCloak: state.hasChampionCloak, hasAmuletCoin: state.hasAmuletCoin, hasQuickClaw: state.hasQuickClaw, hasFocusLens: state.hasFocusLens, hasShellBell: state.hasShellBell, hasLifeOrb: state.hasLifeOrb, hasAssaultVest: state.hasAssaultVest, oranBerries: state.oranBerries||0, cheriBerries: state.cheriBerries||0, lumBerries: state.lumBerries||0, chilanBerries: state.chilanBerries||0, hasFocusSash: state.hasFocusSash||false, hasEjectButton: state.hasEjectButton||false, hasRockyHelmet: state.hasRockyHelmet||false, hasWeaknessPolicy: state.hasWeaknessPolicy||false, tms: state.tms||{}, todayCompleted: state.todayCompleted, daysSinceLastBadge: state.daysSinceLastBadge, roster: rosterArray, todayBattles: state.todayBattles, weekGymWins: state.weekGymWins, monthLeagueWins: state.monthLeagueWins };
 }
 
 function showSkeletonDashboard() {
@@ -854,8 +882,23 @@ async function fetchStudentData(studentId, pendingEvent) {
       state.achievements = []; for (var ak in globalAchievements) { if (globalAchievements[ak]) state.achievements.push(ak); }
       await db.collection("kpi_students").doc(studentId).set(state, { merge: true });
     } else {
-      globalData = { studentId: studentId, roster: [], highestLevel: 5, lockedGymLevel: 5, coins: 0, badges: 0, potions: 0, revives: 0, candies: 0, maxPotions: 0, maxRevives: 0, expSharePurchased: false, hasExpertBelt: false, hasEviolite: false, hasChampionCloak: false, hasAmuletCoin: false, todayCompleted: false, todayBattles: 0, weekGymWins: 0, monthLeagueWins: 0, 電擊盒: false, 岩漿盒: false, "龍之鱗片": false, 護具: false, 金屬膜: false, "王者之證": false };
+      globalData = { studentId: studentId, roster: [], highestLevel: 5, lockedGymLevel: 5, coins: 0, badges: 0, potions: 0, revives: 0, candies: 0, maxPotions: 0, maxRevives: 0, expSharePurchased: false, hasExpertBelt: false, hasEviolite: false, hasChampionCloak: false, hasAmuletCoin: false, oranBerries: 0, cheriBerries: 0, lumBerries: 0, chilanBerries: 0, hasFocusSash: false, hasEjectButton: false, hasRockyHelmet: false, hasWeaknessPolicy: false, tms: {}, pokemonTMs: {}, todayCompleted: false, todayBattles: 0, weekGymWins: 0, monthLeagueWins: 0, 電擊盒: false, 岩漿盒: false, "龍之鱗片": false, 護具: false, 金屬膜: false, "王者之證": false };
     }
+    // Restore TM data from Firestore doc
+    try {
+      var studentDoc = await db.collection("kpi_students").doc(studentId).get();
+      if (studentDoc.exists) {
+        var sd = studentDoc.data();
+        if (sd.pokemonTMs) {
+          globalData.pokemonTMs = sd.pokemonTMs;
+          for (var pkmnIdx = 0; pkmnIdx < (globalData.roster||[]).length; pkmnIdx++) {
+            var pkmn = globalData.roster[pkmnIdx];
+            if (sd.pokemonTMs[pkmn.id]) pkmn.tmMoves = sd.pokemonTMs[pkmn.id];
+          }
+        }
+        if (sd.tms) globalData.tms = sd.tms;
+      }
+    } catch(e) { console.warn("Failed to restore TM data:", e); }
     await loadAchievementsFromFirestore(studentId);
     if (isAdmin) globalData.todayCompleted = false;
     if (globalData.monthLeagueWins > 0) {
@@ -1343,6 +1386,10 @@ var HELD_ITEMS = {
   shellBell:   { name: "貝殼之鈴", cost: 90,  icon: "🔔", desc: "攻擊時回復12.5%傷害HP", flag: "hasShellBell" },
   lifeOrb:     { name: "生命寶珠", cost: 110, icon: "🔴", desc: "傷害x1.3但每次攻擊損失10%HP", flag: "hasLifeOrb" },
   assaultVest: { name: "AV背心",   cost: 100, icon: "🦺", desc: "特防x1.5但只能使用攻擊招式", flag: "hasAssaultVest" },
+  focusSash:   { name: "氣勢披帶", cost: 150, icon: "🎗️", desc: "滿血時耐住必殺一擊（消耗品）", flag: "hasFocusSash" },
+  ejectButton: { name: "逃脱按鈕", cost: 120, icon: "🔘", desc: "受到攻擊後強制換怪（消耗品）", flag: "hasEjectButton" },
+  rockyHelmet: { name: "凸凸頭盔", cost: 130, icon: "⛑️", desc: "受到物理攻擊反傷1/6", flag: "hasRockyHelmet" },
+  weaknessPolicy: { name: "弱點保險", cost: 140, icon: "📋", desc: "被剋時雙攻+2階（消耗品）", flag: "hasWeaknessPolicy" },
 };
 var HELD_ITEM_ICONS = { expShare: "📖" };
 for (var _hi in HELD_ITEMS) HELD_ITEM_ICONS[_hi] = HELD_ITEMS[_hi].icon;
@@ -2001,6 +2048,12 @@ function createPlayerPokemon(pokemon) {
   var stats = getPokemonStats(pokemon.baseName, pokemon.currentLevel);
   var moveset = getPokemonMoveset(pokemon.baseName, pokemon.currentLevel);
   var selectedMoves = moveset.slice(0, Math.min(4, moveset.length));
+  // TM 招式取代前 N 個槽位
+  var tmMoves = pokemon.tmMoves || [];
+  var finalMoves = selectedMoves.slice(0, 4);
+  for (var tmIdx = 0; tmIdx < Math.min(tmMoves.length, 4); tmIdx++) {
+    finalMoves[tmIdx] = tmMoves[tmIdx];
+  }
   var abilName = getPokemonAbility(pokemon.baseName);
   var abilData = abilName ? (ABILITY_EFFECTS[abilName] || null) : null;
   var dreamAbil = getLowBstDreamAbility(pokemon.baseName);
@@ -2008,7 +2061,7 @@ function createPlayerPokemon(pokemon) {
     id: pokemon.id, name: pokemon.baseName, level: pokemon.currentLevel,
     maxHp: stats.hp, currentHp: stats.hp,
     atk: stats.atk, def: stats.def, spatk: stats.spatk, spdef: stats.spdef, speed: stats.speed,
-    type: stats.type, moves: selectedMoves, isGym: false, isLeague: false,
+    type: stats.type, moves: finalMoves, isGym: false, isLeague: false,
     status: null, statStages: { atk:0,def:0,spatk:0,spdef:0,speed:0,evasion:0,accuracy:0 },
     ability: abilData, abilityName: abilName,
     heldItem: pokemon.heldItem || "",
@@ -2065,6 +2118,11 @@ function calculateMovePower(move, attacker, defender, isPlayerAttacker) {
   var hpBoosted = false;
   if (attacker.ability && attacker.ability.trigger === "hpBoost" && attacker.currentHp < attacker.maxHp * attacker.ability.hpThresh && details.type === attacker.ability.type) { baseDamage = Math.floor(baseDamage * attacker.ability.mult); hpBoosted = true; }
   if (isPlayerAttacker && eff > 1 && globalData && globalData.hasExpertBelt) baseDamage = Math.floor(baseDamage * 1.2);
+  // 抗性果護盾：降低被剋傷害
+  if (!isPlayerAttacker && battleState && battleState.chilanShield && eff > 1) {
+    baseDamage = Math.floor(baseDamage * 0.5);
+    battleState.chilanShield = false;
+  }
   // 夢特性：適應力 — 屬性一致傷害x1.33
   if (attacker.dreamAbility && attacker.dreamAbility.trigger === "adaptability" && details.category !== "變化") {
     var atkTypes = attacker.type.split("/");
@@ -2102,6 +2160,7 @@ function applyStatusEffect(move, defender) {
   if (eff === "freeze" && Math.random() < 0.2 && !defender.status) { defender.status = "freeze"; return "❄️ " + defender.name + " 被凍結了！"; }
   if (eff === "poison" && Math.random() < 0.3 && !defender.status) { defender.status = "poison"; return "☠️ " + defender.name + " 中毒了！"; }
   if (eff === "sleep" && Math.random() < 0.6 && !defender.status) { defender.status = "sleep"; return "💤 " + defender.name + " 睡著了！"; }
+  if (eff === "confusion" && !defender.status) { defender.status = "confusion"; return "😵 " + defender.name + " 混亂了！"; }
   if (eff === "heal_50") { var heal = Math.floor(defender.maxHp * 0.5); defender.currentHp = Math.min(defender.maxHp, defender.currentHp + heal); return "💚 " + defender.name + " 回復了 " + heal + " HP！"; }
   if (eff === "heal_ally") { var heal2 = Math.floor(defender.maxHp * 0.5); defender.currentHp = Math.min(defender.maxHp, defender.currentHp + heal2); return "💚 " + defender.name + " 回復了 " + heal2 + " HP！"; }
   if (eff === "buff_atk") { defender.statStages.atk = Math.min(6, defender.statStages.atk + 2); return "⬆️ " + defender.name + " 攻擊大幅提升！"; }
@@ -2131,6 +2190,16 @@ function executeTurn(playerAtk, playerDef, enemyAtk, enemyDef, moveName, isPlaye
   if (attacker.status === "freeze") { log.push("❄️ " + attacker.name + " 被凍結了，無法行動！"); return result; }
   if (attacker.status === "sleep") { if (Math.random() < 0.5) { attacker.status = null; log.push("💤 " + attacker.name + " 醒了！"); } else { log.push("💤 " + attacker.name + " 睡著了..."); return result; } }
   if (attacker.status === "paralyze" && Math.random() < 0.25) { log.push("⚡ " + attacker.name + " 因麻痹無法行動！"); return result; }
+  if (attacker.status === "confusion") {
+    if (Math.random() < 0.33) {
+      var selfDmg = Math.max(1, Math.floor(((attacker.level * 2 / 5 + 2) * 40 * attacker.atk / attacker.def) / 50 + 2));
+      attacker.currentHp = Math.max(0, attacker.currentHp - selfDmg);
+      log.push("😵 " + attacker.name + " 因混亂攻擊了自己！(損失 " + selfDmg + " HP)");
+      if (attacker.currentHp <= 0) { attacker.currentHp = 0; result.ko = true; log.push("💀 " + attacker.name + " 倒下了！"); return result; }
+    } else {
+      log.push("😵 " + attacker.name + " 混亂中但成功出招！");
+    }
+  }
 
   if (defender.protect) { log.push("🛡️ " + defender.name + " 守住了攻擊！"); defender.protect = false; return result; }
 
@@ -2179,6 +2248,7 @@ function executeTurn(playerAtk, playerDef, enemyAtk, enemyDef, moveName, isPlaye
   }
 
   if (defender.currentHp <= 0) {
+    var sashActive = (defender.heldItem === "focusSash" && Math.abs(defender.currentHp + dmgInfo.damage - defender.maxHp) < 1);
     if (defender.ability && defender.ability.trigger === "sturdy" && (defender.currentHp + dmgInfo.damage) >= defender.maxHp * 0.99) {
       defender.currentHp = 1;
       log.push("🛡️ " + defender.name + " 的「" + defender.abilityName + "」讓他撐住了！");
@@ -2188,6 +2258,11 @@ function executeTurn(playerAtk, playerDef, enemyAtk, enemyDef, moveName, isPlaye
       defender._tenacityUsed = true;
       log.push("💪 " + defender.name + " 的「" + defender.dreamAbilityName + "」讓它撐住了！");
       showLargeText("💪 頑強！", "#27ae60");
+    } else if (sashActive) {
+      defender.currentHp = 1;
+      defender.heldItem = "";
+      log.push("🎗️ " + defender.name + " 的氣勢披帶讓它撐住了！（已消耗）");
+      showLargeText("🎗️ 氣勢披帶！", "#e74c3c");
     } else {
       defender.currentHp = 0;
       result.ko = true;
@@ -2265,7 +2340,7 @@ function getTypeColor(type) {
 }
 
 function getStatusIcon(status) {
-  var map = { burn:"🔥", paralyze:"⚡", freeze:"❄️", poison:"☠️", sleep:"💤" };
+  var map = { burn:"🔥", paralyze:"⚡", freeze:"❄️", poison:"☠️", sleep:"💤", confusion:"😵" };
   return map[status] || "";
 }
 
@@ -2463,6 +2538,47 @@ function performAttack(moveName, isPlayer) {
         if (eResult.crit) { sfx.crit(); showLargeText("💢 會心一擊！", "#ffd700"); screenShake(); }
         else if (eResult.effectiveness > 1) { showLargeText("💥 效果絕佳！", getTypeColor(getMoveDetails(enemyMove).type)); if (pCenter) spawnParticles(pCenter.x, pCenter.y, 12, getTypeColor(getMoveDetails(enemyMove).type), "star"); }
         else if (eResult.effectiveness > 0 && eResult.effectiveness < 1) showLargeText("⚠️ 效果不好...", "#aaa");
+        // 凸凸頭盔: 物理攻擊反傷
+        var eMoveDetails = getMoveDetails(enemyMove);
+        if (battleState.playerPokemon.heldItem === "rockyHelmet" && eMoveDetails.category === "物理" && battleState.enemy.currentHp > 0) {
+          var helmetDmg = Math.max(1, Math.floor(battleState.enemy.maxHp / 6));
+          battleState.enemy.currentHp = Math.max(0, battleState.enemy.currentHp - helmetDmg);
+          eLog.push("⛑️ 凸凸頭盔反傷 " + helmetDmg + " HP！");
+          renderBattleLog(eLog);
+          if (battleState.enemy.currentHp <= 0) {
+            battleState.enemy.currentHp = 0;
+            eLog.push("💀 " + battleState.enemy.name + " 被反傷倒下了！");
+            renderBattleLog(eLog);
+            sfx.faint();
+            setTimeout(function(){ faintAnimation("enemyPkmnName"); setTimeout(function(){ battleState.playerWon = true; endBattle(true); if (battleState) battleState.turnLock = false; }, 650); }, 300);
+            return;
+          }
+        }
+        // 弱點保險: 被剋時雙攻+2階
+        if (battleState.playerPokemon.heldItem === "weaknessPolicy" && eResult.effectiveness > 1 && battleState.playerPokemon.currentHp > 0) {
+          battleState.playerPokemon.heldItem = "";
+          battleState.playerPokemon.statStages.atk = Math.min(6, (battleState.playerPokemon.statStages.atk||0) + 2);
+          battleState.playerPokemon.statStages.spatk = Math.min(6, (battleState.playerPokemon.statStages.spatk||0) + 2);
+          eLog.push("📋 弱點保險發動！" + battleState.playerPokemon.name + " 雙攻大幅提升！（已消耗）");
+          showLargeText("📋 弱點保險！", "#e74c3c");
+          renderBattleLog(eLog);
+        }
+        // 逃脱按鈕: 受到攻擊後強制換怪
+        if (battleState.playerPokemon.heldItem === "ejectButton" && battleState.playerPokemon.currentHp > 0) {
+          var nextAlly3 = null;
+          for (var ej = 0; ej < battleState.playerParty.length; ej++) {
+            var ejPk = battleState.playerParty[ej];
+            if (ejPk.id !== battleState.playerPokemon.id && ejPk.currentHp > 0) { nextAlly3 = ejPk; break; }
+          }
+          if (nextAlly3) {
+            battleState.playerPokemon.heldItem = "";
+            eLog.push("🔘 逃脱按鈕啟動！" + battleState.playerPokemon.name + " 強制退場！");
+            battleState.playerPokemon = nextAlly3;
+            eLog.push("🔄 換上 " + nextAlly3.name + "！");
+            showLargeText("🔘 逃脱按鈕！", "#3498db");
+            renderBattleLog(eLog);
+          }
+        }
       }
       if (eResult.ko) { sfx.faint();
         setTimeout(function(){
@@ -2592,9 +2708,38 @@ function useItemInArena(itemType) {
     for (var k = 0; k < battleState.playerParty.length; k++) { battleState.playerParty[k].expBuffer = (battleState.playerParty[k].expBuffer || 0) + Math.floor(allGain * (battleState.playerParty[k].id === pkmn.id ? 1 : 0.2)); }
     log.push("🍬 使用了神奇糖果！全員獲得經驗值！");
     pendingItemSave = { item: "神奇糖果", qty: 1 };
+  } else if (itemType === "oranBerry") {
+    if ((globalData.oranBerries || 0) <= 0) { toast("沒有橙橙果了！"); return; }
+    globalData.oranBerries--;
+    var berryHeal = Math.floor(pkmn.maxHp * 0.1);
+    pkmn.currentHp = Math.min(pkmn.maxHp, pkmn.currentHp + berryHeal);
+    log.push("🍊 使用了橙橙果，" + pkmn.name + " 回復了 " + berryHeal + " HP！");
+    pendingItemSave = { item: "橙橙果", qty: 1 };
+  } else if (itemType === "cheriBerry") {
+    if ((globalData.cheriBerries || 0) <= 0) { toast("沒有奇異果了！"); return; }
+    if (pkmn.status !== "confusion") { toast(pkmn.name + " 沒有混亂！"); return; }
+    globalData.cheriBerries--;
+    pkmn.status = null;
+    log.push("🍒 使用了奇異果，" + pkmn.name + " 的混亂被治癒了！");
+    pendingItemSave = { item: "奇異果", qty: 1 };
+  } else if (itemType === "lumBerry") {
+    if ((globalData.lumBerries || 0) <= 0) { toast("沒有木子果了！"); return; }
+    if (!pkmn.status) { toast(pkmn.name + " 沒有異常狀態！"); return; }
+    globalData.lumBerries--;
+    pkmn.status = null;
+    log.push("🍇 使用了木子果，" + pkmn.name + " 的異常狀態被治癒了！");
+    pendingItemSave = { item: "木子果", qty: 1 };
+  } else if (itemType === "chilanBerry") {
+    if ((globalData.chilanBerries || 0) <= 0) { toast("沒有抗性果了！"); return; }
+    globalData.chilanBerries--;
+    battleState.chilanShield = true;
+    log.push("🫐 使用了抗性果，" + pkmn.name + " 獲得了屬性抗性護盾！");
+    pendingItemSave = { item: "抗性果", qty: 1 };
   }
   if (pendingItemSave) {
-    var note = "消耗1瓶" + pendingItemSave.item;
+    var berryItems = { "橙橙果":1, "奇異果":1, "木子果":1 };
+    var unit = berryItems[pendingItemSave.item] ? "個" : "瓶";
+    var note = "消耗1" + unit + pendingItemSave.item;
     globalData.coins = globalData.coins || 0;
     executeSave({ studentId: globalData.studentId, score: 0, action: "戰鬥消耗", expGained: 0, coinsGained: 0, badgeChange: 0, note: note, extraNote: note, totalScore: 0, user: globalData.studentId }, function() {
       pendingItemSave = null;
@@ -3001,7 +3146,11 @@ function updateArenaUI() {
     {name:"全滿藥",count:globalData.maxPotions||0,key:"maxPotion"},
     {name:"活力塊",count:globalData.revives||0,key:"revive"},
     {name:"元氣藥塊",count:globalData.maxRevives||0,key:"maxRevive"},
-    {name:"神奇糖果",count:globalData.candies||0,key:"candy"}
+    {name:"神奇糖果",count:globalData.candies||0,key:"candy"},
+    {name:"橙橙果",count:globalData.oranBerries||0,key:"oranBerry"},
+    {name:"奇異果",count:globalData.cheriBerries||0,key:"cheriBerry"},
+    {name:"木子果",count:globalData.lumBerries||0,key:"lumBerry"},
+    {name:"抗性果",count:globalData.chilanBerries||0,key:"chilanBerry"}
   ];
   for (var k = 0; k < items.length; k++) {
     var ibtn = document.createElement("button");
@@ -3584,7 +3733,10 @@ function updateDashboard() {
       { n: "全滿藥", v: gd.maxPotions || 0, icon: "💊" },
       { n: "活力塊", v: gd.revives || 0, icon: "💊" },
       { n: "神奇糖果", v: gd.candies || 0, icon: "🍬" },
-      { n: "元氣藥塊", v: gd.maxRevives || 0, icon: "💊" }
+      { n: "元氣藥塊", v: gd.maxRevives || 0, icon: "💊" },
+      { n: "橙橙果", v: gd.oranBerries || 0, icon: "🍊" },
+      { n: "奇異果", v: gd.cheriBerries || 0, icon: "🍒" },
+      { n: "木子果", v: gd.lumBerries || 0, icon: "🍇" }
     ];
     for (var j = 0; j < items.length; j++) {
       var badge = document.createElement("span"); badge.className = "item-badge";
@@ -3601,6 +3753,11 @@ function updateDashboard() {
     if (gd.hasEviolite) holdItems.push("💎 進化奇石");
     if (gd.hasChampionCloak) holdItems.push("👑 冠軍披風");
     if (gd.hasAmuletCoin) holdItems.push("🪙 護符金幣");
+    if (gd.hasFocusSash) holdItems.push("🎗️ 氣勢披帶");
+    if (gd.hasEjectButton) holdItems.push("🔘 逃脱按鈕");
+    if (gd.hasRockyHelmet) holdItems.push("⛑️ 凸凸頭盔");
+    if (gd.hasWeaknessPolicy) holdItems.push("📋 弱點保險");
+    if (gd.tms && gd.tms.universal) holdItems.push("📀 萬能學習器 x" + gd.tms.universal);
     for (var ei in EVO_ITEMS) { if (gd[ei]) holdItems.push(EVO_ITEMS[ei].icon + " " + ei); }
     var holderParts = [];
     for (var _hi2 in HELD_ITEM_ICONS) {
@@ -3829,15 +3986,123 @@ function openCollection() {
     var abilBadge2 = abilName2 ? " <span class=\"ability-tag\">[" + abilName2 + "]</span>" : "";
     var dreamAbil2 = getLowBstDreamAbility(p.baseName);
     var dreamBadge2 = dreamAbil2 ? " <span class=\"ability-tag\" style=\"background:#e8daef;color:#6c3483;\">[夢]" + dreamAbil2.name + "</span>" : "";
+    var tmMovesCount = (p.tmMoves && p.tmMoves.length) || 0;
+    var tmBadge = tmMovesCount > 0 ? " <span style=\"font-size:11px;color:#8e44ad;\">📀" + tmMovesCount + "/4</span>" : "";
+    var tmBtn = (globalData.tms && (globalData.tms.universal||0) > 0) ? "<button class=\"buy-btn\" style=\"padding:2px 8px;font-size:11px;margin-top:4px;margin-right:4px;\" onclick=\"openTMLearn('" + p.id + "')\">📚 學招式</button>" : "";
+    var forgetBtn = p.moves && p.moves.length > 0 ? "<button class=\"buy-btn\" style=\"padding:2px 8px;font-size:11px;margin-top:4px;\" onclick=\"openForgetMove('" + p.id + "')\">❌ 忘記招式</button>" : "";
     card.innerHTML = "<div style=\"display:flex;justify-content:space-between;align-items:center;\">" +
-      "<div><strong>" + nameD + "</strong> Lv." + p.currentLevel + " " + typesHtml2 + abilBadge2 + dreamBadge2 + holdBadge + "</div>" +
+      "<div><strong>" + nameD + "</strong> Lv." + p.currentLevel + " " + typesHtml2 + abilBadge2 + dreamBadge2 + holdBadge + tmBadge + "</div>" +
       "</div>" +
       "<div style=\"font-size:12px;color:#666;\">EXP: " + p.expProgress + "/" + p.expNeeded + " | 捕獲: " + (p.catchDate || "未知") + "</div>" +
       "<div style=\"margin-top:4px;background:#e0e0e0;border-radius:4px;height:6px;\"><div style=\"width:" + Math.round(p.expProgress / (p.expNeeded||1) * 100) + "%;background:" + typeColor2 + ";height:6px;border-radius:4px;\"></div></div>" +
-      (equipBtn ? "<div>" + equipBtn + "</div>" : "");
+      (equipBtn ? "<div>" + equipBtn + "</div>" : "") +
+      (tmBtn || forgetBtn ? "<div>" + tmBtn + forgetBtn + "</div>" : "");
     body.appendChild(card);
   }
   modal.style.display = "flex";
+}
+
+function openTMLearn(pokemonId) {
+  if (!globalData || !globalData.tms || !globalData.tms.universal) { toast("沒有萬能學習器！"); return; }
+  var pkmn = globalData.roster.find(function(p){ return p.id === pokemonId; });
+  if (!pkmn) { toast("找不到寶可夢！"); return; }
+  var body = $("tmModalBody");
+  body.innerHTML = "<p style=\"font-size:13px;color:#666;\">為 <strong>" + pkmn.baseName + "</strong> 選擇要學習的招式（消耗 1 個萬能學習器）：</p>";
+  body.innerHTML += "<p style=\"font-size:12px;color:#e67e22;\">📀 萬能學習器 x" + (globalData.tms.universal||0) + "</p>";
+  var typeFilter = document.createElement("select");
+  typeFilter.style.cssText = "width:100%;padding:8px;margin-bottom:10px;border-radius:6px;border:1px solid #ccc;";
+  var typeNames = ["全部","一般","火","水","草","電","冰","格鬥","毒","地面","飛行","超能力","蟲","岩石","幽靈","龍","惡","鋼","妖精"];
+  for (var tf = 0; tf < typeNames.length; tf++) {
+    var opt = document.createElement("option"); opt.value = typeNames[tf]; opt.text = typeNames[tf];
+    if (typeNames[tf] === "全部") opt.text = "🔥 全部屬性";
+    typeFilter.appendChild(opt);
+  }
+  typeFilter.onchange = function() { renderTMMoveList(pokemonId, typeFilter.value); };
+  body.appendChild(typeFilter);
+  var moveList = document.createElement("div"); moveList.id = "tmMoveList";
+  body.appendChild(moveList);
+  renderTMMoveList(pokemonId, "全部");
+  $("tmModal").style.display = "flex";
+}
+
+function renderTMMoveList(pokemonId, filterType) {
+  var div = $("tmMoveList"); if (!div) return;
+  div.innerHTML = "";
+  var pkmn = globalData.roster.find(function(p){ return p.id === pokemonId; });
+  if (!pkmn) return;
+  var moveNames = Object.keys(MOVE_DATABASE).sort();
+  var currentMoves = pkmn.tmMoves || [];
+  var filtered = moveNames.filter(function(m){
+    var d = getMoveDetails(m);
+    if (d.power === 0 && d.category !== "變化") return false;
+    if (currentMoves.indexOf(m) !== -1) return false;
+    if (filterType !== "全部" && d.type !== filterType) return false;
+    return true;
+  });
+  var pkmnMoves = getPokemonMoveset(pkmn.baseName, pkmn.currentLevel);
+  if (filtered.length === 0) { div.innerHTML = "<p style='color:#999;'>沒有可學習的招式</p>"; return; }
+  var maxDisplay = Math.min(50, filtered.length);
+  for (var i = 0; i < maxDisplay; i++) {
+    var mName = filtered[i];
+    var md = getMoveDetails(mName);
+    var typeColor = getTypeColor(md.type);
+    var card = document.createElement("div");
+    card.style.cssText = "display:flex;justify-content:space-between;align-items:center;padding:6px 8px;margin:4px 0;background:#f5f5f5;border-radius:6px;border-left:3px solid " + typeColor + ";cursor:pointer;";
+    var safeName = mName.replace(/'/g, "\\'").replace(/"/g, "&quot;");
+    card.innerHTML = "<div><strong>" + mName + "</strong> <span style='color:"+typeColor+";font-size:11px;'>(" + md.type + "/" + md.category + "/Pw" + md.power + ")</span><br><span style='font-size:11px;color:#666;'>" + (md.desc||"") + "</span></div>" +
+      "<button class='buy-btn' onclick=\"learnTM('" + pokemonId + "','" + safeName + "')\">學習</button>";
+    div.appendChild(card);
+  }
+  if (filtered.length > 50) div.innerHTML += "<p style='font-size:11px;color:#999;'>...還有 " + (filtered.length - 50) + " 招</p>";
+}
+
+async function learnTM(pokemonId, moveName) {
+  if (!globalData.tms || !globalData.tms.universal) { toast("沒有萬能學習器！"); return; }
+  var pkmn = globalData.roster.find(function(p){ return p.id === pokemonId; });
+  if (!pkmn) { toast("找不到寶可夢"); return; }
+  if (!confirm("確定讓 " + pkmn.baseName + " 學習 " + moveName + "？")) return;
+  globalData.tms.universal--;
+  if (!pkmn.tmMoves) pkmn.tmMoves = [];
+  if (pkmn.tmMoves.length >= 4) { toast("此寶可夢已學習 4 個招式器！請先忘記一個。"); globalData.tms.universal++; return; }
+  pkmn.tmMoves.push(moveName);
+  if (!globalData.pokemonTMs) globalData.pokemonTMs = {};
+  globalData.pokemonTMs[pokemonId] = pkmn.tmMoves;
+  // Save TM data directly to Firestore student doc
+  try { await db.collection("kpi_students").doc(globalData.studentId).set({ pokemonTMs: globalData.pokemonTMs, tms: globalData.tms }, { merge: true }); } catch(e) { console.warn("TM save failed:", e); }
+  var note = "萬能學習器學習 " + moveName + " ID:" + pokemonId + " TM學習器: universal";
+  await executeSave({ studentId: globalData.studentId, score: 0, action: "系統測試", expGained: 0, coinsGained: 0, badgeChange: 0, note: note, extraNote: note, totalScore: 0, user: globalData.studentId }, function() {
+    toast("✅ " + pkmn.baseName + " 學會了 " + moveName + "！");
+    closeModal("tmModal");
+  }, false);
+}
+
+function openForgetMove(pokemonId) {
+  var pkmn = globalData.roster.find(function(p){ return p.id === pokemonId; });
+  if (!pkmn) return;
+  var currentMoves = getPokemonMoveset(pkmn.baseName, pkmn.currentLevel).slice(0, 4);
+  var tmMoves = pkmn.tmMoves || [];
+  var allMoves = currentMoves.slice();
+  for (var fi = 0; fi < tmMoves.length; fi++) {
+    if (allMoves.indexOf(tmMoves[fi]) === -1) allMoves.push(tmMoves[fi]);
+  }
+  if (allMoves.length === 0) { toast("此寶可夢沒有招式可忘記"); return; }
+  var msg = "選擇要忘記的招式：\n" + allMoves.map(function(m,i){ return (i+1) + ". " + m; }).join("\n");
+  var choice = prompt(msg + "\n\n輸入編號 (1~" + allMoves.length + ") 或取消");
+  if (!choice) return;
+  var idx = parseInt(choice) - 1;
+  if (isNaN(idx) || idx < 0 || idx >= allMoves.length) { toast("無效選擇"); return; }
+  var forgotten = allMoves[idx];
+  // 從 tmMoves 中移除（如果是 TM 招式）
+  var tmIdx = tmMoves.indexOf(forgotten);
+  if (tmIdx !== -1) {
+    tmMoves.splice(tmIdx, 1);
+    if (globalData.pokemonTMs) { globalData.pokemonTMs[pokemonId] = tmMoves; }
+    try { db.collection("kpi_students").doc(globalData.studentId).set({ pokemonTMs: globalData.pokemonTMs||{} }, { merge: true }); } catch(e) {}
+    toast("✅ " + pkmn.baseName + " 忘記了 " + forgotten + "！");
+    openCollection();
+  } else {
+    toast("⚠️ 這是 " + pkmn.baseName + " 的基礎招式，無法遺忘。請用 TM 學習器覆蓋。");
+  }
 }
 
 function openShop() {
@@ -3859,6 +4124,18 @@ function openShop() {
     { id: "shellBell", name: "貝殼之鈴", cost: 90, desc: "攻擊時回復12.5%傷害HP", icon: "🔔", once: true },
     { id: "lifeOrb", name: "生命寶珠", cost: 110, desc: "傷害x1.3但每次攻擊損失10%HP", icon: "🔴", once: true },
     { id: "assaultVest", name: "AV背心", cost: 100, desc: "特防x1.5但只能使用攻擊招式", icon: "🦺", once: true },
+    // 樹果
+    { id: "oranBerry", name: "橙橙果", cost: 10, desc: "回復一隻寶可夢10% HP", icon: "🍊" },
+    { id: "cheriBerry", name: "奇異果", cost: 15, desc: "解除混亂狀態", icon: "🍒" },
+    { id: "lumBerry", name: "木子果", cost: 25, desc: "解除任一異常狀態", icon: "🍇" },
+    { id: "chilanBerry", name: "抗性果", cost: 30, desc: "降低被剋傷害一次（消耗品）", icon: "🫐" },
+    // 對戰道具
+    { id: "focusSash", name: "氣勢披帶", cost: 150, desc: "滿血時耐住必殺一擊", icon: "🎗️", once: true },
+    { id: "ejectButton", name: "逃脱按鈕", cost: 120, desc: "受到攻擊後強制換怪", icon: "🔘", once: true },
+    { id: "rockyHelmet", name: "凸凸頭盔", cost: 130, desc: "受到物理攻擊反傷1/6", icon: "⛑️", once: true },
+    { id: "weaknessPolicy", name: "弱點保險", cost: 140, desc: "被剋時雙攻+2階（消耗品）", icon: "📋", once: true },
+    // TM學習器
+    { id: "tmUniversal", name: "萬能學習器", cost: 150, desc: "讓一隻寶可夢學習任意招式（跨屬性可）", icon: "📀" },
     // 進化道具
     { id: "電擊盒", name: "電擊盒", cost: 50, desc: "讓電擊獸進化為電擊魔獸", icon: "📦", once: true },
     { id: "岩漿盒", name: "岩漿盒", cost: 50, desc: "讓鴨嘴火獸進化為鴨嘴炎獸", icon: "🌋", once: true },
@@ -3878,6 +4155,10 @@ function openShop() {
       else if (it.id === "eviolite") owned = globalData.hasEviolite;
       else if (it.id === "championCloak") owned = globalData.hasChampionCloak;
       else if (it.id === "amuletCoin") owned = globalData.hasAmuletCoin;
+      else if (it.id === "focusSash") owned = globalData.hasFocusSash;
+      else if (it.id === "ejectButton") owned = globalData.hasEjectButton;
+      else if (it.id === "rockyHelmet") owned = globalData.hasRockyHelmet;
+      else if (it.id === "weaknessPolicy") owned = globalData.hasWeaknessPolicy;
       else if (HELD_ITEMS[it.id]) owned = globalData[HELD_ITEMS[it.id].flag] || false;
       else if (EVO_ITEMS[it.id]) owned = globalData[it.id] || false;
     }
@@ -3919,6 +4200,15 @@ async function buyItem(itemId, cost, itemName) {
     else if (itemId === "candy") globalData.candies = (globalData.candies || 0) + 1;
     else if (itemId === "maxPotion") globalData.maxPotions = (globalData.maxPotions || 0) + 1;
     else if (itemId === "maxRevive") globalData.maxRevives = (globalData.maxRevives || 0) + 1;
+    else if (itemId === "oranBerry") globalData.oranBerries = (globalData.oranBerries || 0) + 1;
+    else if (itemId === "cheriBerry") globalData.cheriBerries = (globalData.cheriBerries || 0) + 1;
+    else if (itemId === "lumBerry") globalData.lumBerries = (globalData.lumBerries || 0) + 1;
+    else if (itemId === "chilanBerry") globalData.chilanBerries = (globalData.chilanBerries || 0) + 1;
+    else if (itemId === "focusSash") globalData.hasFocusSash = true;
+    else if (itemId === "ejectButton") globalData.hasEjectButton = true;
+    else if (itemId === "rockyHelmet") globalData.hasRockyHelmet = true;
+    else if (itemId === "weaknessPolicy") globalData.hasWeaknessPolicy = true;
+    else if (itemId === "tmUniversal") { if (!globalData.tms) globalData.tms = {}; globalData.tms.universal = (globalData.tms.universal||0) + 1; }
     else if (onceItems[itemId]) globalData[onceItems[itemId]] = true;
     updateDashboard(); openShop();
   }, false);
