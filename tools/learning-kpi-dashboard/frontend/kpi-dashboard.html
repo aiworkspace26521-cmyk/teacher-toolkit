@@ -1115,6 +1115,22 @@ function getPokemonAbility(baseName) {
   var raw = baseName.replace(/^[^\w\u4e00-\u9fff]+\s*/,"").replace(/\s*\(.*?\)\s*/g,"").trim();
   return POKEMON_ABILITIES[raw] || null;
 }
+var DREAM_ABILITY_POOL = [
+  { id: "adaptability", name: "適應力", desc: "屬性一致傷害x1.33", trigger: "adaptability" },
+  { id: "steadfast", name: "不屈之心", desc: "受到克制攻擊時攻擊提升1階", trigger: "steadfast" },
+  { id: "innerFocus", name: "精神力", desc: "出場時雙攻雙防提升1階", trigger: "entryStatBuff" },
+  { id: "speedBoost", name: "加速", desc: "每回合速度提升1階", trigger: "speedBoost" },
+  { id: "tenacity", name: "頑強", desc: "不會被一擊打倒(每戰一次)", trigger: "tenacity" },
+];
+function getLowBstDreamAbility(baseName) {
+  var raw = baseName.replace(/^[^\w\u4e00-\u9fff]+\s*/,"").replace(/\s*\(.*?\)\s*/g,"").trim();
+  if (checkIsLegendary(raw)) return null;
+  var stage = EVO_STAGE_MAP[raw] !== undefined ? EVO_STAGE_MAP[raw] : 0;
+  if (stage > 0) return null;
+  var hash = 0;
+  for (var i = 0; i < raw.length; i++) hash = ((hash << 5) - hash) + raw.charCodeAt(i);
+  return DREAM_ABILITY_POOL[Math.abs(hash) % DREAM_ABILITY_POOL.length];
+}
 var POKEMON_TIERS = {
   "一般": [
     { name: "波波", evolutions: ["比比鳥","大比鳥"] },
@@ -1876,12 +1892,14 @@ function createEnemyPokemon(name, level, isGym, isLeague) {
   }
   var abilName = getPokemonAbility(name);
   var abilData = abilName ? (ABILITY_EFFECTS[abilName] || null) : null;
+  var dreamAbil = getLowBstDreamAbility(name);
   return {
     name: name, level: level, maxHp: stats.hp, currentHp: stats.hp,
     atk: stats.atk, def: stats.def, spatk: stats.spatk, spdef: stats.spdef, speed: stats.speed,
     type: stats.type, moves: selectedMoves, isGym: isGym || false, isLeague: isLeague || false,
     status: null, statStages: { atk:0,def:0,spatk:0,spdef:0,speed:0,evasion:0,accuracy:0 },
-    ability: abilData, abilityName: abilName
+    ability: abilData, abilityName: abilName,
+    dreamAbility: dreamAbil, dreamAbilityName: dreamAbil ? dreamAbil.name : null
   };
 }
 
@@ -1891,6 +1909,7 @@ function createPlayerPokemon(pokemon) {
   var selectedMoves = moveset.slice(0, Math.min(4, moveset.length));
   var abilName = getPokemonAbility(pokemon.baseName);
   var abilData = abilName ? (ABILITY_EFFECTS[abilName] || null) : null;
+  var dreamAbil = getLowBstDreamAbility(pokemon.baseName);
   return {
     id: pokemon.id, name: pokemon.baseName, level: pokemon.currentLevel,
     maxHp: stats.hp, currentHp: stats.hp,
@@ -1898,7 +1917,8 @@ function createPlayerPokemon(pokemon) {
     type: stats.type, moves: selectedMoves, isGym: false, isLeague: false,
     status: null, statStages: { atk:0,def:0,spatk:0,spdef:0,speed:0,evasion:0,accuracy:0 },
     ability: abilData, abilityName: abilName,
-    heldItem: pokemon.heldItem || ""
+    heldItem: pokemon.heldItem || "",
+    dreamAbility: dreamAbil, dreamAbilityName: dreamAbil ? dreamAbil.name : null
   };
 }
 
@@ -1951,6 +1971,11 @@ function calculateMovePower(move, attacker, defender, isPlayerAttacker) {
   var hpBoosted = false;
   if (attacker.ability && attacker.ability.trigger === "hpBoost" && attacker.currentHp < attacker.maxHp * attacker.ability.hpThresh && details.type === attacker.ability.type) { baseDamage = Math.floor(baseDamage * attacker.ability.mult); hpBoosted = true; }
   if (isPlayerAttacker && eff > 1 && globalData && globalData.hasExpertBelt) baseDamage = Math.floor(baseDamage * 1.2);
+  // 夢特性：適應力 — 屬性一致傷害x1.33
+  if (attacker.dreamAbility && attacker.dreamAbility.trigger === "adaptability" && details.category !== "變化") {
+    var atkTypes = attacker.type.split("/");
+    if (atkTypes.indexOf(details.type) !== -1) baseDamage = Math.floor(baseDamage * 4 / 3);
+  }
   // 攜帶道具效果：生命寶珠（攻擊方）
   if (details.category !== "變化" && globalData && globalData.hasLifeOrb) {
     var lifeOrbAtk = attacker.heldItem === "lifeOrb";
@@ -2049,6 +2074,12 @@ function executeTurn(playerAtk, playerDef, enemyAtk, enemyDef, moveName, isPlaye
       showLargeText("🌵 " + defender.abilityName + "！", "#27ae60");
       if (attacker.currentHp <= 0) { attacker.currentHp = 0; result.ko = true; log.push("💀 " + attacker.name + " 倒下了！"); }
     }
+    // 夢特性：不屈之心 — 受到克制攻擊時攻擊提升1階
+    if (defender.dreamAbility && defender.dreamAbility.trigger === "steadfast" && dmgInfo.effectiveness > 1 && defender.currentHp > 0) {
+      defender.statStages.atk = Math.min(6, (defender.statStages.atk||0) + 1);
+      log.push("💪 " + defender.name + " 的「" + defender.dreamAbilityName + "」讓攻擊提升了！");
+      showLargeText("💪 不屈之心！", "#e74c3c");
+    }
     var statusText = applyStatusEffect(moveName, defender);
     if (statusText) log.push(statusText);
   }
@@ -2058,6 +2089,11 @@ function executeTurn(playerAtk, playerDef, enemyAtk, enemyDef, moveName, isPlaye
       defender.currentHp = 1;
       log.push("🛡️ " + defender.name + " 的「" + defender.abilityName + "」讓他撐住了！");
       showLargeText("🛡️ " + defender.abilityName + " 撐住了！", "#f39c12");
+    } else if (defender.dreamAbility && defender.dreamAbility.trigger === "tenacity" && !defender._tenacityUsed && (defender.currentHp + dmgInfo.damage) >= defender.maxHp * 0.99) {
+      defender.currentHp = 1;
+      defender._tenacityUsed = true;
+      log.push("💪 " + defender.name + " 的「" + defender.dreamAbilityName + "」讓它撐住了！");
+      showLargeText("💪 頑強！", "#27ae60");
     } else {
       defender.currentHp = 0;
       result.ko = true;
@@ -2303,6 +2339,15 @@ function performAttack(moveName, isPlayer) {
   }
 
   processBurnAndLeech(battleState.playerPokemon, battleState.enemy, log);
+  // 夢特性：加速 — 每回合速度提升1階
+  if (battleState.playerPokemon.dreamAbility && battleState.playerPokemon.dreamAbility.trigger === "speedBoost" && battleState.playerPokemon.currentHp > 0) {
+    battleState.playerPokemon.statStages.speed = Math.min(6, (battleState.playerPokemon.statStages.speed||0) + 1);
+    log.push("⚡ " + battleState.playerPokemon.name + " 的「加速」讓速度提升了！");
+  }
+  if (battleState.enemy.dreamAbility && battleState.enemy.dreamAbility.trigger === "speedBoost" && battleState.enemy.currentHp > 0) {
+    battleState.enemy.statStages.speed = Math.min(6, (battleState.enemy.statStages.speed||0) + 1);
+    log.push("⚡ " + battleState.enemy.name + " 的「加速」讓速度提升了！");
+  }
 
   if (battleState.enemy.currentHp > 0 && !battleState.playerWon && !quickClawFlinch) {
     setTimeout(function() {
@@ -2640,6 +2685,23 @@ function applyEntryAbility(enemy, playerFirst, battleStateRef, log) {
     if (typeof sfx !== "undefined") sfx.weather();
     showLargeText(wTypes2[playerFirst.ability.weather], "#f39c12");
   }
+  // 夢特性：精神力 — 出場時雙攻雙防提升1階
+  if (enemy.dreamAbility && enemy.dreamAbility.trigger === "entryStatBuff" && battleStateRef.enemy) {
+    battleStateRef.enemy.statStages.atk = Math.min(6, (battleStateRef.enemy.statStages.atk||0) + 1);
+    battleStateRef.enemy.statStages.def = Math.min(6, (battleStateRef.enemy.statStages.def||0) + 1);
+    battleStateRef.enemy.statStages.spatk = Math.min(6, (battleStateRef.enemy.statStages.spatk||0) + 1);
+    battleStateRef.enemy.statStages.spdef = Math.min(6, (battleStateRef.enemy.statStages.spdef||0) + 1);
+    log.push("🧠 " + enemy.name + " 的「" + enemy.dreamAbilityName + "」讓能力提升了！");
+    showLargeText("🧠 " + enemy.dreamAbilityName + "！", "#8e44ad");
+  }
+  if (playerFirst.dreamAbility && playerFirst.dreamAbility.trigger === "entryStatBuff" && battleStateRef.playerPokemon) {
+    battleStateRef.playerPokemon.statStages.atk = Math.min(6, (battleStateRef.playerPokemon.statStages.atk||0) + 1);
+    battleStateRef.playerPokemon.statStages.def = Math.min(6, (battleStateRef.playerPokemon.statStages.def||0) + 1);
+    battleStateRef.playerPokemon.statStages.spatk = Math.min(6, (battleStateRef.playerPokemon.statStages.spatk||0) + 1);
+    battleStateRef.playerPokemon.statStages.spdef = Math.min(6, (battleStateRef.playerPokemon.statStages.spdef||0) + 1);
+    log.push("🧠 " + playerFirst.name + " 的「" + playerFirst.dreamAbilityName + "」讓能力提升了！");
+    showLargeText("🧠 " + playerFirst.dreamAbilityName + "！", "#8e44ad");
+  }
 }
 function openArenaWithWaves(waveEnemies, gymInfo) {
   if (!globalData || !globalData.roster || globalData.roster.length === 0) { toast("你還沒有寶可夢！"); return; }
@@ -2732,6 +2794,23 @@ function openArena(enemy) {
     if (typeof sfx !== "undefined") sfx.weather();
     showLargeText(wTypes2[firstPkmn.ability.weather], "#f39c12");
   }
+  // 夢特性：精神力 — 出場時雙攻雙防提升1階
+  if (enemy.dreamAbility && enemy.dreamAbility.trigger === "entryStatBuff") {
+    battleState.enemy.statStages.atk = Math.min(6, (battleState.enemy.statStages.atk||0) + 1);
+    battleState.enemy.statStages.def = Math.min(6, (battleState.enemy.statStages.def||0) + 1);
+    battleState.enemy.statStages.spatk = Math.min(6, (battleState.enemy.statStages.spatk||0) + 1);
+    battleState.enemy.statStages.spdef = Math.min(6, (battleState.enemy.statStages.spdef||0) + 1);
+    abilityLog.push("🧠 " + enemy.name + " 的「" + enemy.dreamAbilityName + "」讓能力提升了！");
+    showLargeText("🧠 " + enemy.dreamAbilityName + "！", "#8e44ad");
+  }
+  if (firstPkmn.dreamAbility && firstPkmn.dreamAbility.trigger === "entryStatBuff") {
+    battleState.playerPokemon.statStages.atk = Math.min(6, (battleState.playerPokemon.statStages.atk||0) + 1);
+    battleState.playerPokemon.statStages.def = Math.min(6, (battleState.playerPokemon.statStages.def||0) + 1);
+    battleState.playerPokemon.statStages.spatk = Math.min(6, (battleState.playerPokemon.statStages.spatk||0) + 1);
+    battleState.playerPokemon.statStages.spdef = Math.min(6, (battleState.playerPokemon.statStages.spdef||0) + 1);
+    abilityLog.push("🧠 " + firstPkmn.name + " 的「" + firstPkmn.dreamAbilityName + "」讓能力提升了！");
+    showLargeText("🧠 " + firstPkmn.dreamAbilityName + "！", "#8e44ad");
+  }
 
   $("battleLog").innerHTML = "<p style=\"color:#f1c40f;\">⚔️ 戰鬥開始！</p>" + (wLog.length ? "<p>"+wLog.join(" ")+"</p>" : "") + (abilityLog.length ? "<p>"+abilityLog.join(" ")+"</p>" : "");
   $("battleModal").style.display = "flex";
@@ -2760,7 +2839,7 @@ function updateArenaUI() {
     wd.style.display = "none";
   }
   var pp = battleState.playerPokemon;
-  $("playerPkmnName").innerHTML = pp.name + " Lv." + pp.level + (pp.abilityName ? " <span class=\"ability-tag\">[" + pp.abilityName + "]</span>" : "");
+  $("playerPkmnName").innerHTML = pp.name + " Lv." + pp.level + (pp.abilityName ? " <span class=\"ability-tag\">[" + pp.abilityName + "]</span>" : "") + (pp.dreamAbilityName ? " <span class=\"ability-tag\" style=\"background:#e8daef;color:#6c3483;\">[夢]" + pp.dreamAbilityName + "</span>" : "");
   var phpPct = Math.round(pp.currentHp / pp.maxHp * 100);
   $("playerHpBar").style.width = phpPct + "%";
   $("playerHpBar").className = "hp-bar-fill " + (phpPct > 50 ? "hp-green" : phpPct > 25 ? "hp-yellow" : "hp-red");
@@ -2769,7 +2848,7 @@ function updateArenaUI() {
   $("playerTypeIcon").innerHTML = renderTypeBadges(pp.type);
 
   var ep = battleState.enemy;
-  $("enemyPkmnName").innerHTML = ep.name + " Lv." + ep.level + (ep.abilityName ? " <span class=\"ability-tag\">[" + ep.abilityName + "]</span>" : "");
+  $("enemyPkmnName").innerHTML = ep.name + " Lv." + ep.level + (ep.abilityName ? " <span class=\"ability-tag\">[" + ep.abilityName + "]</span>" : "") + (ep.dreamAbilityName ? " <span class=\"ability-tag\" style=\"background:#e8daef;color:#6c3483;\">[夢]" + ep.dreamAbilityName + "</span>" : "");
   var ehpPct = Math.round(ep.currentHp / ep.maxHp * 100);
   $("enemyHpBar").style.width = ehpPct + "%";
   $("enemyHpBar").className = "hp-bar-fill " + (ehpPct > 50 ? "hp-green" : ehpPct > 25 ? "hp-yellow" : "hp-red");
@@ -3358,7 +3437,9 @@ function updateDashboard() {
       }
       var abilName = getPokemonAbility(p.baseName);
       var abilBadge = abilName ? " <span class=\"ability-tag\">[" + abilName + "]</span>" : "";
-      card.innerHTML = "<div style=\"font-weight:bold;font-size:14px;\">" + nameDisplay + " " + typesHtml + abilBadge + heldBadge + hearts + "</div>" +
+      var dreamAbil = getLowBstDreamAbility(p.baseName);
+      var dreamBadge = dreamAbil ? " <span class=\"ability-tag\" style=\"background:#e8daef;color:#6c3483;\">[夢]" + dreamAbil.name + "</span>" : "";
+      card.innerHTML = "<div style=\"font-weight:bold;font-size:14px;\">" + nameDisplay + " " + typesHtml + abilBadge + dreamBadge + heldBadge + hearts + "</div>" +
         "<div style=\"font-size:12px;color:#666;\">Lv." + p.currentLevel + " | EXP " + p.expProgress + "/" + p.expNeeded + (h > 0 ? " | \u2764\uFE0F " + h : "") + "</div>" +
         "<div style=\"margin-top:4px;background:#e0e0e0;border-radius:4px;height:6px;\"><div style=\"width:" + Math.round(p.expProgress / (p.expNeeded||1) * 100) + "%;background:" + typeColor + ";height:6px;border-radius:4px;\"></div></div>" +
         (evoInfo ? "<div style=\"margin-top:4px;font-size:11px;color:#e67e22;font-weight:700;\">\u2B50 " + evoInfo.nextName + (evoInfo.info ? " (" + evoInfo.info + ")" : "") + evoBtn + "</div>" : "");
@@ -3611,8 +3692,10 @@ function openCollection() {
     }
     var abilName2 = getPokemonAbility(p.baseName);
     var abilBadge2 = abilName2 ? " <span class=\"ability-tag\">[" + abilName2 + "]</span>" : "";
+    var dreamAbil2 = getLowBstDreamAbility(p.baseName);
+    var dreamBadge2 = dreamAbil2 ? " <span class=\"ability-tag\" style=\"background:#e8daef;color:#6c3483;\">[夢]" + dreamAbil2.name + "</span>" : "";
     card.innerHTML = "<div style=\"display:flex;justify-content:space-between;align-items:center;\">" +
-      "<div><strong>" + nameD + "</strong> Lv." + p.currentLevel + " " + typesHtml2 + abilBadge2 + holdBadge + "</div>" +
+      "<div><strong>" + nameD + "</strong> Lv." + p.currentLevel + " " + typesHtml2 + abilBadge2 + dreamBadge2 + holdBadge + "</div>" +
       "</div>" +
       "<div style=\"font-size:12px;color:#666;\">EXP: " + p.expProgress + "/" + p.expNeeded + " | 捕獲: " + (p.catchDate || "未知") + "</div>" +
       "<div style=\"margin-top:4px;background:#e0e0e0;border-radius:4px;height:6px;\"><div style=\"width:" + Math.round(p.expProgress / (p.expNeeded||1) * 100) + "%;background:" + typeColor2 + ";height:6px;border-radius:4px;\"></div></div>" +
