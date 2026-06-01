@@ -309,8 +309,8 @@
   <div class="content">
     <select id="studentSelect" class="main-select">
       <option value="">👉 選擇訓練家登入</option>
-      <option value="Neil">👦 Neil (苡逢)</option>
-      <option value="Emma">👧 Emma (苡瑄)</option>
+      <option value="Neil">👦 Neil</option>
+      <option value="Emma">👧 Emma</option>
       <option value="Admin">👑 管理員</option>
     </select>
     <div id="adminPanel" class="admin-panel">
@@ -390,6 +390,14 @@
     <input type="hidden" id="hiddenTasks" value="">
     <input type="hidden" id="hiddenAction" value="">
     <div id="actionContainer"></div>
+    <div class="region-selector" style="display:flex;gap:6px;justify-content:center;margin-bottom:8px;padding:6px;background:#f8f9fa;border-radius:8px;border:2px solid #e0e0e0;">
+      <span style="font-size:13px;font-weight:900;color:#555;line-height:32px;">🌍</span>
+      <button class="region-btn" data-region="關都" onclick="sfx.click();setRegion('關都')" style="flex:1;padding:6px;border-radius:6px;border:2px solid #d35400;background:#d35400;color:white;font-weight:900;font-size:12px;cursor:pointer;">關都</button>
+      <button class="region-btn" data-region="城都" onclick="sfx.click();setRegion('城都')" style="flex:1;padding:6px;border-radius:6px;border:2px solid #8e44ad;background:#8e44ad;color:white;font-weight:900;font-size:12px;cursor:pointer;">城都</button>
+      <button class="region-btn" data-region="豐緣" onclick="sfx.click();setRegion('豐緣')" style="flex:1;padding:6px;border-radius:6px;border:2px solid #e74c3c;background:#e74c3c;color:white;font-weight:900;font-size:12px;cursor:pointer;">豐緣</button>
+      <button class="region-btn" data-region="神奧" onclick="sfx.click();setRegion('神奧')" style="flex:1;padding:6px;border-radius:6px;border:2px solid #7f8c8d;background:#7f8c8d;color:white;font-weight:900;font-size:12px;cursor:pointer;">神奧</button>
+      <button class="region-btn" data-region="合眾" onclick="sfx.click();setRegion('合眾')" style="flex:1;padding:6px;border-radius:6px;border:2px solid #f39c12;background:#f39c12;color:white;font-weight:900;font-size:12px;cursor:pointer;">合眾</button>
+    </div>
     <div class="button-row" style="grid-template-columns:repeat(3,1fr);">
       <button class="nav-btn btn-collection" onclick="sfx.click();openTrophyCabinet()">🏆 獎盃櫃</button>
       <button class="nav-btn btn-pcbox" onclick="sfx.click();openPCBoxModal()">💻 電腦</button>
@@ -1131,6 +1139,15 @@ function getLowBstDreamAbility(baseName) {
   for (var i = 0; i < raw.length; i++) hash = ((hash << 5) - hash) + raw.charCodeAt(i);
   return DREAM_ABILITY_POOL[Math.abs(hash) % DREAM_ABILITY_POOL.length];
 }
+var currentRegion = "關都";
+function setRegion(region) {
+  currentRegion = region;
+  document.querySelectorAll(".region-btn").forEach(function(b){
+    b.style.opacity = b.getAttribute("data-region") === region ? "1" : "0.5";
+    b.style.borderWidth = b.getAttribute("data-region") === region ? "3px" : "2px";
+  });
+  toast("🌍 " + region + "地區");
+}
 var POKEMON_TIERS = {
   "一般": [
     { name: "波波", evolutions: ["比比鳥","大比鳥"] },
@@ -1858,7 +1875,7 @@ function getMatchupInfo(atkType, defTypes) {
 }
 var ARENA_EXP_BASE = 80, BATTLE_MAP = {}, battleState = null;
 
-function generateEnemy(trainerLevel, isGym, isLeague) {
+function generateEnemy(trainerLevel, isGym, isLeague, regionOpt) {
   var tier = "一般", levelBonus = 0;
   var roll = Math.random();
   if (isLeague) { tier = "傳說"; levelBonus = Math.floor(trainerLevel * 0.6); }
@@ -1867,7 +1884,14 @@ function generateEnemy(trainerLevel, isGym, isLeague) {
   else if (roll < 0.25) { tier = "稀有"; levelBonus = Math.floor(trainerLevel * 0.2); }
 
   if (POKEMON_TIERS[tier].length === 0) tier = "一般";
-  var species = POKEMON_TIERS[tier][Math.floor(Math.random() * POKEMON_TIERS[tier].length)];
+  var pool = POKEMON_TIERS[tier];
+  if (typeof window.getRegionPool === "function" && regionOpt) {
+    var rPool = window.getRegionPool(regionOpt).filter(function(e){
+      return POKEMON_TIERS[tier].indexOf(e) !== -1;
+    });
+    if (rPool.length > 0) pool = rPool;
+  }
+  var species = pool[Math.floor(Math.random() * pool.length)];
   var baseLevel = Math.max(5, trainerLevel + levelBonus + Math.floor(Math.random() * 3));
   var evoName = species.name;
   if (species.evolutions && species.evolutions.length > 0) {
@@ -2932,6 +2956,7 @@ function updateBattleButtons() {
 function generateGymWaves(trainerLevel) {
   var badges = globalData.badges || 0;
   var gymInfo = getGymLeaderInfo(badges);
+  var gymRegion = gymInfo.region || "關都";
   var waves = [];
   var waveCount = gymInfo.waves;
   for (var wi = 0; wi < waveCount; wi++) {
@@ -2940,9 +2965,16 @@ function generateGymWaves(trainerLevel) {
     var tier = isLast ? "稀有" : "一般";
     var enemy = { isGym: true, isLeague: false, isWeeklyBoss: false, waveIndex: wi, isLastWave: isLast };
     var speciesType = gymInfo.type;
+    var pool = POKEMON_TIERS[tier];
+    if (typeof window.getRegionPool === "function") {
+      var rPool = window.getRegionPool(gymRegion).filter(function(e){
+        return POKEMON_TIERS[tier].indexOf(e) !== -1;
+      });
+      if (rPool.length > 0) pool = rPool;
+    }
     var filteredPool = [];
-    for (var pi = 0; pi < POKEMON_TIERS[tier].length; pi++) {
-      var s = POKEMON_TIERS[tier][pi];
+    for (var pi = 0; pi < pool.length; pi++) {
+      var s = pool[pi];
       var evoIdx = Math.min(Math.floor((trainerLevel + waveLvBonus) / 15), (s.evolutions||[]).length - 1);
       var evoName = (s.evolutions||[])[evoIdx] || s.name;
       var st = POKEMON_SPECIES_TYPES[evoName] || ["一般"];
@@ -2984,7 +3016,7 @@ function startBattle(isGym, isLeague) {
     }
     openArenaWithWaves(waveEnemies, gymResult.gymInfo);
   } else {
-    var enemy = generateEnemy(trainerLevel, false, !!isLeague);
+    var enemy = generateEnemy(trainerLevel, false, !!isLeague, currentRegion);
     enemy.isWeeklyBoss = false;
     openArena(enemy);
   }
@@ -4074,6 +4106,7 @@ document.addEventListener("DOMContentLoaded", function() {
 
   var savedId = localStorage.getItem("kpi_last_id");
   if (savedId) { $("studentSelect").value = savedId; fetchStudentData(savedId); }
+  setRegion("關都");
 });
 
 window.addEventListener("beforeunload", function() {
