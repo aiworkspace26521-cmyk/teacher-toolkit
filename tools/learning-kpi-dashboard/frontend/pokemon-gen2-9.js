@@ -562,7 +562,7 @@ var extraMoves = {
   "濁流":     { power: 90,  type: "水",    category: "特殊", desc: "可能降低命中" },
   "熱風":     { power: 95,  type: "火",    category: "特殊", desc: "可能燒傷對手", effect: "burn" },
   "暴風":     { power: 110, type: "飛行",  category: "特殊", desc: "可能混亂對手" },
-  "龍星群":   { power: 130, type: "龍",    category: "特殊", desc: "大幅降低特攻" },
+  "龍星群":   { power: 120, type: "龍",    category: "特殊", desc: "大幅降低特攻" },
   "時間咆哮": { power: 150, type: "龍",    category: "特殊", desc: "下一回合無法行動" },
   "根源波動": { power: 110, type: "水",    category: "特殊", desc: "蓋歐卡的專屬招式" },
   "斷崖之劍": { power: 120, type: "地面",  category: "物理", desc: "固拉多的專屬招式" },
