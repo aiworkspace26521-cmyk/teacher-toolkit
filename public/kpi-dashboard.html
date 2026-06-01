@@ -298,6 +298,20 @@
     .particle.star { width:12px; height:12px; background:transparent !important; clip-path: polygon(50% 0%, 61% 35%, 98% 35%, 68% 57%, 79% 91%, 50% 70%, 21% 91%, 32% 57%, 2% 35%, 39% 35%); }
     .hit-ring { position:absolute; top:var(--ring-y); left:var(--ring-x); width:40px; height:40px; margin-left:-20px; margin-top:-20px; border:3px solid var(--ring-color,#fff); border-radius:50%; animation:hit-ring 0.5s ease-out forwards; pointer-events:none; z-index:60; }
     .screen-shake { animation: screen-shake 0.3s ease; }
+    .impact-flash { position:absolute; top:0; left:0; width:100%; height:100%; pointer-events:none; z-index:40; border-radius:8px; animation: impact-flash-fade 0.6s ease-out forwards; }
+    @keyframes impact-flash-fade { 0% { opacity:0.6; } 100% { opacity:0; } }
+    @keyframes slash-line { 0% { transform:scaleX(0); opacity:1; } 50% { transform:scaleX(1); opacity:0.8; } 100% { transform:scaleX(1); opacity:0; } }
+    .slash-line { position:absolute; height:3px; background:#fff; border-radius:2px; pointer-events:none; z-index:45; animation: slash-line 0.4s ease-out forwards; }
+    @keyframes energy-swirl { 0% { transform:scale(0) rotate(0deg); opacity:1; } 50% { transform:scale(1.5) rotate(180deg); opacity:0.7; } 100% { transform:scale(2) rotate(360deg); opacity:0; } }
+    .energy-swirl { position:absolute; width:60px; height:60px; border:3px solid var(--swirl-color,#fff); border-radius:50%; pointer-events:none; z-index:45; animation: energy-swirl 0.5s ease-out forwards; }
+    @keyframes status-pop { 0% { transform:scale(0) rotate(-20deg); opacity:0; } 60% { transform:scale(1.4) rotate(5deg); opacity:1; } 100% { transform:scale(1) rotate(0); opacity:1; } }
+    .status-pop { display:inline-block; animation: status-pop 0.5s cubic-bezier(0.175,0.885,0.32,1.275) forwards; }
+    @keyframes weather-pulse { 0%,100% { transform:scale(1); } 50% { transform:scale(1.05); } }
+    .weather-pulse { animation: weather-pulse 0.6s ease-in-out 2; }
+    @keyframes weather-end { 0% { opacity:1; transform:scale(1); } 50% { opacity:0.8; transform:scale(1.1); } 100% { opacity:0; transform:scale(0.5); } }
+    .weather-end { animation: weather-end 0.8s ease-in forwards; }
+    @keyframes sparkle { 0% { transform:scale(0) rotate(0deg); opacity:1; } 100% { transform:scale(1) rotate(180deg); opacity:0; } }
+    .sparkle { position:absolute; width:10px; height:10px; pointer-events:none; z-index:45; animation: sparkle 0.5s ease-out forwards; clip-path: polygon(50% 0%, 61% 35%, 98% 35%, 68% 57%, 79% 91%, 50% 70%, 21% 91%, 32% 57%, 2% 35%, 39% 35%); }
   </style>
 </head>
 <body>
@@ -872,17 +886,37 @@ async function fetchStudentData(studentId, pendingEvent) {
   $("adminPanel").style.display = isAdmin ? "block" : "none";
   showSkeletonDashboard();
   var btn = $("submitBtn"); btn.disabled = true; btn.innerHTML = "<span class=\"loading-spinner\"></span> Loading...";
+  // P4-5b: Try sessionStorage cache for instant render
+  var cacheLoaded = false;
+  if (!pendingEvent) {
+    try {
+      var cachedRaw = sessionStorage.getItem("kpi_cache_" + studentId);
+      if (cachedRaw) {
+        var cached = JSON.parse(cachedRaw);
+        if (cached && cached.globalData) {
+          globalData = cached.globalData;
+          if (cached.achievements) { globalAchievements = {}; for (var ac = 0; ac < cached.achievements.length; ac++) globalAchievements[cached.achievements[ac]] = true; }
+          if (cached.questProgress) globalQuestProgress = cached.questProgress;
+          hideSkeleton(); updateDashboard(); renderActions(); updateBattleButtons(); renderQuests(); updateTradeBadge();
+          if (globalData.todayCompleted && !isAdmin) { btn.innerHTML = "\u2705 Done"; btn.disabled = true; document.querySelectorAll(".task-cb, input[name=\"actionType\"]").forEach(function(el){ el.checked = false; el.disabled = true; }); document.querySelectorAll(".action-option").forEach(function(el){ el.classList.remove("selected"); }); $("previewBox").innerHTML = "\u{1F31F} Today done!"; }
+          else { btn.disabled = false; btn.textContent = "\u{1F680} Submit"; document.querySelectorAll(".task-cb, input[name=\"actionType\"]").forEach(function(el){ el.disabled = false; }); }
+          cacheLoaded = true;
+        }
+      }
+    } catch(e) { /* cache miss, continue normal load */ }
+  }
+  // P4-5a+b: Background refresh from Firestore
   try {
     var snapshot = await db.collection("kpi_events").where("studentId", "==", studentId).orderBy("timestamp", "asc").get();
     var events = snapshot.docs.map(function(d){ var o = {id:d.id}; for(var k in d.data()) o[k]=d.data()[k]; return o; });
     if (pendingEvent) { var found = false; for (var i = 0; i < events.length; i++) { if (events[i].id === pendingEvent.id) { found = true; break; } } if (!found) events.push(pendingEvent); }
-    var state = await recalculateStudentState(studentId, events);
-    if (state) {
-      globalData = {}; for (var sk in state) globalData[sk] = state[sk]; delete globalData.cached;
-      state.achievements = []; for (var ak in globalAchievements) { if (globalAchievements[ak]) state.achievements.push(ak); }
-      await db.collection("kpi_students").doc(studentId).set(state, { merge: true });
+    var refreshed = await recalculateStudentState(studentId, events);
+    if (refreshed) {
+      globalData = {}; for (var sk in refreshed) globalData[sk] = refreshed[sk]; delete globalData.cached;
+      refreshed.achievements = []; for (var ak in globalAchievements) { if (globalAchievements[ak]) refreshed.achievements.push(ak); }
+      await db.collection("kpi_students").doc(studentId).set(refreshed, { merge: true });
     } else {
-      globalData = { studentId: studentId, roster: [], highestLevel: 5, lockedGymLevel: 5, coins: 0, badges: 0, potions: 0, revives: 0, candies: 0, maxPotions: 0, maxRevives: 0, expSharePurchased: false, hasExpertBelt: false, hasEviolite: false, hasChampionCloak: false, hasAmuletCoin: false, oranBerries: 0, cheriBerries: 0, lumBerries: 0, chilanBerries: 0, hasFocusSash: false, hasEjectButton: false, hasRockyHelmet: false, hasWeaknessPolicy: false, tms: {}, pokemonTMs: {}, todayCompleted: false, todayBattles: 0, weekGymWins: 0, monthLeagueWins: 0, 電擊盒: false, 岩漿盒: false, "龍之鱗片": false, 護具: false, 金屬膜: false, "王者之證": false };
+      if (!globalData) globalData = { studentId: studentId, roster: [], highestLevel: 5, lockedGymLevel: 5, coins: 0, badges: 0, potions: 0, revives: 0, candies: 0, maxPotions: 0, maxRevives: 0, expSharePurchased: false, hasExpertBelt: false, hasEviolite: false, hasChampionCloak: false, hasAmuletCoin: false, oranBerries: 0, cheriBerries: 0, lumBerries: 0, chilanBerries: 0, hasFocusSash: false, hasEjectButton: false, hasRockyHelmet: false, hasWeaknessPolicy: false, tms: {}, pokemonTMs: {}, todayCompleted: false, todayBattles: 0, weekGymWins: 0, monthLeagueWins: 0, "\u96FB\u6483\u76D2": false, "\u5E95\u6F3E\u76D2": false, "\u9F8D\u4E4B\u9C5A\u7247": false, "\u8B77\u5177": false, "\u91D1\u5C6C\u819C": false, "\u738B\u8005\u4E4B\u8B49": false };
     }
     // Restore TM data from Firestore doc
     try {
@@ -899,7 +933,7 @@ async function fetchStudentData(studentId, pendingEvent) {
         if (sd.tms) globalData.tms = sd.tms;
       }
     } catch(e) { console.warn("Failed to restore TM data:", e); }
-    await loadAchievementsFromFirestore(studentId);
+    if (!cacheLoaded) await loadAchievementsFromFirestore(studentId);
     if (isAdmin) globalData.todayCompleted = false;
     if (globalData.monthLeagueWins > 0) {
       var monthKey = new Date().getFullYear() + "-" + (new Date().getMonth() + 1);
@@ -910,18 +944,15 @@ async function fetchStudentData(studentId, pendingEvent) {
     globalData.partyIds = [];
     if (savedParty) { try { var parsed = JSON.parse(savedParty); globalData.partyIds = parsed.filter(function(id){ return globalData.roster.some(function(p){return p.id === id;}); }); } catch(e) {} }
     if (globalData.partyIds.length === 0) { var sorted = globalData.roster.slice().sort(function(a,b){ return b.currentLevel - a.currentLevel; }); globalData.partyIds = sorted.slice(0, 6).map(function(p){ return p.id; }); }
-    hideSkeleton(); updateDashboard(); renderActions(); updateBattleButtons();
+    if (!cacheLoaded) { hideSkeleton(); updateDashboard(); renderActions(); updateBattleButtons(); }
     await checkAndUnlockAchievements(globalData, events, studentId);
-    // P4-2b: Check defense challenge on login
     var defRegion = checkDefenseChallenge();
     if (defRegion) {
       setTimeout(function() { startDefenseChallenge(defRegion); }, 1500);
     }
-    // F4: quest progress
     var existingQuests = await loadQuestsFromFirestore(studentId);
     var computedQuests = computeQuestProgress(events);
     globalQuestProgress = mergeQuestProgress(existingQuests, computedQuests);
-    // LOGIN quest auto-completes on dashboard load
     if (events && events.length > 0) {
       globalQuestProgress.daily.progress["LOGIN"] = Math.max(1, globalQuestProgress.daily.progress["LOGIN"] || 0);
     }
@@ -932,7 +963,13 @@ async function fetchStudentData(studentId, pendingEvent) {
     else { btn.disabled = false; btn.textContent = "\u{1F680} Submit"; document.querySelectorAll(".task-cb, input[name=\"actionType\"]").forEach(function(el){ el.disabled = false; }); }
     var ev = globalData.roster.find(function(p){ return p.id === "P0" && p.baseName.indexOf("\u4F0A\u5E03") !== -1; });
     if (ev && ev.currentLevel >= 16 && !globalData.todayCompleted && ev.baseName === "\u{1F43E} \u4F0A\u5E03 (\u4E00\u822C\u7CFB)") $("eeveeModal").style.display = "flex";
-  } catch (e) { console.error("fetchStudentData error:", e); hideSkeleton(); toast("Error: " + e.message); btn.textContent = "Failed"; btn.disabled = false; }
+    // P4-5b: Write to sessionStorage cache
+    try {
+      var cachePayload = { globalData: globalData, achievements: [], questProgress: globalQuestProgress };
+      for (var ak2 in globalAchievements) { if (globalAchievements[ak2]) cachePayload.achievements.push(ak2); }
+      sessionStorage.setItem("kpi_cache_" + studentId, JSON.stringify(cachePayload));
+    } catch(e) { /* cache full, ignore */ }
+  } catch (e) { console.error("fetchStudentData error:", e); if (!cacheLoaded) { hideSkeleton(); toast("Error: " + e.message); btn.textContent = "Failed"; btn.disabled = false; } else { toast("Background refresh failed, using cached data"); btn.textContent = "\u{1F680} Submit"; btn.disabled = false; } }
 }
 
 async function saveEventToFirestore(eventData) {
@@ -953,6 +990,21 @@ async function executeSave(record, successCb, closeBattleModal) {
     savedEvent.timestamp = firebase.firestore.Timestamp.now();
     await fetchStudentData(fbRecord.studentId, savedEvent);
   } else { btn.disabled = false; btn.innerText = oldTxt; toast("Save failed"); }
+}
+// P4-5c: Debounced student doc field writer — batches small writes into one set()
+var _pendingStudentUpdate = null;
+var _pendingStudentTimer = null;
+function scheduleStudentFieldUpdate(fields) {
+  if (!db || !globalData || !globalData.studentId) return;
+  if (!_pendingStudentUpdate) _pendingStudentUpdate = {};
+  for (var fk in fields) _pendingStudentUpdate[fk] = fields[fk];
+  if (_pendingStudentTimer) clearTimeout(_pendingStudentTimer);
+  _pendingStudentTimer = setTimeout(function(){
+    var data = _pendingStudentUpdate;
+    _pendingStudentUpdate = null;
+    _pendingStudentTimer = null;
+    db.collection("kpi_students").doc(globalData.studentId).set(data, { merge: true }).catch(function(e){ console.warn("batch save failed:", e); });
+  }, 500);
 }
 var MOVE_DATABASE = {
   "撞擊":   { power: 40,  type: "一般",  category: "物理", desc: "用身體撞向對手" },
@@ -2155,12 +2207,12 @@ function applyStatusEffect(move, defender) {
     var immMap = { burn:"burn",paralyze:"paralyze",freeze:"freeze",poison:"poison",sleep:"sleep" };
     if (immMap[eff] === defender.ability.status) { showLargeText("🛡️ 免疫！", "#8e44ad"); return "🛡️ " + defender.name + " 的「" + defender.abilityName + "」抵銷了狀態！"; }
   }
-  if (eff === "burn" && Math.random() < 0.3 && !defender.status) { defender.status = "burn"; return "🔥 " + defender.name + " 被燒傷了！"; }
-  if (eff === "paralyze" && Math.random() < 0.3 && !defender.status) { defender.status = "paralyze"; return "⚡ " + defender.name + " 被麻痹了！"; }
-  if (eff === "freeze" && Math.random() < 0.2 && !defender.status) { defender.status = "freeze"; return "❄️ " + defender.name + " 被凍結了！"; }
-  if (eff === "poison" && Math.random() < 0.3 && !defender.status) { defender.status = "poison"; return "☠️ " + defender.name + " 中毒了！"; }
-  if (eff === "sleep" && Math.random() < 0.6 && !defender.status) { defender.status = "sleep"; return "💤 " + defender.name + " 睡著了！"; }
-  if (eff === "confusion" && !defender.status) { defender.status = "confusion"; return "😵 " + defender.name + " 混亂了！"; }
+  if (eff === "burn" && Math.random() < 0.3 && !defender.status) { defender.status = "burn"; if (battleState) animateStatusPop(defender === battleState.enemy ? "enemy" : "player"); return "🔥 " + defender.name + " 被燒傷了！"; }
+  if (eff === "paralyze" && Math.random() < 0.3 && !defender.status) { defender.status = "paralyze"; if (battleState) animateStatusPop(defender === battleState.enemy ? "enemy" : "player"); return "⚡ " + defender.name + " 被麻痹了！"; }
+  if (eff === "freeze" && Math.random() < 0.2 && !defender.status) { defender.status = "freeze"; if (battleState) animateStatusPop(defender === battleState.enemy ? "enemy" : "player"); return "❄️ " + defender.name + " 被凍結了！"; }
+  if (eff === "poison" && Math.random() < 0.3 && !defender.status) { defender.status = "poison"; if (battleState) animateStatusPop(defender === battleState.enemy ? "enemy" : "player"); return "☠️ " + defender.name + " 中毒了！"; }
+  if (eff === "sleep" && Math.random() < 0.6 && !defender.status) { defender.status = "sleep"; if (battleState) animateStatusPop(defender === battleState.enemy ? "enemy" : "player"); return "💤 " + defender.name + " 睡著了！"; }
+  if (eff === "confusion" && !defender.status) { defender.status = "confusion"; if (battleState) animateStatusPop(defender === battleState.enemy ? "enemy" : "player"); return "😵 " + defender.name + " 混亂了！"; }
   if (eff === "heal_50") { var heal = Math.floor(defender.maxHp * 0.5); defender.currentHp = Math.min(defender.maxHp, defender.currentHp + heal); return "💚 " + defender.name + " 回復了 " + heal + " HP！"; }
   if (eff === "heal_ally") { var heal2 = Math.floor(defender.maxHp * 0.5); defender.currentHp = Math.min(defender.maxHp, defender.currentHp + heal2); return "💚 " + defender.name + " 回復了 " + heal2 + " HP！"; }
   if (eff === "buff_atk") { defender.statStages.atk = Math.min(6, defender.statStages.atk + 2); return "⬆️ " + defender.name + " 攻擊大幅提升！"; }
@@ -2170,14 +2222,14 @@ function applyStatusEffect(move, defender) {
   if (eff === "buff_spatk_spdef") { defender.statStages.spatk = Math.min(6, defender.statStages.spatk + 1); defender.statStages.spdef = Math.min(6, defender.statStages.spdef + 1); return "⬆️ " + defender.name + " 特攻和特防提升了！"; }
   if (eff === "buff_atk_spatk") { defender.statStages.atk = Math.min(6, defender.statStages.atk + 1); defender.statStages.spatk = Math.min(6, defender.statStages.spatk + 1); return "⬆️ " + defender.name + " 攻擊和特攻提升了！"; }
   if (eff === "buff_evasion") { defender.statStages.evasion = Math.min(6, defender.statStages.evasion + 2); return "⬆️ " + defender.name + " 閃避率大幅提升！"; }
-  if (eff === "debuff_atk") { attacker.statStages.atk = Math.max(-6, attacker.statStages.atk - 1); return "⬇️ " + attacker.name + " 攻擊降低了！"; }
-  if (eff === "debuff_def") { attacker.statStages.def = Math.max(-6, attacker.statStages.def - 1); return "⬇️ " + attacker.name + " 防禦降低了！"; }
+  if (eff === "debuff_atk") { defender.statStages.atk = Math.max(-6, defender.statStages.atk - 1); return "⬇️ " + defender.name + " 攻擊降低了！"; }
+  if (eff === "debuff_def") { defender.statStages.def = Math.max(-6, defender.statStages.def - 1); return "⬇️ " + defender.name + " 防禦降低了！"; }
   if (eff === "protect") { defender.protect = true; return "🛡️ " + defender.name + " 使用了守住！"; }
   if (eff === "leech_seed") { defender.leechSeed = true; return "🌱 " + defender.name + " 被寄生種子了！"; }
-  if (eff === "weather_rain") { battleState.weather = { type: "rain", duration: 5 }; if (typeof sfx !== "undefined") sfx.weather(); return "🌧️ 天氣變成下雨了！（持續5回合）"; }
-  if (eff === "weather_sun") { battleState.weather = { type: "sun", duration: 5 }; if (typeof sfx !== "undefined") sfx.weather(); return "☀️ 天氣變成大晴天了！（持續5回合）"; }
-  if (eff === "weather_sand") { battleState.weather = { type: "sand", duration: 5 }; if (typeof sfx !== "undefined") sfx.weather(); return "🌪️ 天氣變成沙暴了！（持續5回合）"; }
-  if (eff === "weather_hail") { battleState.weather = { type: "hail", duration: 5 }; if (typeof sfx !== "undefined") sfx.weather(); return "❄️ 天氣變成冰雹了！（持續5回合）"; }
+  if (eff === "weather_rain") { battleState.weather = { type: "rain", duration: 5 }; if (typeof sfx !== "undefined") sfx.weather(); showLargeText("🌧️ 開始下雨了！", "#3498db"); return "🌧️ 天氣變成下雨了！（持續5回合）"; }
+  if (eff === "weather_sun") { battleState.weather = { type: "sun", duration: 5 }; if (typeof sfx !== "undefined") sfx.weather(); showLargeText("☀️ 大晴天！", "#e67e22"); return "☀️ 天氣變成大晴天了！（持續5回合）"; }
+  if (eff === "weather_sand") { battleState.weather = { type: "sand", duration: 5 }; if (typeof sfx !== "undefined") sfx.weather(); showLargeText("🌪️ 沙暴來了！", "#d4a853"); return "🌪️ 天氣變成沙暴了！（持續5回合）"; }
+  if (eff === "weather_hail") { battleState.weather = { type: "hail", duration: 5 }; if (typeof sfx !== "undefined") sfx.weather(); showLargeText("❄️ 冰雹來了！", "#85c1e9"); return "❄️ 天氣變成冰雹了！（持續5回合）"; }
   return "";
 }
 
@@ -2389,6 +2441,113 @@ function spawnHitRing(x, y, color) {
   setTimeout(function(){ ring.remove(); }, 600);
 }
 
+function spawnCategoryParticles(x, y, color, category) {
+  if (category === "物理") {
+    for (var i = 0; i < 6; i++) {
+      var line = document.createElement("div");
+      line.className = "slash-line";
+      var angle = (i / 6) * Math.PI;
+      var dist = 40 + Math.random() * 30;
+      var cx = $("battleModal .modal-content") || document.querySelector("#battleModal .modal-content");
+      var rect = cx ? cx.getBoundingClientRect() : { left:0, top:0 };
+      line.style.left = (x - rect.left + Math.cos(angle) * dist) + "px";
+      line.style.top = (y - rect.top + Math.sin(angle) * dist) + "px";
+      line.style.width = (20 + Math.random() * 20) + "px";
+      line.style.background = color;
+      line.style.transform = "rotate(" + (angle * 180 / Math.PI) + "deg)";
+      line.style.transformOrigin = "left center";
+      if (cx) cx.appendChild(line);
+      setTimeout(function(el){ el.remove(); }, 500, line);
+    }
+  } else if (category === "特殊") {
+    for (var i = 0; i < 4; i++) {
+      var swirl = document.createElement("div");
+      swirl.className = "energy-swirl";
+      swirl.style.setProperty("--swirl-color", color);
+      var cx2 = document.querySelector("#battleModal .modal-content");
+      if (!cx2) continue;
+      var rect2 = cx2.getBoundingClientRect();
+      swirl.style.left = (x - rect2.left - 30 + (Math.random() - 0.5) * 40) + "px";
+      swirl.style.top = (y - rect2.top - 30 + (Math.random() - 0.5) * 40) + "px";
+      swirl.style.animationDelay = (i * 0.08) + "s";
+      cx2.appendChild(swirl);
+      setTimeout(function(el){ el.remove(); }, 700, swirl);
+    }
+  } else {
+    for (var i = 0; i < 5; i++) {
+      var sp = document.createElement("div");
+      sp.className = "sparkle";
+      sp.style.background = color;
+      var cx3 = document.querySelector("#battleModal .modal-content");
+      if (!cx3) continue;
+      var rect3 = cx3.getBoundingClientRect();
+      sp.style.left = (x - rect3.left + (Math.random() - 0.5) * 50) + "px";
+      sp.style.top = (y - rect3.top + (Math.random() - 0.5) * 50) + "px";
+      sp.style.animationDelay = (Math.random() * 0.2) + "s";
+      cx3.appendChild(sp);
+      setTimeout(function(el){ el.remove(); }, 800, sp);
+    }
+  }
+}
+
+function spawnImpactFlash(side) {
+  var enemySection = document.querySelector(".arena-hp-section:first-child");
+  var playerSection = document.querySelector(".arena-hp-section:last-child");
+  var target = side === "enemy" ? enemySection : playerSection;
+  if (!target) return;
+  var flash = document.createElement("div");
+  flash.className = "impact-flash";
+  flash.style.background = "radial-gradient(circle, var(--flash-color,rgba(255,255,255,0.4)) 0%, transparent 70%)";
+  var typeColor = arguments.length > 2 ? arguments[2] : "#fff";
+  flash.style.setProperty("--flash-color", typeColor + "66");
+  target.style.position = "relative";
+  target.appendChild(flash);
+  setTimeout(function(){ flash.remove(); }, 600);
+}
+
+function animateWeatherUpdate() {
+  var wd = $("weatherDisplay");
+  if (!wd || wd.style.display === "none") return;
+  wd.classList.remove("weather-pulse");
+  void wd.offsetWidth;
+  if (battleState && battleState.weather && battleState.weather.duration <= 2) {
+    wd.classList.add("weather-end");
+    setTimeout(function(){ wd.classList.remove("weather-end"); }, 800);
+  } else {
+    wd.classList.add("weather-pulse");
+    setTimeout(function(){ wd.classList.remove("weather-pulse"); }, 1200);
+  }
+}
+
+function animateStatusPop(side) {
+  var el = $(side === "enemy" ? "enemyStatus" : "playerStatus");
+  if (!el || !el.innerHTML) return;
+  el.classList.remove("status-pop");
+  void el.offsetWidth;
+  el.classList.add("status-pop");
+  setTimeout(function(){ el.classList.remove("status-pop"); }, 600);
+}
+
+function spawnEffectivenessEffect(effectiveness, center, typeColor) {
+  if (effectiveness > 1) {
+    for (var i = 0; i < 3; i++) {
+      (function(idx){
+        setTimeout(function(){
+          if (!center) return;
+          spawnParticles(center.x, center.y, 6, typeColor, "star");
+        }, idx * 100);
+      })(i);
+    }
+  } else if (effectiveness === 0) {
+    if (!center) return;
+    for (var i = 0; i < 3; i++) {
+      var rx = center.x + (Math.random() - 0.5) * 30;
+      var ry = center.y + (Math.random() - 0.5) * 30;
+      spawnParticles(rx, ry, 4, "#666");
+    }
+  }
+}
+
 function screenShake() {
   var el = document.querySelector("#battleModal .modal-content");
   if (!el) return;
@@ -2422,21 +2581,30 @@ function performAttack(moveName, isPlayer) {
   var defSide = isPlayer ? "enemy" : "player";
   var moveDetails = getMoveDetails(moveName);
   var typeColor = getTypeColor(moveDetails.type);
+  var moveCategory = moveDetails.category;
 
-  sfx.hit();
-  shakeElement(defSide + "PkmnName");
-  flashElement(defSide + "PkmnName");
-  var center = getElementCenter(defSide + "PkmnName");
-  if (center) {
-    spawnParticles(center.x, center.y, 8, typeColor);
-    spawnHitRing(center.x, center.y, typeColor);
+  if (moveCategory === "變化") {
+    var center = getElementCenter(defSide + "PkmnName");
+    if (center) spawnCategoryParticles(center.x, center.y, typeColor, "變化");
+  } else {
+    sfx.hit();
+    shakeElement(defSide + "PkmnName");
+    flashElement(defSide + "PkmnName");
+    spawnImpactFlash(defSide, typeColor);
+    var center = getElementCenter(defSide + "PkmnName");
+    if (center) {
+      spawnParticles(center.x, center.y, 8, typeColor);
+      spawnHitRing(center.x, center.y, typeColor);
+      spawnCategoryParticles(center.x, center.y, typeColor, moveCategory);
+    }
   }
   if (result.dmg > 0) {
     var defHp = isPlayer ? battleState.enemy : battleState.playerPokemon;
     animateHpBar(defSide + "HpBar", defSide + "HpText", defHp.currentHp, defHp.maxHp);
-    if (result.crit) { sfx.crit(); showLargeText("💢 會心一擊！", "#ffd700"); screenShake(); }
-    else if (result.effectiveness > 1) { showLargeText("💥 效果絕佳！", typeColor); if (center) spawnParticles(center.x, center.y, 12, typeColor, "star"); }
-    else if (result.effectiveness > 0 && result.effectiveness < 1) showLargeText("⚠️ 效果不好...", "#aaa");
+    if (result.crit) { sfx.crit(); showLargeText("💢 會心一擊！", "#ffd700"); screenShake(); spawnEffectivenessEffect(2, center, typeColor); }
+    else if (result.effectiveness > 1) { showLargeText("💥 效果絕佳！", typeColor); spawnEffectivenessEffect(2, center, typeColor); }
+    else if (result.effectiveness > 0 && result.effectiveness < 1) showLargeText("⚠️ 效果不好...", "#999");
+    else if (result.effectiveness === 0) { showLargeText("🚫 沒有效果！", "#666"); spawnEffectivenessEffect(0, center, typeColor); }
     if (result.hpBoosted && pAtk.abilityName) showLargeText("🔥 " + pAtk.abilityName + " 發動！", "#e74c3c");
     // 攜帶道具效果：貝殼之鈴（回復傷害12.5%HP）
     if (isPlayer && pAtk.heldItem === "shellBell" && globalData && globalData.hasShellBell) {
@@ -2525,21 +2693,30 @@ function performAttack(moveName, isPlayer) {
       var eResult = executeTurn(battleState.enemy, battleState.playerPokemon, battleState.playerPokemon, battleState.enemy, enemyMove, false, eLog);
       renderBattleLog(eLog);
 
-      sfx.hit();
-      shakeElement("playerPkmnName");
-      flashElement("playerPkmnName");
-      var pCenter = getElementCenter("playerPkmnName");
-      if (pCenter) {
-        spawnParticles(pCenter.x, pCenter.y, 8, getTypeColor(getMoveDetails(enemyMove).type));
-        spawnHitRing(pCenter.x, pCenter.y, getTypeColor(getMoveDetails(enemyMove).type));
+      var eMoveDetails = getMoveDetails(enemyMove);
+      var eTypeColor = getTypeColor(eMoveDetails.type);
+      if (eMoveDetails.category === "變化") {
+        var pCenter = getElementCenter("playerPkmnName");
+        if (pCenter) spawnCategoryParticles(pCenter.x, pCenter.y, eTypeColor, "變化");
+      } else {
+        sfx.hit();
+        shakeElement("playerPkmnName");
+        flashElement("playerPkmnName");
+        spawnImpactFlash("player", eTypeColor);
+        var pCenter = getElementCenter("playerPkmnName");
+        if (pCenter) {
+          spawnParticles(pCenter.x, pCenter.y, 8, eTypeColor);
+          spawnHitRing(pCenter.x, pCenter.y, eTypeColor);
+          spawnCategoryParticles(pCenter.x, pCenter.y, eTypeColor, eMoveDetails.category);
+        }
       }
       if (eResult.dmg > 0) {
         animateHpBar("playerHpBar", "playerHpText", battleState.playerPokemon.currentHp, battleState.playerPokemon.maxHp);
-        if (eResult.crit) { sfx.crit(); showLargeText("💢 會心一擊！", "#ffd700"); screenShake(); }
-        else if (eResult.effectiveness > 1) { showLargeText("💥 效果絕佳！", getTypeColor(getMoveDetails(enemyMove).type)); if (pCenter) spawnParticles(pCenter.x, pCenter.y, 12, getTypeColor(getMoveDetails(enemyMove).type), "star"); }
-        else if (eResult.effectiveness > 0 && eResult.effectiveness < 1) showLargeText("⚠️ 效果不好...", "#aaa");
+        if (eResult.crit) { sfx.crit(); showLargeText("💢 會心一擊！", "#ffd700"); screenShake(); spawnEffectivenessEffect(2, pCenter, eTypeColor); }
+        else if (eResult.effectiveness > 1) { showLargeText("💥 效果絕佳！", eTypeColor); spawnEffectivenessEffect(2, pCenter, eTypeColor); }
+        else if (eResult.effectiveness > 0 && eResult.effectiveness < 1) showLargeText("⚠️ 效果不好...", "#999");
+        else if (eResult.effectiveness === 0) { showLargeText("🚫 沒有效果！", "#666"); spawnEffectivenessEffect(0, pCenter, eTypeColor); }
         // 凸凸頭盔: 物理攻擊反傷
-        var eMoveDetails = getMoveDetails(enemyMove);
         if (battleState.playerPokemon.heldItem === "rockyHelmet" && eMoveDetails.category === "物理" && battleState.enemy.currentHp > 0) {
           var helmetDmg = Math.max(1, Math.floor(battleState.enemy.maxHp / 6));
           battleState.enemy.currentHp = Math.max(0, battleState.enemy.currentHp - helmetDmg);
@@ -2623,10 +2800,11 @@ function performAttack(moveName, isPlayer) {
 }
 
 function processBurnAndLeech(player, enemy, log) {
-  if (player.status === "burn") { var d = Math.floor(player.maxHp * 0.0625); player.currentHp = Math.max(0, player.currentHp - d); log.push("🔥 " + player.name + " 因燒傷損失 " + d + " HP！"); }
-  if (enemy.status === "burn") { var d2 = Math.floor(enemy.maxHp * 0.0625); enemy.currentHp = Math.max(0, enemy.currentHp - d2); log.push("🔥 " + enemy.name + " 因燒傷損失 " + d2 + " HP！"); }
-  if (player.leechSeed && enemy.currentHp > 0) { var sd = Math.floor(enemy.maxHp * 0.0833); enemy.currentHp = Math.max(0, enemy.currentHp - sd); player.currentHp = Math.min(player.maxHp, player.currentHp + sd); log.push("🌱 寄生種子吸取了 " + sd + " HP！"); }
-  if (enemy.leechSeed && player.currentHp > 0) { var sd2 = Math.floor(player.maxHp * 0.0833); player.currentHp = Math.max(0, player.currentHp - sd2); enemy.currentHp = Math.min(enemy.maxHp, enemy.currentHp + sd2); log.push("🌱 寄生種子吸取了 " + sd2 + " HP！"); }
+  var needsUpdate = false;
+  if (player.status === "burn") { var d = Math.floor(player.maxHp * 0.0625); player.currentHp = Math.max(0, player.currentHp - d); log.push("🔥 " + player.name + " 因燒傷損失 " + d + " HP！"); needsUpdate = true; }
+  if (enemy.status === "burn") { var d2 = Math.floor(enemy.maxHp * 0.0625); enemy.currentHp = Math.max(0, enemy.currentHp - d2); log.push("🔥 " + enemy.name + " 因燒傷損失 " + d2 + " HP！"); needsUpdate = true; }
+  if (player.leechSeed && enemy.currentHp > 0) { var sd = Math.floor(enemy.maxHp * 0.0833); enemy.currentHp = Math.max(0, enemy.currentHp - sd); player.currentHp = Math.min(player.maxHp, player.currentHp + sd); log.push("🌱 寄生種子吸取了 " + sd + " HP！"); needsUpdate = true; }
+  if (enemy.leechSeed && player.currentHp > 0) { var sd2 = Math.floor(player.maxHp * 0.0833); player.currentHp = Math.max(0, player.currentHp - sd2); enemy.currentHp = Math.min(enemy.maxHp, enemy.currentHp + sd2); log.push("🌱 寄生種子吸取了 " + sd2 + " HP！"); needsUpdate = true; }
   if (battleState && battleState.weather) {
     var wt = battleState.weather.type;
     if (wt === "sand") {
@@ -2634,7 +2812,7 @@ function processBurnAndLeech(player, enemy, log) {
         if (p.currentHp <= 0) return;
         if (p.type.indexOf("岩石") === -1 && p.type.indexOf("地面") === -1 && p.type.indexOf("鋼") === -1) {
           var sd3 = Math.floor(p.maxHp * 0.0625); p.currentHp = Math.max(0, p.currentHp - sd3);
-          log.push("🌪️ " + p.name + " 受到沙暴傷害 " + sd3 + " HP！");
+          log.push("🌪️ " + p.name + " 受到沙暴傷害 " + sd3 + " HP！"); needsUpdate = true;
           if (p.currentHp <= 0) { p.currentHp = 0; log.push("💀 " + p.name + " 倒下了！"); }
         }
       });
@@ -2643,11 +2821,17 @@ function processBurnAndLeech(player, enemy, log) {
         if (p.currentHp <= 0) return;
         if (p.type.indexOf("冰") === -1) {
           var hd = Math.floor(p.maxHp * 0.0625); p.currentHp = Math.max(0, p.currentHp - hd);
-          log.push("❄️ " + p.name + " 受到冰雹傷害 " + hd + " HP！");
+          log.push("❄️ " + p.name + " 受到冰雹傷害 " + hd + " HP！"); needsUpdate = true;
           if (p.currentHp <= 0) { p.currentHp = 0; log.push("💀 " + p.name + " 倒下了！"); }
         }
       });
     }
+  }
+  if (needsUpdate) {
+    flashElement("playerPkmnName");
+    flashElement("enemyPkmnName");
+    animateHpBar("playerHpBar", "playerHpText", player.currentHp, player.maxHp);
+    animateHpBar("enemyHpBar", "enemyHpText", enemy.currentHp, enemy.maxHp);
   }
 }
 
@@ -2658,6 +2842,9 @@ function processWeatherDecay(log) {
     var wNames = { rain: "🌧️ 下雨", sun: "☀️ 大晴天", sand: "🌪️ 沙暴", hail: "❄️ 冰雹" };
     log.push((wNames[battleState.weather.type] || "天氣") + " 結束了！");
     battleState.weather = null;
+    updateArenaUI();
+  } else {
+    animateWeatherUpdate();
   }
 }
 
@@ -3083,7 +3270,11 @@ function updateArenaUI() {
     wd.style.display = "block";
     wd.style.background = wColors[battleState.weather.type] + "22";
     wd.style.border = "2px solid " + (wColors[battleState.weather.type] || "#999");
-    wd.innerHTML = wIcons[battleState.weather.type] + " " + wNames[battleState.weather.type] + "（剩餘 " + battleState.weather.duration + " 回合）";
+    wd.innerHTML = wIcons[battleState.weather.type] + " " + wNames[battleState.weather.type] + "（剩餘 " + battleState.weather.duration + " 回合）" + (battleState.weather.duration <= 2 ? " ⏳" : "");
+    wd.classList.remove("weather-pulse");
+    void wd.offsetWidth;
+    if (battleState.weather.duration <= 2) wd.classList.add("weather-end");
+    else wd.classList.add("weather-pulse");
   } else {
     wd.style.display = "none";
   }
@@ -3093,7 +3284,8 @@ function updateArenaUI() {
   $("playerHpBar").style.width = phpPct + "%";
   $("playerHpBar").className = "hp-bar-fill " + (phpPct > 50 ? "hp-green" : phpPct > 25 ? "hp-yellow" : "hp-red");
   $("playerHpText").innerHTML = pp.currentHp + "/" + pp.maxHp;
-  $("playerStatus").innerHTML = pp.status ? "<span class=\"status-icon\">" + getStatusIcon(pp.status) + "</span>" : "";
+  var statusNames = { burn:"燒傷", paralyze:"麻痹", freeze:"凍結", poison:"中毒", sleep:"睡眠", confusion:"混亂" };
+  $("playerStatus").innerHTML = pp.status ? "<span class=\"status-icon\">" + getStatusIcon(pp.status) + "</span><span style=\"font-size:11px;color:#e67e22;font-weight:700;\">" + (statusNames[pp.status]||pp.status) + "</span>" : "";
   $("playerTypeIcon").innerHTML = renderTypeBadges(pp.type);
 
   var ep = battleState.enemy;
@@ -3102,7 +3294,7 @@ function updateArenaUI() {
   $("enemyHpBar").style.width = ehpPct + "%";
   $("enemyHpBar").className = "hp-bar-fill " + (ehpPct > 50 ? "hp-green" : ehpPct > 25 ? "hp-yellow" : "hp-red");
   $("enemyHpText").innerHTML = ep.currentHp + "/" + ep.maxHp;
-  $("enemyStatus").innerHTML = ep.status ? "<span class=\"status-icon\">" + getStatusIcon(ep.status) + "</span>" : "";
+  $("enemyStatus").innerHTML = ep.status ? "<span class=\"status-icon\">" + getStatusIcon(ep.status) + "</span><span style=\"font-size:11px;color:#e67e22;font-weight:700;\">" + (statusNames[ep.status]||ep.status) + "</span>" : "";
   $("enemyTypeIcon").innerHTML = renderTypeBadges(ep.type);
 
   var moveBtns = $("playerMoveBtns");
@@ -3522,7 +3714,7 @@ function handleSwapClick(el) {
 
 async function savePCBox() {
   try {
-    await db.collection("kpi_students").doc(globalData.studentId).update({ partyIds: globalData.partyIds });
+    scheduleStudentFieldUpdate({ partyIds: globalData.partyIds });
     openPCBoxModal();
     updateDashboard();
     toast("✅ 隊伍已儲存！");
@@ -4067,8 +4259,7 @@ async function learnTM(pokemonId, moveName) {
   pkmn.tmMoves.push(moveName);
   if (!globalData.pokemonTMs) globalData.pokemonTMs = {};
   globalData.pokemonTMs[pokemonId] = pkmn.tmMoves;
-  // Save TM data directly to Firestore student doc
-  try { await db.collection("kpi_students").doc(globalData.studentId).set({ pokemonTMs: globalData.pokemonTMs, tms: globalData.tms }, { merge: true }); } catch(e) { console.warn("TM save failed:", e); }
+  scheduleStudentFieldUpdate({ pokemonTMs: globalData.pokemonTMs, tms: globalData.tms });
   var note = "萬能學習器學習 " + moveName + " ID:" + pokemonId + " TM學習器: universal";
   await executeSave({ studentId: globalData.studentId, score: 0, action: "系統測試", expGained: 0, coinsGained: 0, badgeChange: 0, note: note, extraNote: note, totalScore: 0, user: globalData.studentId }, function() {
     toast("✅ " + pkmn.baseName + " 學會了 " + moveName + "！");
@@ -4097,7 +4288,7 @@ function openForgetMove(pokemonId) {
   if (tmIdx !== -1) {
     tmMoves.splice(tmIdx, 1);
     if (globalData.pokemonTMs) { globalData.pokemonTMs[pokemonId] = tmMoves; }
-    try { db.collection("kpi_students").doc(globalData.studentId).set({ pokemonTMs: globalData.pokemonTMs||{} }, { merge: true }); } catch(e) {}
+    scheduleStudentFieldUpdate({ pokemonTMs: globalData.pokemonTMs||{} });
     toast("✅ " + pkmn.baseName + " 忘記了 " + forgotten + "！");
     openCollection();
   } else {
@@ -4656,7 +4847,7 @@ async function saveAchievementsToFirestore(studentId) {
     for (var key in globalAchievements) {
       if (globalAchievements[key]) list.push(key);
     }
-    await db.collection("kpi_students").doc(studentId).set({ studentId: studentId, achievements: list }, { merge: true });
+    scheduleStudentFieldUpdate({ achievements: list });
   } catch(e) {
     console.error("saveAchievements error:", e);
   }
@@ -4801,9 +4992,7 @@ function loadQuestsFromFirestore(studentId) {
 
 function saveQuestsToFirestore(studentId, quests) {
   if (!db || !studentId) return Promise.resolve();
-  return db.collection("kpi_students").doc(studentId).set({ studentId: studentId, quests: quests }, { merge: true }).catch(function(e) {
-    console.error("saveQuests error:", e);
-  });
+  scheduleStudentFieldUpdate({ quests: quests });
 }
 
 function mergeQuestProgress(existing, computed) {
