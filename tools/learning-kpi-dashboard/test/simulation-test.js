@@ -420,7 +420,23 @@ const GYM_LEADERS = [
   { region: "城都", badge: 13, leader: "阿四", type: "格鬥",    emoji: "🥋", name: "湛藍道館",   waves: 5, lvBonus: 30, desc: "硬碰硬的實力對決" },
   { region: "城都", badge: 14, leader: "小椿", type: "龍",      emoji: "🐉", name: "煙墨道館",   waves: 5, lvBonus: 34, desc: "龍之巔的極限挑戰" },
   { region: "城都", badge: 15, leader: "蜜柑", type: "鋼",      emoji: "⚙️", name: "淺蔥道館",   waves: 5, lvBonus: 39, desc: "鋼鐵般的精密計算" },
-  { region: "城都", badge: 16, leader: "柳伯", type: "冰",      emoji: "❄️", name: "卡吉道館",   waves: 5, lvBonus: 45, desc: "冰封萬物的最終考驗" }
+  { region: "城都", badge: 16, leader: "柳伯", type: "冰",      emoji: "❄️", name: "卡吉道館",   waves: 5, lvBonus: 45, desc: "冰封萬物的最終考驗" },
+  { region: "合眾", badge: 17, leader: "天桐", type: "草",      emoji: "🌿", name: "三曜道館",   waves: 4, lvBonus: 48, desc: "三曜鼎立的智慧考驗" },
+  { region: "合眾", badge: 18, leader: "蘆薈", type: "一般",    emoji: "🐾", name: "七寶道館",   waves: 4, lvBonus: 51, desc: "以不變應萬變的基礎" },
+  { region: "合眾", badge: 19, leader: "亞堤", type: "蟲",      emoji: "🐛", name: "飛雲道館",   waves: 5, lvBonus: 54, desc: "編織知識之網的韌性" },
+  { region: "合眾", badge: 20, leader: "小菊兒", type: "電",    emoji: "⚡", name: "雷文道館",   waves: 5, lvBonus: 58, desc: "閃耀的電流急急棒" },
+  { region: "合眾", badge: 21, leader: "菊老大", type: "地面",  emoji: "🌍", name: "帆巴道館",   waves: 5, lvBonus: 62, desc: "大地深處的嚴峻考驗" },
+  { region: "合眾", badge: 22, leader: "風露", type: "飛行",    emoji: "🦅", name: "吹寄道館",   waves: 5, lvBonus: 66, desc: "乘風破浪的高空對決" },
+  { region: "合眾", badge: 23, leader: "哈奇庫", type: "冰",    emoji: "❄️", name: "雪花道館",   waves: 5, lvBonus: 70, desc: "絕對零度的極限專注" },
+  { region: "合眾", badge: 24, leader: "艾莉絲", type: "龍",    emoji: "🐉", name: "雙龍道館",   waves: 5, lvBonus: 75, desc: "龍之霸主的最終試煉" },
+  { region: "卡洛斯", badge: 25, leader: "紫羅蘭", type: "蟲",  emoji: "🦋", name: "白檀道館",   waves: 4, lvBonus: 55, desc: "觀察入微的蟲之眼" },
+  { region: "卡洛斯", badge: 26, leader: "查克洛", type: "岩石", emoji: "🪨", name: "遙香道館",   waves: 4, lvBonus: 59, desc: "攀上岩壁的毅力" },
+  { region: "卡洛斯", badge: 27, leader: "可爾妮", type: "格鬥", emoji: "🥋", name: "娑羅道館",   waves: 5, lvBonus: 63, desc: "百折不撓的格鬥魂" },
+  { region: "卡洛斯", badge: 28, leader: "福爺", type: "草",    emoji: "🌿", name: "海翼道館",   waves: 5, lvBonus: 67, desc: "扎根知識的茂盛幹勁" },
+  { region: "卡洛斯", badge: 29, leader: "瑪綉", type: "電",    emoji: "⚡", name: "密阿雷道館",   waves: 5, lvBonus: 72, desc: "華麗的電光交響曲" },
+  { region: "卡洛斯", badge: 30, leader: "葛吉花", type: "超能力", emoji: "🔮", name: "香薰道館",   waves: 5, lvBonus: 77, desc: "預知未來的超能占卜" },
+  { region: "卡洛斯", badge: 31, leader: "得撫", type: "惡",    emoji: "😈", name: "百刻道館",   waves: 5, lvBonus: 82, desc: "時間的暗影試煉" },
+  { region: "卡洛斯", badge: 32, leader: "志米", type: "水",    emoji: "💧", name: "映雪道館",   waves: 5, lvBonus: 88, desc: "深不可測的水之巔峰" }
 ];
 
 const LEAGUE_REGIONS = {
@@ -452,7 +468,7 @@ const LEAGUE_REGIONS = {
       { name: "源治", type: "龍",     emoji: "🐉", lvBonus: 75, desc: "龍系天王 — 滄海老將" }
     ],
     champion: { name: "大吾", type: "鋼", emoji: "👑", lvBonus: 85, desc: "冠軍 — 石之意志" },
-    requiredBadges: 16, order: 2
+    requiredBadges: 20, order: 2
   },
   "神奧": {
     eliteFour: [
@@ -462,7 +478,7 @@ const LEAGUE_REGIONS = {
       { name: "菊野", type: "超能力", emoji: "🔮", lvBonus: 80, desc: "超能天王 — 虛空行者" }
     ],
     champion: { name: "竹蘭", type: "混合", emoji: "👑", lvBonus: 90, desc: "冠軍 — 傳承的意志" },
-    requiredBadges: 16, order: 3
+    requiredBadges: 26, order: 3
   },
   "合眾": {
     eliteFour: [
@@ -472,7 +488,17 @@ const LEAGUE_REGIONS = {
       { name: "越橘", type: "惡",     emoji: "🌑", lvBonus: 85, desc: "惡系天王 — 闇夜的支配" }
     ],
     champion: { name: "艾莉絲", type: "龍", emoji: "👑", lvBonus: 95, desc: "冠軍 — 龍之少女" },
-    requiredBadges: 16, order: 4
+    requiredBadges: 32, order: 4
+  },
+  "卡洛斯": {
+    eliteFour: [
+      { name: "帕琦拉", type: "火",     emoji: "🔥", lvBonus: 75, desc: "火系天王 — 炙熱的真理" },
+      { name: "志糜",   type: "水",     emoji: "💧", lvBonus: 80, desc: "水系天王 — 奔流的策略" },
+      { name: "朵拉塞娜", type: "龍",   emoji: "🐉", lvBonus: 85, desc: "龍系天王 — 遠古的咆哮" },
+      { name: "雁鎧",   type: "鋼",     emoji: "⚙️", lvBonus: 90, desc: "鋼鐵天王 — 不朽的壁壘" }
+    ],
+    champion: { name: "卡露妮", type: "混合", emoji: "👑", lvBonus: 100, desc: "冠軍 — 優雅與力量的化身" },
+    requiredBadges: 32, order: 5
   }
 };
 
@@ -487,7 +513,7 @@ const ACHIEVEMENTS = [
   { id: "LEGENDARY", name: "傳說捕手", desc: "捕捉傳說寶可夢", icon: "✨", tier: 2 },
   { id: "EVOLVE", name: "進化大師", desc: "完成一次寶可夢進化", icon: "🔄", tier: 2 },
   { id: "PVP_WIN", name: "宿敵剋星", desc: "PvP 對戰獲勝", icon: "🆚", tier: 2 },
-  { id: "GYM_16", name: "城都冠軍", desc: "收集全部 16 枚徽章", icon: "🏆", tier: 3 },
+  { id: "GYM_32", name: "徽章大師", desc: "收集全部 32 枚徽章", icon: "🏆", tier: 3 },
   { id: "LV_50", name: "大師訓練家", desc: "達到 Lv.50", icon: "👑", tier: 3 },
   { id: "LEAGUE_CHAMP", name: "聯盟王者", desc: "擊敗四天王與冠軍", icon: "🏆", tier: 3 },
   { id: "COLLECTOR_50", name: "大師收藏家", desc: "收集 50 種寶可夢", icon: "💎", tier: 3 },
@@ -1404,7 +1430,7 @@ function checkGymCurve(student, name) {
 
   // Check badge rates
   if (name === 'max' && badges < 8) {
-    issues.push(`BUG: Max student only has ${badges} badges after 9 months (expected 16+)`);
+    issues.push(`BUG: Max student only has ${badges} badges after 9 months (expected 32+)`);
   }
   if (name === 'min' && badges < 4) {
     issues.push(`NOTE: Min student only has ${badges} badges — gym curve may be too steep`);
@@ -1477,7 +1503,7 @@ function checkAchievements(reports, name) {
     if (last.level >= 10) issues.push(`INFO: LV_10 achievement should be earned (Lv.${last.level})`);
     if (last.badges >= 8) issues.push(`INFO: GYM_8 achievement should be earned (${last.badges} badges)`);
     if (last.level >= 25) issues.push(`INFO: LV_25 achievement should be earned (Lv.${last.level})`);
-    if (last.badges >= 16) issues.push(`INFO: GYM_16 achievement should be earned (${last.badges} badges)`);
+    if (last.badges >= 32) issues.push(`INFO: GYM_32 achievement should be earned (${last.badges} badges)`);
     if (last.level >= 50) issues.push(`INFO: LV_50 achievement should be earned (Lv.${last.level})`);
     if (last.rosterCount >= 10) issues.push(`INFO: COLLECTOR_10 should be earned (${last.rosterCount} pokemon)`);
   }

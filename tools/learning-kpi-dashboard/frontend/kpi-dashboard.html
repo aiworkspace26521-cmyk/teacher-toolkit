@@ -312,6 +312,20 @@
     .weather-end { animation: weather-end 0.8s ease-in forwards; }
     @keyframes sparkle { 0% { transform:scale(0) rotate(0deg); opacity:1; } 100% { transform:scale(1) rotate(180deg); opacity:0; } }
     .sparkle { position:absolute; width:10px; height:10px; pointer-events:none; z-index:45; animation: sparkle 0.5s ease-out forwards; clip-path: polygon(50% 0%, 61% 35%, 98% 35%, 68% 57%, 79% 91%, 50% 70%, 21% 91%, 32% 57%, 2% 35%, 39% 35%); }
+    @keyframes rain-fall { 0% { transform:translateY(-20px); opacity:0.6; } 100% { transform:translateY(100vh); opacity:0; } }
+    .weather-rain-particle { position:absolute; width:2px; height:12px; background:rgba(52,152,219,0.5); border-radius:1px; pointer-events:none; z-index:30; animation:rain-fall 0.8s linear forwards; }
+    @keyframes snow-fall { 0% { transform:translateY(-10px) rotate(0deg); opacity:0.7; } 100% { transform:translateY(100vh) rotate(360deg); opacity:0; } }
+    .weather-snow-particle { position:absolute; width:6px; height:6px; background:rgba(255,255,255,0.7); border-radius:50%; pointer-events:none; z-index:30; animation:snow-fall 1.5s linear forwards; }
+    @keyframes sand-drift { 0% { transform:translateX(-20px) translateY(0); opacity:0.5; } 100% { transform:translateX(200px) translateY(60px); opacity:0; } }
+    .weather-sand-particle { position:absolute; width:4px; height:4px; background:rgba(212,168,83,0.5); border-radius:50%; pointer-events:none; z-index:30; animation:sand-drift 1s ease-in forwards; }
+    @keyframes sun-glow { 0% { opacity:0.4; transform:scale(0.5); } 50% { opacity:0.6; transform:scale(1.2); } 100% { opacity:0; transform:scale(1.5); } }
+    .weather-sun-particle { position:absolute; width:30px; height:30px; border-radius:50%; background:radial-gradient(circle,rgba(241,196,15,0.3) 0%,transparent 70%); pointer-events:none; z-index:30; animation:sun-glow 1.5s ease-out forwards; }
+    @keyframes ability-flare { 0% { transform:scale(0) rotate(0deg); opacity:1; } 50% { transform:scale(1.5) rotate(180deg); opacity:0.7; } 100% { transform:scale(2) rotate(360deg); opacity:0; } }
+    .ability-flare { position:absolute; width:80px; height:80px; border:4px solid var(--flare-color,#fff); border-radius:50%; pointer-events:none; z-index:60; animation:ability-flare 0.8s ease-out forwards; }
+    @keyframes item-glow { 0% { opacity:0; transform:scale(0.3); box-shadow:0 0 0 0 var(--glow-color); } 50% { opacity:0.8; transform:scale(1.1); box-shadow:0 0 20px 10px var(--glow-color); } 100% { opacity:0; transform:scale(1.5); box-shadow:0 0 0 0 var(--glow-color); } }
+    .item-glow { position:absolute; width:60px; height:60px; border-radius:50%; pointer-events:none; z-index:55; animation:item-glow 0.7s ease-out forwards; }
+    @keyframes shield-flash { 0% { opacity:0.6; transform:scale(0.8); } 50% { opacity:0.9; transform:scale(1.1); } 100% { opacity:0; transform:scale(1.3); } }
+    .shield-flash { position:absolute; width:100px; height:100px; border:4px solid var(--shield-color,#fff); border-radius:50%; pointer-events:none; z-index:55; animation:shield-flash 0.6s ease-out forwards; }
   </style>
 </head>
 <body>
@@ -411,6 +425,7 @@
       <button class="region-btn" data-region="豐緣" onclick="sfx.click();setRegion('豐緣')" style="flex:1;padding:6px;border-radius:6px;border:2px solid #e74c3c;background:#e74c3c;color:white;font-weight:900;font-size:12px;cursor:pointer;">豐緣</button>
       <button class="region-btn" data-region="神奧" onclick="sfx.click();setRegion('神奧')" style="flex:1;padding:6px;border-radius:6px;border:2px solid #7f8c8d;background:#7f8c8d;color:white;font-weight:900;font-size:12px;cursor:pointer;">神奧</button>
       <button class="region-btn" data-region="合眾" onclick="sfx.click();setRegion('合眾')" style="flex:1;padding:6px;border-radius:6px;border:2px solid #f39c12;background:#f39c12;color:white;font-weight:900;font-size:12px;cursor:pointer;">合眾</button>
+      <button class="region-btn" data-region="卡洛斯" onclick="sfx.click();setRegion('卡洛斯')" style="flex:1;padding:6px;border-radius:6px;border:2px solid #3498db;background:#3498db;color:white;font-weight:900;font-size:12px;cursor:pointer;">卡洛斯</button>
     </div>
     <div class="button-row" style="grid-template-columns:repeat(3,1fr);">
       <button class="nav-btn btn-collection" onclick="sfx.click();openTrophyCabinet()">🏆 獎盃櫃</button>
@@ -1529,7 +1544,7 @@ var EVO_STAGE_MAP = (function(){
   }
   return m;
 })();
-// GYM LEADERS — 16 道館館主資料 (方案 B 步驟 2)
+// GYM LEADERS — 32 道館館主資料 (P5-1)
 var GYM_LEADERS = [
   { region: "關都", badge: 1,  leader: "小剛", type: "岩石",    emoji: "🪨", name: "尼比道館",   waves: 3, lvBonus: 0, desc: "岩石般的基礎計算" },
   { region: "關都", badge: 2,  leader: "小霞", type: "水",      emoji: "💧", name: "華藍道館",   waves: 3, lvBonus: 2, desc: "如水般的靈活應用" },
@@ -1546,10 +1561,26 @@ var GYM_LEADERS = [
   { region: "城都", badge: 13, leader: "阿四", type: "格鬥",    emoji: "🥋", name: "湛藍道館",   waves: 5, lvBonus: 30, desc: "硬碰硬的實力對決" },
   { region: "城都", badge: 14, leader: "小椿", type: "龍",      emoji: "🐉", name: "煙墨道館",   waves: 5, lvBonus: 34, desc: "龍之巔的極限挑戰" },
   { region: "城都", badge: 15, leader: "蜜柑", type: "鋼",      emoji: "⚙️", name: "淺蔥道館",   waves: 5, lvBonus: 39, desc: "鋼鐵般的精密計算" },
-  { region: "城都", badge: 16, leader: "柳伯", type: "冰",      emoji: "❄️", name: "卡吉道館",   waves: 5, lvBonus: 45, desc: "冰封萬物的最終考驗" }
+  { region: "城都", badge: 16, leader: "柳伯", type: "冰",      emoji: "❄️", name: "卡吉道館",   waves: 5, lvBonus: 45, desc: "冰封萬物的最終考驗" },
+  { region: "合眾", badge: 17, leader: "天桐", type: "草",      emoji: "🌿", name: "三曜道館",   waves: 4, lvBonus: 48, desc: "三曜鼎立的智慧考驗" },
+  { region: "合眾", badge: 18, leader: "蘆薈", type: "一般",    emoji: "🐾", name: "七寶道館",   waves: 4, lvBonus: 51, desc: "以不變應萬變的基礎" },
+  { region: "合眾", badge: 19, leader: "亞堤", type: "蟲",      emoji: "🐛", name: "飛雲道館",   waves: 5, lvBonus: 54, desc: "編織知識之網的韌性" },
+  { region: "合眾", badge: 20, leader: "小菊兒", type: "電",    emoji: "⚡", name: "雷文道館",   waves: 5, lvBonus: 58, desc: "閃耀的電流急急棒" },
+  { region: "合眾", badge: 21, leader: "菊老大", type: "地面",  emoji: "🌍", name: "帆巴道館",   waves: 5, lvBonus: 62, desc: "大地深處的嚴峻考驗" },
+  { region: "合眾", badge: 22, leader: "風露", type: "飛行",    emoji: "🦅", name: "吹寄道館",   waves: 5, lvBonus: 66, desc: "乘風破浪的高空對決" },
+  { region: "合眾", badge: 23, leader: "哈奇庫", type: "冰",    emoji: "❄️", name: "雪花道館",   waves: 5, lvBonus: 70, desc: "絕對零度的極限專注" },
+  { region: "合眾", badge: 24, leader: "艾莉絲", type: "龍",    emoji: "🐉", name: "雙龍道館",   waves: 5, lvBonus: 75, desc: "龍之霸主的最終試煉" },
+  { region: "卡洛斯", badge: 25, leader: "紫羅蘭", type: "蟲",  emoji: "🦋", name: "白檀道館",   waves: 4, lvBonus: 55, desc: "觀察入微的蟲之眼" },
+  { region: "卡洛斯", badge: 26, leader: "查克洛", type: "岩石", emoji: "🪨", name: "遙香道館",   waves: 4, lvBonus: 59, desc: "攀上岩壁的毅力" },
+  { region: "卡洛斯", badge: 27, leader: "可爾妮", type: "格鬥", emoji: "🥋", name: "娑羅道館",   waves: 5, lvBonus: 63, desc: "百折不撓的格鬥魂" },
+  { region: "卡洛斯", badge: 28, leader: "福爺", type: "草",    emoji: "🌿", name: "海翼道館",   waves: 5, lvBonus: 67, desc: "扎根知識的茂盛幹勁" },
+  { region: "卡洛斯", badge: 29, leader: "瑪綉", type: "電",    emoji: "⚡", name: "密阿雷道館",   waves: 5, lvBonus: 72, desc: "華麗的電光交響曲" },
+  { region: "卡洛斯", badge: 30, leader: "葛吉花", type: "超能力", emoji: "🔮", name: "香薰道館",   waves: 5, lvBonus: 77, desc: "預知未來的超能占卜" },
+  { region: "卡洛斯", badge: 31, leader: "得撫", type: "惡",    emoji: "😈", name: "百刻道館",   waves: 5, lvBonus: 82, desc: "時間的暗影試煉" },
+  { region: "卡洛斯", badge: 32, leader: "志米", type: "水",    emoji: "💧", name: "映雪道館",   waves: 5, lvBonus: 88, desc: "深不可測的水之巔峰" }
 ];
 
-// ===== P4-2: 多地區聯盟系統 =====
+// ===== P4-2: 多地區聯盟系統 (P5-1 難度階梯化) =====
 var LEAGUE_REGIONS = {
   "關都": {
     eliteFour: [
@@ -1579,7 +1610,7 @@ var LEAGUE_REGIONS = {
       { name: "源治", type: "龍",     emoji: "🐉", lvBonus: 75, desc: "龍系天王 — 滄海老將" }
     ],
     champion: { name: "大吾", type: "鋼", emoji: "👑", lvBonus: 85, desc: "冠軍 — 石之意志" },
-    requiredBadges: 16, order: 2
+    requiredBadges: 20, order: 2
   },
   "神奧": {
     eliteFour: [
@@ -1589,7 +1620,7 @@ var LEAGUE_REGIONS = {
       { name: "菊野", type: "超能力", emoji: "🔮", lvBonus: 80, desc: "超能天王 — 虛空行者" }
     ],
     champion: { name: "竹蘭", type: "混合", emoji: "👑", lvBonus: 90, desc: "冠軍 — 傳承的意志" },
-    requiredBadges: 16, order: 3
+    requiredBadges: 26, order: 3
   },
   "合眾": {
     eliteFour: [
@@ -1599,7 +1630,17 @@ var LEAGUE_REGIONS = {
       { name: "越橘", type: "惡",     emoji: "🌑", lvBonus: 85, desc: "惡系天王 — 闇夜的支配" }
     ],
     champion: { name: "艾莉絲", type: "龍", emoji: "👑", lvBonus: 95, desc: "冠軍 — 龍之少女" },
-    requiredBadges: 16, order: 4
+    requiredBadges: 32, order: 4
+  },
+  "卡洛斯": {
+    eliteFour: [
+      { name: "帕琦拉", type: "火",     emoji: "🔥", lvBonus: 75, desc: "火系天王 — 炙熱的真理" },
+      { name: "志糜",   type: "水",     emoji: "💧", lvBonus: 80, desc: "水系天王 — 奔流的策略" },
+      { name: "朵拉塞娜", type: "龍",   emoji: "🐉", lvBonus: 85, desc: "龍系天王 — 遠古的咆哮" },
+      { name: "雁鎧",   type: "鋼",     emoji: "⚙️", lvBonus: 90, desc: "鋼鐵天王 — 不朽的壁壘" }
+    ],
+    champion: { name: "卡露妮", type: "混合", emoji: "👑", lvBonus: 100, desc: "冠軍 — 優雅與力量的化身" },
+    requiredBadges: 32, order: 5
   }
 };
 var leagueCompletedMonths = {};
@@ -1619,7 +1660,7 @@ var ACHIEVEMENTS = [
   { id: "LEGENDARY", name: "傳說捕手", desc: "捕捉傳說寶可夢", icon: "✨", tier: 2 },
   { id: "EVOLVE", name: "進化大師", desc: "完成一次寶可夢進化", icon: "🔄", tier: 2 },
   { id: "PVP_WIN", name: "宿敵剋星", desc: "PvP 對戰獲勝", icon: "🆚", tier: 2 },
-  { id: "GYM_16", name: "城都冠軍", desc: "收集全部 16 枚徽章", icon: "🏆", tier: 3 },
+  { id: "GYM_32", name: "徽章大師", desc: "收集全部 32 枚徽章", icon: "🏆", tier: 3 },
   { id: "LV_50", name: "大師訓練家", desc: "達到 Lv.50", icon: "👑", tier: 3 },
   { id: "LEAGUE_CHAMP", name: "聯盟王者", desc: "擊敗四天王與冠軍", icon: "🏆", tier: 3 },
   { id: "COLLECTOR_50", name: "大師收藏家", desc: "收集 50 種寶可夢", icon: "💎", tier: 3 },
@@ -1679,8 +1720,8 @@ function getRegionInfo(badges) {
   var list = gymsCache || GYM_LEADERS;
   var total = list.length;
   var badgeSymbols = ["??","??","?","??","??","??","??","??"];
-  var regionNames = ["關都地區","城都地區","豐緣地區","神奧地區","合眾地區"];
-  var regionColors = ["#d35400","#8e44ad","#e74c3c","#7f8c8d","#f39c12"];
+  var regionNames = ["關都地區","城都地區","合眾地區","卡洛斯地區"];
+  var regionColors = ["#d35400","#8e44ad","#f39c12","#3498db"];
   var regionIdx = Math.min(Math.floor(badges / 8), regionNames.length - 1);
   var displayed = badges % 8 || (badges === 0 ? 0 : 8);
   return {
@@ -2226,10 +2267,10 @@ function applyStatusEffect(move, defender) {
   if (eff === "debuff_def") { defender.statStages.def = Math.max(-6, defender.statStages.def - 1); return "⬇️ " + defender.name + " 防禦降低了！"; }
   if (eff === "protect") { defender.protect = true; return "🛡️ " + defender.name + " 使用了守住！"; }
   if (eff === "leech_seed") { defender.leechSeed = true; return "🌱 " + defender.name + " 被寄生種子了！"; }
-  if (eff === "weather_rain") { battleState.weather = { type: "rain", duration: 5 }; if (typeof sfx !== "undefined") sfx.weather(); showLargeText("🌧️ 開始下雨了！", "#3498db"); return "🌧️ 天氣變成下雨了！（持續5回合）"; }
-  if (eff === "weather_sun") { battleState.weather = { type: "sun", duration: 5 }; if (typeof sfx !== "undefined") sfx.weather(); showLargeText("☀️ 大晴天！", "#e67e22"); return "☀️ 天氣變成大晴天了！（持續5回合）"; }
-  if (eff === "weather_sand") { battleState.weather = { type: "sand", duration: 5 }; if (typeof sfx !== "undefined") sfx.weather(); showLargeText("🌪️ 沙暴來了！", "#d4a853"); return "🌪️ 天氣變成沙暴了！（持續5回合）"; }
-  if (eff === "weather_hail") { battleState.weather = { type: "hail", duration: 5 }; if (typeof sfx !== "undefined") sfx.weather(); showLargeText("❄️ 冰雹來了！", "#85c1e9"); return "❄️ 天氣變成冰雹了！（持續5回合）"; }
+  if (eff === "weather_rain") { battleState.weather = { type: "rain", duration: 5 }; if (typeof sfx !== "undefined") sfx.weather(); showLargeText("🌧️ 開始下雨了！", "#3498db"); setTimeout(function(){ spawnWeatherParticles(); }, 300); return "🌧️ 天氣變成下雨了！（持續5回合）"; }
+  if (eff === "weather_sun") { battleState.weather = { type: "sun", duration: 5 }; if (typeof sfx !== "undefined") sfx.weather(); showLargeText("☀️ 大晴天！", "#e67e22"); setTimeout(function(){ spawnWeatherParticles(); }, 300); return "☀️ 天氣變成大晴天了！（持續5回合）"; }
+  if (eff === "weather_sand") { battleState.weather = { type: "sand", duration: 5 }; if (typeof sfx !== "undefined") sfx.weather(); showLargeText("🌪️ 沙暴來了！", "#d4a853"); setTimeout(function(){ spawnWeatherParticles(); }, 300); return "🌪️ 天氣變成沙暴了！（持續5回合）"; }
+  if (eff === "weather_hail") { battleState.weather = { type: "hail", duration: 5 }; if (typeof sfx !== "undefined") sfx.weather(); showLargeText("❄️ 冰雹來了！", "#85c1e9"); setTimeout(function(){ spawnWeatherParticles(); }, 300); return "❄️ 天氣變成冰雹了！（持續5回合）"; }
   return "";
 }
 
@@ -2287,6 +2328,8 @@ function executeTurn(playerAtk, playerDef, enemyAtk, enemyDef, moveName, isPlaye
       attacker.currentHp = Math.max(0, attacker.currentHp - cd);
       log.push("🌵 " + defender.name + " 的「" + defender.abilityName + "」讓攻擊者受到 " + cd + " 傷害！");
       showLargeText("🌵 " + defender.abilityName + "！", "#27ae60");
+      var cdSide = (defender === battleState.enemy) ? "enemy" : "player";
+      spawnAbilityFlare(cdSide + "PkmnName", "#27ae60");
       if (attacker.currentHp <= 0) { attacker.currentHp = 0; result.ko = true; log.push("💀 " + attacker.name + " 倒下了！"); }
     }
     // 夢特性：不屈之心 — 受到克制攻擊時攻擊提升1階
@@ -2305,16 +2348,22 @@ function executeTurn(playerAtk, playerDef, enemyAtk, enemyDef, moveName, isPlaye
       defender.currentHp = 1;
       log.push("🛡️ " + defender.name + " 的「" + defender.abilityName + "」讓他撐住了！");
       showLargeText("🛡️ " + defender.abilityName + " 撐住了！", "#f39c12");
+      var sturdySide = (defender === battleState.enemy) ? "enemy" : "player";
+      spawnShieldFlash(sturdySide + "PkmnName", "#f39c12");
     } else if (defender.dreamAbility && defender.dreamAbility.trigger === "tenacity" && !defender._tenacityUsed && (defender.currentHp + dmgInfo.damage) >= defender.maxHp * 0.99) {
       defender.currentHp = 1;
       defender._tenacityUsed = true;
       log.push("💪 " + defender.name + " 的「" + defender.dreamAbilityName + "」讓它撐住了！");
       showLargeText("💪 頑強！", "#27ae60");
+      var tenSide = (defender === battleState.enemy) ? "enemy" : "player";
+      spawnShieldFlash(tenSide + "PkmnName", "#27ae60");
     } else if (sashActive) {
       defender.currentHp = 1;
       defender.heldItem = "";
       log.push("🎗️ " + defender.name + " 的氣勢披帶讓它撐住了！（已消耗）");
       showLargeText("🎗️ 氣勢披帶！", "#e74c3c");
+      var sashSide = (defender === battleState.enemy) ? "enemy" : "player";
+      spawnShieldFlash(sashSide + "PkmnName", "#e74c3c");
     } else {
       defender.currentHp = 0;
       result.ko = true;
@@ -2519,6 +2568,34 @@ function animateWeatherUpdate() {
   }
 }
 
+function spawnWeatherParticles(container) {
+  var c = container || document.querySelector("#battleModal .modal-content");
+  if (!c || !battleState || !battleState.weather) return;
+  var wt = battleState.weather.type;
+  var typeClass = "weather-" + wt + "-particle";
+  var count = wt === "sun" ? 2 : 6;
+  for (var wi = 0; wi < count; wi++) {
+    (function(idx) {
+      setTimeout(function() {
+        if (!battleState || !battleState.weather || battleState.weather.type !== wt) return;
+        var p = document.createElement("div");
+        p.className = typeClass;
+        p.style.left = (10 + Math.random() * 80) + "%";
+        p.style.top = (Math.random() * 20) + "%";
+        if (wt === "sun") {
+          p.style.left = (10 + Math.random() * 60) + "%";
+          p.style.top = (10 + Math.random() * 60) + "%";
+        }
+        if (wt === "sand") {
+          p.style.top = (10 + Math.random() * 70) + "%";
+        }
+        c.appendChild(p);
+        setTimeout(function() { if (p.parentNode) p.remove(); }, wt === "snow" ? 1500 : 1000);
+      }, idx * (wt === "sun" ? 400 : 120));
+    })(wi);
+  }
+}
+
 function animateStatusPop(side) {
   var el = $(side === "enemy" ? "enemyStatus" : "playerStatus");
   if (!el || !el.innerHTML) return;
@@ -2546,6 +2623,54 @@ function spawnEffectivenessEffect(effectiveness, center, typeColor) {
       spawnParticles(rx, ry, 4, "#666");
     }
   }
+}
+
+function spawnAbilityFlare(elementId, color) {
+  var el = $(elementId);
+  if (!el) return;
+  var rect = el.getBoundingClientRect();
+  var modal = document.querySelector("#battleModal .modal-content");
+  if (!modal) return;
+  var modalRect = modal.getBoundingClientRect();
+  var flare = document.createElement("div");
+  flare.className = "ability-flare";
+  flare.style.setProperty("--flare-color", color || "#fff");
+  flare.style.left = (rect.left - modalRect.left + rect.width / 2 - 40) + "px";
+  flare.style.top = (rect.top - modalRect.top + rect.height / 2 - 40) + "px";
+  modal.appendChild(flare);
+  setTimeout(function(){ if (flare.parentNode) flare.remove(); }, 800);
+}
+
+function spawnItemGlow(elementId, color) {
+  var el = $(elementId);
+  if (!el) return;
+  var rect = el.getBoundingClientRect();
+  var modal = document.querySelector("#battleModal .modal-content");
+  if (!modal) return;
+  var modalRect = modal.getBoundingClientRect();
+  var glow = document.createElement("div");
+  glow.className = "item-glow";
+  glow.style.setProperty("--glow-color", color || "#fff");
+  glow.style.left = (rect.left - modalRect.left + rect.width / 2 - 30) + "px";
+  glow.style.top = (rect.top - modalRect.top + rect.height / 2 - 30) + "px";
+  modal.appendChild(glow);
+  setTimeout(function(){ if (glow.parentNode) glow.remove(); }, 700);
+}
+
+function spawnShieldFlash(elementId, color) {
+  var el = $(elementId);
+  if (!el) return;
+  var rect = el.getBoundingClientRect();
+  var modal = document.querySelector("#battleModal .modal-content");
+  if (!modal) return;
+  var modalRect = modal.getBoundingClientRect();
+  var shield = document.createElement("div");
+  shield.className = "shield-flash";
+  shield.style.setProperty("--shield-color", color || "#fff");
+  shield.style.left = (rect.left - modalRect.left + rect.width / 2 - 50) + "px";
+  shield.style.top = (rect.top - modalRect.top + rect.height / 2 - 50) + "px";
+  modal.appendChild(shield);
+  setTimeout(function(){ if (shield.parentNode) shield.remove(); }, 600);
 }
 
 function screenShake() {
@@ -2605,7 +2730,10 @@ function performAttack(moveName, isPlayer) {
     else if (result.effectiveness > 1) { showLargeText("💥 效果絕佳！", typeColor); spawnEffectivenessEffect(2, center, typeColor); }
     else if (result.effectiveness > 0 && result.effectiveness < 1) showLargeText("⚠️ 效果不好...", "#999");
     else if (result.effectiveness === 0) { showLargeText("🚫 沒有效果！", "#666"); spawnEffectivenessEffect(0, center, typeColor); }
-    if (result.hpBoosted && pAtk.abilityName) showLargeText("🔥 " + pAtk.abilityName + " 發動！", "#e74c3c");
+    if (result.hpBoosted && pAtk.abilityName) {
+      showLargeText("🔥 " + pAtk.abilityName + " 發動！", "#e74c3c");
+      spawnAbilityFlare(attSide + "PkmnName", "#e74c3c");
+    }
     // 攜帶道具效果：貝殼之鈴（回復傷害12.5%HP）
     if (isPlayer && pAtk.heldItem === "shellBell" && globalData && globalData.hasShellBell) {
       var shellHeal = Math.max(1, Math.floor(result.dmg * 0.125));
@@ -2613,6 +2741,7 @@ function performAttack(moveName, isPlayer) {
       log.push("🔔 貝殼之鈴回復了 " + shellHeal + " HP！");
       renderBattleLog(log);
       animateHpBar("playerHpBar", "playerHpText", pAtk.currentHp, pAtk.maxHp);
+      spawnItemGlow("playerPkmnName", "#2ecc71");
     }
     // 攜帶道具效果：生命寶珠（反彈10%最大HP）
     if (isPlayer && pAtk.heldItem === "lifeOrb" && globalData && globalData.hasLifeOrb) {
@@ -2621,6 +2750,7 @@ function performAttack(moveName, isPlayer) {
       log.push("🔴 生命寶珠反噬 " + orbDmg + " HP！");
       renderBattleLog(log);
       animateHpBar("playerHpBar", "playerHpText", pAtk.currentHp, pAtk.maxHp);
+      spawnItemGlow("playerPkmnName", "#e74c3c");
       if (pAtk.currentHp <= 0) {
         pAtk.currentHp = 0;
         log.push("💀 " + pAtk.name + " 被生命寶珠反噬倒下了！");
@@ -2673,6 +2803,7 @@ function performAttack(moveName, isPlayer) {
     quickClawFlinch = true;
     log.push("🔪 先制之爪讓 " + battleState.enemy.name + " 畏縮了！");
     renderBattleLog(log);
+    spawnItemGlow("playerPkmnName", "#f39c12");
   }
 
   processBurnAndLeech(battleState.playerPokemon, battleState.enemy, log);
@@ -2716,12 +2847,14 @@ function performAttack(moveName, isPlayer) {
         else if (eResult.effectiveness > 1) { showLargeText("💥 效果絕佳！", eTypeColor); spawnEffectivenessEffect(2, pCenter, eTypeColor); }
         else if (eResult.effectiveness > 0 && eResult.effectiveness < 1) showLargeText("⚠️ 效果不好...", "#999");
         else if (eResult.effectiveness === 0) { showLargeText("🚫 沒有效果！", "#666"); spawnEffectivenessEffect(0, pCenter, eTypeColor); }
+        if (eResult.hpBoosted && battleState.enemy.abilityName) { showLargeText("🔥 " + battleState.enemy.abilityName + " 發動！", "#e74c3c"); spawnAbilityFlare("enemyPkmnName", "#e74c3c"); }
         // 凸凸頭盔: 物理攻擊反傷
         if (battleState.playerPokemon.heldItem === "rockyHelmet" && eMoveDetails.category === "物理" && battleState.enemy.currentHp > 0) {
           var helmetDmg = Math.max(1, Math.floor(battleState.enemy.maxHp / 6));
           battleState.enemy.currentHp = Math.max(0, battleState.enemy.currentHp - helmetDmg);
           eLog.push("⛑️ 凸凸頭盔反傷 " + helmetDmg + " HP！");
           renderBattleLog(eLog);
+          spawnShieldFlash("enemyPkmnName", "#95a5a6");
           if (battleState.enemy.currentHp <= 0) {
             battleState.enemy.currentHp = 0;
             eLog.push("💀 " + battleState.enemy.name + " 被反傷倒下了！");
@@ -2738,6 +2871,7 @@ function performAttack(moveName, isPlayer) {
           battleState.playerPokemon.statStages.spatk = Math.min(6, (battleState.playerPokemon.statStages.spatk||0) + 2);
           eLog.push("📋 弱點保險發動！" + battleState.playerPokemon.name + " 雙攻大幅提升！（已消耗）");
           showLargeText("📋 弱點保險！", "#e74c3c");
+          spawnItemGlow("playerPkmnName", "#f1c40f");
           renderBattleLog(eLog);
         }
         // 逃脱按鈕: 受到攻擊後強制換怪
@@ -2753,6 +2887,7 @@ function performAttack(moveName, isPlayer) {
             battleState.playerPokemon = nextAlly3;
             eLog.push("🔄 換上 " + nextAlly3.name + "！");
             showLargeText("🔘 逃脱按鈕！", "#3498db");
+            spawnItemGlow("playerPkmnName", "#3498db");
             renderBattleLog(eLog);
           }
         }
@@ -2845,6 +2980,7 @@ function processWeatherDecay(log) {
     updateArenaUI();
   } else {
     animateWeatherUpdate();
+    spawnWeatherParticles();
   }
 }
 
@@ -3103,23 +3239,29 @@ function applyEntryAbility(enemy, playerFirst, battleStateRef, log) {
     battleStateRef.playerPokemon.statStages.atk = Math.max(-6, (battleStateRef.playerPokemon.statStages.atk||0) - 1);
     log.push("👹 " + enemy.abilityName + "：我方攻擊下降！");
     showLargeText("👹 " + enemy.abilityName + "！", "#e74c3c");
+    spawnAbilityFlare("enemyPkmnName", "#e74c3c");
   } else if (enemy.ability && enemy.ability.trigger === "weatherEntry" && !battleStateRef.weather) {
     var wTypes = {sun:"☀️ 大晴天",rain:"🌧️ 下雨",sand:"🌪️ 沙暴",hail:"❄️ 冰雹"};
     battleStateRef.weather = { type: enemy.ability.weather, duration: 5 };
     log.push(wTypes[enemy.ability.weather] + " 籠罩了戰場！（持續5回合）");
     if (typeof sfx !== "undefined") sfx.weather();
     showLargeText(wTypes[enemy.ability.weather], "#f39c12");
+    spawnAbilityFlare("enemyPkmnName", "#f39c12");
+    setTimeout(function(){ spawnWeatherParticles(); }, 500);
   }
   if (playerFirst.ability && playerFirst.ability.trigger === "intimidate" && battleStateRef.enemy) {
     battleStateRef.enemy.statStages.atk = Math.max(-6, (battleStateRef.enemy.statStages.atk||0) - 1);
     log.push("👤 " + playerFirst.abilityName + "：敵方攻擊下降！");
     showLargeText("👤 " + playerFirst.abilityName + "！", "#e74c3c");
+    spawnAbilityFlare("playerPkmnName", "#e74c3c");
   } else if (playerFirst.ability && playerFirst.ability.trigger === "weatherEntry" && !battleStateRef.weather) {
     var wTypes2 = {sun:"☀️ 大晴天",rain:"🌧️ 下雨",sand:"🌪️ 沙暴",hail:"❄️ 冰雹"};
     battleStateRef.weather = { type: playerFirst.ability.weather, duration: 5 };
     log.push(wTypes2[playerFirst.ability.weather] + " 籠罩了戰場！（持續5回合）");
     if (typeof sfx !== "undefined") sfx.weather();
     showLargeText(wTypes2[playerFirst.ability.weather], "#f39c12");
+    spawnAbilityFlare("playerPkmnName", "#f39c12");
+    setTimeout(function(){ spawnWeatherParticles(); }, 500);
   }
   // 夢特性：精神力 — 出場時雙攻雙防提升1階
   if (enemy.dreamAbility && enemy.dreamAbility.trigger === "entryStatBuff" && battleStateRef.enemy) {
@@ -3129,6 +3271,7 @@ function applyEntryAbility(enemy, playerFirst, battleStateRef, log) {
     battleStateRef.enemy.statStages.spdef = Math.min(6, (battleStateRef.enemy.statStages.spdef||0) + 1);
     log.push("🧠 " + enemy.name + " 的「" + enemy.dreamAbilityName + "」讓能力提升了！");
     showLargeText("🧠 " + enemy.dreamAbilityName + "！", "#8e44ad");
+    spawnAbilityFlare("enemyPkmnName", "#8e44ad");
   }
   if (playerFirst.dreamAbility && playerFirst.dreamAbility.trigger === "entryStatBuff" && battleStateRef.playerPokemon) {
     battleStateRef.playerPokemon.statStages.atk = Math.min(6, (battleStateRef.playerPokemon.statStages.atk||0) + 1);
@@ -3137,6 +3280,7 @@ function applyEntryAbility(enemy, playerFirst, battleStateRef, log) {
     battleStateRef.playerPokemon.statStages.spdef = Math.min(6, (battleStateRef.playerPokemon.statStages.spdef||0) + 1);
     log.push("🧠 " + playerFirst.name + " 的「" + playerFirst.dreamAbilityName + "」讓能力提升了！");
     showLargeText("🧠 " + playerFirst.dreamAbilityName + "！", "#8e44ad");
+    spawnAbilityFlare("playerPkmnName", "#8e44ad");
   }
 }
 function openArenaWithWaves(waveEnemies, gymInfo) {
@@ -4815,7 +4959,7 @@ function checkAchievement(ach, gd, events) {
     case "LEGENDARY": return hasLegendary(gd.roster || []);
     case "EVOLVE": return hasEvolved(events || []);
     case "PVP_WIN": return hasPvPWin(events || []);
-    case "GYM_16": return badges >= 16;
+    case "GYM_32": return badges >= 32;
     case "LV_50": return level >= 50;
     case "LEAGUE_CHAMP": return (gd.monthLeagueWins || 0) >= 1;
     case "COLLECTOR_50": return species >= 50;
