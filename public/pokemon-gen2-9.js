@@ -780,8 +780,8 @@ for (var _gt in POKEMON_TIERS) {
   }
 }
 // Region helpers (global)
-window.REGION_GENS = { "關都":[1], "城都":[2], "豐緣":[3], "神奧":[4], "合眾":[5,6,7,8,9] };
-window.REGION_NAMES = ["關都","城都","豐緣","神奧","合眾"];
+window.REGION_GENS = { "關都":[1], "城都":[2], "豐緣":[3], "神奧":[4], "合眾":[5,6,7,8,9], "卡洛斯":[6] };
+window.REGION_NAMES = ["關都","城都","豐緣","神奧","合眾","卡洛斯"];
 window.getRegionPool = function(region) {
   var gens = window.REGION_GENS[region] || [1];
   var pool = [];

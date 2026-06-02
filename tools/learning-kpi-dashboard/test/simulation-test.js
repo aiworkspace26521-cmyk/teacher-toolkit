@@ -420,7 +420,7 @@ const GYM_LEADERS = [
   { region: "城都", badge: 13, leader: "阿四", type: "格鬥",    emoji: "🥋", name: "湛藍道館",   waves: 5, lvBonus: 30, desc: "硬碰硬的實力對決" },
   { region: "城都", badge: 14, leader: "小椿", type: "龍",      emoji: "🐉", name: "煙墨道館",   waves: 5, lvBonus: 32, desc: "龍之巔的極限挑戰" },
   { region: "城都", badge: 15, leader: "蜜柑", type: "鋼",      emoji: "⚙️", name: "淺蔥道館",   waves: 5, lvBonus: 36, desc: "鋼鐵般的精密計算" },
-  { region: "城都", badge: 16, leader: "柳伯", type: "冰",      emoji: "❄️", name: "卡吉道館",   waves: 5, lvBonus: 42, desc: "冰封萬物的最終考驗" },
+  { region: "城都", badge: 16, leader: "柳伯", type: "冰",      emoji: "❄️", name: "卡吉道館",   waves: 5, lvBonus: 38, desc: "冰封萬物的最終考驗" },
   { region: "合眾", badge: 17, leader: "天桐", type: "草",      emoji: "🌿", name: "三曜道館",   waves: 4, lvBonus: 48, desc: "三曜鼎立的智慧考驗" },
   { region: "合眾", badge: 18, leader: "蘆薈", type: "一般",    emoji: "🐾", name: "七寶道館",   waves: 4, lvBonus: 51, desc: "以不變應萬變的基礎" },
   { region: "合眾", badge: 19, leader: "亞堤", type: "蟲",      emoji: "🐛", name: "飛雲道館",   waves: 5, lvBonus: 54, desc: "編織知識之網的韌性" },

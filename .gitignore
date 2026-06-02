@@ -14,3 +14,19 @@ credentials.*
 # Node.js
 node_modules/
 package-lock.json
+
+# Firebase 快取
+.firebase/
+
+# Playwright + test
+.playwright-mcp/
+test-results/
+
+# Debug logs + screenshots
+console-errors*.txt
+console-errors*.log
+*.png
+
+# Playwright snapshots
+kpi-*.yml
+page-*.yml
