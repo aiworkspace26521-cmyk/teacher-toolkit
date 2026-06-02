@@ -11,7 +11,18 @@ concurrency:
   group: pages
   cancel-in-progress: true
 jobs:
+  test:
+    name: Simulation Test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - name: Run simulation test
+        run: node tools/learning-kpi-dashboard/test/simulation-test.js
   deploy:
+    needs: test
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}

@@ -1,0 +1,28 @@
+{
+  "name": "teacher-toolkit",
+  "version": "1.0.0",
+  "description": "我的班級工具總專案 — 老師建專案工作模式。",
+  "main": "index.js",
+  "scripts": {
+    "test": "node tools/learning-kpi-dashboard/test/simulation-test.js",
+    "test:e2e": "npx playwright test",
+    "test:sim": "node tools/learning-kpi-dashboard/test/simulation-test.js",
+    "lint": "npx eslint public/kpi-dashboard.html"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/aiworkspace26521-cmyk/teacher-toolkit.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/aiworkspace26521-cmyk/teacher-toolkit/issues"
+  },
+  "homepage": "https://github.com/aiworkspace26521-cmyk/teacher-toolkit#readme",
+  "devDependencies": {
+    "@playwright/test": "^1.60.0",
+    "playwright": "^1.60.0"
+  }
+}
