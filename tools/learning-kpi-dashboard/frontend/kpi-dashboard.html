@@ -2036,10 +2036,10 @@ function getMatchupInfo(atkType, defTypes) {
     if (TYPE_CHART[atkType] && TYPE_CHART[atkType][t] !== undefined) total *= TYPE_CHART[atkType][t];
   }
   var label = "", mult = 1;
-  if (total >= 2) { label = "?? Ч���^�ѣ�"; mult = total; }
-  else if (total <= 0) { label = "?? �]��Ч����"; mult = 0; }
-  else if (total <= 0.5) { label = "?? Ч������..."; mult = total; }
-  else { label = "��ͨ"; mult = 1; }
+  if (total >= 2) { label = "效果絕佳！"; mult = total; }
+  else if (total <= 0) { label = "沒有效果..."; mult = 0; }
+  else if (total <= 0.5) { label = "效果不好..."; mult = total; }
+  else { label = "普通"; mult = 1; }
   return { text: label, multiplier: mult };
 }
 var ARENA_EXP_BASE = 80, BATTLE_MAP = {}, battleState = null;
@@ -2056,7 +2056,7 @@ function generateEnemy(trainerLevel, isGym, isLeague, regionOpt) {
   var pool = POKEMON_TIERS[tier];
   if (typeof window.getRegionPool === "function" && regionOpt) {
     var rPool = window.getRegionPool(regionOpt).filter(function(e){
-      return POKEMON_TIERS[tier].indexOf(e) !== -1;
+      return POKEMON_TIERS[tier].some(function(p){ return p.name === e; });
     });
     if (rPool.length > 0) pool = rPool;
   }
@@ -2380,11 +2380,11 @@ function faintAnimation(id, callback) {
 
 function getTypeColor(type) {
   var colors = {
-    "һ��":"#A8A878","��":"#F08030","ˮ":"#6890F0","��":"#78C850",
-    "�":"#F8D030","��":"#98D8D8","���Y":"#C03028","��":"#A040A0",
-    "����":"#E0C068","�w��":"#A890F0","����":"#F85888","�x":"#A8B820",
-    "��ʯ":"#B8A038","���":"#705898","��":"#7038F8","�":"#B8B8D0",
-    "����":"#EE99AC","��":"#705848"
+    "一般":"#A8A878","火":"#F08030","水":"#6890F0","草":"#78C850",
+    "電":"#F8D030","冰":"#98D8D8","格鬥":"#C03028","毒":"#A040A0",
+    "地面":"#E0C068","飛行":"#A890F0","超能力":"#F85888","蟲":"#A8B820",
+    "岩石":"#B8A038","幽靈":"#705898","龍":"#7038F8","鋼":"#B8B8D0",
+    "妖精":"#EE99AC","惡":"#705848"
   };
   if (Array.isArray(type)) type = type[0];
   else if (type.indexOf("/") !== -1) type = type.split("/")[0].trim();
@@ -3895,8 +3895,7 @@ function updateDashboard() {
       if (h > 0) {
         var fullHearts = Math.min(5, Math.floor(h / 40));
         for (var hi = 0; hi < fullHearts; hi++) hearts += "\u2764\uFE0F";
-        for (var hi2 = fullHearts; hi2 < 5; hi2++) hearts += "\u2764\uFE0F";
-        if (fullHearts < 5) hearts = hearts.slice(0, fullHearts * 2) + "\u2764\uFE0F";
+        for (var hi2 = fullHearts; hi2 < 5; hi2++) hearts += "\u{1F90D}";
         hearts = " <span style=\"font-size:11px;\">" + hearts + "</span>";
       }
       // 進化按鈕

@@ -23,7 +23,7 @@ exports.getStudentData = onCall(async (request) => {
     if (!state) {
       return { studentId, level: 5, coins: 0, badges: 0, roster: [], highestLevel: 5, lockedGymLevel: 5 };
     }
-    await db.collection('kpi_students').doc(studentId).set(state);
+    await db.collection('kpi_students').doc(studentId).set(state, { merge: true });
     logger.info(`Recalculated state for ${studentId}`);
     return { ...state, cached: false };
   } catch (e) {
@@ -64,7 +64,7 @@ exports.onKpiEventWritten = onDocumentWritten('kpi_events/{eventId}', async (eve
   try {
     const state = await kpi.recalculateStudentState(studentId);
     if (state) {
-      await db.collection('kpi_students').doc(studentId).set(state);
+      await db.collection('kpi_students').doc(studentId).set(state, { merge: true });
       logger.info(`State updated for ${studentId} after event ${event.params.eventId}`);
     }
   } catch (e) {
