@@ -790,6 +790,11 @@ function recalculateState(studentId, events) {
     if (rowBadges > 0) state.lastBadgeTime = rowDate.getTime();
     state.coins += rowCoins;
 
+    if (!state.submitDates) state.submitDates = {};
+    if (!['商城兌換', '戰鬥消耗', '物品消耗', 'E', '系統測試', 'trade', '道具裝備'].includes(rowAction)) {
+      state.submitDates[rowDate.toDateString()] = true;
+    }
+
     if (rowDate.toDateString() === todayStr &&
         !['商城兌換', '戰鬥消耗', '物品消耗', 'E', '戰鬥勝利', '系統測試', 'trade', 'PvP'].includes(rowAction)) {
       state.todayCompleted = true;
@@ -944,6 +949,11 @@ function recalculateState(studentId, events) {
   state.daysSinceLastBadge = state.lastBadgeTime
     ? (dNow.getTime() - state.lastBadgeTime) / 86400000
     : (state.firstLogTime ? (dNow.getTime() - state.firstLogTime) / 86400000 : 0);
+
+  // MIN 補償：長期提交但少戰鬥的玩家自動獲得徽章
+  const totalSubmitDays = state.submitDates ? Object.keys(state.submitDates).length : 0;
+  if (totalSubmitDays >= 60) state.badges += 5;
+  else if (totalSubmitDays >= 30) state.badges += 2;
 
   const rosterArray = [];
   let finalHighestLevel = 5;

@@ -326,6 +326,7 @@
     .item-glow { position:absolute; width:60px; height:60px; border-radius:50%; pointer-events:none; z-index:55; animation:item-glow 0.7s ease-out forwards; }
     @keyframes shield-flash { 0% { opacity:0.6; transform:scale(0.8); } 50% { opacity:0.9; transform:scale(1.1); } 100% { opacity:0; transform:scale(1.3); } }
     .shield-flash { position:absolute; width:100px; height:100px; border:4px solid var(--shield-color,#fff); border-radius:50%; pointer-events:none; z-index:55; animation:shield-flash 0.6s ease-out forwards; }
+    @keyframes screen-shake { 0%,100% { transform:translateX(0); } 25% { transform:translateX(-3px); } 75% { transform:translateX(3px); } }
   </style>
 </head>
 <body>
@@ -861,6 +862,10 @@ async function recalculateStudentState(studentId, events) {
     if (sortedDates[si] === expected.toDateString()) submitStreak++;
     else break;
   }
+  // MIN 補償：長期提交但少戰鬥的玩家自動獲得徽章
+  var totalSubmitDays = Object.keys(submitDates).length;
+  if (totalSubmitDays >= 60) state.badges += 5;
+  else if (totalSubmitDays >= 30) state.badges += 2;
   return { studentId: state.studentId, highestLevel: finalHighestLevel, lockedGymLevel: state.lockedGymLevel, coins: state.coins, badges: state.badges, potions: state.potions, revives: state.revives, candies: state.candies, maxPotions: state.maxPotions, maxRevives: state.maxRevives, expSharePurchased: state.expSharePurchased, hasExpertBelt: state.hasExpertBelt, hasEviolite: state.hasEviolite, hasChampionCloak: state.hasChampionCloak, hasAmuletCoin: state.hasAmuletCoin, hasQuickClaw: state.hasQuickClaw, hasFocusLens: state.hasFocusLens, hasShellBell: state.hasShellBell, hasLifeOrb: state.hasLifeOrb, hasAssaultVest: state.hasAssaultVest, oranBerries: state.oranBerries||0, cheriBerries: state.cheriBerries||0, lumBerries: state.lumBerries||0, chilanBerries: state.chilanBerries||0, hasFocusSash: state.hasFocusSash||false, hasEjectButton: state.hasEjectButton||false, hasRockyHelmet: state.hasRockyHelmet||false, hasWeaknessPolicy: state.hasWeaknessPolicy||false, tms: state.tms||{}, todayCompleted: state.todayCompleted, daysSinceLastBadge: state.daysSinceLastBadge, roster: rosterArray, todayBattles: state.todayBattles, weekGymWins: state.weekGymWins, monthLeagueWins: state.monthLeagueWins, submitStreak: submitStreak, simpleMode: state.simpleMode || false };
 }
 
@@ -1025,7 +1030,8 @@ var MOVE_DATABASE = {
   "暴風雪": { power: 110, type: "冰",    category: "特殊", desc: "可能凍結對手", effect: "freeze" },
   "大字爆": { power: 110, type: "火",    category: "特殊", desc: "可能燒傷對手", effect: "burn" },
   "水炮":   { power: 110, type: "水",    category: "特殊", desc: "向對手發射強力水柱" },
-  "日光束": { power: 120, type: "草",    category: "特殊", desc: "吸收陽光後攻擊" },
+  "日光束": { power: 120, type: "草",    category: "特殊", desc: "吸收陽光後攻擊", charge: true },
+  "日光刃": { power: 125, type: "草",    category: "物理", desc: "日光凝聚之刃", charge: true },
   "地震":   { power: 100, type: "地面",  category: "物理", desc: "引發地震攻擊" },
   "岩石封鎖": { power: 60, type: "岩石", category: "物理", desc: "降低對手速度" },
   "毒擊":   { power: 80,  type: "毒",    category: "物理", desc: "可能中毒對手", effect: "poison" },
@@ -1206,7 +1212,7 @@ var MOVE_DATABASE = {
 var TYPE_MOVE_POOL = {
   "水":   ["撞擊","祈雨","水之波動","衝浪","水炮"],
   "火":   ["火花","大晴天","噴射火焰","大字爆炎","大字爆"],
-  "草":   ["藤鞭","飛葉快刀","種子炸彈","能量球","日光束"],
+  "草":   ["藤鞭","飛葉快刀","種子炸彈","能量球","日光束","日光刃"],
   "電":   ["電擊","電光一閃","雷電拳","十萬伏特","打雷"],
   "飛行": ["起風","翅膀攻擊","鑽啄","颱風","勇鳥猛攻"],
   "一般": ["撞擊","電光一閃","摔打","巨聲","破壞光線"],
@@ -2103,20 +2109,24 @@ function generateEnemy(trainerLevel, isGym, isLeague, regionOpt) {
   else if (roll < 0.25) { tier = "稀有"; levelBonus = Math.floor(trainerLevel * 0.2); }
 
   if (POKEMON_TIERS[tier].length === 0) tier = "一般";
+  var REGION_LVBONUS = { "關都":-5, "城都":0, "合眾":5, "卡洛斯":10, "豐緣":5, "神奧":3 };
+  var regionAdj = REGION_LVBONUS[regionOpt] || 0;
   var pool = POKEMON_TIERS[tier];
   if (typeof window.getRegionPool === "function" && regionOpt) {
     var rPool = window.getRegionPool(regionOpt).filter(function(e){
-      return POKEMON_TIERS[tier].some(function(p){ return p.name === e; });
+      return POKEMON_TIERS[tier].some(function(p){ return p.name === e.name; });
     });
     if (rPool.length > 0) pool = rPool;
   }
   var species = pool[Math.floor(Math.random() * pool.length)];
-  var baseLevel = Math.max(5, trainerLevel + levelBonus + Math.floor(Math.random() * 3));
+  var baseLevel = Math.max(5, trainerLevel + levelBonus + regionAdj + Math.floor(Math.random() * 3));
   var evoName = getEvolvedName(species, baseLevel);
   var speciesTypes = POKEMON_SPECIES_TYPES[evoName] || ["一般"];
   var pt = speciesTypes.join("/");
   var finalName = (species.legendary ? "✨ " : "⭐ ") + evoName + " (" + pt + ")";
-  return createEnemyPokemon(finalName, baseLevel, isGym, isLeague);
+  var enemy = createEnemyPokemon(finalName, baseLevel, isGym, isLeague);
+  enemy.region = regionOpt || "關都";
+  return enemy;
 }
 
 function createEnemyPokemon(name, level, isGym, isLeague) {
@@ -2210,6 +2220,10 @@ function calculateMovePower(move, attacker, defender, isPlayerAttacker) {
       if (details.type === "岩石") baseDamage = Math.floor(baseDamage * 1.5);
     } else if (wt === "hail") {
       if (details.type === "冰") baseDamage = Math.floor(baseDamage * 1.5);
+    }
+    if (details.charge) {
+      if (wt === "sun") baseDamage = Math.floor(baseDamage * 1.5);
+      else if (wt === "rain") baseDamage = Math.floor(baseDamage * 0.5);
     }
   }
   baseDamage = Math.max(1, baseDamage);
@@ -2578,7 +2592,7 @@ function spawnWeatherParticles(container) {
   if (!c || !battleState || !battleState.weather) return;
   var wt = battleState.weather.type;
   var typeClass = "weather-" + wt + "-particle";
-  var count = wt === "sun" ? 2 : 6;
+  var count = wt === "sun" ? 3 : (wt === "sand" ? 10 : (wt === "rain" ? 12 : 6));
   for (var wi = 0; wi < count; wi++) {
     (function(idx) {
       setTimeout(function() {
@@ -2593,11 +2607,22 @@ function spawnWeatherParticles(container) {
         }
         if (wt === "sand") {
           p.style.top = (10 + Math.random() * 70) + "%";
+          p.style.width = (4 + Math.random() * 4) + "px";
+        }
+        if (wt === "rain") {
+          p.style.height = (12 + Math.random() * 8) + "px";
         }
         c.appendChild(p);
         setTimeout(function() { if (p.parentNode) p.remove(); }, wt === "snow" ? 1500 : 1000);
-      }, idx * (wt === "sun" ? 400 : 120));
+      }, idx * (wt === "sun" ? 400 : 80));
     })(wi);
+  }
+  // 大雨螢幕震動
+  if (wt === "rain" && c) {
+    c.style.animation = "none";
+    void c.offsetWidth;
+    c.style.animation = "screen-shake 0.3s ease-in-out";
+    setTimeout(function(){ if (c) c.style.animation = ""; }, 300);
   }
 }
 
@@ -2727,6 +2752,10 @@ function performAttack(moveName, isPlayer) {
       spawnHitRing(center.x, center.y, typeColor);
       spawnCategoryParticles(center.x, center.y, typeColor, moveCategory);
     }
+    // 晴天下火系招式火焰殘影
+    if (battleState && battleState.weather && battleState.weather.type === "sun" && moveDetails.type === "火") {
+      for (var fi = 0; fi < 3; fi++) { (function(fi2){ setTimeout(function(){ spawnAbilityFlare(defSide + "PkmnName", "#e74c3c"); }, fi2 * 80); })(fi); }
+    }
   }
   if (result.dmg > 0) {
     var defHp = isPlayer ? battleState.enemy : battleState.playerPokemon;
@@ -2844,6 +2873,10 @@ function performAttack(moveName, isPlayer) {
           spawnParticles(pCenter.x, pCenter.y, 8, eTypeColor);
           spawnHitRing(pCenter.x, pCenter.y, eTypeColor);
           spawnCategoryParticles(pCenter.x, pCenter.y, eTypeColor, eMoveDetails.category);
+        }
+        // 晴天下火系招式火焰殘影
+        if (battleState && battleState.weather && battleState.weather.type === "sun" && eMoveDetails.type === "火") {
+          for (var ei = 0; ei < 3; ei++) { (function(ei2){ setTimeout(function(){ spawnAbilityFlare("playerPkmnName", "#e74c3c"); }, ei2 * 80); })(ei); }
         }
       }
       if (eResult.dmg > 0) {
@@ -3415,7 +3448,8 @@ function openArena(enemy) {
   $("arenaItemPanel").style.display = "none";
   $("resultMessage").style.display = "none";
   var simpleTag = globalData && globalData.simpleMode ? " 🌱" : "";
-  $("battleTitle").innerHTML = (enemy.isGym ? "🏛️ 道館挑戰" : enemy.isLeague ? "🏆 聯盟大會" : enemy.isWeeklyBoss ? "👑 魔王戰" : "⚔️ 路人戰") + simpleTag + " vs " + enemy.name + " Lv." + enemy.level;
+  var regionTag = (!enemy.isGym && !enemy.isLeague && enemy.region) ? " [" + enemy.region + "]" : "";
+  $("battleTitle").innerHTML = (enemy.isGym ? "🏛️ 道館挑戰" : enemy.isLeague ? "🏆 聯盟大會" : enemy.isWeeklyBoss ? "👑 魔王戰" : "⚔️ 路人戰") + regionTag + simpleTag + " vs " + enemy.name + " Lv." + enemy.level;
   updateArenaUI();
   var enemyBox = $("enemyPkmnName");
   if (enemyBox) { enemyBox.classList.remove("entry-animation"); void enemyBox.offsetWidth; enemyBox.classList.add("entry-animation"); }
