@@ -43,3 +43,21 @@ jobs:
         run: npx playwright test
         env:
           BASE_URL: 'https://opencodefirebase.web.app'
+
+  firestore-lint:
+    name: Firestore Rules & Indexes Lint
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Validate firestore.rules syntax
+        run: |
+          FILE="tools/learning-kpi-dashboard/firestore/firestore.rules"
+          if [ ! -f "$FILE" ]; then echo "❌ $FILE not found"; exit 1; fi
+          if ! grep -q "service cloud.firestore" "$FILE"; then echo "❌ firestore.rules missing service header"; exit 1; fi
+          if ! grep -q "match /databases/{database}/documents" "$FILE"; then echo "❌ firestore.rules missing database match"; exit 1; fi
+          echo "✅ firestore.rules structure OK"
+      - name: Validate firestore.indexes.json syntax
+        run: |
+          FILE="tools/learning-kpi-dashboard/firestore/firestore.indexes.json"
+          if [ ! -f "$FILE" ]; then echo "❌ $FILE not found"; exit 1; fi
+          node -e "const j=require('./$FILE'); if(!j.indexes||!Array.isArray(j.indexes)){process.exit(1)}; console.log('✅ firestore.indexes.json valid, '+j.indexes.length+' indexes');"

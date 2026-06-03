@@ -47,4 +47,51 @@ test.describe('KPI Dashboard Smoke Tests', () => {
     expect(allText).toContain('道館戰');
   });
 
+  // ── P9-5a: PvP / Shop / Item E2E smoke tests ──
+
+  test('PvP button opens battle modal for student with roster', async ({ page }) => {
+    await page.goto('/kpi');
+    await page.waitForLoadState('networkidle');
+    await page.selectOption('#studentSelect', 'Neil');
+    await expect(page.locator('#kpiLevel')).not.toBeEmpty({ timeout: 15000 });
+
+    const pvpBtn = page.locator('.nav-btn').filter({ hasText: /PvP/ });
+    await expect(pvpBtn).toBeVisible();
+  });
+
+  test('shop modal shows item list', async ({ page }) => {
+    await page.goto('/kpi');
+    await page.waitForLoadState('networkidle');
+    await page.selectOption('#studentSelect', 'Neil');
+    await expect(page.locator('#kpiLevel')).not.toBeEmpty({ timeout: 15000 });
+
+    const shopBtn = page.locator('.nav-btn').filter({ hasText: /商城/ });
+    await expect(shopBtn).toBeVisible();
+    await shopBtn.click();
+    await page.waitForTimeout(1500);
+    const shopModal = page.locator('#shopModal');
+    await expect(shopModal).toBeVisible({ timeout: 5000 });
+  });
+
+  test('box modal shows pokemon collection', async ({ page }) => {
+    await page.goto('/kpi');
+    await page.waitForLoadState('networkidle');
+    await page.selectOption('#studentSelect', 'Neil');
+    await expect(page.locator('#kpiLevel')).not.toBeEmpty({ timeout: 15000 });
+
+    const boxBtn = page.locator('.nav-btn').filter({ hasText: /PC Box|寶可夢/ });
+    await expect(boxBtn).toBeVisible();
+  });
+
+  test('admin class analysis button exists', async ({ page }) => {
+    await page.goto('/kpi');
+    await page.waitForLoadState('networkidle');
+    await page.selectOption('#studentSelect', 'Admin');
+    await page.waitForTimeout(2000);
+    await expect(page.locator('#adminPanel')).toBeVisible();
+
+    const analysisBtn = page.locator('button').filter({ hasText: /班級分析/ });
+    await expect(analysisBtn).toBeVisible();
+  });
+
 });

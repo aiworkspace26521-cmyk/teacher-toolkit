@@ -733,7 +733,7 @@ async function recalculateStudentState(studentId, events) {
     todayCompleted: false, daysSinceLastBadge: 0, simpleMode: false,
     lastBadgeTime: null, firstLogTime: null,
     todayBattles: 0, weekGymWins: 0, monthLeagueWins: 0,
-    happiness: {},
+    happiness: {}, leagueRegionsWon: {},
     roster: { P0: { id: "P0", baseName: "\u{1F43E} \u4F0A\u5E03 (\u4E00\u822C\u7CFB)", totalExp: 0, initialLevel: 5, catchDate: "\u521D\u59CB\u5925\u4F34", heldItem: "" } }
   };
   var dNow = new Date(), todayStr = dNow.toDateString();
@@ -846,7 +846,7 @@ async function recalculateStudentState(studentId, events) {
       }
       if (rowDate.toDateString() === todayStr && (safeNote.indexOf("[Daily]") !== -1 || safeNote.indexOf("\u8DEF\u4EBA") !== -1 || safeNote.indexOf("Raid") !== -1)) state.todayBattles++;
       if (rowDate.getTime() >= startOfWeek && (safeNote.indexOf("[Gym]") !== -1 || safeNote.indexOf("\u9053\u9928") !== -1)) state.weekGymWins++;
-      if (rowDate.getTime() >= startOfMonth && (safeNote.indexOf("[League]") !== -1 || safeNote.indexOf("\u5927\u6703") !== -1 || safeNote.indexOf("\u9B54\u738B") !== -1)) state.monthLeagueWins++;
+      if (rowDate.getTime() >= startOfMonth && (safeNote.indexOf("[League]") !== -1 || safeNote.indexOf("\u5927\u6703") !== -1 || safeNote.indexOf("\u9B54\u738B") !== -1)) { state.monthLeagueWins++; var lr = safeNote.match(/\[(.+?)\s*League\]/); if (lr) state.leagueRegionsWon[lr[1]] = true; }
     } else if (rowAction === "E") {
       var nm = safeNote.match(/\u7372\u5F97:\s*([^|]+)/);
       if (nm && state.roster['P0']) state.roster['P0'].baseName = nm[1].trim();
@@ -887,6 +887,14 @@ async function recalculateStudentState(studentId, events) {
       p.happiness = p.happiness || 0;
     }
     if (p.currentLevel > finalHighestLevel) finalHighestLevel = p.currentLevel;
+    // 自動進化（模擬 replay 用）
+    var raw2 = getRawName(p.baseName);
+    if (raw2 === "伊布" && p.currentLevel >= 16) {
+      var evo2 = getRandomEeveelution();
+      var types2 = POKEMON_SPECIES_TYPES[evo2] || ["一般"];
+      var prefix2 = p.baseName.match(/^[🐾⭐🌟✨👑]\s*/);
+      p.baseName = (prefix2 ? prefix2[0] : "⭐ ") + evo2 + " (" + types2.join("/") + ")";
+    }
     rosterArray.push(p);
   }
   var submitStreak = 0;
@@ -901,7 +909,7 @@ async function recalculateStudentState(studentId, events) {
   var totalSubmitDays = Object.keys(submitDates).length;
   if (totalSubmitDays >= 60) state.badges += 5;
   else if (totalSubmitDays >= 30) state.badges += 2;
-  return { studentId: state.studentId, highestLevel: finalHighestLevel, lockedGymLevel: state.lockedGymLevel, coins: state.coins, badges: state.badges, potions: state.potions, revives: state.revives, candies: state.candies, maxPotions: state.maxPotions, maxRevives: state.maxRevives, expSharePurchased: state.expSharePurchased, hasExpertBelt: state.hasExpertBelt, hasEviolite: state.hasEviolite, hasChampionCloak: state.hasChampionCloak, hasAmuletCoin: state.hasAmuletCoin, hasQuickClaw: state.hasQuickClaw, hasFocusLens: state.hasFocusLens, hasShellBell: state.hasShellBell, hasLifeOrb: state.hasLifeOrb, hasAssaultVest: state.hasAssaultVest, oranBerries: state.oranBerries||0, cheriBerries: state.cheriBerries||0, lumBerries: state.lumBerries||0, chilanBerries: state.chilanBerries||0, hasFocusSash: state.hasFocusSash||false, hasEjectButton: state.hasEjectButton||false, hasRockyHelmet: state.hasRockyHelmet||false, hasWeaknessPolicy: state.hasWeaknessPolicy||false, tms: state.tms||{}, todayCompleted: state.todayCompleted, daysSinceLastBadge: state.daysSinceLastBadge, roster: rosterArray, todayBattles: state.todayBattles, weekGymWins: state.weekGymWins, monthLeagueWins: state.monthLeagueWins, submitStreak: submitStreak, simpleMode: state.simpleMode || false };
+  return { studentId: state.studentId, highestLevel: finalHighestLevel, lockedGymLevel: state.lockedGymLevel, coins: state.coins, badges: state.badges, potions: state.potions, revives: state.revives, candies: state.candies, maxPotions: state.maxPotions, maxRevives: state.maxRevives, expSharePurchased: state.expSharePurchased, hasExpertBelt: state.hasExpertBelt, hasEviolite: state.hasEviolite, hasChampionCloak: state.hasChampionCloak, hasAmuletCoin: state.hasAmuletCoin, hasQuickClaw: state.hasQuickClaw, hasFocusLens: state.hasFocusLens, hasShellBell: state.hasShellBell, hasLifeOrb: state.hasLifeOrb, hasAssaultVest: state.hasAssaultVest, oranBerries: state.oranBerries||0, cheriBerries: state.cheriBerries||0, lumBerries: state.lumBerries||0, chilanBerries: state.chilanBerries||0, hasFocusSash: state.hasFocusSash||false, hasEjectButton: state.hasEjectButton||false, hasRockyHelmet: state.hasRockyHelmet||false, hasWeaknessPolicy: state.hasWeaknessPolicy||false, tms: state.tms||{}, todayCompleted: state.todayCompleted, daysSinceLastBadge: state.daysSinceLastBadge, roster: rosterArray, todayBattles: state.todayBattles, weekGymWins: state.weekGymWins, monthLeagueWins: state.monthLeagueWins, submitStreak: submitStreak, simpleMode: state.simpleMode || false, leagueRegionsWon: state.leagueRegionsWon || {} };
 }
 
 function showSkeletonDashboard() {
@@ -957,7 +965,7 @@ async function fetchStudentData(studentId, pendingEvent) {
       refreshed.achievements = []; for (var ak in globalAchievements) { if (globalAchievements[ak]) refreshed.achievements.push(ak); }
       await db.collection("kpi_students").doc(studentId).set(refreshed, { merge: true });
     } else {
-      if (!globalData) globalData = { studentId: studentId, roster: [], highestLevel: 5, lockedGymLevel: 5, coins: 0, badges: 0, potions: 0, revives: 0, candies: 0, maxPotions: 0, maxRevives: 0, expSharePurchased: true, hasExpertBelt: false, hasEviolite: false, hasChampionCloak: false, hasAmuletCoin: false, oranBerries: 0, cheriBerries: 0, lumBerries: 0, chilanBerries: 0, hasFocusSash: false, hasEjectButton: false, hasRockyHelmet: false, hasWeaknessPolicy: false, tms: {}, pokemonTMs: {}, todayCompleted: false, todayBattles: 0, weekGymWins: 0, monthLeagueWins: 0, "\u96FB\u6483\u76D2": false, "\u5E95\u6F3E\u76D2": false, "\u9F8D\u4E4B\u9C5A\u7247": false, "\u8B77\u5177": false, "\u91D1\u5C6C\u819C": false, "\u738B\u8005\u4E4B\u8B49": false };
+      if (!globalData) globalData = { studentId: studentId, roster: [], highestLevel: 5, lockedGymLevel: 5, coins: 0, badges: 0, potions: 0, revives: 0, candies: 0, maxPotions: 0, maxRevives: 0, expSharePurchased: true, hasExpertBelt: false, hasEviolite: false, hasChampionCloak: false, hasAmuletCoin: false, oranBerries: 0, cheriBerries: 0, lumBerries: 0, chilanBerries: 0, hasFocusSash: false, hasEjectButton: false, hasRockyHelmet: false, hasWeaknessPolicy: false, tms: {}, pokemonTMs: {}, todayCompleted: false, todayBattles: 0, weekGymWins: 0, monthLeagueWins: 0, leagueRegionsWon: {}, "\u96FB\u6483\u76D2": false, "\u5E95\u6F3E\u76D2": false, "\u9F8D\u4E4B\u9C5A\u7247": false, "\u8B77\u5177": false, "\u91D1\u5C6C\u819C": false, "\u738B\u8005\u4E4B\u8B49": false };
     }
     // Restore TM data from Firestore doc
     try {
@@ -976,9 +984,9 @@ async function fetchStudentData(studentId, pendingEvent) {
     } catch(e) { console.warn("Failed to restore TM data:", e); }
     if (!cacheLoaded) await loadAchievementsFromFirestore(studentId);
     if (isAdmin) globalData.todayCompleted = false;
-    if (globalData.monthLeagueWins > 0) {
+    if (globalData.monthLeagueWins > 0 && globalData.leagueRegionsWon) {
       var monthKey = new Date().getFullYear() + "-" + (new Date().getMonth() + 1);
-      for (var rn in LEAGUE_REGIONS) { leagueCompletedMonths[rn] = monthKey; }
+      for (var rn in globalData.leagueRegionsWon) { leagueCompletedMonths[rn] = monthKey; }
     }
     if (!globalData.roster || !globalData.roster.length) globalData.roster = [{ id: "P0", baseName: "\u{1F43E} \u4F0A\u5E03 (\u4E00\u822C\u7CFB)", totalExp: 0, initialLevel: 5, currentLevel: 5, expProgress: 0, expNeeded: 500, catchDate: "\u521D\u59CB\u5925\u4F34" }];
     var savedParty = localStorage.getItem("kpi_party_" + studentId);
@@ -1242,6 +1250,20 @@ var MOVE_DATABASE = {
   "氣旋攻擊": { power: 100, type: "飛行",  category: "特殊", desc: "洛奇亞的專屬招式" },
   "神聖之火": { power: 100, type: "火",    category: "物理", desc: "鳳王的專屬招式" },
   "時光咆哮": { power: 150, type: "龍",    category: "特殊", desc: "帝牙盧卡的專屬招式" },
+  // P9-4b: TM 補充招式
+  "波導彈":  { power: 80,  type: "格鬥",  category: "特殊", desc: "必定命中" },
+  "惡之波動": { power: 80,  type: "惡",    category: "特殊", desc: "可能讓對手畏縮" },
+  "空氣斬":  { power: 75,  type: "飛行",  category: "特殊", desc: "可能讓對手畏縮" },
+  "暴風":    { power: 110, type: "飛行",  category: "特殊", desc: "可能讓對手混亂" },
+  "急速折返": { power: 70,  type: "蟲",    category: "物理", desc: "攻擊後交換寶可夢", effect: "switch_out" },
+  "伏特替換": { power: 70,  type: "電",    category: "特殊", desc: "攻擊後交換寶可夢", effect: "switch_out" },
+  "污泥波":  { power: 95,  type: "毒",    category: "特殊", desc: "可能中毒對手", effect: "poison" },
+  "力量寶石": { power: 80,  type: "岩石",  category: "特殊", desc: "發射寶石光線" },
+  "陀螺球":  { power: 80,  type: "鋼",    category: "物理", desc: "速度越慢威力越高" },
+  "輔助力量": { power: 80,  type: "超能力", category: "特殊", desc: "能力提升越多威力越高" },
+  "十萬馬力": { power: 95,  type: "地面",  category: "物理", desc: "全力衝撞" },
+  "潛靈奇襲": { power: 90,  type: "幽靈",  category: "物理", desc: "需要一回合準備" },
+  "冰柱墜擊": { power: 85,  type: "冰",    category: "物理", desc: "可能讓對手畏縮" },
 };
 
 var TYPE_MOVE_POOL = {
@@ -1488,7 +1510,7 @@ var HELD_ITEMS = {
 var HELD_ITEM_ICONS = { expShare: "📖" };
 for (var _hi in HELD_ITEMS) HELD_ITEM_ICONS[_hi] = HELD_ITEMS[_hi].icon;
 function getRawName(baseName) {
-  return baseName.replace(/^[🐾⭐🌟✨👑]\s*/,"").replace(/\s*\(.*\)/,"");
+  return baseName.replace(/^[🐾⭐🌟✨👑]\s*/u,"").replace(/\s*\(.*\)/,"");
 }
 function getHappiness(pkmn) {
   return pkmn.happiness || 0;
@@ -1608,24 +1630,24 @@ var GYM_LEADERS = [
   { region: "城都", badge: 11, leader: "小茜", type: "一般",    emoji: "🐾", name: "滿金道館",   waves: 5, lvBonus: 23, desc: "沒有捷徑的紮實訓練" },
   { region: "城都", badge: 12, leader: "松葉", type: "幽靈",    emoji: "👻", name: "圓朱道館",   waves: 5, lvBonus: 26, desc: "幽靈般的隱藏陷阱" },
   { region: "城都", badge: 13, leader: "阿四", type: "格鬥",    emoji: "🥋", name: "湛藍道館",   waves: 5, lvBonus: 30, desc: "硬碰硬的實力對決" },
-  { region: "城都", badge: 14, leader: "小椿", type: "龍",      emoji: "🐉", name: "煙墨道館",   waves: 5, lvBonus: 34, desc: "龍之巔的極限挑戰" },
+  { region: "城都", badge: 14, leader: "小椿", type: "龍",      emoji: "🐉", name: "煙墨道館",   waves: 5, lvBonus: 33, desc: "龍之巔的極限挑戰" },
   { region: "城都", badge: 15, leader: "蜜柑", type: "鋼",      emoji: "⚙️", name: "淺蔥道館",   waves: 5, lvBonus: 36, desc: "鋼鐵般的精密計算" },
-  { region: "城都", badge: 16, leader: "柳伯", type: "冰",      emoji: "❄️", name: "卡吉道館",   waves: 5, lvBonus: 38, desc: "冰封萬物的最終考驗" },
-  { region: "合眾", badge: 17, leader: "天桐", type: "草",      emoji: "🌿", name: "三曜道館",   waves: 4, lvBonus: 48, desc: "三曜鼎立的智慧考驗" },
-  { region: "合眾", badge: 18, leader: "蘆薈", type: "一般",    emoji: "🐾", name: "七寶道館",   waves: 4, lvBonus: 51, desc: "以不變應萬變的基礎" },
-  { region: "合眾", badge: 19, leader: "亞堤", type: "蟲",      emoji: "🐛", name: "飛雲道館",   waves: 5, lvBonus: 54, desc: "編織知識之網的韌性" },
-  { region: "合眾", badge: 20, leader: "小菊兒", type: "電",    emoji: "⚡", name: "雷文道館",   waves: 5, lvBonus: 58, desc: "閃耀的電流急急棒" },
-  { region: "合眾", badge: 21, leader: "菊老大", type: "地面",  emoji: "🌍", name: "帆巴道館",   waves: 5, lvBonus: 62, desc: "大地深處的嚴峻考驗" },
-  { region: "合眾", badge: 22, leader: "風露", type: "飛行",    emoji: "🦅", name: "吹寄道館",   waves: 5, lvBonus: 66, desc: "乘風破浪的高空對決" },
-  { region: "合眾", badge: 23, leader: "哈奇庫", type: "冰",    emoji: "❄️", name: "雪花道館",   waves: 5, lvBonus: 70, desc: "絕對零度的極限專注" },
-  { region: "合眾", badge: 24, leader: "艾莉絲", type: "龍",    emoji: "🐉", name: "雙龍道館",   waves: 5, lvBonus: 75, desc: "龍之霸主的最終試煉" },
-  { region: "卡洛斯", badge: 25, leader: "紫羅蘭", type: "蟲",  emoji: "🦋", name: "白檀道館",   waves: 4, lvBonus: 55, desc: "觀察入微的蟲之眼" },
-  { region: "卡洛斯", badge: 26, leader: "查克洛", type: "岩石", emoji: "🪨", name: "遙香道館",   waves: 4, lvBonus: 59, desc: "攀上岩壁的毅力" },
-  { region: "卡洛斯", badge: 27, leader: "可爾妮", type: "格鬥", emoji: "🥋", name: "娑羅道館",   waves: 5, lvBonus: 63, desc: "百折不撓的格鬥魂" },
-  { region: "卡洛斯", badge: 28, leader: "福爺", type: "草",    emoji: "🌿", name: "海翼道館",   waves: 5, lvBonus: 67, desc: "扎根知識的茂盛幹勁" },
-  { region: "卡洛斯", badge: 29, leader: "瑪綉", type: "電",    emoji: "⚡", name: "密阿雷道館",   waves: 5, lvBonus: 72, desc: "華麗的電光交響曲" },
-  { region: "卡洛斯", badge: 30, leader: "葛吉花", type: "超能力", emoji: "🔮", name: "香薰道館",   waves: 5, lvBonus: 77, desc: "預知未來的超能占卜" },
-  { region: "卡洛斯", badge: 31, leader: "得撫", type: "惡",    emoji: "😈", name: "百刻道館",   waves: 5, lvBonus: 82, desc: "時間的暗影試煉" },
+  { region: "城都", badge: 16, leader: "柳伯", type: "冰",      emoji: "❄️", name: "卡吉道館",   waves: 5, lvBonus: 39, desc: "冰封萬物的最終考驗" },
+  { region: "合眾", badge: 17, leader: "天桐", type: "草",      emoji: "🌿", name: "三曜道館",   waves: 4, lvBonus: 42, desc: "三曜鼎立的智慧考驗" },
+  { region: "合眾", badge: 18, leader: "蘆薈", type: "一般",    emoji: "🐾", name: "七寶道館",   waves: 4, lvBonus: 45, desc: "以不變應萬變的基礎" },
+  { region: "合眾", badge: 19, leader: "亞堤", type: "蟲",      emoji: "🐛", name: "飛雲道館",   waves: 5, lvBonus: 49, desc: "編織知識之網的韌性" },
+  { region: "合眾", badge: 20, leader: "小菊兒", type: "電",    emoji: "⚡", name: "雷文道館",   waves: 5, lvBonus: 51, desc: "閃耀的電流急急棒" },
+  { region: "合眾", badge: 21, leader: "菊老大", type: "地面",  emoji: "🌍", name: "帆巴道館",   waves: 5, lvBonus: 54, desc: "大地深處的嚴峻考驗" },
+  { region: "合眾", badge: 22, leader: "風露", type: "飛行",    emoji: "🦅", name: "吹寄道館",   waves: 5, lvBonus: 58, desc: "乘風破浪的高空對決" },
+  { region: "合眾", badge: 23, leader: "哈奇庫", type: "冰",    emoji: "❄️", name: "雪花道館",   waves: 5, lvBonus: 62, desc: "絕對零度的極限專注" },
+  { region: "合眾", badge: 24, leader: "艾莉絲", type: "龍",    emoji: "🐉", name: "雙龍道館",   waves: 5, lvBonus: 66, desc: "龍之霸主的最終試煉" },
+  { region: "卡洛斯", badge: 25, leader: "紫羅蘭", type: "蟲",  emoji: "🦋", name: "白檀道館",   waves: 4, lvBonus: 64, desc: "觀察入微的蟲之眼" },
+  { region: "卡洛斯", badge: 26, leader: "查克洛", type: "岩石", emoji: "🪨", name: "遙香道館",   waves: 4, lvBonus: 68, desc: "攀上岩壁的毅力" },
+  { region: "卡洛斯", badge: 27, leader: "可爾妮", type: "格鬥", emoji: "🥋", name: "娑羅道館",   waves: 5, lvBonus: 72, desc: "百折不撓的格鬥魂" },
+  { region: "卡洛斯", badge: 28, leader: "福爺", type: "草",    emoji: "🌿", name: "海翼道館",   waves: 5, lvBonus: 75, desc: "扎根知識的茂盛幹勁" },
+  { region: "卡洛斯", badge: 29, leader: "瑪綉", type: "電",    emoji: "⚡", name: "密阿雷道館",   waves: 5, lvBonus: 78, desc: "華麗的電光交響曲" },
+  { region: "卡洛斯", badge: 30, leader: "葛吉花", type: "超能力", emoji: "🔮", name: "香薰道館",   waves: 5, lvBonus: 81, desc: "預知未來的超能占卜" },
+  { region: "卡洛斯", badge: 31, leader: "得撫", type: "惡",    emoji: "😈", name: "百刻道館",   waves: 5, lvBonus: 84, desc: "時間的暗影試煉" },
   { region: "卡洛斯", badge: 32, leader: "志米", type: "水",    emoji: "💧", name: "映雪道館",   waves: 5, lvBonus: 88, desc: "深不可測的水之巔峰" }
 ];
 
@@ -2276,9 +2298,8 @@ function calculateMovePower(move, attacker, defender, isPlayerAttacker) {
     if (atkTypes.indexOf(details.type) !== -1) baseDamage = Math.floor(baseDamage * 4 / 3);
   }
   // 攜帶道具效果：生命寶珠（攻擊方）
-  if (details.category !== "變化" && globalData && globalData.hasLifeOrb) {
-    var lifeOrbAtk = attacker.heldItem === "lifeOrb";
-    if (lifeOrbAtk) baseDamage = Math.floor(baseDamage * 1.3);
+  if (details.category !== "變化" && attacker.heldItem === "lifeOrb") {
+    baseDamage = Math.floor(baseDamage * 1.3);
   }
   var variance = 0.85 + Math.random() * 0.15;
   var finalDamage = Math.floor(baseDamage * variance);
@@ -2811,7 +2832,7 @@ function performAttack(moveName, isPlayer) {
       spawnAbilityFlare(attSide + "PkmnName", "#e74c3c");
     }
     // 攜帶道具效果：貝殼之鈴（回復傷害12.5%HP）
-    if (isPlayer && pAtk.heldItem === "shellBell" && globalData && globalData.hasShellBell) {
+    if (isPlayer && pAtk.heldItem === "shellBell") {
       var shellHeal = Math.max(1, Math.floor(result.dmg * 0.125));
       pAtk.currentHp = Math.min(pAtk.maxHp, pAtk.currentHp + shellHeal);
       log.push("🔔 貝殼之鈴回復了 " + shellHeal + " HP！");
@@ -2820,7 +2841,7 @@ function performAttack(moveName, isPlayer) {
       spawnItemGlow("playerPkmnName", "#2ecc71");
     }
     // 攜帶道具效果：生命寶珠（反彈10%最大HP）
-    if (isPlayer && pAtk.heldItem === "lifeOrb" && globalData && globalData.hasLifeOrb) {
+    if (isPlayer && pAtk.heldItem === "lifeOrb") {
       var orbDmg = Math.max(1, Math.floor(pAtk.maxHp * 0.1));
       pAtk.currentHp = Math.max(0, pAtk.currentHp - orbDmg);
       log.push("🔴 生命寶珠反噬 " + orbDmg + " HP！");
@@ -3323,13 +3344,24 @@ function endBattle(playerWon) {
     executeSave({ studentId: globalData.studentId, score: 0, action: "戰鬥勝利", expGained: totalExpGain, coinsGained: coinsGain, badgeChange: badgeGain, note: noteContent, extraNote: noteContent, totalScore: 0, user: globalData.studentId }, function() {
       $("resultMessage").innerHTML = msg;
       $("resultMessage").style.display = "block";
+      // Auto-evolve after battle
+      var evoParties = battleState ? battleState.playerParty : [];
+      for (var evi = 0; evi < evoParties.length; evi++) {
+        var evoPkmn = evoParties[evi];
+        var evoMatch = globalData.roster.find(function(r){ return r.id === evoPkmn.id; });
+        if (!evoMatch) continue;
+        var evoRaw = getRawName(evoPkmn.baseName);
+        if (evoRaw !== "伊布") continue;
+        var estLevel = calcLevelAndExp((evoMatch.totalExp||0) + totalExpGain, evoMatch.initialLevel||5).level;
+        if (estLevel >= 16) { doEvolve(evoPkmn.id); break; }
+      }
     }, false);
   } else {
     $("resultMessage").innerHTML = "💀 全軍覆沒... 再接再厲！";
     $("resultMessage").style.display = "block";
   }
   battleState = null;
-  setTimeout(function() { closeModal("battleModal"); $("resultMessage").style.display = "none"; }, 3000);
+  setTimeout(function() { closeModal("battleModal"); $("resultMessage").style.display = "none"; updateDashboard(); }, 3000);
 }
 // ===== ARENA UI =====
 function applyEntryAbility(enemy, playerFirst, battleStateRef, log) {
@@ -3603,8 +3635,25 @@ function renderBattleLog(messages) {
   var log = $("battleLog");
   for (var i = 0; i < messages.length; i++) {
     if (!messages[i]) continue;
+    var msg = messages[i];
+    var color = "";
+    if (msg.indexOf("💥") !== -1) color = "#e74c3c";
+    else if (msg.indexOf("💢") !== -1) color = "#f39c12";
+    else if (msg.indexOf("💀") !== -1) color = "#c0392b";
+    else if (msg.indexOf("✅") !== -1 || msg.indexOf("🔔") !== -1 || msg.indexOf("🍬") !== -1) color = "#27ae60";
+    else if (msg.indexOf("🔴") !== -1) color = "#e74c3c";
+    else if (msg.indexOf("⛑️") !== -1) color = "#7f8c8d";
+    else if (msg.indexOf("⚠️") !== -1) color = "#e67e22";
+    else if (msg.indexOf("🎗️") !== -1 || msg.indexOf("🛡️") !== -1) color = "#3498db";
+    else if (msg.indexOf("⚔️") !== -1) color = "#f1c40f";
+    else if (msg.indexOf("🔥") !== -1 || msg.indexOf("🌋") !== -1) color = "#d35400";
+    else if (msg.indexOf("❄️") !== -1) color = "#85c1e9";
+    else if (msg.indexOf("🌱") !== -1 || msg.indexOf("💊") !== -1) color = "#2ecc71";
+    else if (msg.indexOf("🌀") !== -1 || msg.indexOf("🌪️") !== -1) color = "#bdc3c7";
+    else if (msg.indexOf("📋") !== -1) color = "#8e44ad";
     var div = document.createElement("div");
-    div.innerHTML = messages[i];
+    div.innerHTML = msg;
+    if (color) div.style.color = color;
     log.appendChild(div);
   }
   log.scrollTop = log.scrollHeight;
@@ -4035,6 +4084,18 @@ function checkPvpDoneToday() {
 }
 function fetchPvPOpponent(cb) {
   if (typeof db === "undefined") { cb(null); return; }
+  var cacheKey = "pvp_candidates_" + getCurrentSeason();
+  var cached = sessionStorage.getItem(cacheKey);
+  if (cached) {
+    try {
+      var candidates = JSON.parse(cached);
+      if (candidates.length > 0) {
+        var pick = candidates[Math.floor(Math.random() * candidates.length)];
+        cb(pick);
+        return;
+      }
+    } catch(e) {}
+  }
   db.collection("kpi_students").limit(20).get().then(function(snap) {
     var candidates = [];
     snap.forEach(function(doc) {
@@ -4043,6 +4104,8 @@ function fetchPvPOpponent(cb) {
       if (d.roster && d.roster.length >= 2 && d.partyIds && d.partyIds.length >= 2) candidates.push(d);
     });
     if (candidates.length === 0) { cb(null); return; }
+    var cacheList = candidates.map(function(c) { return { studentId: c.id, roster: c.roster, partyIds: c.partyIds || [] }; });
+    try { sessionStorage.setItem(cacheKey, JSON.stringify(cacheList)); } catch(e) {}
     var pick = candidates[Math.floor(Math.random() * candidates.length)];
     cb({ studentId: pick.id, roster: pick.roster, partyIds: pick.partyIds || [] });
   }).catch(function() { cb(null); });
@@ -4185,52 +4248,75 @@ async function updatePvPRanking(playerId, opponentId, won) {
   } catch(e) { console.warn("ELO update error", e); }
 }
 
+var rankingUnsubscribe = null;
+
+function closeRankingModal() {
+  var m = $("rankingModal");
+  if (m) m.style.display = "none";
+  if (rankingUnsubscribe) { rankingUnsubscribe(); rankingUnsubscribe = null; }
+}
+
 async function openRankingModal() {
   var existing = $("rankingModal");
-  if (existing) { existing.style.display = "flex"; renderRanking(); return; }
+  if (existing) { existing.style.display = "flex"; if (!rankingUnsubscribe) startRankingSnapshot(); return; }
   var modal = document.createElement("div"); modal.id = "rankingModal"; modal.className = "modal";
   modal.style.cssText = "position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.5);display:flex;z-index:10000;align-items:center;justify-content:center;";
   var content = document.createElement("div"); content.className = "modal-content";
   content.style.cssText = "background:white;border-radius:12px;padding:20px;max-width:500px;width:92%;max-height:80vh;overflow-y:auto;border:3px solid #8e44ad;";
   content.innerHTML = "<h3 style='margin-top:0;color:#8e44ad;'>🏆 PvP 天梯排名</h3>" +
     "<div style='font-size:12px;color:#666;margin-bottom:10px;'>賽季: <span id='rankingSeason'></span></div>" +
-    "<div id='rankingList' style='min-height:100px;'></div>" +
-    "<button class='close-btn' onclick=\"document.getElementById('rankingModal').style.display='none';\">關閉</button>";
+    "<div id='rankingList' style='min-height:100px;'>載入中...</div>" +
+    "<button class='close-btn' onclick='closeRankingModal()'>關閉</button>";
   modal.appendChild(content);
   document.body.appendChild(modal);
   modal.style.display = "flex";
-  renderRanking();
+  startRankingSnapshot();
 }
 
-async function renderRanking() {
-  var listDiv = $("rankingList");
+var rankingCache = null;
+
+function startRankingSnapshot() {
+  listDiv = $("rankingList");
   if (!listDiv) return;
   listDiv.innerHTML = "載入中...";
-  var seasonEl = $("rankingSeason");
   try {
-    var snap = await db.collection("pvp_ranking").orderBy("elo", "desc").limit(50).get();
-    var rankings = [];
-    snap.forEach(function(d) { rankings.push({ id: d.id, data: d.data() }); });
-    if (seasonEl) seasonEl.textContent = getCurrentSeason();
-    if (rankings.length === 0) { listDiv.innerHTML = "<p style='color:#999;text-align:center;'>還沒有排名資料，開始 PvP 對戰吧！</p>"; return; }
-    var html = "<div style='display:flex;font-weight:900;font-size:12px;color:#666;padding:6px 8px;border-bottom:2px solid #eee;'>" +
-      "<span style='width:40px;'>#</span><span style='flex:1;'>玩家</span><span style='width:60px;text-align:center;'>ELO</span><span style='width:80px;text-align:center;'>戰績</span></div>";
-    for (var i = 0; i < rankings.length; i++) {
-      var r = rankings[i];
-      var elo = r.data.elo || 1000;
-      var w = r.data.wins || 0;
-      var l = r.data.losses || 0;
-      var isMe = r.id === globalData.studentId;
-      var medal = i === 0 ? "🥇" : i === 1 ? "🥈" : i === 2 ? "🥉" : (i + 1);
-      var bg = isMe ? "background:#f0e6ff;" : i % 2 === 0 ? "background:#fafafa;" : "";
-      html += "<div style='display:flex;align-items:center;padding:8px;font-size:14px;border-bottom:1px solid #f0f0f0;" + bg + "'>" +
-        "<span style='width:40px;font-weight:900;'>" + medal + "</span>" +
-        "<span style='flex:1;font-weight:" + (isMe ? "900" : "700") + ";'>" + r.id + (isMe ? " (你)" : "") + "</span>" +
-        "<span style='width:60px;text-align:center;color:#8e44ad;font-weight:900;'>" + elo + "</span>" +
-        "<span style='width:80px;text-align:center;font-size:12px;color:#666;'>" + w + "W / " + l + "L</span></div>";
-    }
-    listDiv.innerHTML = html;
-  } catch(e) { listDiv.innerHTML = "<p style='color:#999;text-align:center;'>載入排名失敗</p>"; }
+    rankingUnsubscribe = db.collection("pvp_ranking").orderBy("elo", "desc").limit(50).onSnapshot(function(snap) {
+      rankingCache = [];
+      snap.forEach(function(d) { rankingCache.push({ id: d.id, data: d.data() }); });
+      renderRankingFromCache();
+    }, function(err) {
+      listDiv = $("rankingList");
+      if (listDiv) listDiv.innerHTML = "<p style='color:#999;text-align:center;'>載入排名失敗</p>";
+    });
+  } catch(e) {
+    listDiv = $("rankingList");
+    if (listDiv) listDiv.innerHTML = "<p style='color:#999;text-align:center;'>載入排名失敗</p>";
+  }
+}
+
+function renderRankingFromCache() {
+  var listDiv = $("rankingList");
+  var seasonEl = $("rankingSeason");
+  if (!listDiv) return;
+  if (seasonEl) seasonEl.textContent = getCurrentSeason();
+  if (!rankingCache || rankingCache.length === 0) { listDiv.innerHTML = "<p style='color:#999;text-align:center;'>還沒有排名資料，開始 PvP 對戰吧！</p>"; return; }
+  var html = "<div style='display:flex;font-weight:900;font-size:12px;color:#666;padding:6px 8px;border-bottom:2px solid #eee;'>" +
+    "<span style='width:40px;'>#</span><span style='flex:1;'>玩家</span><span style='width:60px;text-align:center;'>ELO</span><span style='width:80px;text-align:center;'>戰績</span></div>";
+  for (var i = 0; i < rankingCache.length; i++) {
+    var r = rankingCache[i];
+    var elo = r.data.elo || 1000;
+    var w = r.data.wins || 0;
+    var l = r.data.losses || 0;
+    var isMe = r.id === (globalData ? globalData.studentId : "");
+    var medal = i === 0 ? "🥇" : i === 1 ? "🥈" : i === 2 ? "🥉" : (i + 1);
+    var bg = isMe ? "background:#f0e6ff;" : i % 2 === 0 ? "background:#fafafa;" : "";
+    html += "<div style='display:flex;align-items:center;padding:8px;font-size:14px;border-bottom:1px solid #f0f0f0;" + bg + "'>" +
+      "<span style='width:40px;font-weight:900;'>" + medal + "</span>" +
+      "<span style='flex:1;font-weight:" + (isMe ? "900" : "700") + ";'>" + r.id + (isMe ? " (你)" : "") + "</span>" +
+      "<span style='width:60px;text-align:center;color:#8e44ad;font-weight:900;'>" + elo + "</span>" +
+      "<span style='width:80px;text-align:center;font-size:12px;color:#666;'>" + w + "W / " + l + "L</span></div>";
+  }
+  listDiv.innerHTML = html;
 }
 // ===== UI FUNCTIONS =====
 function renderBadgeCase() {
@@ -4541,6 +4627,7 @@ function renderActions() {
     "<button onclick=\"openGymEditor()\" style=\"padding:6px 12px;\">道館編輯器</button>" +
     "<button onclick=\"adminClearCache()\" style=\"padding:6px 12px;background:#e67e22;color:white;\">🗑️ 清除快取</button>" +
     "<button onclick=\"adminExportCSV()\" style=\"padding:6px 12px;background:#27ae60;color:white;\">📥 匯出 CSV</button>" +
+    "<button onclick=\"openClassAnalysis()\" style=\"padding:6px 12px;background:#2980b9;color:white;\">📊 班級分析</button>" +
     "</div>" +
     "<div style=\"display:flex;gap:8px;flex-wrap:wrap;margin-top:8px;align-items:center;\">" +
     "<span style=\"font-size:13px;font-weight:700;\">📅 批量事件注入：</span>" +
@@ -4642,6 +4729,135 @@ async function adminExportCSV() {
     document.body.removeChild(a); URL.revokeObjectURL(url);
     toast("✅ 已匯出 " + (rows.length - 1) + " 位學生資料");
   } catch(e) { toast("❌ 錯誤: " + e.message); }
+}
+
+// ── P9-3: Class Analysis Dashboard ────────────────────────────────────
+async function openClassAnalysis() {
+  toast("載入班級資料...");
+  try {
+    var snap = await db.collection("kpi_students").get();
+    var now = Date.now();
+    var sevenDaysAgo = new Date(now - 7 * 24 * 60 * 60 * 1000);
+    var students = [];
+    var totalLevel = 0, totalBadges = 0;
+    var levelBuckets = {}, badgeBuckets = {};
+    var levelRanges = ["0-9","10-19","20-29","30-39","40-49","50-59","60-69","70-79","80-89","90-99"];
+    var badgeRanges = ["0-5","6-10","11-15","16-20","21-25","26-32"];
+    levelRanges.forEach(function(r){ levelBuckets[r] = 0; });
+    badgeRanges.forEach(function(r){ badgeBuckets[r] = 0; });
+    var activeCount = 0;
+    var lastSubmitMap = {};
+
+    for (var i = 0; i < snap.docs.length; i++) {
+      var d = snap.docs[i];
+      if (d.id === "Admin") continue;
+      var data = d.data() || {};
+      students.push(d.id);
+      var lv = data.level || 5;
+      var bg = data.badges || 0;
+      totalLevel += lv;
+      totalBadges += bg;
+      var lvBucket = Math.floor(lv / 10) * 10 + "-" + (Math.floor(lv / 10) * 10 + 9);
+      if (levelBuckets[lvBucket] !== undefined) levelBuckets[lvBucket]++;
+      var bgBucket = bg <= 5 ? "0-5" : bg <= 10 ? "6-10" : bg <= 15 ? "11-15" : bg <= 20 ? "16-20" : bg <= 25 ? "21-25" : "26-32";
+      badgeBuckets[bgBucket]++;
+      // Check last event timestamp
+      if (data._lastUpdated && data._lastUpdated.toDate) {
+        var lastDate = data._lastUpdated.toDate();
+        lastSubmitMap[d.id] = lastDate;
+        if (lastDate >= sevenDaysAgo) activeCount++;
+      }
+    }
+
+    var total = students.length;
+    if (total === 0) { toast("沒有學生資料"); return; }
+    var avgLv = (totalLevel / total).toFixed(1);
+    var avgBg = (totalBadges / total).toFixed(1);
+    var activeRate = ((activeCount / total) * 100).toFixed(1);
+
+    // Build modal content
+    var html = "<div style='padding:16px;font-size:14px;'>";
+    html += "<h3 style='margin:0 0 12px;color:#2c3e50;'>📊 班級分析報告</h3>";
+    html += "<div style='display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-bottom:16px;'>";
+    html += "<div style='background:#eaf2f8;border-radius:8px;padding:12px;text-align:center;'><div style='font-size:28px;font-weight:900;color:#2980b9;'>" + total + "</div><div style='font-size:12px;color:#666;'>學生總數</div></div>";
+    html += "<div style='background:#eafaf1;border-radius:8px;padding:12px;text-align:center;'><div style='font-size:28px;font-weight:900;color:#27ae60;'>Lv." + avgLv + "</div><div style='font-size:12px;color:#666;'>平均等級</div></div>";
+    html += "<div style='background:#fef9e7;border-radius:8px;padding:12px;text-align:center;'><div style='font-size:28px;font-weight:900;color:#f39c12;'>" + avgBg + "</div><div style='font-size:12px;color:#666;'>平均徽章</div></div>";
+    html += "<div style='background:#f4ecf7;border-radius:8px;padding:12px;text-align:center;'><div style='font-size:28px;font-weight:900;color:#8e44ad;'>" + activeCount + "</div><div style='font-size:12px;color:#666;'>7天活躍</div></div>";
+    html += "<div style='background:#fdedec;border-radius:8px;padding:12px;text-align:center;'><div style='font-size:28px;font-weight:900;color:#e74c3c;'>" + (total - activeCount) + "</div><div style='font-size:12px;color:#666;'>7天未提交</div></div>";
+    html += "<div style='background:#ebf5fb;border-radius:8px;padding:12px;text-align:center;'><div style='font-size:28px;font-weight:900;color:#3498db;'>" + activeRate + "%</div><div style='font-size:12px;color:#666;'>活躍率</div></div>";
+    html += "</div>";
+
+    // Level distribution bar chart
+    var maxLvCount = Math.max.apply(null, levelRanges.map(function(r){ return levelBuckets[r]; }));
+    html += "<h4 style='margin:12px 0 6px;color:#2c3e50;'>等級分佈</h4>";
+    html += "<div style='margin-bottom:16px;'>";
+    levelRanges.forEach(function(r) {
+      var cnt = levelBuckets[r];
+      var pct = maxLvCount > 0 ? (cnt / maxLvCount * 100) : 0;
+      html += "<div style='display:flex;align-items:center;margin:2px 0;font-size:12px;'>";
+      html += "<span style='width:50px;color:#666;'>" + r + "</span>";
+      html += "<div style='flex:1;height:20px;background:#ecf0f1;border-radius:3px;overflow:hidden;'>";
+      html += "<div style='height:100%;width:" + pct + "%;background:#3498db;border-radius:3px;display:flex;align-items:center;padding-left:4px;color:white;font-weight:700;font-size:11px;min-width:" + (cnt > 0 ? "20px" : "0") + ";'>" + (cnt > 0 ? cnt : "") + "</div>";
+      html += "</div></div>";
+    });
+    html += "</div>";
+
+    // Badge distribution bar chart
+    var maxBgCount = Math.max.apply(null, badgeRanges.map(function(r){ return badgeBuckets[r]; }));
+    html += "<h4 style='margin:12px 0 6px;color:#2c3e50;'>徽章分佈</h4>";
+    html += "<div style='margin-bottom:16px;'>";
+    badgeRanges.forEach(function(r) {
+      var cnt = badgeBuckets[r];
+      var pct = maxBgCount > 0 ? (cnt / maxBgCount * 100) : 0;
+      html += "<div style='display:flex;align-items:center;margin:2px 0;font-size:12px;'>";
+      html += "<span style='width:50px;color:#666;'>" + r + "</span>";
+      html += "<div style='flex:1;height:20px;background:#ecf0f1;border-radius:3px;overflow:hidden;'>";
+      html += "<div style='height:100%;width:" + pct + "%;background:#e67e22;border-radius:3px;display:flex;align-items:center;padding-left:4px;color:white;font-weight:700;font-size:11px;min-width:" + (cnt > 0 ? "20px" : "0") + ";'>" + (cnt > 0 ? cnt : "") + "</div>";
+      html += "</div></div>";
+    });
+    html += "</div>";
+
+    // Inactive students warning list
+    html += "<h4 style='margin:12px 0 6px;color:#e74c3c;'>⚠️ 低參與度學生警示</h4>";
+    var inactiveStudents = [];
+    for (var si = 0; si < students.length; si++) {
+      var sid = students[si];
+      var lastDate = lastSubmitMap[sid];
+      if (!lastDate) {
+        inactiveStudents.push({ id: sid, days: 999 });
+      } else {
+        var diffDays = Math.floor((now - lastDate.getTime()) / (24 * 60 * 60 * 1000));
+        if (diffDays >= 3) inactiveStudents.push({ id: sid, days: diffDays });
+      }
+    }
+    inactiveStudents.sort(function(a,b){ return b.days - a.days; });
+    if (inactiveStudents.length === 0) {
+      html += "<p style='color:#27ae60;font-size:13px;'>✅ 所有學生都有在 7 天內提交</p>";
+    } else {
+      html += "<table style='width:100%;border-collapse:collapse;font-size:13px;'>";
+      html += "<tr style='background:#f8f9fa;'><th style='padding:6px 8px;text-align:left;border-bottom:2px solid #ddd;'>座號</th><th style='padding:6px 8px;text-align:center;border-bottom:2px solid #ddd;'>未提交天數</th><th style='padding:6px 8px;text-align:center;border-bottom:2px solid #ddd;'>狀態</th></tr>";
+      for (var ij = 0; ij < inactiveStudents.length; ij++) {
+        var s = inactiveStudents[ij];
+        var statusColor = s.days >= 7 ? "#e74c3c" : s.days >= 5 ? "#e67e22" : "#f39c12";
+        var statusText = s.days >= 30 ? "⚠️ 高危險" : s.days >= 14 ? "⚠️ 危險" : s.days >= 7 ? "⚠️ 需關注" : "⚡ 注意";
+        html += "<tr style='border-bottom:1px solid #eee;'><td style='padding:6px 8px;font-weight:700;'>" + s.id + "</td><td style='padding:6px 8px;text-align:center;color:" + statusColor + ";font-weight:900;'>" + (s.days >= 999 ? "從未提交" : s.days + " 天") + "</td><td style='padding:6px 8px;text-align:center;color:" + statusColor + ";font-weight:700;'>" + statusText + "</td></tr>";
+      }
+      html += "</table>";
+    }
+    html += "</div>";
+
+    // Show in modal
+    var existing = $("classAnalysisModal");
+    if (existing) existing.remove();
+    var modal = document.createElement("div"); modal.id = "classAnalysisModal"; modal.className = "modal";
+    modal.style.cssText = "position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.5);display:flex;z-index:10000;align-items:center;justify-content:center;";
+    var content = document.createElement("div"); content.className = "modal-content";
+    content.style.cssText = "background:white;border-radius:12px;padding:20px;max-width:600px;width:92%;max-height:85vh;overflow-y:auto;";
+    content.innerHTML = html + "<div style='text-align:center;margin-top:12px;'><button class='close-btn' onclick=\"document.getElementById('classAnalysisModal').style.display='none';\">關閉</button></div>";
+    modal.appendChild(content);
+    document.body.appendChild(modal);
+    modal.style.display = "flex";
+  } catch(e) { toast("❌ 載入失敗: " + e.message); console.warn(e); }
 }
 
 async function adminBatchInject() {

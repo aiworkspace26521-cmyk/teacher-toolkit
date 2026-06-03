@@ -418,24 +418,24 @@ const GYM_LEADERS = [
   { region: "城都", badge: 11, leader: "小茜", type: "一般",    emoji: "🐾", name: "滿金道館",   waves: 5, lvBonus: 23, desc: "沒有捷徑的紮實訓練" },
   { region: "城都", badge: 12, leader: "松葉", type: "幽靈",    emoji: "👻", name: "圓朱道館",   waves: 5, lvBonus: 26, desc: "幽靈般的隱藏陷阱" },
   { region: "城都", badge: 13, leader: "阿四", type: "格鬥",    emoji: "🥋", name: "湛藍道館",   waves: 5, lvBonus: 30, desc: "硬碰硬的實力對決" },
-  { region: "城都", badge: 14, leader: "小椿", type: "龍",      emoji: "🐉", name: "煙墨道館",   waves: 5, lvBonus: 32, desc: "龍之巔的極限挑戰" },
+  { region: "城都", badge: 14, leader: "小椿", type: "龍",      emoji: "🐉", name: "煙墨道館",   waves: 5, lvBonus: 33, desc: "龍之巔的極限挑戰" },
   { region: "城都", badge: 15, leader: "蜜柑", type: "鋼",      emoji: "⚙️", name: "淺蔥道館",   waves: 5, lvBonus: 36, desc: "鋼鐵般的精密計算" },
-  { region: "城都", badge: 16, leader: "柳伯", type: "冰",      emoji: "❄️", name: "卡吉道館",   waves: 5, lvBonus: 38, desc: "冰封萬物的最終考驗" },
-  { region: "合眾", badge: 17, leader: "天桐", type: "草",      emoji: "🌿", name: "三曜道館",   waves: 4, lvBonus: 48, desc: "三曜鼎立的智慧考驗" },
-  { region: "合眾", badge: 18, leader: "蘆薈", type: "一般",    emoji: "🐾", name: "七寶道館",   waves: 4, lvBonus: 51, desc: "以不變應萬變的基礎" },
-  { region: "合眾", badge: 19, leader: "亞堤", type: "蟲",      emoji: "🐛", name: "飛雲道館",   waves: 5, lvBonus: 54, desc: "編織知識之網的韌性" },
-  { region: "合眾", badge: 20, leader: "小菊兒", type: "電",    emoji: "⚡", name: "雷文道館",   waves: 5, lvBonus: 58, desc: "閃耀的電流急急棒" },
-  { region: "合眾", badge: 21, leader: "菊老大", type: "地面",  emoji: "🌍", name: "帆巴道館",   waves: 5, lvBonus: 62, desc: "大地深處的嚴峻考驗" },
-  { region: "合眾", badge: 22, leader: "風露", type: "飛行",    emoji: "🦅", name: "吹寄道館",   waves: 5, lvBonus: 66, desc: "乘風破浪的高空對決" },
-  { region: "合眾", badge: 23, leader: "哈奇庫", type: "冰",    emoji: "❄️", name: "雪花道館",   waves: 5, lvBonus: 70, desc: "絕對零度的極限專注" },
-  { region: "合眾", badge: 24, leader: "艾莉絲", type: "龍",    emoji: "🐉", name: "雙龍道館",   waves: 5, lvBonus: 75, desc: "龍之霸主的最終試煉" },
-  { region: "卡洛斯", badge: 25, leader: "紫羅蘭", type: "蟲",  emoji: "🦋", name: "白檀道館",   waves: 4, lvBonus: 55, desc: "觀察入微的蟲之眼" },
-  { region: "卡洛斯", badge: 26, leader: "查克洛", type: "岩石", emoji: "🪨", name: "遙香道館",   waves: 4, lvBonus: 59, desc: "攀上岩壁的毅力" },
-  { region: "卡洛斯", badge: 27, leader: "可爾妮", type: "格鬥", emoji: "🥋", name: "娑羅道館",   waves: 5, lvBonus: 63, desc: "百折不撓的格鬥魂" },
-  { region: "卡洛斯", badge: 28, leader: "福爺", type: "草",    emoji: "🌿", name: "海翼道館",   waves: 5, lvBonus: 67, desc: "扎根知識的茂盛幹勁" },
-  { region: "卡洛斯", badge: 29, leader: "瑪綉", type: "電",    emoji: "⚡", name: "密阿雷道館",   waves: 5, lvBonus: 72, desc: "華麗的電光交響曲" },
-  { region: "卡洛斯", badge: 30, leader: "葛吉花", type: "超能力", emoji: "🔮", name: "香薰道館",   waves: 5, lvBonus: 77, desc: "預知未來的超能占卜" },
-  { region: "卡洛斯", badge: 31, leader: "得撫", type: "惡",    emoji: "😈", name: "百刻道館",   waves: 5, lvBonus: 82, desc: "時間的暗影試煉" },
+  { region: "城都", badge: 16, leader: "柳伯", type: "冰",      emoji: "❄️", name: "卡吉道館",   waves: 5, lvBonus: 39, desc: "冰封萬物的最終考驗" },
+  { region: "合眾", badge: 17, leader: "天桐", type: "草",      emoji: "🌿", name: "三曜道館",   waves: 4, lvBonus: 42, desc: "三曜鼎立的智慧考驗" },
+  { region: "合眾", badge: 18, leader: "蘆薈", type: "一般",    emoji: "🐾", name: "七寶道館",   waves: 4, lvBonus: 45, desc: "以不變應萬變的基礎" },
+  { region: "合眾", badge: 19, leader: "亞堤", type: "蟲",      emoji: "🐛", name: "飛雲道館",   waves: 5, lvBonus: 49, desc: "編織知識之網的韌性" },
+  { region: "合眾", badge: 20, leader: "小菊兒", type: "電",    emoji: "⚡", name: "雷文道館",   waves: 5, lvBonus: 51, desc: "閃耀的電流急急棒" },
+  { region: "合眾", badge: 21, leader: "菊老大", type: "地面",  emoji: "🌍", name: "帆巴道館",   waves: 5, lvBonus: 54, desc: "大地深處的嚴峻考驗" },
+  { region: "合眾", badge: 22, leader: "風露", type: "飛行",    emoji: "🦅", name: "吹寄道館",   waves: 5, lvBonus: 58, desc: "乘風破浪的高空對決" },
+  { region: "合眾", badge: 23, leader: "哈奇庫", type: "冰",    emoji: "❄️", name: "雪花道館",   waves: 5, lvBonus: 62, desc: "絕對零度的極限專注" },
+  { region: "合眾", badge: 24, leader: "艾莉絲", type: "龍",    emoji: "🐉", name: "雙龍道館",   waves: 5, lvBonus: 66, desc: "龍之霸主的最終試煉" },
+  { region: "卡洛斯", badge: 25, leader: "紫羅蘭", type: "蟲",  emoji: "🦋", name: "白檀道館",   waves: 4, lvBonus: 64, desc: "觀察入微的蟲之眼" },
+  { region: "卡洛斯", badge: 26, leader: "查克洛", type: "岩石", emoji: "🪨", name: "遙香道館",   waves: 4, lvBonus: 68, desc: "攀上岩壁的毅力" },
+  { region: "卡洛斯", badge: 27, leader: "可爾妮", type: "格鬥", emoji: "🥋", name: "娑羅道館",   waves: 5, lvBonus: 72, desc: "百折不撓的格鬥魂" },
+  { region: "卡洛斯", badge: 28, leader: "福爺", type: "草",    emoji: "🌿", name: "海翼道館",   waves: 5, lvBonus: 75, desc: "扎根知識的茂盛幹勁" },
+  { region: "卡洛斯", badge: 29, leader: "瑪綉", type: "電",    emoji: "⚡", name: "密阿雷道館",   waves: 5, lvBonus: 78, desc: "華麗的電光交響曲" },
+  { region: "卡洛斯", badge: 30, leader: "葛吉花", type: "超能力", emoji: "🔮", name: "香薰道館",   waves: 5, lvBonus: 81, desc: "預知未來的超能占卜" },
+  { region: "卡洛斯", badge: 31, leader: "得撫", type: "惡",    emoji: "😈", name: "百刻道館",   waves: 5, lvBonus: 84, desc: "時間的暗影試煉" },
   { region: "卡洛斯", badge: 32, leader: "志米", type: "水",    emoji: "💧", name: "映雪道館",   waves: 5, lvBonus: 88, desc: "深不可測的水之巔峰" }
 ];
 
@@ -608,7 +608,7 @@ class SeededRNG {
 }
 
 function getRawName(baseName) {
-  return baseName.replace(/^[🐾⭐🌟✨👑]\s*/, "").replace(/\s*\(.*\)/, "");
+  return baseName.replace(/^[🐾⭐🌟✨👑]\s*/u, "").replace(/\s*\(.*\)/, "");
 }
 
 function checkIsLegendary(pokemonName) {
@@ -654,9 +654,17 @@ function getHappiness(pkmn) {
   return pkmn.happiness || 0;
 }
 
+function getRandomEeveelution() {
+  const evos = ["水伊布","雷伊布","火伊布","太陽伊布","月亮伊布","葉伊布","冰伊布","仙子伊布"];
+  return evos[Math.floor(Math.random() * evos.length)];
+}
 function checkEvoReady(pkmn, gd) {
   const raw = getRawName(pkmn.baseName);
   if (!raw) return null;
+  if (raw === "伊布") {
+    if (pkmn.currentLevel >= 16) return { ready: true, nextName: getRandomEeveelution(), type: "eevee", info: "等級 16+" };
+    return null;
+  }
   const cond = getEvoCondition(raw);
   let nextName = cond ? cond.to : getEvoNextName(raw);
   if (!nextName) return null;
@@ -971,6 +979,13 @@ function recalculateState(studentId, events) {
       p.happiness = (p.happiness || 0) + state.happinessToday[p.id];
     } else {
       p.happiness = p.happiness || 0;
+    }
+    // Auto-evolve during replay
+    const evoInfo2 = checkEvoReady(p, null);
+    if (evoInfo2 && evoInfo2.nextName) {
+      const types2 = POKEMON_SPECIES_TYPES[evoInfo2.nextName] || ["一般"];
+      const m2 = p.baseName.match(/^[🐾⭐🌟✨👑]\s*/);
+      p.baseName = (m2 ? m2[0] : "⭐ ") + evoInfo2.nextName + " (" + types2.join("/") + ")";
     }
     if (p.currentLevel > finalHighestLevel) finalHighestLevel = p.currentLevel;
     rosterArray.push(p);
@@ -1621,7 +1636,7 @@ function runSimulation() {
     const eevee = maxState.roster.find(p => p.id === 'P0');
     if (eevee) {
       console.log(`  MAX Eevee: Lv.${eevee.currentLevel} | name: ${eevee.baseName}`);
-      if (eevee.currentLevel >= 16 && eevee.baseName.includes('伊布')) {
+      if (eevee.currentLevel >= 16 && getRawName(eevee.baseName) === '伊布') {
         bugsFound.push({ issue: 'M3-EVOLVE_EEVEE', student: 'max', details: `Eevee reached Lv.${eevee.currentLevel} but still base form — evolution dialog may be missed` });
       }
     }

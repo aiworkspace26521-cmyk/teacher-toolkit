@@ -7,6 +7,13 @@
         { "fieldPath": "studentId", "order": "ASCENDING" },
         { "fieldPath": "timestamp", "order": "ASCENDING" }
       ]
+    },
+    {
+      "collectionGroup": "pvp_ranking",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "elo", "order": "DESCENDING" }
+      ]
     }
   ],
   "fieldOverrides": []
