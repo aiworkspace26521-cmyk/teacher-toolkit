@@ -561,9 +561,9 @@ function getExpNeeded(lvl) {
   if (lvl <= 20) return lvl * 60;
   if (lvl <= 35) return lvl * 120;
   if (lvl <= 55) return lvl * 200;
-  if (lvl <= 75) return lvl * 350;
-  if (lvl <= 85) return lvl * 600;
-  return lvl * 900;
+  if (lvl <= 75) return lvl * 300;
+  if (lvl <= 85) return lvl * 450;
+  return lvl * 450;
 }
 
 function calcLevelAndExp(totalExp, initialLevel) {
@@ -686,16 +686,16 @@ function checkEvoReady(pkmn, gd) {
   return null;
 }
 
-// Determine capture tier based on score and badges
-function determineCaptureTier(score, badges) {
+// Determine capture tier based on score, badges, and streak
+function determineCaptureTier(score, badges, streak) {
   const canLegendary = badges >= 8;
   const fullUnlock = badges >= 16;
   let tier = "一般";
   if (score >= 95) {
     if (fullUnlock) {
-      tier = Math.random() < 0.06 ? "傳說" : (Math.random() < 0.5 ? "稀有" : "一般");
+      tier = Math.random() < 0.06 ? "傳說" : (Math.random() < 0.6 ? "稀有" : "一般");
     } else if (canLegendary) {
-      tier = Math.random() < 0.06 ? "傳說" : (Math.random() < 0.5 ? "稀有" : "一般");
+      tier = Math.random() < 0.06 ? "傳說" : (Math.random() < 0.6 ? "稀有" : "一般");
     } else {
       tier = Math.random() < 0.6 ? "稀有" : "一般";
     }
@@ -708,6 +708,9 @@ function determineCaptureTier(score, badges) {
   } else if (score >= 60) {
     tier = Math.random() < 0.15 ? "稀有" : "一般";
   }
+  // Streak bonus (matches frontend)
+  if (streak >= 10 && score >= 60) { tier = "傳說"; }
+  else if (streak >= 5 && score >= 60 && tier === "一般") { tier = "稀有"; }
   return tier;
 }
 
@@ -1061,12 +1064,18 @@ class SimulationStudent {
     // Compute badges from state
     let currentState = recalculateState(this.studentId, this.events);
     const badges = currentState ? currentState.badges : 0;
+    const streak = currentState ? currentState.streak : 0;
 
     // --- ACTION: Normal submit / Capture / Train ---
     if (mode === 1 && score >= 50) {
       // CAPTURE ACTION
-      const tier = determineCaptureTier(finalScore, badges);
-      const rawCapture = this._generateCapture(tier, '隨機', Math.floor(finalScore / 4));
+      const tier = determineCaptureTier(finalScore, badges, streak);
+      let captureLevel;
+      if (finalScore >= 95) captureLevel = Math.floor(finalScore / 4);
+      else if (finalScore >= 75) captureLevel = Math.floor(finalScore / 6);
+      else captureLevel = Math.floor(finalScore / 8);
+      captureLevel = Math.max(5, captureLevel);
+      const rawCapture = this._generateCapture(tier, '隨機', captureLevel);
       const expGain = Math.floor(finalScore * 8);
       const coinsGain = Math.floor(finalScore * 1.5);
       const note = `捕捉: ${rawCapture.name} | ID:${rawCapture.id}`;

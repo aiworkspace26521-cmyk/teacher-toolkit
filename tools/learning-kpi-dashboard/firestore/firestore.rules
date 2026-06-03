@@ -43,6 +43,13 @@ service cloud.firestore {
       allow delete: if resource.data.senderId == request.auth.uid;
     }
 
+    // pvp_ranking: 公開讀取，學生僅可寫入自己的紀錄
+    match /pvp_ranking/{studentId} {
+      allow read: if true;
+      allow write: if request.auth.uid == studentId
+                    || request.auth.uid == "Admin";
+    }
+
     // 其餘全部拒絕
     match /{document=**} {
       allow read, write: if false;

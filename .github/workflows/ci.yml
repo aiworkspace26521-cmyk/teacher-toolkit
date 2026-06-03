@@ -5,6 +5,17 @@ on:
   pull_request:
     branches: [master]
 jobs:
+  game-manual-consistency:
+    name: Game Manual Consistency
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - name: Check GAME-MANUAL consistency
+        run: node tools/learning-kpi-dashboard/test/game-manual-consistency.js
+
   simulation-test:
     name: Simulation Test
     runs-on: ubuntu-latest

@@ -169,26 +169,32 @@
       .pc-grid-party { grid-template-columns: repeat(3, 1fr); }
       .pc-grid-box { grid-template-columns: repeat(2, 1fr); }
     }
-    @media (max-width: 380px) {
-      body { padding: 6px; }
-      .container { border-radius: 12px; border-width: 2px; }
-      .content { padding: 8px; }
-      .header h1 { font-size: 15px; }
-      .header { padding: 10px 10px; border-bottom-width: 4px; }
-      .kpi-box { padding: 8px 4px; font-size: 11px; }
-      .kpi-box .val { font-size: 18px; }
-      .button-row { grid-template-columns: repeat(2, 1fr); gap: 6px; }
-      .nav-btn { font-size: 11px; padding: 8px 3px; min-height: 44px; }
-      .battle-controls { grid-template-columns: 1fr 1fr; gap: 5px; }
-      .moveset-grid { grid-template-columns: 1fr; gap: 5px; }
-      .move-btn { font-size: 12px; padding: 8px; }
-      .pc-grid-party { grid-template-columns: repeat(2, 1fr); }
-      .pc-grid-box { grid-template-columns: repeat(2, 1fr); }
-      .collection-grid { grid-template-columns: 1fr; }
-      .pvp-split { flex-direction: column; gap: 8px; }
-      .submit-btn { font-size: 14px; padding: 10px; }
-      #battleLog, #pvpLog { height: 120px; font-size: 12px; }
-    }
+@media (max-width: 380px) {
+  body { padding: 6px; }
+  .container { border-radius: 12px; border-width: 2px; }
+  .content { padding: 8px; }
+  .header h1 { font-size: 15px; }
+  .header { padding: 10px 10px; border-bottom-width: 4px; }
+  .kpi-box { padding: 8px 4px; font-size: 11px; }
+  .kpi-box .val { font-size: 18px; }
+  .button-row { grid-template-columns: repeat(2, 1fr); gap: 6px; }
+  .nav-btn { font-size: 12px; padding: 12px 6px; min-height: 48px; min-width: 48px; }
+  .nav-btn:active { transform: scale(0.96); }
+  .battle-controls { grid-template-columns: 1fr 1fr; gap: 5px; }
+  .moveset-grid { grid-template-columns: 1fr; gap: 5px; }
+  .move-btn { font-size: 12px; padding: 12px 8px; min-height: 44px; }
+  .pc-grid-party { grid-template-columns: repeat(2, 1fr); }
+  .pc-grid-box { grid-template-columns: repeat(2, 1fr); }
+  .collection-grid { grid-template-columns: 1fr; }
+  .pvp-split { flex-direction: column; gap: 8px; }
+  .submit-btn { font-size: 14px; padding: 14px; min-height: 48px; }
+  #battleLog, #pvpLog { height: 120px; font-size: 12px; }
+  .b-btn { padding: 12px 8px; min-height: 44px; font-size: 13px; }
+  select.main-select { font-size: 16px; padding: 14px; }
+  .admin-btn { font-size: 13px; padding: 10px; min-height: 44px; }
+  .buy-btn { padding: 8px 12px; min-height: 40px; }
+  .close-btn { padding: 10px 16px; min-height: 44px; }
+}
     @media (min-width: 768px) and (max-width: 1024px) {
       .container { max-width: 600px; }
       .kpi-grid { grid-template-columns: repeat(3, 1fr); }
@@ -391,6 +397,7 @@
       <button class="nav-btn btn-gym" id="btnGymBattle" onclick="sfx.click();startBattle(true,false)">⚔️ 道館戰</button>
       <button class="nav-btn btn-league" id="btnLeagueBattle" onclick="sfx.click();startLeagueBattle()" style="display:none;">🏆 聯盟賽</button>
       <button class="nav-btn btn-pvp" id="btnLeagueRanking" onclick="sfx.click();openLeagueRanking()" style="background:#2c3e50;color:white;display:none;">📊 聯盟排名</button>
+      <button class="nav-btn btn-pvp" onclick="sfx.click();openRankingModal()" style="background:#8e44ad;color:white;" id="btnPvPRanking">🏆 PvP天梯</button>
     </div>
     <button id="submitBtn" class="submit-btn" disabled>請先登入</button>
   </div>
@@ -483,7 +490,10 @@
         <div style="font-weight:700;margin-bottom:5px;">🎒 使用道具</div>
         <div id="arenaItemBtns"></div>
       </div>
-      <button id="arenaItemToggle" class="b-btn" style="background-color:#f39c12;width:100%;margin-bottom:8px;" onclick="var p=document.getElementById('arenaItemPanel');p.style.display=p.style.display==='none'?'block':'none';">🎒 道具</button>
+      <div style="display:flex;gap:6px;margin-bottom:8px;">
+        <button id="arenaItemToggle" class="b-btn" style="background-color:#f39c12;flex:1;" onclick="var p=document.getElementById('arenaItemPanel');p.style.display=p.style.display==='none'?'block':'none';">🎒 道具</button>
+        <button id="speedToggleBtn" class="b-btn" style="background-color:#7f8c8d;flex:0 0 auto;padding:6px 10px;font-size:12px;" onclick="toggleBattleSpeed()">⚡ 1x</button>
+      </div>
       <button class="b-btn b-btn-flee" style="width:100%;" onclick="fleeBattle()">🏃 逃走</button>
     </div>
     <div id="arenaResultPhase" style="display:none;">
@@ -506,12 +516,16 @@
 <div id="tmModal" class="modal">
   <div class="modal-content" style="border-color:#9b59b6;max-width:550px;width:95%;padding:15px;">
     <h3 style="color:#8e44ad;margin-top:0;">📀 招式學習器</h3>
+    <div style="display:flex;gap:6px;margin-bottom:8px;">
+      <input id="tmSearch" type="text" placeholder="🔍 搜尋招式名稱..." oninput="if(typeof renderTMMoveList==='function')renderTMMoveList(currentTmPokemonId, currentTmFilterType||'全部');" style="flex:1;padding:6px 10px;border:1px solid #ccc;border-radius:6px;font-size:13px;">
+      <select id="tmTypeFilter2" onchange="if(typeof renderTMMoveList==='function'){currentTmFilterType=this.value;renderTMMoveList(currentTmPokemonId,this.value);}" style="padding:6px;border:1px solid #ccc;border-radius:6px;font-size:13px;"><option value="全部">全部屬性</option></select>
+    </div>
     <div id="tmModalBody"></div>
     <button class="close-btn" onclick="closeModal('tmModal')">關閉</button>
   </div>
 </div>
 
-<div id="pvpModal" class="modal"><div class="modal-content" style="border-color:#8e44ad;width:95%;"><h3 style="color:#8e44ad;margin-top:0;">🆚 PvP對戰</h3><div id="pvpSelection"></div><div id="pvpBattle"></div><button class="close-btn" onclick="closeModal('pvpModal')">離開</button></div></div>
+<div id="pvpModal" class="modal"><div class="modal-content" style="border-color:#8e44ad;width:95%;"><h3 style="color:#8e44ad;margin-top:0;">🆚 PvP對戰</h3><div style="text-align:right;margin-bottom:6px;"><button onclick="closeModal('pvpModal');openRankingModal();" style="background:none;border:1px solid #8e44ad;color:#8e44ad;border-radius:4px;padding:4px 10px;font-size:12px;cursor:pointer;">🏆 天梯排名</button></div><div id="pvpSelection"></div><div id="pvpBattle"></div><button class="close-btn" onclick="closeModal('pvpModal')">離開</button></div></div>
 
 <div id="tradeModal" class="modal"><div class="modal-content" style="border-color:#e67e22;">
   <h3 style="color:#e67e22;margin-top:0;">🤝 寶可夢交換所</h3>
@@ -550,11 +564,32 @@
 
 <div id="eeveeModal" class="modal"><div class="modal-content" style="border-color:var(--kpi-blue);"><h3 style="color:var(--kpi-blue);margin-top:0;">🌟 伊布進化大覺醒！</h3><p style="font-size:14px;color:#666;margin-bottom:15px;">伊布已達 <b>Lv.16</b>，請選擇<b>一種</b>進化型態(不可更改)：</p><select id="eeveeChoice" class="main-select" style="margin-bottom:15px;"><option value="💧 水伊布 (水系)">💧 水伊布</option><option value="🔥 火伊布 (火系)">🔥 火伊布</option><option value="🍃 葉伊布 (草系)">🍃 葉伊布</option><option value="⚡ 雷伊布 (電系)">⚡ 雷伊布</option><option value="🔮 太陽伊布 (超能系)">🔮 太陽伊布</option><option value="🕶️ 月亮伊布 (惡系)">🕶️ 月亮伊布</option><option value="❄️ 冰伊布 (冰系)">❄️ 冰伊布</option><option value="✨ 仙子伊布 (妖精系)">✨ 仙子伊布</option></select><button class="buy-btn" style="width:100%;font-size:16px;padding:12px;" onclick="confirmEeveeEvolution()">確認進化</button></div></div>
 
-<div id="toast" style="display:none;position:fixed;bottom:20px;left:50%;transform:translateX(-50%);background:#333;color:white;padding:12px 24px;border-radius:8px;font-weight:700;z-index:9999;box-shadow:0 4px 12px rgba(0,0,0,0.3);font-size:14px;text-align:center;max-width:90%;"></div>
-<script>
-// ===== Core utility functions =====
-function $(id) { return document.getElementById(id); }
-var toastTimeout;
+<div id="toastContainer" style="position:fixed;bottom:20px;left:50%;transform:translateX(-50%);z-index:9999;display:flex;flex-direction:column;gap:6px;pointer-events:none;max-width:90%;"></div>
+
+var BATTLE_SPEED = 1; // 1=normal, 2=fast, 0=instant
+var toastQueue = [];
+var toasting = false;
+function toast(msg, duration) {
+  duration = duration || 3000;
+  toastQueue.push({ msg: msg, duration: duration });
+  if (!toasting) processToastQueue();
+}
+function processToastQueue() {
+  if (toastQueue.length === 0) { toasting = false; return; }
+  toasting = true;
+  var item = toastQueue.shift();
+  var container = $("toastContainer");
+  if (!container) { toasting = false; return; }
+  var el = document.createElement("div");
+  el.textContent = item.msg;
+  el.style.cssText = "background:#333;color:white;padding:10px 20px;border-radius:8px;font-weight:700;font-size:14px;text-align:center;box-shadow:0 4px 12px rgba(0,0,0,0.3);pointer-events:auto;transition:opacity 0.3s,transform 0.3s;";
+  container.appendChild(el);
+  setTimeout(function() {
+    el.style.opacity = "0";
+    el.style.transform = "translateY(-10px)";
+    setTimeout(function() { if (el.parentNode) el.parentNode.removeChild(el); processToastQueue(); }, 300);
+  }, item.duration);
+}
 var sfx = {
   _ctx: null,
   _init: function() {
@@ -2406,19 +2441,26 @@ function showLargeText(text, color, duration) {
   el._hideTimer = setTimeout(function(){ el.style.display = "none"; }, duration);
 }
 
+function getAnimDelay(base) {
+  if (BATTLE_SPEED === 0) return 0;
+  if (BATTLE_SPEED === 2) return Math.round(base / 3);
+  return base;
+}
 function animateHpBar(barId, textId, currentHp, maxHp, callback) {
   var bar = $(barId);
   var txt = $(textId);
   if (!bar) { if (callback) callback(); return; }
   var targetPct = Math.round(currentHp / maxHp * 100);
-  bar.style.transition = "width 1.2s linear";
+  if (BATTLE_SPEED === 0) { bar.style.width = targetPct + "%"; if (txt) txt.innerHTML = currentHp + "/" + maxHp; if (callback) callback(); return; }
+  var delay = getAnimDelay(1250);
+  bar.style.transition = "width " + (delay / 1000) + "s linear";
   bar.style.width = targetPct + "%";
   bar.className = "hp-bar-fill anim-drain " + (targetPct > 50 ? "hp-green" : targetPct > 25 ? "hp-yellow" : "hp-red");
   if (txt) txt.innerHTML = currentHp + "/" + maxHp;
   setTimeout(function(){
     bar.style.transition = "width 0.15s ease";
     if (callback) callback();
-  }, 1250);
+  }, delay);
 }
 
 function shakeElement(id) {
@@ -3118,6 +3160,14 @@ function useItemInArena(itemType) {
   $("arenaItemPanel").style.display = "none";
 }
 
+function toggleBattleSpeed() {
+  if (BATTLE_SPEED === 1) BATTLE_SPEED = 2;
+  else if (BATTLE_SPEED === 2) BATTLE_SPEED = 0;
+  else BATTLE_SPEED = 1;
+  var btn = $("speedToggleBtn");
+  if (btn) btn.textContent = BATTLE_SPEED === 0 ? "⚡即時" : BATTLE_SPEED === 2 ? "⚡ 2x" : "⚡ 1x";
+  toast(BATTLE_SPEED === 0 ? "即時模式 (無動畫)" : BATTLE_SPEED === 2 ? "加速模式 (2x)" : "一般速度");
+}
 function fleeBattle() {
   if (!battleState) return;
   closeModal("battleModal");
@@ -3822,13 +3872,51 @@ function openPCBoxModal() {
   if (!globalData || !globalData.roster) return;
   var box = $("pcBoxBody");
   box.innerHTML = "";
+  // Search filter
+  var searchBar = document.createElement("div"); searchBar.style.cssText = "margin-bottom:8px;display:flex;gap:6px;";
+  var searchInput = document.createElement("input"); searchInput.type = "text"; searchInput.placeholder = "🔍 搜尋寶可夢名稱...";
+  searchInput.style.cssText = "flex:1;padding:6px 10px;border:1px solid #ccc;border-radius:6px;font-size:13px;";
+  searchInput.id = "pcBoxSearch";
+  searchInput.oninput = function() { renderPCBoxContent(); };
+  searchBar.appendChild(searchInput);
+  var typeFilter = document.createElement("select"); typeFilter.id = "pcBoxTypeFilter";
+  typeFilter.style.cssText = "padding:6px;border:1px solid #ccc;border-radius:6px;font-size:13px;";
+  var typeOpt = document.createElement("option"); typeOpt.value = ""; typeOpt.textContent = "全部屬性"; typeFilter.appendChild(typeOpt);
+  var allTypes = ["一般","火","水","草","電","冰","格鬥","毒","地面","飛行","超能力","蟲","岩石","幽靈","龍","鋼","妖精","惡"];
+  for (var ti = 0; ti < allTypes.length; ti++) { var o = document.createElement("option"); o.value = allTypes[ti]; o.textContent = allTypes[ti]; typeFilter.appendChild(o); }
+  typeFilter.onchange = function() { renderPCBoxContent(); };
+  searchBar.appendChild(typeFilter);
+  box.appendChild(searchBar);
+  renderPCBoxContent();
+}
+
+function renderPCBoxContent() {
+  var box = $("pcBoxBody"); if (!box) return;
+  // Remove old grids, keep search bar
+  var searchBar = box.querySelector("div:first-child");
+  box.innerHTML = "";
+  if (searchBar) box.appendChild(searchBar);
+  var query = ($("pcBoxSearch") ? $("pcBoxSearch").value : "").trim().toLowerCase();
+  var typeFilter = ($("pcBoxTypeFilter") ? $("pcBoxTypeFilter").value : "").trim();
+  var roster = globalData.roster || [];
+  var filtered = roster.filter(function(p) {
+    if (query) {
+      var nameLower = (p.baseName || "").replace(/[^a-zA-Z\u4e00-\u9fff]/g, "").toLowerCase();
+      if (nameLower.indexOf(query) === -1 && (p.baseName || "").indexOf(query) === -1) return false;
+    }
+    if (typeFilter) {
+      var pTypes = getPokemonType(p.baseName) || ["一般"];
+      if (pTypes.indexOf(typeFilter) === -1) return false;
+    }
+    return true;
+  });
   var grid1 = document.createElement("div"); grid1.className = "pc-grid";
   var g1h = document.createElement("h4"); g1h.innerHTML = "📋 隊伍 (Party)"; grid1.appendChild(g1h);
   var partyIds = globalData.partyIds || [];
   for (var i = 0; i < 6; i++) {
     var slot = document.createElement("div"); slot.className = "pc-slot";
     slot.dataset.index = i; slot.dataset.type = "party";
-    var match = globalData.roster.find(function(p){ return p.id === partyIds[i]; });
+    var match = filtered.find(function(p){ return p.id === partyIds[i]; });
     if (match) {
       var abilNameP = getPokemonAbility(match.baseName);
       slot.innerHTML = match.baseName + " Lv." + match.currentLevel + (abilNameP ? " <span style=\"font-size:10px;color:#8e44ad;\">[" + abilNameP + "]</span>" : "");
@@ -3845,7 +3933,7 @@ function openPCBoxModal() {
 
   var grid2 = document.createElement("div"); grid2.className = "pc-grid";
   var g2h = document.createElement("h4"); g2h.innerHTML = "💾 電腦 (PC Box)"; grid2.appendChild(g2h);
-  var boxed = globalData.roster.filter(function(p){ return partyIds.indexOf(p.id) === -1; });
+  var boxed = filtered.filter(function(p){ return partyIds.indexOf(p.id) === -1; });
   for (var j = 0; j < Math.max(18, boxed.length); j++) {
     var slot2 = document.createElement("div"); slot2.className = "pc-slot";
     slot2.dataset.index = j; slot2.dataset.type = "box";
@@ -4048,7 +4136,101 @@ async function savePvPResult(won) {
   await executeSave({ studentId: globalData.studentId, score: 0, action: "PvP", expGained: exp, coinsGained: coins, badgeChange: 0, note: note, extraNote: note, totalScore: 0, user: globalData.studentId }, null, false);
   if (!window.__pvpEvents) window.__pvpEvents = [];
   window.__pvpEvents.push(new Date().toDateString());
+  // Update ELO ranking
+  if (pvpOpponentInfo && pvpOpponentInfo.studentId && pvpOpponentInfo.studentId !== "訓練賽") {
+    await updatePvPRanking(globalData.studentId, pvpOpponentInfo.studentId, won);
+  }
   toast(won ? "🎉 PvP 勝利！" : "💪 下次加油！");
+}
+
+// ── PvP ELO Ranking System (P8-5) ──────────────────────────────────
+async function getPvPRanking(studentId) {
+  try {
+    var doc = await db.collection("pvp_ranking").doc(studentId).get();
+    if (doc.exists) return doc.data();
+  } catch(e) {}
+  return { elo: 1000, wins: 0, losses: 0, season: getCurrentSeason() };
+}
+
+function getCurrentSeason() {
+  var d = new Date();
+  return d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, "0");
+}
+
+function calculateELO(playerElo, opponentElo, won, K) {
+  K = K || 32;
+  var expected = 1 / (1 + Math.pow(10, (opponentElo - playerElo) / 400));
+  var score = won ? 1 : 0;
+  return Math.round(playerElo + K * (score - expected));
+}
+
+async function updatePvPRanking(playerId, opponentId, won) {
+  try {
+    var playerRank = await getPvPRanking(playerId);
+    var oppRank = await getPvPRanking(opponentId);
+    var newElo = calculateELO(playerRank.elo, oppRank.elo, won);
+    var oppNewElo = calculateELO(oppRank.elo, playerRank.elo, !won);
+    var season = getCurrentSeason();
+    if (playerRank.season !== season) { playerRank.wins = 0; playerRank.losses = 0; }
+    await db.collection("pvp_ranking").doc(playerId).set({
+      elo: newElo, wins: playerRank.wins + (won ? 1 : 0),
+      losses: playerRank.losses + (won ? 0 : 1),
+      season: season, lastBattle: new Date().toISOString()
+    }, { merge: true });
+    await db.collection("pvp_ranking").doc(opponentId).set({
+      elo: oppNewElo, wins: oppRank.wins + (won ? 0 : 1),
+      losses: oppRank.losses + (won ? 1 : 0),
+      season: season, lastBattle: new Date().toISOString()
+    }, { merge: true });
+  } catch(e) { console.warn("ELO update error", e); }
+}
+
+async function openRankingModal() {
+  var existing = $("rankingModal");
+  if (existing) { existing.style.display = "flex"; renderRanking(); return; }
+  var modal = document.createElement("div"); modal.id = "rankingModal"; modal.className = "modal";
+  modal.style.cssText = "position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.5);display:flex;z-index:10000;align-items:center;justify-content:center;";
+  var content = document.createElement("div"); content.className = "modal-content";
+  content.style.cssText = "background:white;border-radius:12px;padding:20px;max-width:500px;width:92%;max-height:80vh;overflow-y:auto;border:3px solid #8e44ad;";
+  content.innerHTML = "<h3 style='margin-top:0;color:#8e44ad;'>🏆 PvP 天梯排名</h3>" +
+    "<div style='font-size:12px;color:#666;margin-bottom:10px;'>賽季: <span id='rankingSeason'></span></div>" +
+    "<div id='rankingList' style='min-height:100px;'></div>" +
+    "<button class='close-btn' onclick=\"document.getElementById('rankingModal').style.display='none';\">關閉</button>";
+  modal.appendChild(content);
+  document.body.appendChild(modal);
+  modal.style.display = "flex";
+  renderRanking();
+}
+
+async function renderRanking() {
+  var listDiv = $("rankingList");
+  if (!listDiv) return;
+  listDiv.innerHTML = "載入中...";
+  var seasonEl = $("rankingSeason");
+  try {
+    var snap = await db.collection("pvp_ranking").orderBy("elo", "desc").limit(50).get();
+    var rankings = [];
+    snap.forEach(function(d) { rankings.push({ id: d.id, data: d.data() }); });
+    if (seasonEl) seasonEl.textContent = getCurrentSeason();
+    if (rankings.length === 0) { listDiv.innerHTML = "<p style='color:#999;text-align:center;'>還沒有排名資料，開始 PvP 對戰吧！</p>"; return; }
+    var html = "<div style='display:flex;font-weight:900;font-size:12px;color:#666;padding:6px 8px;border-bottom:2px solid #eee;'>" +
+      "<span style='width:40px;'>#</span><span style='flex:1;'>玩家</span><span style='width:60px;text-align:center;'>ELO</span><span style='width:80px;text-align:center;'>戰績</span></div>";
+    for (var i = 0; i < rankings.length; i++) {
+      var r = rankings[i];
+      var elo = r.data.elo || 1000;
+      var w = r.data.wins || 0;
+      var l = r.data.losses || 0;
+      var isMe = r.id === globalData.studentId;
+      var medal = i === 0 ? "🥇" : i === 1 ? "🥈" : i === 2 ? "🥉" : (i + 1);
+      var bg = isMe ? "background:#f0e6ff;" : i % 2 === 0 ? "background:#fafafa;" : "";
+      html += "<div style='display:flex;align-items:center;padding:8px;font-size:14px;border-bottom:1px solid #f0f0f0;" + bg + "'>" +
+        "<span style='width:40px;font-weight:900;'>" + medal + "</span>" +
+        "<span style='flex:1;font-weight:" + (isMe ? "900" : "700") + ";'>" + r.id + (isMe ? " (你)" : "") + "</span>" +
+        "<span style='width:60px;text-align:center;color:#8e44ad;font-weight:900;'>" + elo + "</span>" +
+        "<span style='width:80px;text-align:center;font-size:12px;color:#666;'>" + w + "W / " + l + "L</span></div>";
+    }
+    listDiv.innerHTML = html;
+  } catch(e) { listDiv.innerHTML = "<p style='color:#999;text-align:center;'>載入排名失敗</p>"; }
 }
 // ===== UI FUNCTIONS =====
 function renderBadgeCase() {
@@ -4357,8 +4539,29 @@ function renderActions() {
     "<button onclick=\"adminAddCoins('all')\" style=\"padding:6px 12px;\">全員 +50 金幣</button>" +
     "<button onclick=\"adminReset('all')\" style=\"padding:6px 12px;\">重置全員進度</button>" +
     "<button onclick=\"openGymEditor()\" style=\"padding:6px 12px;\">道館編輯器</button>" +
+    "<button onclick=\"adminClearCache()\" style=\"padding:6px 12px;background:#e67e22;color:white;\">🗑️ 清除快取</button>" +
+    "<button onclick=\"adminExportCSV()\" style=\"padding:6px 12px;background:#27ae60;color:white;\">📥 匯出 CSV</button>" +
+    "</div>" +
+    "<div style=\"display:flex;gap:8px;flex-wrap:wrap;margin-top:8px;align-items:center;\">" +
+    "<span style=\"font-size:13px;font-weight:700;\">📅 批量事件注入：</span>" +
+    "<select id=\"batchInjectStudent\" style=\"padding:4px;border-radius:4px;\"><option value=\"\">選擇學生...</option></select>" +
+    "<input id=\"batchInjectDays\" type=\"number\" value=\"7\" min=\"1\" max=\"90\" style=\"width:60px;padding:4px;border-radius:4px;border:1px solid #ccc;\" /> 天" +
+    "<button onclick=\"adminBatchInject()\" style=\"padding:6px 12px;background:#8e44ad;color:white;border:none;border-radius:4px;cursor:pointer;\">🚀 批量注入</button>" +
     "</div></div>" +
     "<div id=\"gymEditorContainer\"></div>";
+  // Populate batch inject student dropdown
+  var sel = $("batchInjectStudent");
+  if (sel && globalData) {
+    db.collection("kpi_students").get().then(function(snap) {
+      snap.docs.forEach(function(d) {
+        if (d.id === "Admin") return;
+        var opt = document.createElement("option");
+        opt.value = d.id;
+        opt.textContent = d.id;
+        sel.appendChild(opt);
+      });
+    }).catch(function(e) { console.warn("batch inject student list error", e); });
+  }
 }
 
 async function adminAddExp(target) {
@@ -4404,6 +4607,73 @@ async function adminReset(target) {
     var del2 = snap2.docs.map(function(d){ return d.ref.delete(); });
     await Promise.all(del2);
     toast("✅ 已清除所有資料");
+  } catch(e) { toast("❌ 錯誤: " + e.message); }
+}
+
+function adminClearCache() {
+  if (!confirm("清除 sessionStorage 快取，強制從 Firestore 重新計算？")) return;
+  sessionStorage.clear();
+  toast("🗑️ 快取已清除，正在重新載入...");
+  setTimeout(function() { location.reload(); }, 500);
+}
+
+async function adminExportCSV() {
+  toast("正在生成 CSV...");
+  try {
+    var snap = await db.collection("kpi_students").get();
+    var rows = [["座號","等級","EXP","金幣","徽章","持有寶可夢數","連續天數","簡單模式","最後更新"]];
+    for (var i = 0; i < snap.docs.length; i++) {
+      var d = snap.docs[i];
+      if (d.id === "Admin") continue;
+      var data = d.data() || {};
+      var roster = data.roster || {};
+      var pokemonCount = 0;
+      for (var k in roster) pokemonCount++;
+      var updated = (data._lastUpdated && data._lastUpdated.toDate) ? data._lastUpdated.toDate().toISOString().split("T")[0] : "";
+      rows.push([d.id, data.level || 5, data.totalExp || 0, data.coins || 0, data.badges || 0, pokemonCount, data.streak || 0, data.simpleMode ? "是" : "否", updated]);
+    }
+    var csv = rows.map(function(r){ return r.join(","); }).join("\n");
+    var bom = "\uFEFF";
+    var blob = new Blob([bom + csv], { type: "text/csv;charset=utf-8;" });
+    var url = URL.createObjectURL(blob);
+    var a = document.createElement("a");
+    a.href = url; a.download = "kpi-students-export-" + new Date().toISOString().split("T")[0] + ".csv";
+    document.body.appendChild(a); a.click();
+    document.body.removeChild(a); URL.revokeObjectURL(url);
+    toast("✅ 已匯出 " + (rows.length - 1) + " 位學生資料");
+  } catch(e) { toast("❌ 錯誤: " + e.message); }
+}
+
+async function adminBatchInject() {
+  var studentId = $("batchInjectStudent").value;
+  var days = parseInt($("batchInjectDays").value) || 7;
+  if (!studentId) { toast("請選擇學生"); return; }
+  if (days < 1 || days > 90) { toast("天數需在 1~90 之間"); return; }
+  if (!confirm("確定要為 " + studentId + " 批量注入 " + days + " 天模擬事件？")) return;
+  toast("正在注入 " + days + " 天事件...");
+  try {
+    var baseDate = new Date();
+    baseDate.setDate(baseDate.getDate() - days);
+    var actions = ["提交作業", "課堂測驗", "閱讀任務", "小組討論"];
+    for (var d = 0; d < days; d++) {
+      var date = new Date(baseDate);
+      date.setDate(date.getDate() + d);
+      var score = 50 + Math.floor(Math.random() * 51);
+      var expGain = score * 10;
+      var coinGain = score * 2;
+      var action = actions[Math.floor(Math.random() * actions.length)];
+      await db.collection("kpi_events").add({
+        studentId: studentId,
+        action: action,
+        score: score,
+        expGained: expGain,
+        coinsGained: coinGain,
+        badgeChange: 0,
+        note: "批量注入 #" + (d + 1) + "/" + days,
+        timestamp: firebase.firestore.Timestamp.fromDate(date)
+      });
+    }
+    toast("✅ 已注入 " + days + " 天事件，請重新載入查看");
   } catch(e) { toast("❌ 錯誤: " + e.message); }
 }
 
@@ -4481,14 +4751,27 @@ function openTMLearn(pokemonId) {
   $("tmModal").style.display = "flex";
 }
 
+var currentTmPokemonId = null;
+var currentTmFilterType = "全部";
 function renderTMMoveList(pokemonId, filterType) {
+  currentTmPokemonId = pokemonId;
+  currentTmFilterType = filterType || "全部";
   var div = $("tmMoveList"); if (!div) return;
   div.innerHTML = "";
   var pkmn = globalData.roster.find(function(p){ return p.id === pokemonId; });
   if (!pkmn) return;
+  var searchQuery = ($("tmSearch") ? $("tmSearch").value : "").trim().toLowerCase();
+  // Populate type filter dropdown
+  var typeSel = $("tmTypeFilter2");
+  if (typeSel && typeSel.options.length <= 1) {
+    var allTypesDd = ["一般","火","水","草","電","冰","格鬥","毒","地面","飛行","超能力","蟲","岩石","幽靈","龍","鋼","妖精","惡"];
+    for (var tdi = 0; tdi < allTypesDd.length; tdi++) { var o = document.createElement("option"); o.value = allTypesDd[tdi]; o.textContent = allTypesDd[tdi]; typeSel.appendChild(o); }
+    typeSel.value = filterType || "全部";
+  }
   var moveNames = Object.keys(MOVE_DATABASE).sort();
   var currentMoves = pkmn.tmMoves || [];
   var filtered = moveNames.filter(function(m){
+    if (searchQuery && m.toLowerCase().indexOf(searchQuery) === -1) return false;
     var d = getMoveDetails(m);
     if (d.power === 0 && d.category !== "變化") return false;
     if (currentMoves.indexOf(m) !== -1) return false;
