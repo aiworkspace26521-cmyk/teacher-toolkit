@@ -561,9 +561,10 @@ function getExpNeeded(lvl) {
   if (lvl <= 20) return lvl * 60;
   if (lvl <= 35) return lvl * 120;
   if (lvl <= 55) return lvl * 200;
-  if (lvl <= 75) return lvl * 300;
-  if (lvl <= 85) return lvl * 450;
-  return lvl * 450;
+  if (lvl <= 75) return lvl * 350;
+  if (lvl <= 85) return lvl * 800;
+  if (lvl <= 92) return lvl * 2200;
+  return lvl * 3000;
 }
 
 function calcLevelAndExp(totalExp, initialLevel) {
@@ -1091,7 +1092,7 @@ class SimulationStudent {
       else captureLevel = Math.floor(finalScore / 8);
       captureLevel = Math.max(5, captureLevel);
       const rawCapture = this._generateCapture(tier, '隨機', captureLevel);
-      const expGain = Math.floor(finalScore * 8);
+      const expGain = Math.floor(finalScore * 5);
       const coinsGain = Math.floor(finalScore * 1.5);
       const note = `捕捉: ${rawCapture.name} | ID:${rawCapture.id}`;
       this.events.push({
@@ -1102,7 +1103,7 @@ class SimulationStudent {
       this._logCapture(rawCapture);
     } else if (mode === 2) {
       // TRAIN ACTION — boost a specific pokemon
-      const expGain = finalScore * 10;
+      const expGain = finalScore * 6;
       const coinsGain = Math.floor(finalScore * 1.5);
       const targetId = currentState && currentState.roster && currentState.roster.length > 0
         ? currentState.roster[0].id : 'P0';
@@ -1116,7 +1117,7 @@ class SimulationStudent {
       });
     } else {
       // NORMAL SUBMIT
-      const expGain = finalScore * 10;
+      const expGain = finalScore * 6;
       const coinsGain = finalScore * 2;
       const note = `每日提交: 分數 ${finalScore}`;
       this.events.push({

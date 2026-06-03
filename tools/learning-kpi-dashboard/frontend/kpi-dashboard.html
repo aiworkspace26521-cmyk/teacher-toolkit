@@ -245,7 +245,7 @@
     .pvp-side h4 { margin: 0 0 5px 0; font-size: 14px; }
     .pvp-side select { width: 100%; padding: 5px; font-weight: bold; font-size: 13px; }
     #battleLog, #pvpLog { background: #222; color: #ecf0f1; font-family: monospace; font-size: 13px; padding: 10px; border-radius: 8px; height: 160px; overflow-y: auto; text-align: left; margin-top: 15px; border: 3px solid #555; }
-    #battleLog p, #pvpLog p { margin: 5px 0; border-bottom: 1px dashed #444; padding-bottom: 5px; }
+    #battleLog > div, #pvpLog > div { margin: 5px 0; border-bottom: 1px dashed #444; padding-bottom: 5px; }
     .pc-grid { display: grid; gap: 8px; }
     .pc-grid-party { grid-template-columns: repeat(3, 1fr); margin-bottom: 15px; }
     .pc-grid-box { grid-template-columns: repeat(3, 1fr); max-height: 45vh; overflow-y: auto; padding-right: 5px; }
@@ -682,8 +682,10 @@ function getExpNeeded(lvl) {
   if (lvl <= 20) return lvl * 60;
   if (lvl <= 35) return lvl * 120;
   if (lvl <= 55) return lvl * 200;
-  if (lvl <= 75) return lvl * 300;
-  return lvl * 450;
+  if (lvl <= 75) return lvl * 350;
+  if (lvl <= 85) return lvl * 800;
+  if (lvl <= 92) return lvl * 2200;
+  return lvl * 3000;
 }
 function calcLevelAndExp(totalExp, initialLevel) {
   var lvl = initialLevel || 5, cur = totalExp;
@@ -1242,9 +1244,7 @@ var MOVE_DATABASE = {
   "精神擊破": { power: 100, type: "超能力", category: "特殊", desc: "超夢的專屬招式" },
   "縮入殼中": { power: 0,   type: "水",    category: "變化", desc: "提升防禦", effect: "buff_def" },
   "毒粉":   { power: 0,   type: "毒",    category: "變化", desc: "讓對手中毒", effect: "poison" },
-  "泡沫光線": { power: 65, type: "水",   category: "特殊", desc: "降低對手速度" },
   "咬住":   { power: 60,  type: "惡",    category: "物理", desc: "可能讓對手畏縮" },
-  "高速星星": { power: 60, type: "一般", category: "特殊", desc: "必定命中" },
   "神鳥猛擊": { power: 140, type: "飛行",  category: "物理", desc: "需要一回合準備" },
   "畫龍點睛": { power: 120, type: "飛行",  category: "物理", desc: "烈空坐的專屬招式" },
   "氣旋攻擊": { power: 100, type: "飛行",  category: "特殊", desc: "洛奇亞的專屬招式" },
@@ -1264,6 +1264,22 @@ var MOVE_DATABASE = {
   "十萬馬力": { power: 95,  type: "地面",  category: "物理", desc: "全力衝撞" },
   "潛靈奇襲": { power: 90,  type: "幽靈",  category: "物理", desc: "需要一回合準備" },
   "冰柱墜擊": { power: 85,  type: "冰",    category: "物理", desc: "可能讓對手畏縮" },
+  // 幽靈系補充
+  "禍不單行": { power: 65,  type: "幽靈",  category: "特殊", desc: "對手有異常狀態時威力加倍" },
+  "暗影爪":   { power: 70,  type: "幽靈",  category: "物理", desc: "容易擊中要害" },
+  "奇異之光": { power: 0,   type: "幽靈",  category: "變化", desc: "讓對手混亂", effect: "confuse" },
+  "驚嚇":     { power: 30,  type: "幽靈",  category: "物理", desc: "可能讓對手畏縮" },
+  "黑夜魔影": { power: 60,  type: "幽靈",  category: "特殊", desc: "用恐怖幻影攻擊" },
+  // 蟲系補充
+  "信號光束": { power: 75,  type: "蟲",    category: "特殊", desc: "可能讓對手混亂" },
+  "連斬":     { power: 40,  type: "蟲",    category: "物理", desc: "連續使用威力加倍" },
+  "蟲之抵抗": { power: 50,  type: "蟲",    category: "特殊", desc: "降低對手特攻" },
+  "猛撲":     { power: 80,  type: "蟲",    category: "物理", desc: "降低對手攻擊" },
+  // 妖精系補充
+  "魅惑之聲": { power: 40,  type: "妖精",  category: "特殊", desc: "必定命中" },
+  "撒嬌":     { power: 0,   type: "妖精",  category: "變化", desc: "大幅降低對手攻擊", effect: "debuff_atk" },
+  "薄霧場地": { power: 0,   type: "妖精",  category: "變化", desc: "防止異常狀態", effect: "misty_terrain" },
+  "薄霧炸裂": { power: 100, type: "妖精",  category: "特殊", desc: "自己也會昏厥", effect: "self_kill" },
 };
 
 var TYPE_MOVE_POOL = {
@@ -1274,16 +1290,16 @@ var TYPE_MOVE_POOL = {
   "飛行": ["起風","翅膀攻擊","鑽啄","颱風","勇鳥猛攻"],
   "一般": ["撞擊","電光一閃","摔打","巨聲","破壞光線"],
   "龍":   ["龍捲風","龍之波動","龍爪","逆鱗","龍星群"],
-  "妖精": ["妖精之風","魔法閃耀","月亮之力","月亮之力","月亮之力"],
+  "妖精": ["妖精之風","魅惑之聲","月亮之力","魔法閃耀","薄霧炸裂"],
   "地面": ["潑沙","泥巴射擊","重踏","地震","斷崖之劍"],
   "格鬥": ["碎岩","空手劈","地獄翻滾","近身戰","真氣彈"],
   "超能力":["念力","幻象光線","精神強念","預知未來","創造完"],
-  "幽靈": ["舌舔","影子偷襲","暗影球","暗影球","暗影球"],
-  "毒":   ["毒針","溶解液","污泥炸彈","垃圾射擊","垃圾射擊"],
+  "幽靈": ["舌舔","暗影爪","暗影球","禍不單行","潛靈奇襲"],
+  "毒":   ["毒針","溶解液","污泥炸彈","垃圾射擊","污泥波"],
   "鋼":   ["金屬爪","鐵頭","重磅衝撞","鐵尾","加農光炮"],
   "惡":   ["抓","暗襲要害","咬碎","突襲","暗黑洞"],
   "冰":   ["冰礫","冰雹","冰凍牙","冰凍光束","暴風雪"],
-  "蟲":   ["蟲咬","蟲鳴","十字剪","十字剪","超級角擊"],
+  "蟲":   ["蟲咬","蟲鳴","十字剪","信號光束","超級角擊"],
   "岩石": ["落石","沙暴","岩崩","尖石攻擊","雙刃頭錘"]
 };
 
@@ -1921,6 +1937,7 @@ var POKEMON_SPECIES_TYPES = {
   "化石翼龍":["岩石","飛行"],
   "卡比獸":["一般"],
   "急凍鳥":["冰","飛行"],"閃電鳥":["電","飛行"],"火焰鳥":["火","飛行"],
+  "叉字蝠":["毒","飛行"],"超鐵暴龍":["地面","岩石"],"刺龍王":["水","龍"],"大鋼蛇":["鋼","地面"],"巨鉗螳螂":["蟲","鋼"],"幸福蛋":["一般"],
   "夢幻":["超能力"]
 };
 
@@ -3069,6 +3086,7 @@ function processBurnAndLeech(player, enemy, log) {
     player.currentHp = Math.min(player.maxHp, player.currentHp + oh);
     log.push("🍊 橙橙果回復了 " + oh + " HP！");
     needsUpdate = true;
+    scheduleStudentFieldUpdate({ oranBerries: globalData.oranBerries });
   }
   if (needsUpdate) {
     flashElement("playerPkmnName");
@@ -3172,6 +3190,17 @@ function useItemInArena(itemType) {
     var unit = berryItems[pendingItemSave.item] ? "個" : "瓶";
     var note = "消耗1" + unit + pendingItemSave.item;
     globalData.coins = globalData.coins || 0;
+    scheduleStudentFieldUpdate({
+      potions: globalData.potions,
+      maxPotions: globalData.maxPotions,
+      revives: globalData.revives,
+      maxRevives: globalData.maxRevives,
+      candies: globalData.candies,
+      oranBerries: globalData.oranBerries,
+      cheriBerries: globalData.cheriBerries,
+      lumBerries: globalData.lumBerries,
+      chilanBerries: globalData.chilanBerries
+    });
     executeSave({ studentId: globalData.studentId, score: 0, action: "戰鬥消耗", expGained: 0, coinsGained: 0, badgeChange: 0, note: note, extraNote: note, totalScore: 0, user: globalData.studentId }, function() {
       pendingItemSave = null;
     }, false);
@@ -3631,8 +3660,8 @@ function updateArenaUI() {
   }
 }
 
-function renderBattleLog(messages) {
-  var log = $("battleLog");
+function renderBattleLog(messages, container) {
+  var log = container || $("battleLog");
   for (var i = 0; i < messages.length; i++) {
     if (!messages[i]) continue;
     var msg = messages[i];
@@ -3652,7 +3681,7 @@ function renderBattleLog(messages) {
     else if (msg.indexOf("🌀") !== -1 || msg.indexOf("🌪️") !== -1) color = "#bdc3c7";
     else if (msg.indexOf("📋") !== -1) color = "#8e44ad";
     var div = document.createElement("div");
-    div.innerHTML = msg;
+    div.textContent = msg;
     if (color) div.style.color = color;
     log.appendChild(div);
   }
@@ -4167,8 +4196,8 @@ function renderPvPBattle() {
     }
     div.appendChild(movesDiv);
   }
-  var logDiv = document.createElement("div"); logDiv.className = "battle-log";
-  for (var j = 0; j < pvpState.log.length; j++) { var lp = document.createElement("p"); lp.innerHTML = pvpState.log[j]; logDiv.appendChild(lp); }
+  var logDiv = document.createElement("div"); logDiv.id = "pvpLog";
+  renderBattleLog(pvpState.log, logDiv);
   div.appendChild(logDiv);
 }
 
