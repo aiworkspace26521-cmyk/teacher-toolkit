@@ -5,6 +5,17 @@ on:
   pull_request:
     branches: [master]
 jobs:
+  encoding-check:
+    name: Encoding Check (UTF-8 / Mojibake)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - name: Run encoding check
+        run: node tools/scripts/encoding-check.js
+
   game-manual-consistency:
     name: Game Manual Consistency
     runs-on: ubuntu-latest

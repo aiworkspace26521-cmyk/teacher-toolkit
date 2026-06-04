@@ -1,0 +1,18 @@
+#!/usr/bin/env node
+// pre-commit hook — runs encoding check on staged JS/HTML files
+const { execSync } = require('child_process');
+const files = execSync('git diff --cached --name-only --diff-filter=ACM', {encoding: 'utf-8'}).trim().split('\n').filter(f => f.match(/\.(js|html)$/) && (f.startsWith('tools/') || f.startsWith('public/')));
+if (files.length === 0) process.exit(0);
+
+const fs = require('fs');
+const GARBLED = [/鍩庨兘/, /鎴撮/, /榛戦/, /\uFFFD/];
+let fail = 0;
+for (const f of files) {
+  if (!fs.existsSync(f)) continue;
+  const text = fs.readFileSync(f, 'utf-8');
+  if (text.includes('\uFFFD') || GARBLED.some(p => p.test(text))) {
+    console.error(`❌ ${f}: encoding corruption detected. Run 'node tools/scripts/encoding-check.js'`);
+    fail++;
+  }
+}
+process.exit(fail > 0 ? 1 : 0);

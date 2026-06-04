@@ -11,8 +11,19 @@ concurrency:
   group: pages
   cancel-in-progress: true
 jobs:
+  encoding-check:
+    name: Encoding Check
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - name: Run encoding check
+        run: node tools/scripts/encoding-check.js
   test:
     name: Simulation Test
+    needs: encoding-check
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4

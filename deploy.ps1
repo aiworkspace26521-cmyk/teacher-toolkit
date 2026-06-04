@@ -13,6 +13,12 @@ $ErrorActionPreference = "Stop"
 $root = Split-Path -Parent $MyInvocation.MyCommand.Path
 Set-Location $root
 
+# Step 0: Encoding check
+if (-not $Quiet) { Write-Host "=== Encoding check ===" -ForegroundColor Cyan }
+node tools/scripts/encoding-check.js
+if ($LASTEXITCODE -ne 0) { Write-Host "Encoding check failed! Aborting." -ForegroundColor Red; exit 1 }
+if (-not $Quiet) { Write-Host "Encoding check passed" -ForegroundColor Green }
+
 # Step 1: Lint
 if (-not $SkipLint) {
   if (-not $Quiet) { Write-Host "=== Linting ===" -ForegroundColor Cyan }
