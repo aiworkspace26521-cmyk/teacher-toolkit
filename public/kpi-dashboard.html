@@ -684,8 +684,8 @@ function getExpNeeded(lvl) {
   if (lvl <= 55) return lvl * 200;
   if (lvl <= 75) return lvl * 350;
   if (lvl <= 85) return lvl * 800;
-  if (lvl <= 92) return lvl * 2200;
-  return lvl * 3000;
+  if (lvl <= 92) return lvl * 3500;
+  return lvl * 5000;
 }
 function calcLevelAndExp(totalExp, initialLevel) {
   var lvl = initialLevel || 5, cur = totalExp;
@@ -4615,7 +4615,7 @@ function updatePreview() {
     var target = $("trainTarget");
     if (target && target.value) {
       var targetPkmn = globalData.roster.find(function(p){ return p.id === target.value; });
-      var trainExp = finalScore * 10;
+      var trainExp = finalScore * 7;
       if (targetPkmn) trainHint = "🎯 " + targetPkmn.baseName + " 獲得 " + trainExp + " EXP（集中訓練）";
     }
   }

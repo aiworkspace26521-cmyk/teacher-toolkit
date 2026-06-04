@@ -10,35 +10,28 @@ let errors = [];
 
 function readFile(p) { return fs.readFileSync(p, 'utf-8'); }
 
+// ── Backend core scripts ─────────────────────────────────────────
+const BACKEND = path.join(__dirname, '..', 'backend', 'kpi-core.js');
+const SIMULATION = path.join(__dirname, '..', 'test', 'simulation-test.js');
+
 // ── EXP curve check ──────────────────────────────────────────────
 function checkExpCurve() {
   const html = readFile(FRONTEND);
   const manual = readFile(MANUAL);
 
-  const htmlMatch = html.match(/getExpNeeded\s*[=:]\s*function\s*\([^)]*\)\s*\{([^}]+)\}/);
+  const htmlMatch = html.match(/(?:function\s+getExpNeeded|getExpNeeded\s*[=:]\s*function)\s*\([^)]*\)\s*\{([^}]+)\}/);
   if (!htmlMatch) { errors.push('EXP: getExpNeeded not found in frontend'); return; }
 
   const htmlBlock = htmlMatch[1];
-  const htmlRules = {
-    '56-75': htmlBlock.includes('* 300') || htmlBlock.includes('*300'),
-    '76-85': htmlBlock.includes('* 450') || htmlBlock.includes('*450'),
-    '86+': (htmlBlock.includes('* 450') || htmlBlock.includes('*450')) &&
-           !htmlBlock.includes('* 900')
-  };
-
-  const manualSection56 = manual.match(/5[6６]~?7[5５][^]*?(?:level|等級)\s*[×xX*]\s*(\d+)/);
-  const manualSection76 = manual.match(/7[6６]~?8[5５][^]*?(?:level|等級)\s*[×xX*]\s*(\d+)/);
-  const manualSection86 = manual.match(/8[6６][^]*?(?:level|等級)\s*[×xX*]\s*(\d+)/);
-
-  if (manualSection56 && !htmlRules['56-75'])
-    errors.push(`EXP 56-75: manual says ×${manualSection56[1]} but frontend doesn't match`);
-  if (manualSection76 && !htmlRules['76-85'])
-    errors.push(`EXP 76-85: manual says ×${manualSection76[1]} but frontend doesn't match`);
-  if (manualSection86) {
-    const manVal = parseInt(manualSection86[1]);
-    if ((manVal >= 600) === htmlRules['86+'])
-      errors.push(`EXP 86+: manual says ×${manVal} but frontend doesn't match`);
+  const levels = htmlBlock.match(/\*\s*(\d+)/g) || [];
+  const mults = levels.map(v => parseInt(v.replace('* ', '').replace('*', ''), 10));
+  const expected = [30, 60, 120, 200, 350, 800, 3500, 5000];
+  for (let i = 0; i < Math.min(mults.length, expected.length); i++) {
+    if (mults[i] !== expected[i])
+      errors.push(`EXP tier ${i}: frontend=${mults[i]} expected=${expected[i]}`);
   }
+  if (mults.length !== expected.length)
+    errors.push(`EXP: frontend has ${mults.length} tiers, expected ${expected.length}`);
 }
 
 // ── TYPE_RATIO check (spot check 3 properties) ───────────────────
@@ -82,8 +75,38 @@ function checkLegendaryRate() {
     errors.push('路人戰傳說率: frontend has 1% but manual may differ');
 }
 
+// ── Backend EXP curve check ─────────────────────────────────────
+function checkBackendExpCurve() {
+  const backendContent = readFile(BACKEND);
+  const html = readFile(FRONTEND);
+
+  const backendMatch = backendContent.match(/function getExpNeeded\([^)]+\)\s*\{([^}]+)\}/);
+  const htmlMatch = html.match(/function getExpNeeded\([^)]+\)\s*\{([^}]+)\}/);
+  if (!backendMatch) { errors.push('EXP: getExpNeeded not found in backend'); return; }
+  if (!htmlMatch) { errors.push('EXP: getExpNeeded not found in frontend'); return; }
+
+  if (backendMatch[1].replace(/\r/g, '').trim() !== htmlMatch[1].replace(/\r/g, '').trim())
+    errors.push('EXP: backend getExpNeeded differs from frontend');
+}
+
+// ── Simulation EXP curve check ──────────────────────────────────
+function checkSimulationExpCurve() {
+  const simContent = readFile(SIMULATION);
+  const html = readFile(FRONTEND);
+
+  const simMatch = simContent.match(/function getExpNeeded\([^)]+\)\s*\{([^}]+)\}/);
+  const htmlMatch = html.match(/function getExpNeeded\([^)]+\)\s*\{([^}]+)\}/);
+  if (!simMatch) { errors.push('EXP: getExpNeeded not found in simulation'); return; }
+  if (!htmlMatch) { errors.push('EXP: getExpNeeded not found in frontend'); return; }
+
+  if (simMatch[1].replace(/\r/g, '').trim() !== htmlMatch[1].replace(/\r/g, '').trim())
+    errors.push('EXP: simulation getExpNeeded differs from frontend');
+}
+
 // ── RUN ──────────────────────────────────────────────────────────
 checkExpCurve();
+checkBackendExpCurve();
+checkSimulationExpCurve();
 checkTypeRatio();
 checkLegendaryRate();
 

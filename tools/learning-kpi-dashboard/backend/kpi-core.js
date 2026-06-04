@@ -72,8 +72,10 @@ function getExpNeeded(lvl) {
   if (lvl <= 20) return lvl * 60;
   if (lvl <= 35) return lvl * 120;
   if (lvl <= 55) return lvl * 200;
-  if (lvl <= 75) return lvl * 300;
-  return lvl * 450;
+  if (lvl <= 75) return lvl * 350;
+  if (lvl <= 85) return lvl * 800;
+  if (lvl <= 92) return lvl * 3500;
+  return lvl * 5000;
 }
 function calcLevelAndExp(totalExp, initialLevel) {
   let lvl = initialLevel || 5;

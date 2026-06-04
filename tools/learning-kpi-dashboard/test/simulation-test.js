@@ -563,8 +563,8 @@ function getExpNeeded(lvl) {
   if (lvl <= 55) return lvl * 200;
   if (lvl <= 75) return lvl * 350;
   if (lvl <= 85) return lvl * 800;
-  if (lvl <= 92) return lvl * 2200;
-  return lvl * 3000;
+  if (lvl <= 92) return lvl * 3500;
+  return lvl * 5000;
 }
 
 function calcLevelAndExp(totalExp, initialLevel) {
@@ -613,7 +613,7 @@ function getRawName(baseName) {
 }
 
 function checkIsLegendary(pokemonName) {
-  const raw = pokemonName.replace(/^[🐾⭐🌟✨]\s*/, "").replace(/\s*\(.*\)/, "");
+  const raw = pokemonName.replace(/^[🐾⭐🌟✨]\s*/u, "").replace(/\s*\(.*\)/, "");
   for (const t in POKEMON_TIERS) {
     for (const pkmn of POKEMON_TIERS[t]) {
       if (pkmn.name === raw) return pkmn.legendary || false;
@@ -623,7 +623,7 @@ function checkIsLegendary(pokemonName) {
 }
 
 function getPokemonType(baseName) {
-  const raw = baseName.replace(/^[🐾⭐🌟✨]\s*/, "").replace(/\s*\(.*\)/, "");
+  const raw = baseName.replace(/^[🐾⭐🌟✨]\s*/u, "").replace(/\s*\(.*\)/, "");
   const types = POKEMON_SPECIES_TYPES[raw];
   if (types) return types.slice();
   const m = baseName.match(/\((.+?)\)/);
@@ -985,7 +985,7 @@ function recalculateState(studentId, events) {
     const evoInfo2 = checkEvoReady(p, null);
     if (evoInfo2 && evoInfo2.nextName) {
       const types2 = POKEMON_SPECIES_TYPES[evoInfo2.nextName] || ["一般"];
-      const m2 = p.baseName.match(/^[🐾⭐🌟✨👑]\s*/);
+      const m2 = p.baseName.match(/^[🐾⭐🌟✨👑]\s*/u);
       p.baseName = (m2 ? m2[0] : "⭐ ") + evoInfo2.nextName + " (" + types2.join("/") + ")";
     }
     if (p.currentLevel > finalHighestLevel) finalHighestLevel = p.currentLevel;
@@ -1092,7 +1092,7 @@ class SimulationStudent {
       else captureLevel = Math.floor(finalScore / 8);
       captureLevel = Math.max(5, captureLevel);
       const rawCapture = this._generateCapture(tier, '隨機', captureLevel);
-      const expGain = Math.floor(finalScore * 5);
+      const expGain = Math.floor(finalScore * 6);
       const coinsGain = Math.floor(finalScore * 1.5);
       const note = `捕捉: ${rawCapture.name} | ID:${rawCapture.id}`;
       this.events.push({
@@ -1103,7 +1103,7 @@ class SimulationStudent {
       this._logCapture(rawCapture);
     } else if (mode === 2) {
       // TRAIN ACTION — boost a specific pokemon
-      const expGain = finalScore * 6;
+      const expGain = finalScore * 7;
       const coinsGain = Math.floor(finalScore * 1.5);
       const targetId = currentState && currentState.roster && currentState.roster.length > 0
         ? currentState.roster[0].id : 'P0';
@@ -1117,7 +1117,7 @@ class SimulationStudent {
       });
     } else {
       // NORMAL SUBMIT
-      const expGain = finalScore * 6;
+      const expGain = finalScore * 7;
       const coinsGain = finalScore * 2;
       const note = `每日提交: 分數 ${finalScore}`;
       this.events.push({
@@ -1267,8 +1267,8 @@ class SimulationStudent {
     const region = LEAGUE_REGIONS[regionName];
     const champ = region.champion;
 
-    // Simplified: win if level >= champ.lvBonus - 10
-    const requiredLevel = champ.lvBonus - 10;
+    // Proportional threshold: lower leagues accessible earlier
+    const requiredLevel = Math.floor(champ.lvBonus * 0.55);
     const canWin = level >= requiredLevel;
 
     if (canWin) {
@@ -1551,6 +1551,30 @@ function checkAchievements(reports, name) {
   };
 }
 
+/**
+ * M8: Dual-type system verification
+ */
+function checkDualTypes() {
+  const issues = [];
+  const dualTypeCases = [
+    { name: "妙蛙花", expected: ["草","毒"] },
+    { name: "噴火龍", expected: ["火","飛行"] },
+    { name: "暴鯉龍", expected: ["水","飛行"] },
+    { name: "耿鬼",   expected: ["幽靈","毒"] },
+    { name: "烈咬陸鯊", expected: ["龍","地面"] },
+    { name: "巨金怪", expected: ["鋼","超能力"] },
+  ];
+  for (const c of dualTypeCases) {
+    const actual = POKEMON_SPECIES_TYPES[c.name];
+    if (!actual) { issues.push(`DUAL_TYPE: ${c.name} not found in SPECIES_TYPES`); continue; }
+    const actualStr = actual.join("/");
+    const expectedStr = c.expected.join("/");
+    if (actualStr !== expectedStr)
+      issues.push(`DUAL_TYPE: ${c.name} expected ${expectedStr} got ${actualStr}`);
+  }
+  return { status: issues.length > 0 ? 'ISSUES_FOUND' : 'OK', issues };
+}
+
 // =========================================================================
 // SECTION 6 — MAIN SIMULATION LOOP
 // =========================================================================
@@ -1681,6 +1705,12 @@ function runSimulation() {
   const minAch = checkAchievements(minReports, 'min');
   printCheck('MAX', maxAch);
   printCheck('MIN', minAch);
+
+  // --- M8: Dual-Type Verification ---
+  console.log('\n--- M8: Dual-Type Verification ---');
+  const dualTypeResult = checkDualTypes();
+  printCheck('SYSTEM', dualTypeResult);
+  if (dualTypeResult.issues.length > 0) bugsFound.push({ issue: 'M8-DUAL_TYPE', student: 'system', details: dualTypeResult.issues.join('; ') });
 
   // =========================================================================
   // SECTION 8 — SUMMARY
