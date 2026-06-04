@@ -51,7 +51,17 @@ for (const dir of CHECK_DIRS) {
       }
     }
 
-    // 3. If .js, try VM compile
+    // 3. If .html, check script tag balance
+    if (file.endsWith('.html')) {
+      const openCount = (text.match(/<script[\s>]/g) || []).length;
+      const closeCount = (text.match(/<\/script>/g) || []).length;
+      if (openCount !== closeCount) {
+        console.error(`❌ ${filePath}: <script> tag mismatch — ${openCount} opens vs ${closeCount} closes`);
+        failures++;
+      }
+    }
+
+    // 4. If .js, try VM compile
     if (file.endsWith('.js')) {
       try {
         require('vm').compileFunction(text);

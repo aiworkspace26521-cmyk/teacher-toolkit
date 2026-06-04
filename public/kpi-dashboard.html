@@ -399,7 +399,99 @@
       <button class="nav-btn btn-pvp" id="btnLeagueRanking" onclick="sfx.click();openLeagueRanking()" style="background:#2c3e50;color:white;display:none;">📊 聯盟排名</button>
       <button class="nav-btn btn-pvp" onclick="sfx.click();openRankingModal()" style="background:#8e44ad;color:white;" id="btnPvPRanking">🏆 PvP天梯</button>
     </div>
+
+    <!-- ===== TASK SECTION: subject checkboxes ===== -->
+    <div id="taskSection" class="decision-box" style="display:none;margin-top:16px;">
+      <h3>📋 今日學習任務</h3>
+      <div class="category-card border-daily">
+        <div class="cat-title">語文 <span class="max-score">最高 15 分</span></div>
+        <div class="task-item"><input type="checkbox" class="task-cb" data-points="5" data-label="國語課本" id="task_chinese_book"><label for="task_chinese_book">📖 國語課本</label><span class="score-badge">+5</span></div>
+        <div class="task-item"><input type="checkbox" class="task-cb" data-points="5" data-label="國語習作" id="task_chinese_workbook"><label for="task_chinese_workbook">📝 國語習作</label><span class="score-badge">+5</span></div>
+        <div class="task-item"><input type="checkbox" class="task-cb" data-points="5" data-label="國語生字" id="task_chinese_char"><label for="task_chinese_char">✏️ 國語生字</label><span class="score-badge">+5</span></div>
+      </div>
+      <div class="category-card border-daily">
+        <div class="cat-title">數學 <span class="max-score">最高 15 分</span></div>
+        <div class="task-item"><input type="checkbox" class="task-cb" data-points="5" data-label="數學課本" id="task_math_book"><label for="task_math_book">📖 數學課本</label><span class="score-badge">+5</span></div>
+        <div class="task-item"><input type="checkbox" class="task-cb" data-points="5" data-label="數學習作" id="task_math_workbook"><label for="task_math_workbook">📝 數學習作</label><span class="score-badge">+5</span></div>
+        <div class="task-item"><input type="checkbox" class="task-cb" data-points="5" data-label="數學計算" id="task_math_calc"><label for="task_math_calc">🧮 數學計算</label><span class="score-badge">+5</span></div>
+      </div>
+      <div class="category-card border-daily">
+        <div class="cat-title">英文 <span class="max-score">最高 10 分</span></div>
+        <div class="task-item"><input type="checkbox" class="task-cb" data-points="5" data-label="英文課本" id="task_eng_book"><label for="task_eng_book">📖 英文課本</label><span class="score-badge">+5</span></div>
+        <div class="task-item"><input type="checkbox" class="task-cb" data-points="5" data-label="英文單字" id="task_eng_vocab"><label for="task_eng_vocab">🔤 英文單字</label><span class="score-badge">+5</span></div>
+      </div>
+      <div class="category-card border-daily">
+        <div class="cat-title">自然 <span class="max-score">最高 10 分</span></div>
+        <div class="task-item"><input type="checkbox" class="task-cb" data-points="5" data-label="自然課本" id="task_sci_book"><label for="task_sci_book">🔬 自然課本</label><span class="score-badge">+5</span></div>
+        <div class="task-item"><input type="checkbox" class="task-cb" data-points="5" data-label="自然實驗" id="task_sci_lab"><label for="task_sci_lab">🧪 自然實驗</label><span class="score-badge">+5</span></div>
+      </div>
+      <div class="category-card border-daily">
+        <div class="cat-title">社會 <span class="max-score">最高 10 分</span></div>
+        <div class="task-item"><input type="checkbox" class="task-cb" data-points="5" data-label="社會課本" id="task_soc_book"><label for="task_soc_book">🌍 社會課本</label><span class="score-badge">+5</span></div>
+        <div class="task-item"><input type="checkbox" class="task-cb" data-points="5" data-label="社會習作" id="task_soc_workbook"><label for="task_soc_workbook">📝 社會習作</label><span class="score-badge">+5</span></div>
+      </div>
+    </div>
+
+    <!-- ===== ACTION TYPE SELECTION ===== -->
+    <div id="actionSection" class="decision-box" style="display:none;">
+      <h3>🎯 選擇今日行動</h3>
+      <div class="action-option" onclick="this.querySelector('input').click()">
+        <input type="radio" name="actionType" value="提交作業" data-bonus="10">
+        <span>📚 提交作業（+10 分）</span>
+      </div>
+      <div class="action-option" onclick="this.querySelector('input').click()">
+        <input type="radio" name="actionType" value="課堂測驗" data-bonus="15">
+        <span>📝 課堂測驗（+15 分）</span>
+      </div>
+      <div class="action-option" onclick="this.querySelector('input').click()">
+        <input type="radio" name="actionType" value="閱讀任務" data-bonus="10">
+        <span>📖 閱讀任務（+10 分）</span>
+      </div>
+      <div class="action-option" onclick="this.querySelector('input').click()">
+        <input type="radio" name="actionType" value="小組討論" data-bonus="12">
+        <span>💬 小組討論（+12 分）</span>
+      </div>
+      <div class="action-option" onclick="this.querySelector('input').click()">
+        <input type="radio" name="actionType" value="capture">
+        <span>🎯 捕捉寶可夢</span>
+      </div>
+      <div class="action-option" onclick="this.querySelector('input').click()">
+        <input type="radio" name="actionType" value="train">
+        <span>🎯 訓練寶可夢</span>
+      </div>
+    </div>
+
+    <!-- bait/train selectors -->
+    <div id="baitSelector">
+      <span>🎣 選擇誘餌：</span>
+      <select id="baitType"><option value="普通">普通（捕獲率 +0%）</option><option value="高級">高級（捕獲率 +10%）</option><option value="大師">大師（捕獲率 +25%）</option></select>
+    </div>
+    <div id="trainSelector">
+      <span>🎯 選擇訓練目標：</span>
+      <select id="trainTarget"></select>
+    </div>
+
+    <!-- preview box & hidden fields -->
+    <div id="previewBox" class="preview-box" style="display:none;"></div>
+    <div id="vetoWarning" class="veto-warning"></div>
+    <input type="hidden" id="hiddenScore" value="0">
+    <input type="hidden" id="hiddenTasks" value="">
+    <input type="hidden" id="hiddenAction" value="">
+
     <button id="submitBtn" class="submit-btn" disabled>請先登入</button>
+
+    <!-- ===== QUEST AREA ===== -->
+    <div id="questArea" style="display:none;margin-top:16px;background:#f8f9fa;border-radius:12px;padding:12px;border:2px solid #dee2e6;">
+      <h3 style="margin:0 0 8px;font-size:15px;">🏅 每日/每週任務</h3>
+      <div style="display:flex;justify-content:space-between;font-size:12px;color:#666;margin-bottom:8px;">
+        <span>⏱️ 每日重置：<span id="dailyTimer">--</span></span>
+        <span>⏱️ 每週重置：<span id="weeklyTimer">--</span></span>
+      </div>
+      <div id="dailyQuestGrid" class="quest-grid"></div>
+      <div style="margin:8px 0 4px;border-top:1px dashed #ccc;"></div>
+      <div id="weeklyQuestGrid" class="quest-grid"></div>
+    </div>
+
   </div>
 </div>
 
@@ -565,7 +657,8 @@
 <div id="eeveeModal" class="modal"><div class="modal-content" style="border-color:var(--kpi-blue);"><h3 style="color:var(--kpi-blue);margin-top:0;">🌟 伊布進化大覺醒！</h3><p style="font-size:14px;color:#666;margin-bottom:15px;">伊布已達 <b>Lv.16</b>，請選擇<b>一種</b>進化型態(不可更改)：</p><select id="eeveeChoice" class="main-select" style="margin-bottom:15px;"><option value="💧 水伊布 (水系)">💧 水伊布</option><option value="🔥 火伊布 (火系)">🔥 火伊布</option><option value="🍃 葉伊布 (草系)">🍃 葉伊布</option><option value="⚡ 雷伊布 (電系)">⚡ 雷伊布</option><option value="🔮 太陽伊布 (超能系)">🔮 太陽伊布</option><option value="🕶️ 月亮伊布 (惡系)">🕶️ 月亮伊布</option><option value="❄️ 冰伊布 (冰系)">❄️ 冰伊布</option><option value="✨ 仙子伊布 (妖精系)">✨ 仙子伊布</option></select><button class="buy-btn" style="width:100%;font-size:16px;padding:12px;" onclick="confirmEeveeEvolution()">確認進化</button></div></div>
 
 <div id="toastContainer" style="position:fixed;bottom:20px;left:50%;transform:translateX(-50%);z-index:9999;display:flex;flex-direction:column;gap:6px;pointer-events:none;max-width:90%;"></div>
-
+<script>
+function $(id) { return document.getElementById(id); }
 var BATTLE_SPEED = 1; // 1=normal, 2=fast, 0=instant
 var toastQueue = [];
 var toasting = false;
@@ -647,13 +740,6 @@ var sfx = {
   entry: function() { this._play(440, 0.08, "sine", 0.06); setTimeout(function(){ sfx._play(554, 0.08, "sine", 0.06); }, 80); setTimeout(function(){ sfx._play(659, 0.12, "sine", 0.06); }, 160); }
 };
 
-function toast(msg, duration) {
-  duration = duration || 3000;
-  if (toastTimeout) clearTimeout(toastTimeout);
-  var t = $("toast"); if (!t) return;
-  t.innerHTML = msg; t.style.display = "block";
-  toastTimeout = setTimeout(function(){ t.style.display = "none"; }, duration);
-}
 function closeModal(id) { var el = $(id); if (el) el.style.display = "none"; }
 function showModal(text, title) {
   title = title || "\u{1F4A1} \u7CFB\u7D71\u63D0\u793A";
@@ -949,6 +1035,10 @@ async function fetchStudentData(studentId, pendingEvent) {
           if (cached.achievements) { globalAchievements = {}; for (var ac = 0; ac < cached.achievements.length; ac++) globalAchievements[cached.achievements[ac]] = true; }
           if (cached.questProgress) globalQuestProgress = cached.questProgress;
           hideSkeleton(); updateDashboard(); renderActions(); updateBattleButtons(); renderQuests(); updateTradeBadge();
+          if (!isAdmin) {
+            var ts = $("taskSection"); if (ts) ts.style.display = "block";
+            var as = $("actionSection"); if (as) as.style.display = "block";
+          }
           if (globalData.todayCompleted && !isAdmin) { btn.innerHTML = "\u2705 Done"; btn.disabled = true; document.querySelectorAll(".task-cb, input[name=\"actionType\"]").forEach(function(el){ el.checked = false; el.disabled = true; }); document.querySelectorAll(".action-option").forEach(function(el){ el.classList.remove("selected"); }); $("previewBox").innerHTML = "\u{1F31F} Today done!"; }
           else { btn.disabled = false; btn.textContent = "\u{1F680} Submit"; document.querySelectorAll(".task-cb, input[name=\"actionType\"]").forEach(function(el){ el.disabled = false; }); }
           cacheLoaded = true;
@@ -995,7 +1085,12 @@ async function fetchStudentData(studentId, pendingEvent) {
     globalData.partyIds = [];
     if (savedParty) { try { var parsed = JSON.parse(savedParty); globalData.partyIds = parsed.filter(function(id){ return globalData.roster.some(function(p){return p.id === id;}); }); } catch(e) {} }
     if (globalData.partyIds.length === 0) { var sorted = globalData.roster.slice().sort(function(a,b){ return b.currentLevel - a.currentLevel; }); globalData.partyIds = sorted.slice(0, 6).map(function(p){ return p.id; }); }
-    if (!cacheLoaded) { hideSkeleton(); updateDashboard(); renderActions(); updateBattleButtons(); }
+        if (!cacheLoaded) { hideSkeleton(); updateDashboard(); renderActions(); updateBattleButtons(); }
+    // show task/action sections for non-admin users
+    if (!isAdmin) {
+      var ts = $("taskSection"); if (ts) ts.style.display = "block";
+      var as = $("actionSection"); if (as) as.style.display = "block";
+    }
     await checkAndUnlockAchievements(globalData, events, studentId);
     var defRegion = checkDefenseChallenge();
     if (defRegion) {
@@ -4401,6 +4496,8 @@ function renderBadgeCase() {
 function updateDashboard() {
   if (!globalData) return;
   var gd = globalData;
+  var dd = $("dashboard"); if (dd) dd.style.display = "block";
+  try {
   $("kpiLevel").innerHTML = "Lv." + (gd.highestLevel || 5);
   $("kpiCoins").innerHTML = gd.coins || 0;
   $("kpiBadges").innerHTML = gd.badges || 0;
@@ -4531,6 +4628,7 @@ function updateDashboard() {
     rankBtn.style.display = (gd.badges || 0) >= 8 ? "inline-block" : "none";
   }
   updateBattleButtons();
+} catch(e) { console.warn("updateDashboard Error:", e); }
 }
 
 function toggleSimpleMode() {
@@ -4645,6 +4743,7 @@ function updatePreview() {
 
 function renderActions() {
   var container = $("actionContainer");
+  if (!container) return;
   if (!isAdmin) { container.style.display = "none"; return; }
   container.style.display = "block";
   container.innerHTML = "<div style=\"margin-top:16px;padding:12px;background:#f0f0f0;border-radius:8px;\">" +
@@ -5494,7 +5593,7 @@ document.addEventListener("DOMContentLoaded", function() {
   $("devWeek").addEventListener("change", updatePreview);
 
   var savedId = localStorage.getItem("kpi_last_id");
-  if (savedId) { $("studentSelect").value = savedId; fetchStudentData(savedId); }
+  if (savedId) $("studentSelect").value = savedId;
   setRegion("關都");
 });
 
@@ -5801,10 +5900,20 @@ function renderPokedex() {
   var tierFilter = ($("pokedexTierFilter").value || "").trim();
   var typeColors = { "一般":"#a8a878","火":"#f08030","水":"#6890f0","草":"#78c850","電":"#f8d030","冰":"#98d8d8","格鬥":"#c03028","毒":"#a040a0","地面":"#e0c068","飛行":"#a890f0","超能力":"#f85888","蟲":"#a8b820","岩石":"#b8a038","幽靈":"#705898","龍":"#7038f8","惡":"#705848","鋼":"#b8b8d0","妖精":"#ee99ac" };
   var tierColors = { "一般":"#95a5a6", "稀有":"#3498db", "史詩":"#9b59b6", "傳說":"#f39c12", "超傳說":"#e74c3c", "特殊":"#2c3e50" };
+  // build set of captured raw names from roster
+  var capturedSet = {};
+  if (globalData && globalData.roster) {
+    for (var ci = 0; ci < globalData.roster.length; ci++) {
+      var raw = getRawName(globalData.roster[ci].baseName);
+      if (raw) capturedSet[raw] = true;
+    }
+  }
   var list = buildPokedexSpecies();
   var matched = [];
   for (var i = 0; i < list.length; i++) {
     var sp = list[i];
+    // show only captured species
+    if (!capturedSet[sp.rawName]) continue;
     if (query && sp.rawName.indexOf(query) === -1) continue;
     if (tierFilter && sp.tier !== tierFilter) continue;
     if (typeFilter) {
