@@ -412,19 +412,19 @@ const GYM_LEADERS = [
   { region: "關都", badge: 5,  leader: "阿桔", type: "毒",      emoji: "☠️", name: "淺紅道館",   waves: 4, lvBonus: 8, desc: "陷阱題的毒辣考驗" },
   { region: "關都", badge: 6,  leader: "娜姿", type: "超能力",  emoji: "🔮", name: "金黃道館",   waves: 4, lvBonus: 10, desc: "超能力般的邏輯推演" },
   { region: "關都", badge: 7,  leader: "夏伯", type: "火",      emoji: "🌋", name: "紅蓮道館",   waves: 4, lvBonus: 12, desc: "炙熱的燃燒鬥志" },
-  { region: "關都", badge: 8,  leader: "阪木", type: "地面",    emoji: "🌍", name: "常磐道館",   waves: 4, lvBonus: 14, desc: "大地之巔的統治者" },
-  { region: "城都", badge: 9,  leader: "阿速", type: "飛行",    emoji: "🦅", name: "桔梗道館",   waves: 4, lvBonus: 17, desc: "俯瞰全局的分析力" },
-  { region: "城都", badge: 10, leader: "阿筆", type: "蟲",      emoji: "🐛", name: "檜皮道館",   waves: 4, lvBonus: 20, desc: "細心啃食每個知識點" },
-  { region: "城都", badge: 11, leader: "小茜", type: "一般",    emoji: "🐾", name: "滿金道館",   waves: 5, lvBonus: 23, desc: "沒有捷徑的紮實訓練" },
-  { region: "城都", badge: 12, leader: "松葉", type: "幽靈",    emoji: "👻", name: "圓朱道館",   waves: 5, lvBonus: 26, desc: "幽靈般的隱藏陷阱" },
-  { region: "城都", badge: 13, leader: "阿四", type: "格鬥",    emoji: "🥋", name: "湛藍道館",   waves: 5, lvBonus: 30, desc: "硬碰硬的實力對決" },
-  { region: "城都", badge: 14, leader: "小椿", type: "龍",      emoji: "🐉", name: "煙墨道館",   waves: 5, lvBonus: 33, desc: "龍之巔的極限挑戰" },
-  { region: "城都", badge: 15, leader: "蜜柑", type: "鋼",      emoji: "⚙️", name: "淺蔥道館",   waves: 5, lvBonus: 36, desc: "鋼鐵般的精密計算" },
-  { region: "城都", badge: 16, leader: "柳伯", type: "冰",      emoji: "❄️", name: "卡吉道館",   waves: 5, lvBonus: 39, desc: "冰封萬物的最終考驗" },
-  { region: "合眾", badge: 17, leader: "天桐", type: "草",      emoji: "🌿", name: "三曜道館",   waves: 4, lvBonus: 42, desc: "三曜鼎立的智慧考驗" },
-  { region: "合眾", badge: 18, leader: "蘆薈", type: "一般",    emoji: "🐾", name: "七寶道館",   waves: 4, lvBonus: 45, desc: "以不變應萬變的基礎" },
-  { region: "合眾", badge: 19, leader: "亞堤", type: "蟲",      emoji: "🐛", name: "飛雲道館",   waves: 5, lvBonus: 49, desc: "編織知識之網的韌性" },
-  { region: "合眾", badge: 20, leader: "小菊兒", type: "電",    emoji: "⚡", name: "雷文道館",   waves: 5, lvBonus: 51, desc: "閃耀的電流急急棒" },
+  { region: "關都", badge: 8,  leader: "阪木", type: "地面",    emoji: "🌍", name: "常磐道館",   waves: 4, lvBonus: 12, desc: "大地之巔的統治者" },
+  { region: "城都", badge: 9,  leader: "阿速", type: "飛行",    emoji: "🦅", name: "桔梗道館",   waves: 4, lvBonus: 14, desc: "俯瞰全局的分析力" },
+  { region: "城都", badge: 10, leader: "阿筆", type: "蟲",      emoji: "🐛", name: "檜皮道館",   waves: 4, lvBonus: 17, desc: "細心啃食每個知識點" },
+  { region: "城都", badge: 11, leader: "小茜", type: "一般",    emoji: "🐾", name: "滿金道館",   waves: 5, lvBonus: 20, desc: "沒有捷徑的紮實訓練" },
+  { region: "城都", badge: 12, leader: "松葉", type: "幽靈",    emoji: "👻", name: "圓朱道館",   waves: 5, lvBonus: 23, desc: "幽靈般的隱藏陷阱" },
+  { region: "城都", badge: 13, leader: "阿四", type: "格鬥",    emoji: "🥋", name: "湛藍道館",   waves: 5, lvBonus: 26, desc: "硬碰硬的實力對決" },
+  { region: "城都", badge: 14, leader: "小椿", type: "龍",      emoji: "🐉", name: "煙墨道館",   waves: 5, lvBonus: 24, desc: "龍之巔的極限挑戰" },
+  { region: "城都", badge: 15, leader: "蜜柑", type: "鋼",      emoji: "⚙️", name: "淺蔥道館",   waves: 5, lvBonus: 28, desc: "鋼鐵般的精密計算" },
+  { region: "城都", badge: 16, leader: "柳伯", type: "冰",      emoji: "❄️", name: "卡吉道館",   waves: 5, lvBonus: 32, desc: "冰封萬物的最終考驗" },
+  { region: "合眾", badge: 17, leader: "天桐", type: "草",      emoji: "🌿", name: "三曜道館",   waves: 4, lvBonus: 34, desc: "三曜鼎立的智慧考驗" },
+  { region: "合眾", badge: 18, leader: "蘆薈", type: "一般",    emoji: "🐾", name: "七寶道館",   waves: 4, lvBonus: 36, desc: "以不變應萬變的基礎" },
+  { region: "合眾", badge: 19, leader: "亞堤", type: "蟲",      emoji: "🐛", name: "飛雲道館",   waves: 5, lvBonus: 38, desc: "編織知識之網的韌性" },
+  { region: "合眾", badge: 20, leader: "小菊兒", type: "電",    emoji: "⚡", name: "雷文道館",   waves: 5, lvBonus: 40, desc: "閃耀的電流急急棒" },
   { region: "合眾", badge: 21, leader: "菊老大", type: "地面",  emoji: "🌍", name: "帆巴道館",   waves: 5, lvBonus: 54, desc: "大地深處的嚴峻考驗" },
   { region: "合眾", badge: 22, leader: "風露", type: "飛行",    emoji: "🦅", name: "吹寄道館",   waves: 5, lvBonus: 58, desc: "乘風破浪的高空對決" },
   { region: "合眾", badge: 23, leader: "哈奇庫", type: "冰",    emoji: "❄️", name: "雪花道館",   waves: 5, lvBonus: 62, desc: "絕對零度的極限專注" },
@@ -1468,7 +1468,7 @@ function checkGymCurve(student, name) {
   if (name === 'max' && badges < 8) {
     issues.push(`BUG: Max student only has ${badges} badges after 9 months (expected 32+)`);
   }
-  if (name === 'min' && badges < 4) {
+  if (name === 'min' && badges < 8) {
     issues.push(`NOTE: Min student only has ${badges} badges — gym curve may be too steep`);
   }
 
@@ -1480,7 +1480,7 @@ function checkGymCurve(student, name) {
     if (name === 'max' && gymWinRate < '80') {
       issues.push(`NOTE: Max student gym win rate is ${gymWinRate}% — examine difficulty`);
     }
-    if (name === 'min' && gymWinRate < '30') {
+    if (name === 'min' && gymWinRate < '40') {
       issues.push(`NOTE: Min student gym win rate is ${gymWinRate}% — may be too hard`);
     }
   }
@@ -1695,7 +1695,7 @@ function runSimulation() {
     const last = maxReports[maxReports.length - 1];
     console.log(`  Final Level:      Lv.${last.level}`);
     console.log(`  Pokémon Owned:    ${last.rosterCount} (${last.uniqueSpecies} unique species)`);
-    console.log(`  Badges Earned:    ${last.badges}/16`);
+    console.log(`  Badges Earned:    ${last.badges}/32`);
     console.log(`  Total Coins:      ${last.coins}`);
     console.log(`  Gym Wins:         ${maxStudent.gymWins}/${maxStudent.gymAttempts} attempts`);
     console.log(`  League Wins:      ${maxStudent.leagueWins}/${maxStudent.leagueAttempts} attempts`);
@@ -1709,7 +1709,7 @@ function runSimulation() {
     const last = minReports[minReports.length - 1];
     console.log(`  Final Level:      Lv.${last.level}`);
     console.log(`  Pokémon Owned:    ${last.rosterCount} (${last.uniqueSpecies} unique species)`);
-    console.log(`  Badges Earned:    ${last.badges}/16`);
+    console.log(`  Badges Earned:    ${last.badges}/32`);
     console.log(`  Total Coins:      ${last.coins}`);
     console.log(`  Gym Wins:         ${minStudent.gymWins}/${minStudent.gymAttempts} attempts`);
     console.log(`  League Wins:      ${minStudent.leagueWins}/${minStudent.leagueAttempts} attempts`);
