@@ -885,15 +885,15 @@ async function recalculateStudentState(studentId, events) {
     } else if (rowAction === "B" || rowAction === "\u7CD6\u679C\u5347\u7D1A") {
       var pid2 = (safeNote.match(/ID:(P\d+(?:_LEG)?|legacy_\d+)/)||[])[1];
       if (pid2) for (var k in state.roster) {
-        var isHolder = state.roster[k].heldItem === "expShare";
+        var isHolder = state.roster[k].heldItem === 'expShare';
         state.roster[k].totalExp += (k === pid2 || isHolder) ? expGained : Math.floor(expGained * 0.5);
       }
     } else if (rowAction === "\u6230\u9B25\u52DD\u5229") {
       var match = safeNote.match(/\u53C3\u8207(?:\u8005)?:\s*([^|]+)/);
       var parts = match ? match[1].split(",").map(function(s){return s.trim();}) : [];
       for (var k2 in state.roster) {
-        var isHolder = state.roster[k2].heldItem === "expShare";
-        state.roster[k2].totalExp += (parts.indexOf(k2) !== -1 || isHolder) ? expGained : Math.floor(expGained * 0.5);
+        var isHolder2 = state.roster[k2].heldItem === 'expShare';
+        state.roster[k2].totalExp += (parts.indexOf(k2) !== -1 || isHolder2) ? expGained : Math.floor(expGained * 0.5);
       }
       var bossMatch = safeNote.match(/\uD83C\uDFC6 \u6355\u7372:\s*([^|]+)/);
       if (bossMatch) {
@@ -4670,7 +4670,23 @@ function updatePreview() {
   var bg = globalData ? (globalData.badges || 0) : 0;
   var bL = globalData ? (globalData.lockedGymLevel || 5) : 5;
   var pL = Math.min(99, Math.max(5, bL + (finalScore === 100 ? 3 : (finalScore >= 80 ? 2 : 0))));
-  var trainHint = "", captureHint = "";
+  var trainHint = "", captureHint = "", coinHint = "", expHint = "";
+
+  // 原始公式：coins
+  function origCoinsPreview(effScore) {
+    var base = (!hasBoth && effScore >= 50) ? 0 : (effScore === 100 ? 50 : (effScore >= 80 ? 30 : (effScore >= 50 ? 10 : 0)));
+    if (globalData && globalData.hasAmuletCoin && base > 0) base = Math.ceil(base * 1.5);
+    return base;
+  }
+
+  // 原始公式：訓練 EXP
+  function origExpPreview(effScore, targetPkmn) {
+    var baseExp = Math.floor(effScore * 10 * Math.max(1, bL / 5));
+    if (!targetPkmn) return baseExp;
+    if (targetPkmn.currentLevel < bL) return Math.floor(baseExp * 1.5);
+    if (targetPkmn.currentLevel > bL + 5) return Math.floor(baseExp * 0.3);
+    return baseExp;
+  }
 
   if (actVal === "capture") {
     if (finalScore >= 95) captureHint = "🌟 可捕捉傳說級";
@@ -4679,13 +4695,25 @@ function updatePreview() {
     else if (finalScore >= 50) captureHint = "⚪ 可捕捉一般級";
     else captureHint = "🔒 分數不足";
     captureHint += " (Lv." + pL + ")";
+    coinHint = "💰 聯盟幣: " + origCoinsPreview(finalScore);
   } else if (actVal === "train") {
     var target = $("trainTarget");
     if (target && target.value) {
       var targetPkmn = globalData ? globalData.roster.find(function(p){ return p.id === target.value; }) : null;
-      var trainExp = finalScore * 10;
-      if (targetPkmn) trainHint = "🎯 " + targetPkmn.baseName + " 獲得 " + trainExp + " EXP（集中訓練）";
+      var trainExp = origExpPreview(finalScore, targetPkmn);
+      if (targetPkmn) {
+        var rubberMsg = "";
+        if (targetPkmn.currentLevel < bL) rubberMsg = " 🚀追趕紅利×1.5";
+        else if (targetPkmn.currentLevel > bL + 5) rubberMsg = " ⚠️等級壓制×0.3";
+        trainHint = "🎯 " + targetPkmn.baseName + " 獲得 " + trainExp + " EXP" + rubberMsg;
+        expHint = "✨ EXP: +" + trainExp;
+      }
     }
+    coinHint = "💰 聯盟幣: " + origCoinsPreview(finalScore);
+  } else {
+    var dailyExp = Math.floor(finalScore * 10 * Math.max(1, bL / 5));
+    expHint = "✨ EXP: +" + dailyExp;
+    coinHint = "💰 聯盟幣: " + origCoinsPreview(finalScore);
   }
 
   var html = "";
@@ -4693,6 +4721,8 @@ function updatePreview() {
   html += "💰 基礎分數: " + score + "<br>";
   if (vetoed < score) html += "<span style='color:#e74c3c;'>⚠️ 健康違規，分數上限 79</span><br>";
   html += "<strong>🏆 有效分數: " + finalScore + "</strong>";
+  if (expHint) html += "<br>" + expHint;
+  if (coinHint) html += "<br>" + coinHint;
   if (captureHint) html += "<br><span style='color:#e74c3c;'>" + captureHint + "</span>";
   if (trainHint) html += "<br><span style='color:#27ae60;'>" + trainHint + "</span>";
 
@@ -5337,6 +5367,26 @@ async function submitData() {
   var actionTypeEl = document.querySelector("input[name=\"actionType\"]:checked");
   var actionType = actionTypeEl ? actionTypeEl.value : "";
 
+  var hasBoth = $("cbEx") && $("cbEx").checked && $("cbSleep") && $("cbSleep").checked;
+
+  // ── 原始公式：扣金幣 (threshold-based) ──
+  function origCoins(effScore) {
+    var baseCoins = (!hasBoth && effScore >= 50) ? 0 : (effScore === 100 ? 50 : (effScore >= 80 ? 30 : (effScore >= 50 ? 10 : 0)));
+    var cs = Math.floor(baseCoins);
+    if (globalData && globalData.hasAmuletCoin && cs > 0) cs = Math.ceil(cs * 1.5);
+    return cs;
+  }
+
+  // ── 原始公式：訓練 EXP (含 rubberband) ──
+  function origExp(effScore, targetPkmn) {
+    var bL = globalData ? (globalData.lockedGymLevel || 5) : 5;
+    var baseExp = Math.floor(effScore * 10 * Math.max(1, bL / 5));
+    if (!targetPkmn) return baseExp;
+    if (targetPkmn.currentLevel < bL) return Math.floor(baseExp * 1.5);
+    if (targetPkmn.currentLevel > bL + 5) return Math.floor(baseExp * 0.3);
+    return baseExp;
+  }
+
   if (actionType === "capture") {
     if (score < 50) { toast("分數不足 50，無法捕捉新寶可夢！"); return; }
     var badges = globalData ? globalData.badges || 0 : 0;
@@ -5369,8 +5419,8 @@ async function submitData() {
     else if (streak >= 5 && score >= 60 && tier === "一般") { tier = "稀有"; }
     var targetType = $("baitAttr").value;
     var captured = generateCapturePokemon(tier, targetType, captureLevel);
-    var expGain = Math.floor(score * 6);
-    var coinsGain = Math.floor(score * 1.5);
+    var expGain = 0;
+    var coinsGain = origCoins(score);
     var note = "📅 " + monthName + " | 捕捉: " + captured.name + " | ID:" + captured.id + " | 類型: " + targetType;
     var record = { user: studentId, studentId: studentId, totalScore: score, score: score, action: "捕捉", expGained: expGain, coinsGained: coinsGain, badgeChange: 0, tasks: tasks, note: note, extraNote: note };
     await executeSave(record, function() {
@@ -5382,16 +5432,20 @@ async function submitData() {
     var targetName = "指定寶可夢";
     var targetPkmn = globalData.roster.find(function(p){ return p.id === targetId; });
     if (targetPkmn) targetName = targetPkmn.baseName;
-    var expGain = score * 7;
-    var coinsGain = Math.floor(score * 1.5);
+    var expGain = origExp(score, targetPkmn);
+    var coinsGain = origCoins(score);
+    if (targetPkmn && targetPkmn.currentLevel >= 99) {
+      var x = Math.floor(expGain / 10);
+      coinsGain += x;
+    }
     var note = "📅 " + monthName + " | 強化: " + targetName + " | 集中訓練 +" + expGain + " EXP | ID:" + targetId;
     var record = { user: studentId, studentId: studentId, totalScore: score, score: score, action: "糖果升級", expGained: expGain, coinsGained: coinsGain, badgeChange: 0, tasks: tasks, note: note, extraNote: note };
     await executeSave(record, function() {
       toast("🎯 " + targetName + " 獲得 " + expGain + " EXP（集中訓練）！");
     }, true);
   } else {
-    var expGain = score * 7;
-    var coinsGain = score * 2;
+    var expGain = score * 10;
+    var coinsGain = origCoins(score);
     var note = "📅 " + monthName + " | 任務: " + tasks.join(", ") + (action ? " | 加分: " + action : "");
     var record = { user: studentId, studentId: studentId, totalScore: score, score: score, action: "每日提交", expGained: expGain, coinsGained: coinsGain, badgeChange: 0, tasks: tasks, note: note, extraNote: note };
     await executeSave(record, function() {

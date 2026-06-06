@@ -94,4 +94,46 @@ test.describe('KPI Dashboard Smoke Tests', () => {
     await expect(analysisBtn).toBeVisible();
   });
 
+  // ── P12 fix: inline script execution & garbled text verification ──
+
+  test('inline JavaScript executes correctly (MOVE_DATABASE exists)', async ({ page }) => {
+    await page.goto('/kpi');
+    await page.waitForLoadState('networkidle');
+    await page.waitForTimeout(2000);
+
+    const hasMoves = await page.evaluate(() => typeof MOVE_DATABASE !== 'undefined');
+    expect(hasMoves).toBe(true);
+
+    const hasPokemon = await page.evaluate(() => typeof POKEMON_TIERS !== 'undefined');
+    expect(hasPokemon).toBe(true);
+
+    const hasBattle = await page.evaluate(() => typeof generateGymWaves === 'function');
+    expect(hasBattle).toBe(true);
+  });
+
+  test('inline script event handlers are attached to student select', async ({ page }) => {
+    await page.goto('/kpi');
+    await page.waitForLoadState('networkidle');
+    await page.waitForTimeout(2000);
+
+    // Verify JS attached event listeners to studentSelect
+    const hasListeners = await page.evaluate(() => {
+      const el = document.getElementById('studentSelect');
+      if (!el) return false;
+      return typeof el.onchange === 'function' || el.getAttribute('onchange') !== null;
+    });
+    expect(hasListeners).toBe(true);
+  });
+
+  test('no garbled text in page content', async ({ page, screenshot }) => {
+    await page.goto('/kpi');
+    await page.waitForLoadState('networkidle');
+    await page.waitForTimeout(2000);
+
+    const bodyText = await page.locator('body').textContent();
+    expect(bodyText).not.toMatch(/�/);
+    expect(bodyText).toContain('選擇訓練家登入');
+    expect(bodyText).toContain('管理員');
+  });
+
 });
