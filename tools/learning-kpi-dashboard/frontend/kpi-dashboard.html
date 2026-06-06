@@ -45,13 +45,15 @@
     .category-card { background: #fafafa; border-radius: 12px; margin-bottom: 12px; padding: 12px; border: 2px solid #e0e0e0; }
     .border-gym { border-left: 6px solid #e74c3c; }
     .border-daily { border-left: 6px solid #3498db; }
-    .cat-title { font-size: 15px; font-weight: 900; color: var(--kpi-dark); margin-bottom: 6px; border-bottom: 2px dashed #ccc; padding-bottom: 5px; display: flex; justify-content: space-between; align-items: center; }
-    .cat-title .max-score { font-size: 12px; color: #888; font-weight: 400; }
+    .category-title { font-size: 16px; font-weight: 900; color: var(--kpi-dark); margin-bottom: 8px; border-bottom: 2px dashed #ccc; padding-bottom: 5px; }
     .task-item { display: flex; align-items: center; margin: 5px 0; font-size: 14px; padding: 6px; border-radius: 6px; font-weight: 700; color: #444; }
     .task-item:hover { background: #f0f4f8; }
     .task-item input[type="checkbox"] { width: 20px; height: 20px; margin-right: 10px; cursor: pointer; accent-color: var(--kpi-red); flex-shrink: 0; }
     .task-item label { cursor: pointer; flex: 1; }
-    .score-badge { font-size: 11px; padding: 2px 8px; border-radius: 12px; font-weight: 900; border: 1px solid #ccc; flex-shrink: 0; }
+    .score-badge { font-size: 12px; padding: 3px 8px; border-radius: 12px; font-weight: 900; margin-left: 5px; border: 1px solid #ccc; flex-shrink: 0; }
+    .badge-gym { background-color: #fdedec; color: #c0392b; border-color: #e74c3c; }
+    .badge-daily { background-color: #eaf2f8; color: #2980b9; border-color: #3498db; }
+    .label-text { cursor: pointer; flex-grow: 1; }
     .decision-box { background: #f4f6f7; border: 3px solid var(--kpi-dark); border-radius: 12px; padding: 15px; margin: 12px 0; }
     .decision-box h3 { margin: 0 0 10px; color: var(--kpi-dark); text-align: center; font-size: 15px; }
     .action-option { background: white; border: 2px solid #bdc3c7; border-radius: 8px; padding: 10px; margin-bottom: 8px; cursor: pointer; transition: 0.2s; display: flex; align-items: center; font-weight: 700; color: #333; }
@@ -151,7 +153,7 @@
       .header .subtitle { font-size: 11px; }
       .nav-btn { font-size: 12px; padding: 10px 4px; }
       .category-card { padding: 10px; }
-      .cat-title { font-size: 14px; }
+      .category-title { font-size: 14px; }
       .task-item { font-size: 13px; padding: 5px; }
       .decision-box { padding: 12px; }
       .decision-box h3 { font-size: 14px; }
@@ -401,29 +403,11 @@
     </div>
 
     <!-- ===== TASKS: gym subjects + discipline (V3/pre-P12 style) ===== -->
-    <div id="tasksArea" style="display:none;">
-      <div class="category-card border-gym">
-        <div class="cat-title">📐 數理道館 <span class="max-score">滿分 30</span></div>
-        <label class="task-item"><input type="checkbox" value="15" data-points="15" data-label="劉威宏/南PC (代數先修)" class="task-cb"><span>劉威宏/南PC (代數先修)</span><span class="score-badge">+15</span></label>
-        <label class="task-item"><input type="checkbox" value="15" data-points="15" data-label="計算練習與私中魔王題" class="task-cb"><span>計算練習與私中魔王題</span><span class="score-badge">+15</span></label>
-      </div>
-      <div class="category-card border-gym">
-        <div class="cat-title">📖 國語道館 <span class="max-score">滿分 25</span></div>
-        <label class="task-item"><input type="checkbox" value="15" data-points="15" data-label="國學與字音字形特訓" class="task-cb"><span>國學與字音字形特訓</span><span class="score-badge">+15</span></label>
-        <label class="task-item"><input type="checkbox" value="10" data-points="10" data-label="閱讀測驗與古詩文" class="task-cb"><span>閱讀測驗與古詩文</span><span class="score-badge">+10</span></label>
-      </div>
-      <div class="category-card border-gym">
-        <div class="cat-title">🎧 英文道館 <span class="max-score">滿分 25</span></div>
-        <label class="task-item"><input type="checkbox" value="15" data-points="15" data-label="PET/FCE 與聽力特訓" class="task-cb"><span>PET/FCE 與聽力特訓</span><span class="score-badge">+15</span></label>
-        <label class="task-item"><input type="checkbox" value="10" data-points="10" data-label="NonFiction 與雜誌閱讀" class="task-cb"><span>NonFiction 與雜誌閱讀</span><span class="score-badge">+10</span></label>
-      </div>
-      <div class="category-card border-daily">
-        <div class="cat-title">✨ 紀律與體能修練 <span class="max-score">滿分 20</span></div>
-        <label class="task-item"><input type="checkbox" value="5" data-points="5" data-label="跳繩500下/運動30分" id="cbEx" class="task-cb discipline"><span>跳繩500下 / 運動30分</span><span class="score-badge">+5</span></label>
-        <label class="task-item"><input type="checkbox" value="5" data-points="5" data-label="小提琴專注練習" class="task-cb discipline"><span>小提琴專注練習</span><span class="score-badge">+5</span></label>
-        <label class="task-item"><input type="checkbox" value="5" data-points="5" data-label="家務小幫手" class="task-cb discipline"><span>家務小幫手</span><span class="score-badge">+5</span></label>
-        <label class="task-item"><input type="checkbox" value="5" data-points="5" data-label="晚上22:15前就寢" id="cbSleep" class="task-cb discipline"><span>晚上 22:15 前就寢</span><span class="score-badge">+5</span></label>
-      </div>
+    <div id="task-container" style="display:none;">
+      <div class="category-card border-gym"><div class="category-title">📐 數理道館 (30 分)</div><label class="task-item"><input type="checkbox" value="15" data-points="15" data-label="劉威宏/南PC (代數先修)" class="task-cb"><span class="label-text">劉威宏/南PC (代數先修)</span><span class="score-badge badge-gym">+15</span></label><label class="task-item"><input type="checkbox" value="15" data-points="15" data-label="計算練習與私中魔王題" class="task-cb"><span class="label-text">計算練習與私中魔王題</span><span class="score-badge badge-gym">+15</span></label></div>
+      <div class="category-card border-gym"><div class="category-title">📖 國語道館 (25 分)</div><label class="task-item"><input type="checkbox" value="15" data-points="15" data-label="國學與字音字形特訓" class="task-cb"><span class="label-text">國學與字音字形特訓</span><span class="score-badge badge-gym">+15</span></label><label class="task-item"><input type="checkbox" value="10" data-points="10" data-label="閱讀測驗與古詩文" class="task-cb"><span class="label-text">閱讀測驗與古詩文</span><span class="score-badge badge-gym">+10</span></label></div>
+      <div class="category-card border-gym"><div class="category-title">🎧 英文道館 (25 分)</div><label class="task-item"><input type="checkbox" value="15" data-points="15" data-label="PET/FCE 與聽力特訓" class="task-cb"><span class="label-text">PET/FCE 與聽力特訓</span><span class="score-badge badge-gym">+15</span></label><label class="task-item"><input type="checkbox" value="10" data-points="10" data-label="NonFiction 與雜誌閱讀" class="task-cb"><span class="label-text">NonFiction 與雜誌閱讀</span><span class="score-badge badge-gym">+10</span></label></div>
+      <div class="category-card border-daily"><div class="category-title">✨ 紀律與體能修練 (20 分)</div><label class="task-item"><input type="checkbox" value="5" data-points="5" data-label="跳繩500下/運動30分" id="cb-exercise" class="task-cb discipline-cb"><span class="label-text">跳繩500下 / 運動30分</span><span class="score-badge badge-daily">+5</span></label><label class="task-item"><input type="checkbox" value="5" data-points="5" data-label="小提琴專注練習" class="task-cb discipline-cb"><span class="label-text">小提琴專注練習</span><span class="score-badge badge-daily">+5</span></label><label class="task-item"><input type="checkbox" value="5" data-points="5" data-label="家務小幫手" class="task-cb discipline-cb"><span class="label-text">家務小幫手</span><span class="score-badge badge-daily">+5</span></label><label class="task-item"><input type="checkbox" value="5" data-points="5" data-label="晚上22:15前就寢" id="cb-sleep" class="task-cb discipline-cb"><span class="label-text">晚上 22:15 前就寢</span><span class="score-badge badge-daily">+5</span></label></div>
     </div>
 
     <!-- ===== STRATEGY DECISION ===== -->
@@ -1005,7 +989,7 @@ async function fetchStudentData(studentId, pendingEvent) {
           if (cached.questProgress) globalQuestProgress = cached.questProgress;
           hideSkeleton(); updateDashboard(); renderActions(); updateBattleButtons(); renderQuests(); updateTradeBadge();
           if (!isAdmin) {
-            var ta = $("tasksArea"); if (ta) ta.style.display = "block";
+            var ta = $("task-container"); if (ta) ta.style.display = "block";
             var sb = $("strategyBox"); if (sb) sb.style.display = "block";
             var rd = $("rosterDisplay"); if (rd) rd.style.display = "block";
             var bd = $("bagDisplay"); if (bd) bd.style.display = "block";
@@ -1060,7 +1044,7 @@ async function fetchStudentData(studentId, pendingEvent) {
         if (!cacheLoaded) { hideSkeleton(); updateDashboard(); renderActions(); updateBattleButtons(); }
     // show task/strategy sections for non-admin users
     if (!isAdmin) {
-      var ta = $("tasksArea"); if (ta) ta.style.display = "block";
+      var ta = $("task-container"); if (ta) ta.style.display = "block";
       var sb = $("strategyBox"); if (sb) sb.style.display = "block";
       var rd = $("rosterDisplay"); if (rd) rd.style.display = "block";
       var bd = $("bagDisplay"); if (bd) bd.style.display = "block";
@@ -4647,14 +4631,14 @@ function updatePreview() {
     var label = cb.dataset.label || cb.value;
     tasks.push(label);
     score += pts;
-    if (cb.classList.contains("discipline")) discCount += pts;
+    if (cb.classList.contains("discipline-cb")) discCount += pts;
     scoreBreakdown.push(label + " +" + pts);
   });
   var action = document.querySelector("input[name=\"actionType\"]:checked");
   var actionLabel = action ? action.value : "";
 
   // V3-style discipline veto
-  var hasBoth = $("cbEx") && $("cbEx").checked && $("cbSleep") && $("cbSleep").checked;
+  var hasBoth = $("cb-exercise") && $("cb-exercise").checked && $("cb-sleep") && $("cb-sleep").checked;
   var vw = $("vetoWarning");
   if (vw) vw.style.display = (!hasBoth && score >= 50) ? "block" : "none";
   var vetoed = (!hasBoth && score >= 80) ? 79 : score;
@@ -5367,7 +5351,7 @@ async function submitData() {
   var actionTypeEl = document.querySelector("input[name=\"actionType\"]:checked");
   var actionType = actionTypeEl ? actionTypeEl.value : "";
 
-  var hasBoth = $("cbEx") && $("cbEx").checked && $("cbSleep") && $("cbSleep").checked;
+  var hasBoth = $("cb-exercise") && $("cb-exercise").checked && $("cb-sleep") && $("cb-sleep").checked;
 
   // ── 原始公式：扣金幣 (threshold-based) ──
   function origCoins(effScore) {
