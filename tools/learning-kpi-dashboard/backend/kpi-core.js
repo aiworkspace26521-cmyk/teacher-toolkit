@@ -379,10 +379,10 @@ async function recalculateStudentState(studentId) {
 
 async function getDefaultSubjects() {
   const snapshot = await db.collection(SUBJECTS_COL).orderBy('order').get();
-  if (!snapshot.empty) {
-    return snapshot.docs.map(d => ({ id: d.id, ...d.data() }));
-  }
-  const defaults = [
+  const existing = snapshot.docs.map(d => ({ id: d.id, ...d.data() }));
+  const existingNames = new Set(existing.map(s => s.name));
+
+  const allDefaults = [
     { name: '📐 數理道館', category: 'gym', maxScore: 30, order: 0,
       tasks: [
         { name: '劉威宏/南PC (代數先修)', score: 15 },
@@ -404,15 +404,31 @@ async function getDefaultSubjects() {
         { name: '小提琴專注練習', score: 5, discipline: true },
         { name: '家務小幫手', score: 5, discipline: true },
         { name: '晚上 22:15 前就寢', score: 5, discipline: true }
-      ] }
+      ] },
   ];
+
+  if (snapshot.empty) {
+    const batch = db.batch();
+    for (const subj of allDefaults) {
+      batch.set(db.collection(SUBJECTS_COL).doc(), subj);
+    }
+    await batch.commit();
+    return allDefaults;
+  }
+
   const batch = db.batch();
-  for (const subj of defaults) {
+  let added = 0;
+  for (const subj of allDefaults) {
+    if (existingNames.has(subj.name)) continue;
     const ref = db.collection(SUBJECTS_COL).doc();
     batch.set(ref, subj);
+    existing.push(subj);
+    added++;
   }
-  await batch.commit();
-  return defaults;
+  if (added > 0) {
+    await batch.commit();
+  }
+  return existing;
 }
 
 module.exports = {

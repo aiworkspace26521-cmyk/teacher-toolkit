@@ -400,83 +400,52 @@
       <button class="nav-btn btn-pvp" onclick="sfx.click();openRankingModal()" style="background:#8e44ad;color:white;" id="btnPvPRanking">🏆 PvP天梯</button>
     </div>
 
-    <!-- ===== TASK SECTION: subject checkboxes ===== -->
-    <div id="taskSection" class="decision-box" style="display:none;margin-top:16px;">
-      <h3>📋 今日學習任務</h3>
-      <div class="category-card border-daily">
-        <div class="cat-title">語文 <span class="max-score">最高 15 分</span></div>
-        <div class="task-item"><input type="checkbox" class="task-cb" data-points="5" data-label="國語課本" id="task_chinese_book"><label for="task_chinese_book">📖 國語課本</label><span class="score-badge">+5</span></div>
-        <div class="task-item"><input type="checkbox" class="task-cb" data-points="5" data-label="國語習作" id="task_chinese_workbook"><label for="task_chinese_workbook">📝 國語習作</label><span class="score-badge">+5</span></div>
-        <div class="task-item"><input type="checkbox" class="task-cb" data-points="5" data-label="國語生字" id="task_chinese_char"><label for="task_chinese_char">✏️ 國語生字</label><span class="score-badge">+5</span></div>
+    <!-- ===== TASKS: gym subjects + discipline (V3/pre-P12 style) ===== -->
+    <div id="tasksArea" style="display:none;">
+      <div class="category-card border-gym">
+        <div class="cat-title">📐 數理道館 <span class="max-score">滿分 30</span></div>
+        <label class="task-item"><input type="checkbox" value="15" data-points="15" data-label="劉威宏/南PC (代數先修)" class="task-cb"><span>劉威宏/南PC (代數先修)</span><span class="score-badge">+15</span></label>
+        <label class="task-item"><input type="checkbox" value="15" data-points="15" data-label="計算練習與私中魔王題" class="task-cb"><span>計算練習與私中魔王題</span><span class="score-badge">+15</span></label>
+      </div>
+      <div class="category-card border-gym">
+        <div class="cat-title">📖 國語道館 <span class="max-score">滿分 25</span></div>
+        <label class="task-item"><input type="checkbox" value="15" data-points="15" data-label="國學與字音字形特訓" class="task-cb"><span>國學與字音字形特訓</span><span class="score-badge">+15</span></label>
+        <label class="task-item"><input type="checkbox" value="10" data-points="10" data-label="閱讀測驗與古詩文" class="task-cb"><span>閱讀測驗與古詩文</span><span class="score-badge">+10</span></label>
+      </div>
+      <div class="category-card border-gym">
+        <div class="cat-title">🎧 英文道館 <span class="max-score">滿分 25</span></div>
+        <label class="task-item"><input type="checkbox" value="15" data-points="15" data-label="PET/FCE 與聽力特訓" class="task-cb"><span>PET/FCE 與聽力特訓</span><span class="score-badge">+15</span></label>
+        <label class="task-item"><input type="checkbox" value="10" data-points="10" data-label="NonFiction 與雜誌閱讀" class="task-cb"><span>NonFiction 與雜誌閱讀</span><span class="score-badge">+10</span></label>
       </div>
       <div class="category-card border-daily">
-        <div class="cat-title">數學 <span class="max-score">最高 15 分</span></div>
-        <div class="task-item"><input type="checkbox" class="task-cb" data-points="5" data-label="數學課本" id="task_math_book"><label for="task_math_book">📖 數學課本</label><span class="score-badge">+5</span></div>
-        <div class="task-item"><input type="checkbox" class="task-cb" data-points="5" data-label="數學習作" id="task_math_workbook"><label for="task_math_workbook">📝 數學習作</label><span class="score-badge">+5</span></div>
-        <div class="task-item"><input type="checkbox" class="task-cb" data-points="5" data-label="數學計算" id="task_math_calc"><label for="task_math_calc">🧮 數學計算</label><span class="score-badge">+5</span></div>
-      </div>
-      <div class="category-card border-daily">
-        <div class="cat-title">英文 <span class="max-score">最高 10 分</span></div>
-        <div class="task-item"><input type="checkbox" class="task-cb" data-points="5" data-label="英文課本" id="task_eng_book"><label for="task_eng_book">📖 英文課本</label><span class="score-badge">+5</span></div>
-        <div class="task-item"><input type="checkbox" class="task-cb" data-points="5" data-label="英文單字" id="task_eng_vocab"><label for="task_eng_vocab">🔤 英文單字</label><span class="score-badge">+5</span></div>
-      </div>
-      <div class="category-card border-daily">
-        <div class="cat-title">自然 <span class="max-score">最高 10 分</span></div>
-        <div class="task-item"><input type="checkbox" class="task-cb" data-points="5" data-label="自然課本" id="task_sci_book"><label for="task_sci_book">🔬 自然課本</label><span class="score-badge">+5</span></div>
-        <div class="task-item"><input type="checkbox" class="task-cb" data-points="5" data-label="自然實驗" id="task_sci_lab"><label for="task_sci_lab">🧪 自然實驗</label><span class="score-badge">+5</span></div>
-      </div>
-      <div class="category-card border-daily">
-        <div class="cat-title">社會 <span class="max-score">最高 10 分</span></div>
-        <div class="task-item"><input type="checkbox" class="task-cb" data-points="5" data-label="社會課本" id="task_soc_book"><label for="task_soc_book">🌍 社會課本</label><span class="score-badge">+5</span></div>
-        <div class="task-item"><input type="checkbox" class="task-cb" data-points="5" data-label="社會習作" id="task_soc_workbook"><label for="task_soc_workbook">📝 社會習作</label><span class="score-badge">+5</span></div>
+        <div class="cat-title">✨ 紀律與體能修練 <span class="max-score">滿分 20</span></div>
+        <label class="task-item"><input type="checkbox" value="5" data-points="5" data-label="跳繩500下/運動30分" id="cbEx" class="task-cb discipline"><span>跳繩500下 / 運動30分</span><span class="score-badge">+5</span></label>
+        <label class="task-item"><input type="checkbox" value="5" data-points="5" data-label="小提琴專注練習" class="task-cb discipline"><span>小提琴專注練習</span><span class="score-badge">+5</span></label>
+        <label class="task-item"><input type="checkbox" value="5" data-points="5" data-label="家務小幫手" class="task-cb discipline"><span>家務小幫手</span><span class="score-badge">+5</span></label>
+        <label class="task-item"><input type="checkbox" value="5" data-points="5" data-label="晚上22:15前就寢" id="cbSleep" class="task-cb discipline"><span>晚上 22:15 前就寢</span><span class="score-badge">+5</span></label>
       </div>
     </div>
 
-    <!-- ===== ACTION TYPE SELECTION ===== -->
-    <div id="actionSection" class="decision-box" style="display:none;">
-      <h3>🎯 選擇今日行動</h3>
-      <div class="action-option" onclick="this.querySelector('input').click()">
-        <input type="radio" name="actionType" value="提交作業" data-bonus="10">
-        <span>📚 提交作業（+10 分）</span>
-      </div>
-      <div class="action-option" onclick="this.querySelector('input').click()">
-        <input type="radio" name="actionType" value="課堂測驗" data-bonus="15">
-        <span>📝 課堂測驗（+15 分）</span>
-      </div>
-      <div class="action-option" onclick="this.querySelector('input').click()">
-        <input type="radio" name="actionType" value="閱讀任務" data-bonus="10">
-        <span>📖 閱讀任務（+10 分）</span>
-      </div>
-      <div class="action-option" onclick="this.querySelector('input').click()">
-        <input type="radio" name="actionType" value="小組討論" data-bonus="12">
-        <span>💬 小組討論（+12 分）</span>
-      </div>
-      <div class="action-option" onclick="this.querySelector('input').click()">
-        <input type="radio" name="actionType" value="capture">
-        <span>🎯 捕捉寶可夢</span>
-      </div>
-      <div class="action-option" onclick="this.querySelector('input').click()">
-        <input type="radio" name="actionType" value="train">
-        <span>🎯 訓練寶可夢</span>
-      </div>
+    <!-- ===== STRATEGY DECISION ===== -->
+    <div class="decision-box" id="strategyBox" style="display:none;">
+      <h3>🎯 今日戰略抉擇</h3>
+      <label class="action-option" id="optCapture"><input type="radio" name="actionType" value="capture"><div>🎯 捕捉新目標<br><span style="font-size:12px;color:#666;">依據分數解鎖新里程碑</span></div></label>
+      <div id="baitSelector" style="display:none;">🎯 指定領域方向：<select id="baitAttr"><option value="隨機">🎲 隨機</option><option value="一般">一般</option><option value="火">火</option><option value="水">水</option><option value="草">草</option><option value="電">電</option><option value="冰">冰</option><option value="格鬥">格鬥</option><option value="毒">毒</option><option value="地面">地面</option><option value="飛行">飛行</option><option value="超能力">超能力</option><option value="蟲">蟲</option><option value="岩石">岩石</option><option value="幽靈">幽靈</option><option value="龍">龍</option><option value="惡">惡</option><option value="鋼">鋼</option><option value="妖精">妖精</option></select></div>
+      <label class="action-option" id="optTrain"><input type="radio" name="actionType" value="train"><div>🔧 強化現有技能<br><span style="font-size:12px;color:#666;">將分數轉為 EXP 灌注</span></div></label>
+      <div id="trainSelector" style="display:none;">🎯 選擇強化對象：<select id="trainTarget"></select></div>
+      <div id="vetoWarning" class="veto-warning">⚠️ 健康違規！獎勵將被沒收！</div>
+      <div id="previewBox" class="preview-box">👆 請先完成任務並選擇戰略</div>
+      <div id="rngHint" style="display:none;font-size:11px;color:#e67e22;text-align:center;margin-top:5px;font-weight:bold;">📢 系統提示：全力以赴，結果拒絕隨機應變！</div>
     </div>
 
-    <!-- bait/train selectors -->
-    <div id="baitSelector">
-      <span>🎣 選擇誘餌：</span>
-      <select id="baitType"><option value="普通">普通（捕獲率 +0%）</option><option value="高級">高級（捕獲率 +10%）</option><option value="大師">大師（捕獲率 +25%）</option></select>
-    </div>
-    <div id="trainSelector">
-      <span>🎯 選擇訓練目標：</span>
-      <select id="trainTarget"></select>
-    </div>
+    <div id="rosterDisplay" style="margin:10px 0;display:none;"></div>
+    <div id="bagDisplay" style="margin:10px 0;display:none;"></div>
+    <div id="itemDisplay" style="margin:10px 0;font-size:13px;font-weight:700;color:#555;display:none;"></div>
 
-    <!-- preview box & hidden fields -->
-    <div id="previewBox" class="preview-box" style="display:none;"></div>
-    <div id="vetoWarning" class="veto-warning"></div>
     <input type="hidden" id="hiddenScore" value="0">
     <input type="hidden" id="hiddenTasks" value="">
     <input type="hidden" id="hiddenAction" value="">
+    <div id="actionContainer"></div>
 
     <button id="submitBtn" class="submit-btn" disabled>請先登入</button>
 
@@ -1036,8 +1005,11 @@ async function fetchStudentData(studentId, pendingEvent) {
           if (cached.questProgress) globalQuestProgress = cached.questProgress;
           hideSkeleton(); updateDashboard(); renderActions(); updateBattleButtons(); renderQuests(); updateTradeBadge();
           if (!isAdmin) {
-            var ts = $("taskSection"); if (ts) ts.style.display = "block";
-            var as = $("actionSection"); if (as) as.style.display = "block";
+            var ta = $("tasksArea"); if (ta) ta.style.display = "block";
+            var sb = $("strategyBox"); if (sb) sb.style.display = "block";
+            var rd = $("rosterDisplay"); if (rd) rd.style.display = "block";
+            var bd = $("bagDisplay"); if (bd) bd.style.display = "block";
+            var id = $("itemDisplay"); if (id) id.style.display = "block";
           }
           if (globalData.todayCompleted && !isAdmin) { btn.innerHTML = "\u2705 Done"; btn.disabled = true; document.querySelectorAll(".task-cb, input[name=\"actionType\"]").forEach(function(el){ el.checked = false; el.disabled = true; }); document.querySelectorAll(".action-option").forEach(function(el){ el.classList.remove("selected"); }); $("previewBox").innerHTML = "\u{1F31F} Today done!"; }
           else { btn.disabled = false; btn.textContent = "\u{1F680} Submit"; document.querySelectorAll(".task-cb, input[name=\"actionType\"]").forEach(function(el){ el.disabled = false; }); }
@@ -1086,10 +1058,13 @@ async function fetchStudentData(studentId, pendingEvent) {
     if (savedParty) { try { var parsed = JSON.parse(savedParty); globalData.partyIds = parsed.filter(function(id){ return globalData.roster.some(function(p){return p.id === id;}); }); } catch(e) {} }
     if (globalData.partyIds.length === 0) { var sorted = globalData.roster.slice().sort(function(a,b){ return b.currentLevel - a.currentLevel; }); globalData.partyIds = sorted.slice(0, 6).map(function(p){ return p.id; }); }
         if (!cacheLoaded) { hideSkeleton(); updateDashboard(); renderActions(); updateBattleButtons(); }
-    // show task/action sections for non-admin users
+    // show task/strategy sections for non-admin users
     if (!isAdmin) {
-      var ts = $("taskSection"); if (ts) ts.style.display = "block";
-      var as = $("actionSection"); if (as) as.style.display = "block";
+      var ta = $("tasksArea"); if (ta) ta.style.display = "block";
+      var sb = $("strategyBox"); if (sb) sb.style.display = "block";
+      var rd = $("rosterDisplay"); if (rd) rd.style.display = "block";
+      var bd = $("bagDisplay"); if (bd) bd.style.display = "block";
+      var id = $("itemDisplay"); if (id) id.style.display = "block";
     }
     await checkAndUnlockAchievements(globalData, events, studentId);
     var defRegion = checkDefenseChallenge();
@@ -4665,65 +4640,59 @@ function populateTrainTarget() {
 }
 
 function updatePreview() {
-  var score = 0, tasks = [], scoreBreakdown = [];
+  var score = 0, tasks = [], scoreBreakdown = [], discCount = 0;
   var cbs = document.querySelectorAll(".task-cb:checked");
   cbs.forEach(function(cb) {
     var pts = parseInt(cb.dataset.points) || 0;
     var label = cb.dataset.label || cb.value;
     tasks.push(label);
     score += pts;
+    if (cb.classList.contains("discipline")) discCount += pts;
     scoreBreakdown.push(label + " +" + pts);
   });
   var action = document.querySelector("input[name=\"actionType\"]:checked");
-  var actionBonus = 0, actionLabel = "";
-  if (action) {
-    actionBonus = parseInt(action.dataset.bonus) || 0;
-    actionLabel = action.value;
-    score += actionBonus;
-  }
+  var actionLabel = action ? action.value : "";
 
-  var multi = 1;
-  if (checkIsLeague()) { multi = 2; }
-  var finalScore = score * multi;
+  // V3-style discipline veto
+  var hasBoth = $("cbEx") && $("cbEx").checked && $("cbSleep") && $("cbSleep").checked;
+  var vw = $("vetoWarning");
+  if (vw) vw.style.display = (!hasBoth && score >= 50) ? "block" : "none";
+  var vetoed = (!hasBoth && score >= 80) ? 79 : score;
 
-  var actionType = document.querySelector("input[name=\"actionType\"]:checked");
-  var actionVal = actionType ? actionType.value : "";
-  var captureHint = "";
-  if (actionVal === "capture") {
-    var badges = globalData ? globalData.badges || 0 : 0;
-    var legUnlocked = badges >= 8;
-    var legFullUnlock = badges >= 16;
-    if (finalScore >= 95) {
-      captureHint = "🌟 可捕捉傳說級 (30%)";
-      if (!legFullUnlock) captureHint = "🌟 可捕捉稀有級以上";
-      if (!legUnlocked) captureHint = "🔒 通關8間道館解鎖稀有級";
-    } else if (finalScore >= 75) {
-      if (legUnlocked) captureHint = "✨ 可捕捉稀有級 (5% 傳說)";
-      else captureHint = "🔒 通關8間道館解鎖傳說";
-    } else if (finalScore >= 60) {
-      captureHint = "✨ 可捕捉稀有級";
-    } else if (finalScore >= 50) {
-      captureHint = "⚪ 可捕捉一般級";
-    } else if (finalScore > 0) {
-      captureHint = "分數低於 50 無法捕捉，再多加把勁！";
-    }
-  }
-  var trainHint = "";
-  if (actionVal === "train") {
+  // bait/train selectors
+  var bs = $("baitSelector"); if (bs) bs.style.display = (actionLabel === "capture" && discCount === 20) ? "block" : "none";
+  var ts = $("trainSelector"); if (ts) ts.style.display = (actionLabel === "train") ? "block" : "none";
+
+  var actVal = actionLabel;
+  var finalScore = vetoed;
+
+  var hasTrainTarget = $("trainTarget") && $("trainTarget").value && globalData;
+  var bg = globalData ? (globalData.badges || 0) : 0;
+  var bL = globalData ? (globalData.lockedGymLevel || 5) : 5;
+  var pL = Math.min(99, Math.max(5, bL + (finalScore === 100 ? 3 : (finalScore >= 80 ? 2 : 0))));
+  var trainHint = "", captureHint = "";
+
+  if (actVal === "capture") {
+    if (finalScore >= 95) captureHint = "🌟 可捕捉傳說級";
+    else if (finalScore >= 75) captureHint = "✨ 可捕捉稀有級";
+    else if (finalScore >= 60) captureHint = "✨ 可捕捉稀有級";
+    else if (finalScore >= 50) captureHint = "⚪ 可捕捉一般級";
+    else captureHint = "🔒 分數不足";
+    captureHint += " (Lv." + pL + ")";
+  } else if (actVal === "train") {
     var target = $("trainTarget");
     if (target && target.value) {
-      var targetPkmn = globalData.roster.find(function(p){ return p.id === target.value; });
-      var trainExp = finalScore * 7;
+      var targetPkmn = globalData ? globalData.roster.find(function(p){ return p.id === target.value; }) : null;
+      var trainExp = finalScore * 10;
       if (targetPkmn) trainHint = "🎯 " + targetPkmn.baseName + " 獲得 " + trainExp + " EXP（集中訓練）";
     }
   }
 
   var html = "";
   if (scoreBreakdown.length) html += "📋 " + scoreBreakdown.join("<br>📋 ") + "<br>";
-  if (actionLabel) html += "🎯 類型: " + actionLabel + " (+" + actionBonus + ")<br>";
   html += "💰 基礎分數: " + score + "<br>";
-  if (multi > 1) html += "🔥 聯盟加乘 x" + multi + "<br>";
-  html += "<strong>🏆 總分: " + finalScore + "</strong>";
+  if (vetoed < score) html += "<span style='color:#e74c3c;'>⚠️ 健康違規，分數上限 79</span><br>";
+  html += "<strong>🏆 有效分數: " + finalScore + "</strong>";
   if (captureHint) html += "<br><span style='color:#e74c3c;'>" + captureHint + "</span>";
   if (trainHint) html += "<br><span style='color:#27ae60;'>" + trainHint + "</span>";
 
@@ -5557,20 +5526,7 @@ document.addEventListener("DOMContentLoaded", function() {
 
   document.querySelectorAll("input[name=\"actionType\"]").forEach(function(rb) {
     rb.addEventListener("change", function() {
-      var val = this.value;
-      var baitSel = $("baitSelector");
-      var trainSel = $("trainSelector");
-      if (val === "capture") {
-        baitSel.style.display = "block";
-        trainSel.style.display = "none";
-      } else if (val === "train") {
-        trainSel.style.display = "block";
-        baitSel.style.display = "none";
-        populateTrainTarget();
-      } else {
-        baitSel.style.display = "none";
-        trainSel.style.display = "none";
-      }
+      if (this.value === "train") populateTrainTarget();
       updatePreview();
     });
   });
