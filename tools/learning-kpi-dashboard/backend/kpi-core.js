@@ -122,6 +122,7 @@ async function recalculateStudentState(studentId) {
     daysSinceLastBadge: 0,
     lastBadgeTime: null,
     firstLogTime: null,
+    submitDates: {},
     todayBattles: 0,
     weekGymWins: 0,
     monthLeagueWins: 0,
@@ -151,6 +152,11 @@ async function recalculateStudentState(studentId) {
     state.badges += rowBadges;
     if (rowBadges > 0) state.lastBadgeTime = rowDate.getTime();
     state.coins += rowCoins;
+
+    // V5.4: track submit dates for streak + MIN compensation
+    if (rowAction === '每日提交') {
+      state.submitDates[rowDate.toDateString()] = true;
+    }
 
     if (rowDate.toDateString() === todayStr &&
         !['商城兌換', '戰鬥消耗', '物品消耗', 'E', '戰鬥勝利', '系統測試'].includes(rowAction)) {
@@ -300,6 +306,23 @@ async function recalculateStudentState(studentId) {
   state.daysSinceLastBadge = state.lastBadgeTime
     ? (Date.now() - state.lastBadgeTime) / 86400000
     : (state.firstLogTime ? (Date.now() - state.firstLogTime) / 86400000 : 0);
+
+  // V5.4: calculate submit streak from tracked dates
+  const sortedDates = Object.keys(state.submitDates).sort();
+  let streak = 0;
+  const today = new Date();
+  for (let i = sortedDates.length - 1; i >= 0; i--) {
+    const expected = new Date(today);
+    expected.setDate(expected.getDate() - streak);
+    if (sortedDates[i] === expected.toDateString()) streak++;
+    else break;
+  }
+  state.streak = streak;
+
+  // V5.4: MIN compensation — badges for persistent submitters
+  var totalSubmitDays = Object.keys(state.submitDates).length;
+  if (totalSubmitDays >= 60) state.badges += 5;
+  else if (totalSubmitDays >= 30) state.badges += 2;
 
   const rosterArray = [];
   let finalHighestLevel = 5;

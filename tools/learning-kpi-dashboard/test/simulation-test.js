@@ -1035,6 +1035,24 @@ function recalculateState(studentId, events) {
 // SECTION 4 — SIMULATION ENGINE
 // =========================================================================
 
+// V5.4 coin calculation (threshold system)
+function calcCoins(score, hasBoth) {
+  var base = (!hasBoth && score >= 50) ? 0
+    : (score === 100 ? 50
+      : (score >= 80 ? 30
+        : (score >= 50 ? 10 : 0)));
+  return base;
+}
+
+// V5.4 EXP calculation for training with Rubberband
+function calcTrainExp(score, lockedLevel, targetLevel) {
+  var base = Math.floor(score * 10 * Math.max(1, lockedLevel / 5));
+  if (targetLevel == null) return base;
+  if (targetLevel < lockedLevel) return Math.floor(base * 1.5);
+  if (targetLevel > lockedLevel + 5) return Math.floor(base * 0.3);
+  return base;
+}
+
 class SimulationStudent {
   constructor(name, dailyScore) {
     this.name = name;
@@ -1072,10 +1090,11 @@ class SimulationStudent {
     const mode = dayNumber % 3; // 0=normal, 1=capture, 2=train
     const score = this.dailyScore;
 
-    // Determine league/month-end multiplier
+    // V5.4: no league multiplier + health veto
     const isLast3Days = dayNumber >= 28;
-    const multiplier = (isLast3Days && isLeaguePeriod) ? 2 : 1;
-    const finalScore = score * multiplier;
+    const hasBoth = true; // Simulation assumes both health tasks done
+    const vetoed = (!hasBoth && score >= 80) ? 79 : score;
+    const finalScore = vetoed;
 
     // Compute badges from state
     let currentState = recalculateState(this.studentId, this.events);
@@ -1092,8 +1111,8 @@ class SimulationStudent {
       else captureLevel = Math.floor(finalScore / 8);
       captureLevel = Math.max(5, captureLevel);
       const rawCapture = this._generateCapture(tier, '隨機', captureLevel);
-      const expGain = Math.floor(finalScore * 6);
-      const coinsGain = Math.floor(finalScore * 1.5);
+      const expGain = 0; // V5.4: capture gives 0 EXP
+      const coinsGain = calcCoins(finalScore, hasBoth);
       const note = `捕捉: ${rawCapture.name} | ID:${rawCapture.id}`;
       this.events.push({
         studentId: this.studentId, timestamp, score: finalScore, action: '捕捉',
@@ -1102,9 +1121,12 @@ class SimulationStudent {
       });
       this._logCapture(rawCapture);
     } else if (mode === 2) {
-      // TRAIN ACTION — boost a specific pokemon
-      const expGain = finalScore * 7;
-      const coinsGain = Math.floor(finalScore * 1.5);
+      // TRAIN ACTION — boost a specific pokemon (V5.4 EXP formula)
+      const lockedLevel = currentState ? currentState.lockedGymLevel || currentState.highestLevel : 5;
+      const targetLevel = currentState && currentState.roster && currentState.roster.length > 0
+        ? currentState.roster[0].currentLevel : 5;
+      const expGain = calcTrainExp(finalScore, lockedLevel, targetLevel);
+      const coinsGain = calcCoins(finalScore, hasBoth);
       const targetId = currentState && currentState.roster && currentState.roster.length > 0
         ? currentState.roster[0].id : 'P0';
       const targetName = currentState && currentState.roster && currentState.roster.length > 0
@@ -1116,9 +1138,9 @@ class SimulationStudent {
         tasks: [], note, extraNote: note
       });
     } else {
-      // NORMAL SUBMIT
-      const expGain = finalScore * 7;
-      const coinsGain = finalScore * 2;
+      // NORMAL SUBMIT (V5.4: score * 10, threshold coins)
+      const expGain = finalScore * 10;
+      const coinsGain = calcCoins(finalScore, hasBoth);
       const note = `每日提交: 分數 ${finalScore}`;
       this.events.push({
         studentId: this.studentId, timestamp, score: finalScore, action: '每日提交',
