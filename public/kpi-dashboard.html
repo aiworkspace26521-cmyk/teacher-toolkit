@@ -797,7 +797,7 @@ async function recalculateStudentState(studentId, events) {
     state.badges += badgeChange;
     if (badgeChange > 0) state.lastBadgeTime = rowDate.getTime();
     state.coins += coinsGained;
-    if (rowDate.toDateString() === todayStr && ["\u5546\u57CE\u514C\u63DB","\u6230\u9B25\u6D88\u8017","\u7269\u54C1\u6D88\u8017","E","\u6230\u9B25\u52DD\u5229","\u7CFB\u7D71\u6E2C\u8A66","trade"].indexOf(rowAction) === -1) state.todayCompleted = true;
+    if (rowDate.toDateString() === todayStr && ["\u5546\u57CE\u514C\u63DB","\u6230\u9B25\u6D88\u8017","\u7269\u54C1\u6D88\u8017","E","\u6230\u9B25\u52DD\u5229","\u7CFB\u7D71\u6E2C\u8A66","trade","\u6355\u6349","A","\u7CD6\u679C\u5347\u7D1A","B"].indexOf(rowAction) === -1) state.todayCompleted = true;
     if (["\u5546\u57CE\u514C\u63DB","\u6230\u9B25\u6D88\u8017","\u7269\u54C1\u6D88\u8017","E","\u7CFB\u7D71\u6E2C\u8A66","trade","\u9053\u5177\u88DD\u5099"].indexOf(rowAction) === -1) submitDates[rowDate.toDateString()] = true;
     // 親密度: 每日提交全員+1
     if (rowAction === "\u6BCF\u65E5\u63D0\u4EA4" || rowAction === "\u6355\u6349" || rowAction === "A") {
@@ -871,7 +871,7 @@ async function recalculateStudentState(studentId, events) {
       var initLv = score >= 95 ? Math.max(5, Math.floor(score / 4)) : (score >= 75 ? Math.max(5, Math.floor(score / 6)) : Math.max(5, Math.floor(score / 8)));
       var lvMatch = pNameRaw.match(/(.+?)\s*\(Lv\.(\d+)\)/);
       if (lvMatch) initLv = parseInt(lvMatch[2], 10);
-      initLv = Math.min(initLv, Math.max(5, state.lockedGymLevel || 5) + 3);
+      initLv = Math.min(initLv, Math.max(5, (state.lockedGymLevel || 5)) + 3);
       var cleanName = pNameRaw.indexOf("(") !== -1 ? pNameRaw : pNameRaw + " (\u4E00\u822C\u7CFB)";
       if (!state.roster[pid]) state.roster[pid] = { id: pid, baseName: cleanName, totalExp: 0, initialLevel: initLv, catchDate: rowDate.getFullYear()+"/"+((rowDate.getMonth()+1)+"").padStart(2,"0")+"/"+(rowDate.getDate()+"").padStart(2,"0"), heldItem: "" };
     } else if (rowAction === "B" || rowAction === "\u7CD6\u679C\u5347\u7D1A") {
@@ -982,7 +982,6 @@ async function fetchStudentData(studentId, pendingEvent) {
   if (!db) { toast("Firebase initializing..."); return; }
   isAdmin = (studentId === "Admin");
   $("adminPanel").style.display = isAdmin ? "block" : "none";
-  document.querySelectorAll(".task-cb, input[name=\"actionType\"]").forEach(function(el){ el.checked = false; el.disabled = false; });
   showSkeletonDashboard();
   var btn = $("submitBtn"); btn.disabled = true; btn.innerHTML = "<span class=\"loading-spinner\"></span> Loading...";
   // P4-5b: Try sessionStorage cache for instant render
@@ -1002,7 +1001,7 @@ async function fetchStudentData(studentId, pendingEvent) {
             var sb = $("strategyBox"); if (sb) sb.style.display = "block";
           }
           if (globalData.todayCompleted && !isAdmin) { btn.innerHTML = "\u2705 Done"; btn.disabled = true; document.querySelectorAll(".task-cb, input[name=\"actionType\"]").forEach(function(el){ el.checked = false; el.disabled = true; }); document.querySelectorAll(".action-option").forEach(function(el){ el.classList.remove("selected"); }); $("previewBox").innerHTML = "\u{1F31F} Today done!"; }
-          else { btn.disabled = false; btn.textContent = "\u{1F680} Submit"; document.querySelectorAll(".task-cb, input[name=\"actionType\"]").forEach(function(el){ el.disabled = false; }); }
+          else { btn.disabled = false; btn.textContent = "\u{1F680} Submit"; document.querySelectorAll(".task-cb, input[name=\"actionType\"]").forEach(function(el){ el.checked = false; el.disabled = false; }); document.querySelectorAll(".action-option").forEach(function(el){ el.classList.remove("selected"); }); }
           cacheLoaded = true;
         }
       }
@@ -1016,10 +1015,10 @@ async function fetchStudentData(studentId, pendingEvent) {
     var refreshed = await recalculateStudentState(studentId, events);
     if (refreshed) {
       globalData = {}; for (var sk in refreshed) globalData[sk] = refreshed[sk]; delete globalData.cached;
-      refreshed.achievements = []; for (var ak in globalAchievements) { if (globalAchievements[ak]) refreshed.achievements.push(ak); }
+      delete refreshed.achievements;
       await db.collection("kpi_students").doc(studentId).set(refreshed, { merge: true });
     } else {
-      if (!globalData) globalData = { studentId: studentId, roster: [], highestLevel: 5, lockedGymLevel: 5, coins: 0, badges: 0, potions: 0, revives: 0, candies: 0, maxPotions: 0, maxRevives: 0, expSharePurchased: false, hasExpertBelt: false, hasEviolite: false, hasChampionCloak: false, hasAmuletCoin: false, oranBerries: 0, cheriBerries: 0, lumBerries: 0, chilanBerries: 0, hasFocusSash: false, hasEjectButton: false, hasRockyHelmet: false, hasWeaknessPolicy: false, tms: {}, pokemonTMs: {}, todayCompleted: false, todayBattles: 0, weekGymWins: 0, monthLeagueWins: 0, leagueRegionsWon: {}, "\u96FB\u6483\u76D2": false, "\u5E95\u6F3E\u76D2": false, "\u9F8D\u4E4B\u9C5A\u7247": false, "\u8B77\u5177": false, "\u91D1\u5C6C\u819C": false, "\u738B\u8005\u4E4B\u8B49": false };
+      globalData = { studentId: studentId, roster: [], highestLevel: 5, lockedGymLevel: 5, coins: 0, badges: 0, potions: 0, revives: 0, candies: 0, maxPotions: 0, maxRevives: 0, expSharePurchased: false, hasExpertBelt: false, hasEviolite: false, hasChampionCloak: false, hasAmuletCoin: false, oranBerries: 0, cheriBerries: 0, lumBerries: 0, chilanBerries: 0, hasFocusSash: false, hasEjectButton: false, hasRockyHelmet: false, hasWeaknessPolicy: false, tms: {}, pokemonTMs: {}, todayCompleted: false, todayBattles: 0, weekGymWins: 0, monthLeagueWins: 0, leagueRegionsWon: {}, "\u96FB\u6483\u76D2": false, "\u5E95\u6F3E\u76D2": false, "\u9F8D\u4E4B\u9C5A\u7247": false, "\u8B77\u5177": false, "\u91D1\u5C6C\u819C": false, "\u738B\u8005\u4E4B\u8B49": false };
     }
     // Restore TM data from Firestore doc
     try {
@@ -1036,7 +1035,7 @@ async function fetchStudentData(studentId, pendingEvent) {
         if (sd.tms) globalData.tms = sd.tms;
       }
     } catch(e) { console.warn("Failed to restore TM data:", e); }
-    if (!cacheLoaded) await loadAchievementsFromFirestore(studentId);
+    await loadAchievementsFromFirestore(studentId);
     if (isAdmin) globalData.todayCompleted = false;
     if (globalData.monthLeagueWins > 0 && globalData.leagueRegionsWon) {
       var monthKey = new Date().getFullYear() + "-" + (new Date().getMonth() + 1);
@@ -1062,14 +1061,12 @@ async function fetchStudentData(studentId, pendingEvent) {
     var existingQuests = await loadQuestsFromFirestore(studentId);
     var computedQuests = computeQuestProgress(events);
     globalQuestProgress = mergeQuestProgress(existingQuests, computedQuests);
-    if (events && events.length > 0) {
-      globalQuestProgress.daily.progress["LOGIN"] = Math.max(1, globalQuestProgress.daily.progress["LOGIN"] || 0);
-    }
+    globalQuestProgress.daily.progress["LOGIN"] = Math.max(1, globalQuestProgress.daily.progress["LOGIN"] || 0);
     saveQuestsToFirestore(studentId, globalQuestProgress);
     renderQuests();
     updateTradeBadge();
     if (globalData.todayCompleted && !isAdmin) { btn.innerHTML = "\u2705 Done"; btn.disabled = true; document.querySelectorAll(".task-cb, input[name=\"actionType\"]").forEach(function(el){ el.checked = false; el.disabled = true; }); document.querySelectorAll(".action-option").forEach(function(el){ el.classList.remove("selected"); }); $("previewBox").innerHTML = "\u{1F31F} Today done!"; }
-    else { btn.disabled = false; btn.textContent = "\u{1F680} Submit"; document.querySelectorAll(".task-cb, input[name=\"actionType\"]").forEach(function(el){ el.disabled = false; }); }
+    else { btn.disabled = false; btn.textContent = "\u{1F680} Submit"; document.querySelectorAll(".task-cb, input[name=\"actionType\"]").forEach(function(el){ el.checked = false; el.disabled = false; }); document.querySelectorAll(".action-option").forEach(function(el){ el.classList.remove("selected"); }); }
     var ev = globalData.roster.find(function(p){ return p.id === "P0" && p.baseName.indexOf("\u4F0A\u5E03") !== -1; });
     if (ev && ev.currentLevel >= 16 && !globalData.todayCompleted && ev.baseName === "\u{1F43E} \u4F0A\u5E03 (\u4E00\u822C\u7CFB)") $("eeveeModal").style.display = "flex";
     // P4-5b: Write to sessionStorage cache
@@ -5300,10 +5297,10 @@ function openShop() {
     { id: "shellBell", name: "貝殼之鈴", cost: 90, desc: "攻擊時回復12.5%傷害HP", icon: "🔔", once: true, cat: "裝備" },
     { id: "lifeOrb", name: "生命寶珠", cost: 110, desc: "傷害x1.3，每次攻擊損10%HP", icon: "🔴", once: true, cat: "裝備" },
     { id: "assaultVest", name: "AV背心", cost: 100, desc: "特防x1.5，只能使用攻擊招", icon: "🦺", once: true, cat: "裝備" },
-    { id: "focusSash", name: "氣勢披帶", cost: 150, desc: "滿血時耐住必殺一擊（消耗品）", icon: "🎗️", once: true, cat: "裝備" },
-    { id: "ejectButton", name: "逃脱按鈕", cost: 120, desc: "受到攻擊後強制換怪（消耗品）", icon: "🔘", once: true, cat: "裝備" },
+    { id: "focusSash", name: "氣勢披帶", cost: 150, desc: "滿血時耐住必殺一擊（消耗品）", icon: "🎗️", once: true, cat: "消耗" },
+    { id: "ejectButton", name: "逃脱按鈕", cost: 120, desc: "受到攻擊後強制換怪（消耗品）", icon: "🔘", once: true, cat: "消耗" },
     { id: "rockyHelmet", name: "凸凸頭盔", cost: 130, desc: "受到物理攻擊反傷1/6", icon: "⛑️", once: true, cat: "裝備" },
-    { id: "weaknessPolicy", name: "弱點保險", cost: 140, desc: "被剋時雙攻+2階（消耗品）", icon: "📋", once: true, cat: "裝備" },
+    { id: "weaknessPolicy", name: "弱點保險", cost: 140, desc: "被剋時雙攻+2階（消耗品）", icon: "📋", once: true, cat: "消耗" },
     // ═══ 學習器 ═══
     { id: "tmUniversal", name: "萬能學習器", cost: 150, desc: "讓一隻寶可夢學習任意招式", icon: "📀", cat: "學習器" },
     // ═══ 進化道具 ═══
@@ -5544,8 +5541,6 @@ async function submitData() {
     var streak = (globalData && globalData.submitStreak) || 0;
     if (streak >= 10 && score >= 60) { tier = "傳說"; captureLevel = Math.max(captureLevel, Math.floor(score / 4)); }
     else if (streak >= 5 && score >= 60 && tier === "一般") { tier = "稀有"; }
-    var maxCaptureLevel = Math.max(5, (globalData.highestLevel || 5)) + 3;
-    captureLevel = Math.min(captureLevel, maxCaptureLevel);
     var targetType = $("baitAttr").value;
     var captured = generateCapturePokemon(tier, targetType, captureLevel);
     var expGain = 0;
@@ -5983,7 +5978,14 @@ function openWeaknessDex() {
       var raw = p.name;
       if (seen[raw] || p.legendary || EVO_STAGE_MAP[raw] > 0) continue;
       seen[raw] = true;
-      if (!capturedSet[raw]) continue;
+      var allEvoNames = [raw];
+      if (p.evolutions) {
+        for (var ei = 0; ei < p.evolutions.length; ei++) {
+          allEvoNames.push(p.evolutions[ei]);
+        }
+      }
+      var anyCaptured = allEvoNames.some(function(n) { return !!capturedSet[n]; });
+      if (!anyCaptured) continue;
       var abil = getLowBstDreamAbility(raw);
       if (!abil) continue;
       var types = POKEMON_SPECIES_TYPES[raw] || ["一般"];
@@ -6020,10 +6022,22 @@ var POKEDEX_ALL_SPECIES = null;
 function buildPokedexSpecies() {
   if (POKEDEX_ALL_SPECIES) return POKEDEX_ALL_SPECIES;
   POKEDEX_ALL_SPECIES = [];
+  var seen = {};
   for (var t in POKEMON_TIERS) {
     for (var i = 0; i < POKEMON_TIERS[t].length; i++) {
       var p = POKEMON_TIERS[t][i];
-      POKEDEX_ALL_SPECIES.push({ rawName: p.name, tier: t, evolutions: p.evolutions || [], eevee: !!p.eevee, legendary: !!p.legendary });
+      if (!seen[p.name]) {
+        seen[p.name] = true;
+        POKEDEX_ALL_SPECIES.push({ rawName: p.name, tier: t, evolutions: p.evolutions || [], eevee: !!p.eevee, legendary: !!p.legendary });
+      }
+      if (p.evolutions) {
+        for (var e = 0; e < p.evolutions.length; e++) {
+          if (!seen[p.evolutions[e]]) {
+            seen[p.evolutions[e]] = true;
+            POKEDEX_ALL_SPECIES.push({ rawName: p.evolutions[e], tier: t, evolutions: [], legendary: false });
+          }
+        }
+      }
     }
   }
   return POKEDEX_ALL_SPECIES;
