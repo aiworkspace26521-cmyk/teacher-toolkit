@@ -609,11 +609,11 @@ class SeededRNG {
 }
 
 function getRawName(baseName) {
-  return baseName.replace(/^[🐾⭐🌟✨👑]\s*/u, "").replace(/\s*\(.*\)/, "");
+  return baseName.replace(/^[^\w\u4e00-\u9fff]+\s*/u, "").replace(/\s*\(.*\)/, "");
 }
 
 function checkIsLegendary(pokemonName) {
-  const raw = pokemonName.replace(/^[🐾⭐🌟✨]\s*/u, "").replace(/\s*\(.*\)/, "");
+  const raw = pokemonName.replace(/^[^\w\u4e00-\u9fff]+\s*/u, "").replace(/\s*\(.*\)/, "");
   for (const t in POKEMON_TIERS) {
     for (const pkmn of POKEMON_TIERS[t]) {
       if (pkmn.name === raw) return pkmn.legendary || false;
@@ -623,7 +623,7 @@ function checkIsLegendary(pokemonName) {
 }
 
 function getPokemonType(baseName) {
-  const raw = baseName.replace(/^[🐾⭐🌟✨]\s*/u, "").replace(/\s*\(.*\)/, "");
+  const raw = baseName.replace(/^[^\w\u4e00-\u9fff]+\s*/u, "").replace(/\s*\(.*\)/, "");
   const types = POKEMON_SPECIES_TYPES[raw];
   if (types) return types.slice();
   const m = baseName.match(/\((.+?)\)/);
@@ -985,7 +985,7 @@ function recalculateState(studentId, events) {
     const evoInfo2 = checkEvoReady(p, null);
     if (evoInfo2 && evoInfo2.nextName) {
       const types2 = POKEMON_SPECIES_TYPES[evoInfo2.nextName] || ["一般"];
-      const m2 = p.baseName.match(/^[🐾⭐🌟✨👑]\s*/u);
+      const m2 = p.baseName.match(/^[^\w\u4e00-\u9fff]+\s*/u);
       p.baseName = (m2 ? m2[0] : "⭐ ") + evoInfo2.nextName + " (" + types2.join("/") + ")";
     }
     if (p.currentLevel > finalHighestLevel) finalHighestLevel = p.currentLevel;

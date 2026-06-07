@@ -387,7 +387,7 @@
       <button class="region-btn" data-region="合眾" onclick="sfx.click();setRegion('合眾')" style="flex:1;padding:6px;border-radius:6px;border:2px solid #f39c12;background:#f39c12;color:white;font-weight:900;font-size:12px;cursor:pointer;">合眾</button>
       <button class="region-btn" data-region="卡洛斯" onclick="sfx.click();setRegion('卡洛斯')" style="flex:1;padding:6px;border-radius:6px;border:2px solid #3498db;background:#3498db;color:white;font-weight:900;font-size:12px;cursor:pointer;">卡洛斯</button>
     </div>
-    <div class="button-row" style="grid-template-columns:repeat(3,1fr);">
+    <div class="button-row" style="grid-template-columns:repeat(3,1fr);" id="navButtonRow">
       <button class="nav-btn btn-collection" onclick="sfx.click();openTrophyCabinet()">🏆 獎盃櫃</button>
       <button class="nav-btn btn-weakdex" onclick="sfx.click();openPokedex()">📖 全國圖鑑</button>
       <button class="nav-btn btn-weakdex" onclick="sfx.click();openWeaknessDex()">📖 弱勢圖鑑</button>
@@ -432,6 +432,8 @@
     <div id="actionContainer"></div>
 
     <button id="submitBtn" class="submit-btn" disabled>請先登入</button>
+
+    <div id="navButtonRowBottom"></div>
 
     <!-- ===== QUEST AREA ===== -->
     <div id="questArea" style="display:none;margin-top:16px;background:#f8f9fa;border-radius:12px;padding:12px;border:2px solid #dee2e6;">
@@ -938,7 +940,7 @@ async function recalculateStudentState(studentId, events) {
     if (raw2 === "伊布" && p.currentLevel >= 16) {
       var evo2 = getRandomEeveelution();
       var types2 = POKEMON_SPECIES_TYPES[evo2] || ["一般"];
-      var prefix2 = p.baseName.match(/^[🐾⭐🌟✨👑]\s*/);
+      var prefix2 = p.baseName.match(/^[^\w\u4e00-\u9fff]+\s*/u);
       p.baseName = (prefix2 ? prefix2[0] : "⭐ ") + evo2 + " (" + types2.join("/") + ")";
     }
     rosterArray.push(p);
@@ -2029,7 +2031,7 @@ function renderTypeBadges(typeStr) {
 function getEvolutionName(baseName) {
   var m = baseName.match(/(.+?)\s*\((.+?)\)/);
   if (!m) return baseName;
-  var rawName = m[1].trim().replace(/^[🐾⭐🌟✨]\s*/,""), mainType = m[2];
+  var rawName = m[1].trim().replace(/^[^\w\u4e00-\u9fff]+\s*/u,""), mainType = m[2];
   if (rawName === "伊布") return baseName;
   for (var t in POKEMON_TIERS) {
     for (var i = 0; i < POKEMON_TIERS[t].length; i++) {
@@ -2062,7 +2064,7 @@ function getMoveDetails(moveName) {
 }
 
 function getPokemonMoveset(baseName, level) {
-  var raw = baseName.replace(/^[🐾⭐🌟✨]\s*/,"").replace(/\s*\(.*\)/,"");
+  var raw = baseName.replace(/^[^\w\u4e00-\u9fff]+\s*/u,"").replace(/\s*\(.*\)/,"");
   var isHigh = level >= 30;
   var types = POKEMON_SPECIES_TYPES[raw] || ["一般"];
   var primaryType = types[0];
@@ -3133,14 +3135,8 @@ function processBurnAndLeech(player, enemy, log) {
       });
     }
   }
-  if ((globalData.oranBerries || 0) > 0 && player.currentHp > 0 && player.currentHp < player.maxHp) {
-    globalData.oranBerries--;
-    var oh = Math.floor(player.maxHp * 0.05);
-    player.currentHp = Math.min(player.maxHp, player.currentHp + oh);
-    log.push("🍊 橙橙果回復了 " + oh + " HP！");
-    needsUpdate = true;
-    scheduleStudentFieldUpdate({ oranBerries: globalData.oranBerries });
-  }
+  // 橙橙果改為好感度道具，不在戰鬥中自動觸發
+  // orphans now used manually from item panel
   if (needsUpdate) {
     flashElement("playerPkmnName");
     flashElement("enemyPkmnName");
@@ -3213,9 +3209,8 @@ function useItemInArena(itemType) {
   } else if (itemType === "oranBerry") {
     if ((globalData.oranBerries || 0) <= 0) { toast("沒有橙橙果了！"); return; }
     globalData.oranBerries--;
-    var berryHeal = Math.floor(pkmn.maxHp * 0.1);
-    pkmn.currentHp = Math.min(pkmn.maxHp, pkmn.currentHp + berryHeal);
-    log.push("🍊 使用了橙橙果，" + pkmn.name + " 回復了 " + berryHeal + " HP！");
+    pkmn.happiness = (pkmn.happiness || 0) + 10;
+    log.push("🍊 使用了橙橙果，" + pkmn.name + " 好感度提升10點！");
     pendingItemSave = { item: "橙橙果", qty: 1 };
   } else if (itemType === "cheriBerry") {
     if ((globalData.cheriBerries || 0) <= 0) { toast("沒有奇異果了！"); return; }
@@ -4050,7 +4045,7 @@ function renderPCBoxContent() {
     var match = filtered.find(function(p){ return p.id === partyIds[i]; });
     if (match) {
       var abilNameP = getPokemonAbility(match.baseName);
-      slot.innerHTML = match.baseName + " Lv." + match.currentLevel + (abilNameP ? " <span style=\"font-size:10px;color:#8e44ad;\">[" + abilNameP + "]</span>" : "") + " <span style='cursor:pointer;font-size:12px;' onclick='event.stopPropagation();openPkmnDetail(\"" + match.id + "\")'>📊</span>";
+      slot.innerHTML = match.baseName + " Lv." + match.currentLevel + (abilNameP ? " <span style=\"font-size:10px;color:#8e44ad;\">[" + abilNameP + "]</span>" : "") + " <span title='檢視能力值詳情' style='cursor:pointer;font-size:12px;' onclick='event.stopPropagation();openPkmnDetail(\"" + match.id + "\")'>📊</span>";
       slot.dataset.pokemonId = match.id;
       slot.classList.add("pc-filled");
     } else {
@@ -4135,7 +4130,7 @@ function renderPCBoxContent() {
     slot2.dataset.index = j; slot2.dataset.type = "box";
     if (boxed[j]) {
       var abilName3 = getPokemonAbility(boxed[j].baseName);
-      slot2.innerHTML = boxed[j].baseName + " Lv." + boxed[j].currentLevel + (abilName3 ? " <span style=\"font-size:10px;color:#8e44ad;\">[" + abilName3 + "]</span>" : "") + " <span style='cursor:pointer;font-size:12px;' onclick='event.stopPropagation();openPkmnDetail(\"" + boxed[j].id + "\")'>📊</span>";
+      slot2.innerHTML = boxed[j].baseName + " Lv." + boxed[j].currentLevel + (abilName3 ? " <span style=\"font-size:10px;color:#8e44ad;\">[" + abilName3 + "]</span>" : "") + " <span title='檢視能力值詳情' style='cursor:pointer;font-size:12px;' onclick='event.stopPropagation();openPkmnDetail(\"" + boxed[j].id + "\")'>📊</span>";
       slot2.dataset.pokemonId = boxed[j].id;
       slot2.classList.add("pc-filled");
     } else {
@@ -5287,7 +5282,7 @@ function openShop() {
     { id: "revive", name: "活力塊", cost: 30, desc: "復活一隻寶可夢50% HP", icon: "💊", cat: "消耗" },
     { id: "maxRevive", name: "元氣藥塊", cost: 60, desc: "完全復活一隻寶可夢", icon: "💊", cat: "消耗" },
     { id: "candy", name: "神奇糖果", cost: 25, desc: "全隊獲得大量經驗值", icon: "🍬", cat: "消耗" },
-    { id: "oranBerry", name: "橙橙果", cost: 10, desc: "每回合回復5% HP", icon: "🍊", cat: "消耗" },
+    { id: "oranBerry", name: "橙橙果", cost: 10, desc: "提升寶可夢好感度10點", icon: "🍊", cat: "消耗" },
     { id: "cheriBerry", name: "奇異果", cost: 15, desc: "解除混亂狀態", icon: "🍒", cat: "消耗" },
     { id: "lumBerry", name: "木子果", cost: 25, desc: "解除任一異常狀態", icon: "🍇", cat: "消耗" },
     { id: "chilanBerry", name: "抗性果", cost: 30, desc: "降低被剋傷害一次（消耗品）", icon: "🫐", cat: "消耗" },
@@ -5607,7 +5602,7 @@ async function doEvolve(pokemonId) {
     var raw = getRawName(pkmn.baseName);
     var types = POKEMON_SPECIES_TYPES[evoInfo.nextName] || ["一般"];
     var newName = evoInfo.nextName + " (" + types.join("/") + ")";
-    var prefix = pkmn.baseName.match(/^[🐾⭐🌟✨👑]\s*/);
+    var prefix = pkmn.baseName.match(/^[^\w\u4e00-\u9fff]+\s*/u);
     newName = (prefix ? prefix[0] : "⭐ ") + newName;
     var conNote = "進化ID:" + pokemonId + " => " + newName;
     sfx.levelup();
@@ -5621,7 +5616,7 @@ async function doEvolve(pokemonId) {
     var raw = getRawName(pkmn.baseName);
     var types = POKEMON_SPECIES_TYPES[evoInfo.nextName] || POKEMON_SPECIES_TYPES[raw] || ["一般"];
     var newName = evoInfo.nextName + " (" + types.join("/") + ")";
-    var prefix = pkmn.baseName.match(/^[🐾⭐🌟✨👑]\s*/);
+    var prefix = pkmn.baseName.match(/^[^\w\u4e00-\u9fff]+\s*/u);
     newName = (prefix ? prefix[0] : "⭐ ") + newName;
     var conNote = "進化ID:" + pokemonId + " => " + newName;
     sfx.levelup();
@@ -5635,7 +5630,7 @@ async function doEvolve(pokemonId) {
     var raw2 = getRawName(pkmn.baseName);
     var types2 = POKEMON_SPECIES_TYPES[evoInfo.nextName] || POKEMON_SPECIES_TYPES[raw2] || ["一般"];
     var newName2 = evoInfo.nextName + " (" + types2.join("/") + ")";
-    var prefix2 = pkmn.baseName.match(/^[🐾⭐🌟✨👑]\s*/);
+    var prefix2 = pkmn.baseName.match(/^[^\w\u4e00-\u9fff]+\s*/u);
     newName2 = (prefix2 ? prefix2[0] : "⭐ ") + newName2;
     // 消耗進化道具
     globalData[evoInfo.item] = false;
@@ -5733,6 +5728,14 @@ document.addEventListener("DOMContentLoaded", function() {
 
   localStorage.removeItem("kpi_last_id");
   setRegion("關都");
+
+  // Move navigation buttons below submit button
+  var navRow = $("navButtonRow");
+  var target = $("navButtonRowBottom");
+  if (navRow && target) {
+    target.parentNode.insertBefore(navRow, target.nextSibling);
+    target.remove();
+  }
 });
 
 window.addEventListener("beforeunload", function() {
