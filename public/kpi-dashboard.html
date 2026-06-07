@@ -370,6 +370,7 @@
         <div class="badge-case-title"><span>🏅 聯盟徽章進度</span><span id="regionNameText" style="color:#e67e22;">關都地區</span></div>
         <div class="badge-grid" id="badgeGridBox"></div>
         <div style="font-size:11px;color:#999;margin-top:5px;text-align:right;">歷史總計: <span id="totalBadgesText">0</span> 枚</div>
+        <div id="gymPreview" style="margin-top:8px;font-size:12px;"></div>
       </div>
       <div class="kpi-grid">
         <div class="kpi-box">最高等級<span class="val" id="kpiLevel">Lv.5</span></div>
@@ -980,6 +981,7 @@ function hideSkeleton() {
 async function fetchStudentData(studentId, pendingEvent) {
   if (!studentId) return;
   if (!db) { toast("Firebase initializing..."); return; }
+  _dataLoading = true;
   isAdmin = (studentId === "Admin");
   $("adminPanel").style.display = isAdmin ? "block" : "none";
   showSkeletonDashboard();
@@ -1075,7 +1077,8 @@ async function fetchStudentData(studentId, pendingEvent) {
       for (var ak2 in globalAchievements) { if (globalAchievements[ak2]) cachePayload.achievements.push(ak2); }
       sessionStorage.setItem("kpi_cache_" + studentId, JSON.stringify(cachePayload));
     } catch(e) { /* cache full, ignore */ }
-  } catch (e) { console.error("fetchStudentData error:", e); if (!cacheLoaded) { hideSkeleton(); toast("Error: " + e.message); btn.textContent = "Failed"; btn.disabled = false; } else { toast("Background refresh failed, using cached data"); btn.textContent = "\u{1F680} Submit"; btn.disabled = false; } }
+  } catch (e) { console.error("fetchStudentData error:", e); if (!cacheLoaded) { hideSkeleton(); toast("Error: " + e.message); btn.textContent = "Failed"; btn.disabled = false; } else { toast("Background refresh failed, using cached data"); btn.disabled = false; btn.textContent = globalData && globalData.todayCompleted ? "\u2705 Done" : "\u{1F680} Submit"; } }
+  _dataLoading = false;
 }
 
 async function saveEventToFirestore(eventData) {
@@ -1084,8 +1087,10 @@ async function saveEventToFirestore(eventData) {
 }
 
 async function executeSave(record, successCb, closeBattleModal) {
+  if (_isSaving) { toast("正在儲存中..."); return; }
   if (closeBattleModal === undefined) closeBattleModal = true;
   var btn = $("submitBtn");
+  _isSaving = true;
   var oldTxt = btn.innerText; btn.innerText = "Saving..."; btn.disabled = true;
   var fbRecord = { studentId: record.user || record.studentId, tasks: record.tasks || [], score: record.totalScore || record.score || 0, action: record.action, expGained: record.expGained || 0, coinsGained: record.coinsGained || 0, badgeChange: record.badgeChange || 0, note: record.extraNote || record.note || "" };
   var result = await saveEventToFirestore(fbRecord);
@@ -1096,6 +1101,7 @@ async function executeSave(record, successCb, closeBattleModal) {
     savedEvent.timestamp = firebase.firestore.Timestamp.now();
     await fetchStudentData(fbRecord.studentId, savedEvent);
   } else { btn.disabled = false; btn.innerText = oldTxt; toast("Save failed"); }
+  _isSaving = false;
 }
 // P4-5c: Debounced student doc field writer — batches small writes into one set()
 var _pendingStudentUpdate = null;
@@ -1442,7 +1448,7 @@ var POKEMON_TIERS = {
     { name: "嘟嘟", evolutions: ["嘟嘟利"] },
     { name: "小海獅", evolutions: ["白海獅"] },
     { name: "臭泥", evolutions: ["臭臭泥"] },
-    { name: "大岩蛇" },
+    { name: "大岩蛇", evolutions: ["大鋼蛇"] },
     { name: "素利普", evolutions: ["素利拍"] },
     { name: "大蔥鴨" },
     { name: "卡拉卡拉", evolutions: ["嘎啦嘎啦"] },
@@ -1488,14 +1494,14 @@ var POKEMON_TIERS = {
     { name: "凱西", evolutions: ["勇基拉","胡地"] },
     { name: "腕力", evolutions: ["豪力","怪力"] },
     { name: "小火馬", evolutions: ["烈焰馬"] },
-    { name: "呆呆獸", evolutions: ["呆殼獸"] },
-    { name: "小磁怪", evolutions: ["三合一磁怪"] },
+    { name: "呆呆獸", evolutions: ["呆殼獸","呆呆王"] },
+    { name: "小磁怪", evolutions: ["三合一磁怪","自爆磁怪"] },
     { name: "飛腿郎" },
     { name: "快拳郎" },
-    { name: "大舌頭" },
-    { name: "飛天螳螂" },
-    { name: "吉利蛋" },
-    { name: "蔓藤怪" },
+    { name: "大舌頭", evolutions: ["大舌舔"] },
+    { name: "飛天螳螂", evolutions: ["巨鉗螳螂"] },
+    { name: "吉利蛋", evolutions: ["幸福蛋"] },
+    { name: "蔓藤怪", evolutions: ["巨蔓藤"] },
     { name: "袋獸" },
     { name: "魔牆人偶" },
     { name: "迷唇姐" },
@@ -1503,7 +1509,7 @@ var POKEMON_TIERS = {
     { name: "肯泰羅" },
     { name: "拉普拉斯" },
     { name: "百變怪" },
-    { name: "多邊獸" },
+    { name: "多邊獸", evolutions: ["多邊獸Ⅱ","多邊獸Ｚ"] },
     { name: "菊石獸", evolutions: ["多刺菊石獸"] },
     { name: "化石盔", evolutions: ["鐳射盔"] },
     { name: "化石翼龍" },
@@ -1578,8 +1584,17 @@ var HELD_ITEMS = {
   rockyHelmet: { name: "凸凸頭盔", cost: 130, icon: "⛑️", desc: "受到物理攻擊反傷1/6", flag: "hasRockyHelmet" },
   weaknessPolicy: { name: "弱點保險", cost: 140, icon: "📋", desc: "被剋時雙攻+2階（消耗品）", flag: "hasWeaknessPolicy" },
 };
-var HELD_ITEM_ICONS = { expShare: "📖" };
+var HELD_ITEM_ICONS = { expShare: "📖", expertBelt: "🥋", eviolite: "💎", championCloak: "👑", amuletCoin: "🪙" };
 for (var _hi in HELD_ITEMS) HELD_ITEM_ICONS[_hi] = HELD_ITEMS[_hi].icon;
+function getHeldItemName(id) {
+  if (id === "expShare") return "學習裝置";
+  if (id === "expertBelt") return "達人帶";
+  if (id === "eviolite") return "進化奇石";
+  if (id === "championCloak") return "冠軍披風";
+  if (id === "amuletCoin") return "護符金幣";
+  if (HELD_ITEMS[id]) return HELD_ITEMS[id].name;
+  return id;
+}
 function getRawName(baseName) {
   return baseName.replace(/^[^\w\u4e00-\u9fff]+\s*/u,"").replace(/\s*\(.*\)/,"");
 }
@@ -1645,6 +1660,14 @@ function checkEvoReady(pkmn, gd) {
     }
     if (cond.type === "trade") {
       return { ready: true, nextName: nextName, type: "trade" };
+    }
+  }
+  // 標準等級進化
+  if (!cond) {
+    var stage = EVO_STAGE_MAP[raw] !== undefined ? EVO_STAGE_MAP[raw] : 0;
+    var requiredLevel = (stage + 1) * 15;
+    if (pkmn.currentLevel >= requiredLevel) {
+      return { ready: true, nextName: nextName, type: "level", info: "等級 " + requiredLevel + "+" };
     }
   }
   return null;
@@ -3079,10 +3102,10 @@ function performAttack(moveName, isPlayer) {
                 eLog.push("🔄 換上 " + nextAlly2.name + "！");
                 renderBattleLog(eLog);
                 processBurnAndLeech(battleState.playerPokemon, battleState.enemy, eLog);
+                if (battleState && !battleState.playerWon) battleState.turnLock = false;
                 updateArenaUI();
                 setTimeout(function(){ shakeElement("playerPkmnName"); }, 100);
                 if (battleState) processWeatherDecay(eLog);
-                if (battleState && !battleState.playerWon) battleState.turnLock = false;
               }, 700);
             } else {
               faintAnimation("playerPkmnName");
@@ -3095,9 +3118,9 @@ function performAttack(moveName, isPlayer) {
           }
         }, 300);
       } else {
+        if (battleState && !battleState.playerWon) battleState.turnLock = false;
         updateArenaUI();
         if (battleState) processWeatherDecay(eLog);
-        if (battleState && !battleState.playerWon) battleState.turnLock = false;
       }
     }, 1200);
   } else {
@@ -4045,7 +4068,9 @@ function renderPCBoxContent() {
     var match = filtered.find(function(p){ return p.id === partyIds[i]; });
     if (match) {
       var abilNameP = getPokemonAbility(match.baseName);
-      slot.innerHTML = match.baseName + " Lv." + match.currentLevel + (abilNameP ? " <span style=\"font-size:10px;color:#8e44ad;\">[" + abilNameP + "]</span>" : "") + " <span title='檢視能力值詳情' style='cursor:pointer;font-size:12px;' onclick='event.stopPropagation();openPkmnDetail(\"" + match.id + "\")'>📊</span>";
+      var heldIconP = HELD_ITEM_ICONS[match.heldItem] || "";
+      var heldNameP = match.heldItem ? " " + getHeldItemName(match.heldItem) : "";
+      slot.innerHTML = match.baseName + " Lv." + match.currentLevel + (abilNameP ? " <span style=\"font-size:10px;color:#8e44ad;\">[" + abilNameP + "]</span>" : "") + (match.heldItem ? " <span style=\"font-size:10px;color:#8e44ad;\">" + heldIconP + heldNameP + "</span>" : "") + " <span title='檢視能力值詳情' style='cursor:pointer;font-size:12px;' onclick='event.stopPropagation();openPkmnDetail(\"" + match.id + "\")'>📊</span>";
       slot.dataset.pokemonId = match.id;
       slot.classList.add("pc-filled");
     } else {
@@ -4130,7 +4155,9 @@ function renderPCBoxContent() {
     slot2.dataset.index = j; slot2.dataset.type = "box";
     if (boxed[j]) {
       var abilName3 = getPokemonAbility(boxed[j].baseName);
-      slot2.innerHTML = boxed[j].baseName + " Lv." + boxed[j].currentLevel + (abilName3 ? " <span style=\"font-size:10px;color:#8e44ad;\">[" + abilName3 + "]</span>" : "") + " <span title='檢視能力值詳情' style='cursor:pointer;font-size:12px;' onclick='event.stopPropagation();openPkmnDetail(\"" + boxed[j].id + "\")'>📊</span>";
+      var heldIconB = HELD_ITEM_ICONS[boxed[j].heldItem] || "";
+      var heldNameB = boxed[j].heldItem ? " " + getHeldItemName(boxed[j].heldItem) : "";
+      slot2.innerHTML = boxed[j].baseName + " Lv." + boxed[j].currentLevel + (abilName3 ? " <span style=\"font-size:10px;color:#8e44ad;\">[" + abilName3 + "]</span>" : "") + (boxed[j].heldItem ? " <span style=\"font-size:10px;color:#8e44ad;\">" + heldIconB + heldNameB + "</span>" : "") + " <span title='檢視能力值詳情' style='cursor:pointer;font-size:12px;' onclick='event.stopPropagation();openPkmnDetail(\"" + boxed[j].id + "\")'>📊</span>";
       slot2.dataset.pokemonId = boxed[j].id;
       slot2.classList.add("pc-filled");
     } else {
@@ -4525,6 +4552,7 @@ function renderBadgeCase() {
   var gym = getGymLeaderInfo(badges);
   var nextBadge = badges < (gymsCache || GYM_LEADERS).length ? (gymsCache || GYM_LEADERS)[badges] : null;
   var preview = $("gymPreview");
+  if (!preview) return;
   if (nextBadge) {
     var dsb = globalData.daysSinceLastBadge;
     if (dsb === undefined) dsb = 0;
@@ -4591,8 +4619,13 @@ function updateDashboard() {
       card.style.borderLeft = "4px solid " + typeColor;
       var nameDisplay = p.baseName;
       if (leg && nameDisplay.indexOf("?") === -1) nameDisplay = "★ " + nameDisplay;
-      // 持有道具顯示
-      var heldBadge = HELD_ITEM_ICONS[p.heldItem] ? " <span style=\"font-size:11px;color:#8e44ad;\">" + HELD_ITEM_ICONS[p.heldItem] + "</span>" : "";
+      // 持有道具顯示（含名稱+卸除按鈕）
+      var heldDisplay = "";
+      if (p.heldItem) {
+        var hIcon = HELD_ITEM_ICONS[p.heldItem] || "📦";
+        var hName = getHeldItemName(p.heldItem);
+        heldDisplay = " <span style=\"font-size:11px;color:#8e44ad;\">" + hIcon + " " + hName + " <button style=\"padding:0 4px;font-size:10px;cursor:pointer;\" onclick=\"event.stopPropagation();unequipHeldItem('" + p.id + "','" + p.heldItem + "')\">卸下</button></span>";
+      }
       // 親密度顯示
       var h = getHappiness(p);
       var hearts = "";
@@ -4620,7 +4653,7 @@ function updateDashboard() {
         else if (evoCond.type === "trade") evoTag = " <span class=\"ability-tag\" style=\"background:#fdedec;color:#c0392b;\">🤝 交換進化</span>";
         else if (evoCond.type === "happiness") evoTag = " <span class=\"ability-tag\" style=\"background:#fdedec;color:#c0392b;\">💕 親密度進化</span>";
       }
-      card.innerHTML = "<div style=\"font-weight:bold;font-size:14px;\">" + nameDisplay + " " + typesHtml + abilBadge + dreamBadge + evoTag + heldBadge + hearts + "</div>" +
+      card.innerHTML = "<div style=\"font-weight:bold;font-size:14px;\">" + nameDisplay + " " + typesHtml + abilBadge + dreamBadge + evoTag + heldDisplay + hearts + "</div>" +
         "<div style=\"font-size:12px;color:#666;\">Lv." + p.currentLevel + " | EXP " + p.expProgress + "/" + p.expNeeded + (h > 0 ? " | \u2764\uFE0F " + h : "") + "</div>" +
         "<div style=\"margin-top:4px;background:#e0e0e0;border-radius:4px;height:6px;\"><div style=\"width:" + Math.round(p.expProgress / (p.expNeeded||1) * 100) + "%;background:" + typeColor + ";height:6px;border-radius:4px;\"></div></div>" +
         (evoInfo ? "<div style=\"margin-top:4px;font-size:11px;color:#e67e22;font-weight:700;\">\u2B50 " + evoInfo.nextName + (evoInfo.info ? " (" + evoInfo.info + ")" : "") + evoBtn + "</div>" : "");
@@ -5312,19 +5345,19 @@ function openShop() {
     { id: "王者之證", name: "王者之證", cost: 55, desc: "呆呆獸→呆殼獸、蚊香君→蚊香泳士", icon: "👑", once: true, cat: "進化" }
   ];
   // Sort by category order
-  var catOrder = { "消耗": 0, "學習器": 1, "進化": 2, "裝備": 3 };
-  items.sort(function(a, b) { return (catOrder[a.cat] || 99) - (catOrder[b.cat] || 99); });
+  function getCatOrder(cat) { if (cat === "消耗") return 0; if (cat === "學習器") return 1; if (cat === "進化") return 2; if (cat === "裝備") return 3; return 99; }
+  items.sort(function(a, b) { return getCatOrder(a.cat) - getCatOrder(b.cat); });
   var div = $("shopList");
   div.innerHTML = "";
   var lastCat = "";
-  var catNames = { "消耗": "🔋 消耗品", "裝備": "🛡️ 裝備道具", "學習器": "📀 學習器", "進化": "⬆️ 進化道具" };
+  function getCatName(cat) { if (cat === "消耗") return "🔋 消耗品"; if (cat === "裝備") return "🛡️ 裝備道具"; if (cat === "學習器") return "📀 學習器"; if (cat === "進化") return "⬆️ 進化道具"; return cat; }
   for (var i = 0; i < items.length; i++) {
     var it = items[i];
     if (it.cat && it.cat !== lastCat) {
       lastCat = it.cat;
       var hdr = document.createElement("div");
       hdr.style.cssText = "font-size:14px;font-weight:700;color:#555;margin:12px 0 2px;padding:4px 0;border-bottom:2px solid #ddd;";
-      hdr.textContent = catNames[it.cat] || it.cat;
+      hdr.textContent = getCatName(it.cat);
       div.appendChild(hdr);
     }
     var owned = false;
@@ -5349,6 +5382,8 @@ function openShop() {
       (owned ? "<div style=\"color:green;\">✅ 已擁有</div>" : "<button onclick=\"buyItem('" + it.id + "'," + it.cost + ",'" + it.name + "')\"" + ((globalData.coins||0) < it.cost ? " disabled" : "") + ">購買</button>");
     div.appendChild(card);
   }
+  var sc = $("shopCoins");
+  if (sc) sc.innerHTML = (globalData.coins || 0) + "";
   $("shopModal").style.display = "flex";
 }
 
@@ -5398,21 +5433,40 @@ function openQuickEquip(itemId) {
   if (!globalData || !globalData.roster) return;
   var roster = globalData.roster;
   var itemName = itemId === "expShare" ? "學習裝置" : (HELD_ITEMS[itemId] ? HELD_ITEMS[itemId].name : itemId);
-  var msg = "選擇要裝備" + itemName + "的寶可夢：\n\n";
   var choices = [];
   for (var qi = 0; qi < roster.length; qi++) {
     var p = roster[qi];
     if (p.heldItem === itemId) continue;
     choices.push(p);
-    msg += (qi + 1) + ". " + p.baseName + " Lv." + p.currentLevel + "\n";
   }
   if (choices.length === 0) { toast("所有寶可夢都已持有" + itemName); return; }
-  msg += "\n請輸入編號 (1~" + choices.length + ")";
-  var choice = prompt(msg);
-  if (!choice) return;
-  var idx = parseInt(choice) - 1;
-  if (isNaN(idx) || idx < 0 || idx >= choices.length) { toast("無效選擇"); return; }
-  equipHeldItem(choices[idx].id, itemId);
+  var existing = document.getElementById("equipSelector");
+  if (existing) { existing.remove(); }
+  var overlay = document.createElement("div");
+  overlay.id = "equipSelector";
+  overlay.style.cssText = "position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.5);z-index:9999;display:flex;align-items:center;justify-content:center;";
+  var box = document.createElement("div");
+  box.style.cssText = "background:white;border-radius:12px;padding:20px;max-width:400px;width:90%;max-height:80vh;overflow-y:auto;box-shadow:0 8px 32px rgba(0,0,0,0.3);";
+  var title = document.createElement("h3");
+  title.style.cssText = "margin:0 0 12px;color:#333;font-size:16px;";
+  title.innerText = "裝備 " + itemName + "：";
+  box.appendChild(title);
+  for (var qi2 = 0; qi2 < choices.length; qi2++) {
+    var p2 = choices[qi2];
+    var btn = document.createElement("button");
+    btn.style.cssText = "display:block;width:100%;padding:8px 12px;margin:4px 0;border:1px solid #ddd;border-radius:8px;background:#f8f9fa;cursor:pointer;font-size:13px;text-align:left;";
+    btn.innerHTML = p2.baseName + " <span style='color:#666;'>Lv." + p2.currentLevel + "</span>";
+    btn.onclick = function(pId, iId) { return function() { equipHeldItem(pId, iId); overlay.remove(); }; }(p2.id, itemId);
+    box.appendChild(btn);
+  }
+  var cancelBtn = document.createElement("button");
+  cancelBtn.style.cssText = "display:block;width:100%;padding:8px;margin-top:8px;border:none;border-radius:8px;background:#e0e0e0;cursor:pointer;font-size:13px;color:#666;";
+  cancelBtn.innerText = "取消";
+  cancelBtn.onclick = function() { overlay.remove(); };
+  box.appendChild(cancelBtn);
+  overlay.appendChild(box);
+  document.body.appendChild(overlay);
+  overlay.onclick = function(e) { if (e.target === overlay) overlay.remove(); };
 }
 async function equipHeldItem(pokemonId, itemId) {
   var itemName = itemId === "expShare" ? "學習裝置" : HELD_ITEMS[itemId].name;
@@ -5478,7 +5532,32 @@ function generateCapturePokemon(tier, targetType, level) {
 
 async function submitData() {
   if (!globalData) return;
+  if (_dataLoading) { toast("資料載入中，請稍候..."); return; }
+  if (_isSaving) { toast("正在儲存中，請勿重複點擊"); return; }
   if (globalData.todayCompleted && !isAdmin) { toast("今日已完成！"); return; }
+  // Double-check with Firestore in case session cache is stale
+  if (!isAdmin && !globalData.todayCompleted) {
+    try {
+      var todayStart = new Date(); todayStart.setHours(0, 0, 0, 0);
+      var tomorrowStart = new Date(todayStart);
+      tomorrowStart.setDate(tomorrowStart.getDate() + 1);
+      var existingSnapshot = await db.collection("kpi_events")
+        .where("studentId", "==", globalData.studentId)
+        .where("timestamp", ">=", todayStart)
+        .where("timestamp", "<", tomorrowStart)
+        .get();
+      var hasSubmittedToday = existingSnapshot.docs.some(function(d) { return d.data().action === "每日提交"; });
+      if (hasSubmittedToday) {
+        globalData.todayCompleted = true;
+        toast("今日已完成！");
+        return;
+      }
+    } catch (e) {
+      console.error("submitData double-check failed:", e);
+      toast("驗證失敗，請稍後再試");
+      return;
+    }
+  }
   var score = parseInt($("hiddenScore").value) || 0;
   if (score <= 0) { toast("請選擇任務！"); return; }
   var tasks = [];
@@ -5642,6 +5721,20 @@ async function doEvolve(pokemonId) {
         updateDashboard();
       });
     }, false);
+  } else if (evoInfo.type === "level") {
+    var raw3 = getRawName(pkmn.baseName);
+    var types3 = POKEMON_SPECIES_TYPES[evoInfo.nextName] || POKEMON_SPECIES_TYPES[raw3] || ["一般"];
+    var newName3 = evoInfo.nextName + " (" + types3.join("/") + ")";
+    var prefix3 = pkmn.baseName.match(/^[^\w\u4e00-\u9fff]+\s*/u);
+    newName3 = (prefix3 ? prefix3[0] : "⭐ ") + newName3;
+    var conNote = "進化ID:" + pokemonId + " => " + newName3;
+    sfx.levelup();
+    await executeSave({ studentId: globalData.studentId, score: 0, action: "E", expGained: 0, coinsGained: 0, badgeChange: 0, note: conNote, extraNote: conNote, totalScore: 0, user: globalData.studentId }, function() {
+      showEvoCutscene(pkmn.baseName, newName3, function() {
+        pkmn.baseName = newName3;
+        updateDashboard();
+      });
+    }, false);
   }
 }
 function showEvoCutscene(oldName, newName, callback) {
@@ -5726,7 +5819,6 @@ document.addEventListener("DOMContentLoaded", function() {
   $("devMonth").addEventListener("change", updatePreview);
   $("devWeek").addEventListener("change", updatePreview);
 
-  localStorage.removeItem("kpi_last_id");
   setRegion("關都");
 
   // Move navigation buttons below submit button
@@ -5743,7 +5835,7 @@ window.addEventListener("beforeunload", function() {
   if (sid) localStorage.setItem("kpi_last_id", sid);
 });
 
-var db = null, globalData = null, isAdmin = false;
+var db = null, globalData = null, isAdmin = false, _isSaving = false, _dataLoading = false;
 
 // ===== ADMIN GYM EDITOR =====
 function openGymEditor() {
@@ -6021,6 +6113,35 @@ function openWeaknessDex() {
 var POKEDEX_ALL_SPECIES = null;
 function buildPokedexSpecies() {
   if (POKEDEX_ALL_SPECIES) return POKEDEX_ALL_SPECIES;
+
+  var evolvesFrom = {};
+  for (var t in POKEMON_TIERS) {
+    for (var i = 0; i < POKEMON_TIERS[t].length; i++) {
+      var p = POKEMON_TIERS[t][i];
+      if (p.evolutions) {
+        for (var e = 0; e < p.evolutions.length; e++) {
+          if (!evolvesFrom[p.evolutions[e]]) evolvesFrom[p.evolutions[e]] = [];
+          evolvesFrom[p.evolutions[e]].push(p.name);
+        }
+      }
+    }
+  }
+
+  function getEvolutionChain(name) {
+    var base = name;
+    while (evolvesFrom[base] && evolvesFrom[base].length > 0) {
+      base = evolvesFrom[base][0];
+    }
+    for (var t in POKEMON_TIERS) {
+      for (var i = 0; i < POKEMON_TIERS[t].length; i++) {
+        if (POKEMON_TIERS[t][i].name === base && POKEMON_TIERS[t][i].evolutions) {
+          return [base].concat(POKEMON_TIERS[t][i].evolutions);
+        }
+      }
+    }
+    return [name];
+  }
+
   POKEDEX_ALL_SPECIES = [];
   var seen = {};
   for (var t in POKEMON_TIERS) {
@@ -6028,13 +6149,13 @@ function buildPokedexSpecies() {
       var p = POKEMON_TIERS[t][i];
       if (!seen[p.name]) {
         seen[p.name] = true;
-        POKEDEX_ALL_SPECIES.push({ rawName: p.name, tier: t, evolutions: p.evolutions || [], eevee: !!p.eevee, legendary: !!p.legendary });
+        POKEDEX_ALL_SPECIES.push({ rawName: p.name, tier: t, evolutions: p.evolutions || [], evolutionChain: getEvolutionChain(p.name), eevee: !!p.eevee, legendary: !!p.legendary });
       }
       if (p.evolutions) {
         for (var e = 0; e < p.evolutions.length; e++) {
           if (!seen[p.evolutions[e]]) {
             seen[p.evolutions[e]] = true;
-            POKEDEX_ALL_SPECIES.push({ rawName: p.evolutions[e], tier: t, evolutions: [], legendary: false });
+            POKEDEX_ALL_SPECIES.push({ rawName: p.evolutions[e], tier: t, evolutions: [], evolutionChain: getEvolutionChain(p.evolutions[e]), legendary: false });
           }
         }
       }
@@ -6103,11 +6224,12 @@ function renderPokedex() {
     var types = POKEMON_SPECIES_TYPES[sp2.rawName] || ["一般"];
     var typeChips = types.map(function(st){ return "<span style=\"display:inline-block;background:" + (typeColors[st]||"#999") + ";color:white;padding:1px 6px;border-radius:4px;font-size:10px;margin:0 2px;\">" + st + "</span>"; }).join("");
     var evoChainHTML = "";
-    if (sp2.evolutions.length > 0) {
+    var chainToShow = sp2.evolutionChain && sp2.evolutionChain.length > 1 ? sp2.evolutionChain : null;
+    if (sp2.evolutions.length > 0 || chainToShow) {
       if (sp2.eevee) {
         evoChainHTML = "<div style='font-size:11px;color:#8e44ad;margin-top:2px;'>🐾 8種進化型態</div>";
       } else {
-        var chainStr = sp2.rawName + " → " + sp2.evolutions.join(" → ");
+        var chainStr = chainToShow ? chainToShow.join(" → ") : (sp2.rawName + " → " + sp2.evolutions.join(" → "));
         evoChainHTML = "<div style='font-size:11px;color:#666;margin-top:2px;'>" + chainStr + "</div>";
       }
     }
