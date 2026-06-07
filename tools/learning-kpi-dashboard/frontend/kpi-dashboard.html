@@ -980,6 +980,7 @@ function hideSkeleton() {
 async function fetchStudentData(studentId, pendingEvent) {
   if (!studentId) return;
   if (!db) { toast("Firebase initializing..."); return; }
+  _dataLoading = true;
   isAdmin = (studentId === "Admin");
   $("adminPanel").style.display = isAdmin ? "block" : "none";
   showSkeletonDashboard();
@@ -1075,7 +1076,8 @@ async function fetchStudentData(studentId, pendingEvent) {
       for (var ak2 in globalAchievements) { if (globalAchievements[ak2]) cachePayload.achievements.push(ak2); }
       sessionStorage.setItem("kpi_cache_" + studentId, JSON.stringify(cachePayload));
     } catch(e) { /* cache full, ignore */ }
-  } catch (e) { console.error("fetchStudentData error:", e); if (!cacheLoaded) { hideSkeleton(); toast("Error: " + e.message); btn.textContent = "Failed"; btn.disabled = false; } else { toast("Background refresh failed, using cached data"); btn.textContent = "\u{1F680} Submit"; btn.disabled = false; } }
+  } catch (e) { console.error("fetchStudentData error:", e); if (!cacheLoaded) { hideSkeleton(); toast("Error: " + e.message); btn.textContent = "Failed"; btn.disabled = false; } else { toast("Background refresh failed, using cached data"); btn.disabled = false; btn.textContent = globalData && globalData.todayCompleted ? "\u2705 Done" : "\u{1F680} Submit"; } }
+  _dataLoading = false;
 }
 
 async function saveEventToFirestore(eventData) {
@@ -1084,8 +1086,10 @@ async function saveEventToFirestore(eventData) {
 }
 
 async function executeSave(record, successCb, closeBattleModal) {
+  if (_isSaving) { toast("正在儲存中..."); return; }
   if (closeBattleModal === undefined) closeBattleModal = true;
   var btn = $("submitBtn");
+  _isSaving = true;
   var oldTxt = btn.innerText; btn.innerText = "Saving..."; btn.disabled = true;
   var fbRecord = { studentId: record.user || record.studentId, tasks: record.tasks || [], score: record.totalScore || record.score || 0, action: record.action, expGained: record.expGained || 0, coinsGained: record.coinsGained || 0, badgeChange: record.badgeChange || 0, note: record.extraNote || record.note || "" };
   var result = await saveEventToFirestore(fbRecord);
@@ -1096,6 +1100,7 @@ async function executeSave(record, successCb, closeBattleModal) {
     savedEvent.timestamp = firebase.firestore.Timestamp.now();
     await fetchStudentData(fbRecord.studentId, savedEvent);
   } else { btn.disabled = false; btn.innerText = oldTxt; toast("Save failed"); }
+  _isSaving = false;
 }
 // P4-5c: Debounced student doc field writer — batches small writes into one set()
 var _pendingStudentUpdate = null;
@@ -1442,7 +1447,7 @@ var POKEMON_TIERS = {
     { name: "嘟嘟", evolutions: ["嘟嘟利"] },
     { name: "小海獅", evolutions: ["白海獅"] },
     { name: "臭泥", evolutions: ["臭臭泥"] },
-    { name: "大岩蛇" },
+    { name: "大岩蛇", evolutions: ["大鋼蛇"] },
     { name: "素利普", evolutions: ["素利拍"] },
     { name: "大蔥鴨" },
     { name: "卡拉卡拉", evolutions: ["嘎啦嘎啦"] },
@@ -1488,14 +1493,14 @@ var POKEMON_TIERS = {
     { name: "凱西", evolutions: ["勇基拉","胡地"] },
     { name: "腕力", evolutions: ["豪力","怪力"] },
     { name: "小火馬", evolutions: ["烈焰馬"] },
-    { name: "呆呆獸", evolutions: ["呆殼獸"] },
-    { name: "小磁怪", evolutions: ["三合一磁怪"] },
+    { name: "呆呆獸", evolutions: ["呆殼獸","呆呆王"] },
+    { name: "小磁怪", evolutions: ["三合一磁怪","自爆磁怪"] },
     { name: "飛腿郎" },
     { name: "快拳郎" },
-    { name: "大舌頭" },
-    { name: "飛天螳螂" },
-    { name: "吉利蛋" },
-    { name: "蔓藤怪" },
+    { name: "大舌頭", evolutions: ["大舌舔"] },
+    { name: "飛天螳螂", evolutions: ["巨鉗螳螂"] },
+    { name: "吉利蛋", evolutions: ["幸福蛋"] },
+    { name: "蔓藤怪", evolutions: ["巨蔓藤"] },
     { name: "袋獸" },
     { name: "魔牆人偶" },
     { name: "迷唇姐" },
@@ -1503,7 +1508,7 @@ var POKEMON_TIERS = {
     { name: "肯泰羅" },
     { name: "拉普拉斯" },
     { name: "百變怪" },
-    { name: "多邊獸" },
+    { name: "多邊獸", evolutions: ["多邊獸Ⅱ","多邊獸Ｚ"] },
     { name: "菊石獸", evolutions: ["多刺菊石獸"] },
     { name: "化石盔", evolutions: ["鐳射盔"] },
     { name: "化石翼龍" },
@@ -5312,19 +5317,19 @@ function openShop() {
     { id: "王者之證", name: "王者之證", cost: 55, desc: "呆呆獸→呆殼獸、蚊香君→蚊香泳士", icon: "👑", once: true, cat: "進化" }
   ];
   // Sort by category order
-  var catOrder = { "消耗": 0, "學習器": 1, "進化": 2, "裝備": 3 };
-  items.sort(function(a, b) { return (catOrder[a.cat] || 99) - (catOrder[b.cat] || 99); });
+  function getCatOrder(cat) { if (cat === "消耗") return 0; if (cat === "學習器") return 1; if (cat === "進化") return 2; if (cat === "裝備") return 3; return 99; }
+  items.sort(function(a, b) { return getCatOrder(a.cat) - getCatOrder(b.cat); });
   var div = $("shopList");
   div.innerHTML = "";
   var lastCat = "";
-  var catNames = { "消耗": "🔋 消耗品", "裝備": "🛡️ 裝備道具", "學習器": "📀 學習器", "進化": "⬆️ 進化道具" };
+  function getCatName(cat) { if (cat === "消耗") return "🔋 消耗品"; if (cat === "裝備") return "🛡️ 裝備道具"; if (cat === "學習器") return "📀 學習器"; if (cat === "進化") return "⬆️ 進化道具"; return cat; }
   for (var i = 0; i < items.length; i++) {
     var it = items[i];
     if (it.cat && it.cat !== lastCat) {
       lastCat = it.cat;
       var hdr = document.createElement("div");
       hdr.style.cssText = "font-size:14px;font-weight:700;color:#555;margin:12px 0 2px;padding:4px 0;border-bottom:2px solid #ddd;";
-      hdr.textContent = catNames[it.cat] || it.cat;
+      hdr.textContent = getCatName(it.cat);
       div.appendChild(hdr);
     }
     var owned = false;
@@ -5478,7 +5483,25 @@ function generateCapturePokemon(tier, targetType, level) {
 
 async function submitData() {
   if (!globalData) return;
+  if (_dataLoading) { toast("資料載入中，請稍候..."); return; }
+  if (_isSaving) { toast("正在儲存中，請勿重複點擊"); return; }
   if (globalData.todayCompleted && !isAdmin) { toast("今日已完成！"); return; }
+  // Double-check with Firestore in case session cache is stale
+  if (!isAdmin && !globalData.todayCompleted) {
+    try {
+      var todayStart = new Date(); todayStart.setHours(0, 0, 0, 0);
+      var existingSnapshot = await db.collection("kpi_events")
+        .where("studentId", "==", globalData.studentId)
+        .where("timestamp", ">=", todayStart)
+        .get();
+      var hasSubmittedToday = existingSnapshot.docs.some(function(d) { return d.data().action === "\u6BCF\u65E5\u63D0\u4EA4"; });
+      if (hasSubmittedToday) {
+        globalData.todayCompleted = true;
+        toast("今日已完成！");
+        return;
+      }
+    } catch (e) { /* Firestore query failed, proceed with caution */ }
+  }
   var score = parseInt($("hiddenScore").value) || 0;
   if (score <= 0) { toast("請選擇任務！"); return; }
   var tasks = [];
@@ -5726,7 +5749,6 @@ document.addEventListener("DOMContentLoaded", function() {
   $("devMonth").addEventListener("change", updatePreview);
   $("devWeek").addEventListener("change", updatePreview);
 
-  localStorage.removeItem("kpi_last_id");
   setRegion("關都");
 
   // Move navigation buttons below submit button
@@ -5743,7 +5765,7 @@ window.addEventListener("beforeunload", function() {
   if (sid) localStorage.setItem("kpi_last_id", sid);
 });
 
-var db = null, globalData = null, isAdmin = false;
+var db = null, globalData = null, isAdmin = false, _isSaving = false, _dataLoading = false;
 
 // ===== ADMIN GYM EDITOR =====
 function openGymEditor() {
@@ -6021,6 +6043,35 @@ function openWeaknessDex() {
 var POKEDEX_ALL_SPECIES = null;
 function buildPokedexSpecies() {
   if (POKEDEX_ALL_SPECIES) return POKEDEX_ALL_SPECIES;
+
+  var evolvesFrom = {};
+  for (var t in POKEMON_TIERS) {
+    for (var i = 0; i < POKEMON_TIERS[t].length; i++) {
+      var p = POKEMON_TIERS[t][i];
+      if (p.evolutions) {
+        for (var e = 0; e < p.evolutions.length; e++) {
+          if (!evolvesFrom[p.evolutions[e]]) evolvesFrom[p.evolutions[e]] = [];
+          evolvesFrom[p.evolutions[e]].push(p.name);
+        }
+      }
+    }
+  }
+
+  function getEvolutionChain(name) {
+    var base = name;
+    while (evolvesFrom[base] && evolvesFrom[base].length > 0) {
+      base = evolvesFrom[base][0];
+    }
+    for (var t in POKEMON_TIERS) {
+      for (var i = 0; i < POKEMON_TIERS[t].length; i++) {
+        if (POKEMON_TIERS[t][i].name === base && POKEMON_TIERS[t][i].evolutions) {
+          return [base].concat(POKEMON_TIERS[t][i].evolutions);
+        }
+      }
+    }
+    return [name];
+  }
+
   POKEDEX_ALL_SPECIES = [];
   var seen = {};
   for (var t in POKEMON_TIERS) {
@@ -6028,13 +6079,13 @@ function buildPokedexSpecies() {
       var p = POKEMON_TIERS[t][i];
       if (!seen[p.name]) {
         seen[p.name] = true;
-        POKEDEX_ALL_SPECIES.push({ rawName: p.name, tier: t, evolutions: p.evolutions || [], eevee: !!p.eevee, legendary: !!p.legendary });
+        POKEDEX_ALL_SPECIES.push({ rawName: p.name, tier: t, evolutions: p.evolutions || [], evolutionChain: getEvolutionChain(p.name), eevee: !!p.eevee, legendary: !!p.legendary });
       }
       if (p.evolutions) {
         for (var e = 0; e < p.evolutions.length; e++) {
           if (!seen[p.evolutions[e]]) {
             seen[p.evolutions[e]] = true;
-            POKEDEX_ALL_SPECIES.push({ rawName: p.evolutions[e], tier: t, evolutions: [], legendary: false });
+            POKEDEX_ALL_SPECIES.push({ rawName: p.evolutions[e], tier: t, evolutions: [], evolutionChain: getEvolutionChain(p.evolutions[e]), legendary: false });
           }
         }
       }
@@ -6103,11 +6154,12 @@ function renderPokedex() {
     var types = POKEMON_SPECIES_TYPES[sp2.rawName] || ["一般"];
     var typeChips = types.map(function(st){ return "<span style=\"display:inline-block;background:" + (typeColors[st]||"#999") + ";color:white;padding:1px 6px;border-radius:4px;font-size:10px;margin:0 2px;\">" + st + "</span>"; }).join("");
     var evoChainHTML = "";
-    if (sp2.evolutions.length > 0) {
+    var chainToShow = sp2.evolutionChain && sp2.evolutionChain.length > 1 ? sp2.evolutionChain : null;
+    if (sp2.evolutions.length > 0 || chainToShow) {
       if (sp2.eevee) {
         evoChainHTML = "<div style='font-size:11px;color:#8e44ad;margin-top:2px;'>🐾 8種進化型態</div>";
       } else {
-        var chainStr = sp2.rawName + " → " + sp2.evolutions.join(" → ");
+        var chainStr = chainToShow ? chainToShow.join(" → ") : (sp2.rawName + " → " + sp2.evolutions.join(" → "));
         evoChainHTML = "<div style='font-size:11px;color:#666;margin-top:2px;'>" + chainStr + "</div>";
       }
     }
