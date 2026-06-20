@@ -684,12 +684,12 @@ function checkEvoReady(pkmn, gd) {
       return { ready: true, nextName: nextName, type: "trade" };
     }
   }
-  // Check natural evolution
-  for (const t in POKEMON_TIERS) {
-    for (const pkmnEntry of POKEMON_TIERS[t]) {
-      if (pkmnEntry.name === raw && pkmnEntry.evolutions) {
-        return { ready: true, nextName: nextName, type: "level", info: "等級進化" };
-      }
+  // 標準等級進化
+  if (!cond) {
+    const stage = EVO_STAGE_MAP[raw] !== undefined ? EVO_STAGE_MAP[raw] : 0;
+    const requiredLevel = (stage + 1) * 15;
+    if (pkmn.currentLevel >= requiredLevel) {
+      return { ready: true, nextName: nextName, type: "level", info: "等級 " + requiredLevel + "+" };
     }
   }
   return null;
@@ -1174,8 +1174,11 @@ class SimulationStudent {
     for (const s of pool) {
       let evoName = s.name;
       if (s.evolutions) {
-        const evoI = Math.min(Math.floor(level / 15), s.evolutions.length - 1);
-        evoName = s.evolutions[evoI];
+        const stage = Math.floor(level / 15);
+        if (stage === 0) { evoName = s.name; } else {
+          const evoI = Math.min(stage - 1, s.evolutions.length - 1);
+          evoName = s.evolutions[evoI];
+        }
       }
       if (targetType === '隨機') { candidates.push(evoName); continue; }
       const speciesT = POKEMON_SPECIES_TYPES[evoName] || ['一般'];

@@ -1622,7 +1622,9 @@ function getEvolvedName(species, level) {
     return species.name;
   }
   if (species.evolutions && species.evolutions.length > 0) {
-    var idx = Math.min(Math.floor(level / 15), species.evolutions.length - 1);
+    var stage = Math.floor(level / 15);
+    if (stage === 0) return species.name;
+    var idx = Math.min(stage - 1, species.evolutions.length - 1);
     return species.evolutions[idx];
   }
   return species.name;
@@ -1650,6 +1652,14 @@ function checkEvoReady(pkmn, gd) {
     }
     if (cond.type === "trade") {
       return { ready: true, nextName: nextName, type: "trade" };
+    }
+  }
+  // 標準等級進化
+  if (!cond) {
+    var stage = EVO_STAGE_MAP[raw] !== undefined ? EVO_STAGE_MAP[raw] : 0;
+    var requiredLevel = (stage + 1) * 15;
+    if (pkmn.currentLevel >= requiredLevel) {
+      return { ready: true, nextName: nextName, type: "level", info: "等級 " + requiredLevel + "+" };
     }
   }
   return null;

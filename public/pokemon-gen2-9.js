@@ -60,7 +60,7 @@ var addCommon = [
   {name:"跳跳豬",evolutions:["噗噗豬"]},{name:"晃晃斑"},{name:"貓鼬斬"},{name:"飯匙蛇"},
   {name:"古空棘魚"},{name:"海豹球",evolutions:["海魔獅","帝牙海獅"]},
   {name:"珍珠貝",evolutions:["獵斑魚","櫻花魚"]},{name:"愛心魚"},{name:"寶貝球菇",evolutions:["暴露菇"]},
-  {name:"奇諾栗鼠",evolutions:["奇諾栗鼠"]},{name:"哥德寶寶",evolutions:["哥德小童","哥德小姐"]},
+  {name:"奇諾栗鼠"},{name:"哥德寶寶",evolutions:["哥德小童","哥德小姐"]},
   {name:"鐵啞鈴",evolutions:["金屬怪","巨金怪"]},
   {name:"單卵細胞球",evolutions:["雙卵細胞球","人造細胞卵"]},
   {name:"石丸子",evolutions:["地幔岩","龐岩怪"]},{name:"滾滾蝙蝠",evolutions:["心蝙蝠"]},

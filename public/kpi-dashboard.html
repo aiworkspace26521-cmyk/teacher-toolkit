@@ -1632,7 +1632,9 @@ function getEvolvedName(species, level) {
     return species.name;
   }
   if (species.evolutions && species.evolutions.length > 0) {
-    var idx = Math.min(Math.floor(level / 15), species.evolutions.length - 1);
+    var stage = Math.floor(level / 15);
+    if (stage === 0) return species.name;
+    var idx = Math.min(stage - 1, species.evolutions.length - 1);
     return species.evolutions[idx];
   }
   return species.name;
