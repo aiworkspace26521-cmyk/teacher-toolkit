@@ -127,6 +127,12 @@ async function recalculateStudentState(studentId) {
     weekGymWins: 0,
     monthLeagueWins: 0,
     roster: { P0: { id: 'P0', baseName: '🐾 伊布 (一般系)', totalExp: 0, initialLevel: 5, catchDate: '初始夥伴', heldItem: '' } },
+    submitStreak: 0,
+    oranBerries: 0, cheriBerries: 0, lumBerries: 0, chilanBerries: 0,
+    hasFocusSash: false, hasEjectButton: false, hasRockyHelmet: false, hasWeaknessPolicy: false,
+    tms: {},
+    simpleMode: false,
+    leagueRegionsWon: {},
     lastEventTimestamp: null,
     lastUpdated: Timestamp.now()
   };
@@ -153,13 +159,12 @@ async function recalculateStudentState(studentId) {
     if (rowBadges > 0) state.lastBadgeTime = rowDate.getTime();
     state.coins += rowCoins;
 
-    // V5.4: track submit dates for streak + MIN compensation
-    if (rowAction === '每日提交') {
+    if (!['商城兌換', '戰鬥消耗', '物品消耗', 'E', '系統測試', 'trade', '道具裝備'].includes(rowAction)) {
       state.submitDates[rowDate.toDateString()] = true;
     }
 
     if (rowDate.toDateString() === todayStr &&
-        !['商城兌換', '戰鬥消耗', '物品消耗', 'E', '戰鬥勝利', '系統測試'].includes(rowAction)) {
+        !['商城兌換', '戰鬥消耗', '物品消耗', 'E', '戰鬥勝利', '系統測試', 'trade', '捕捉', 'A', '糖果升級', 'B'].includes(rowAction)) {
       state.todayCompleted = true;
     }
 
@@ -208,6 +213,16 @@ async function recalculateStudentState(studentId) {
     if (safeNote.includes('護具')) state.護具 = true;
     if (safeNote.includes('金屬膜')) state.金屬膜 = true;
     if (safeNote.includes('王者之證')) state['王者之證'] = true;
+    if (safeNote.includes('橙橙果')) state.oranBerries++;
+    if (safeNote.includes('奇異果')) state.cheriBerries++;
+    if (safeNote.includes('木子果')) state.lumBerries++;
+    if (safeNote.includes('抗性果')) state.chilanBerries++;
+    if (safeNote.includes('氣勢披帶')) state.hasFocusSash = true;
+    if (safeNote.includes('逃脱按鈕')) state.hasEjectButton = true;
+    if (safeNote.includes('凸凸頭盔')) state.hasRockyHelmet = true;
+    if (safeNote.includes('弱點保險')) state.hasWeaknessPolicy = true;
+    const tmMatch = safeNote.match(/TM學習器:\s*(\S+)/);
+    if (tmMatch) { if (!state.tms) state.tms = {}; state.tms[tmMatch[1]] = (state.tms[tmMatch[1]] || 0) + 1; }
     }
 
     let m;
@@ -216,13 +231,21 @@ async function recalculateStudentState(studentId) {
     if ((m = safeNote.match(/消耗(\d+)瓶神奇糖果/))) state.candies -= parseInt(m[1]);
     if ((m = safeNote.match(/消耗(\d+)瓶全滿藥/))) state.maxPotions -= parseInt(m[1]);
     if ((m = safeNote.match(/消耗(\d+)瓶元氣藥塊/))) state.maxRevives -= parseInt(m[1]);
+    if ((m = safeNote.match(/消耗(\d+)個橙橙果/))) state.oranBerries = Math.max(0, (state.oranBerries||0) - parseInt(m[1]));
+    if ((m = safeNote.match(/消耗(\d+)個奇異果/))) state.cheriBerries = Math.max(0, (state.cheriBerries||0) - parseInt(m[1]));
+    if ((m = safeNote.match(/消耗(\d+)個木子果/))) state.lumBerries = Math.max(0, (state.lumBerries||0) - parseInt(m[1]));
+    if ((m = safeNote.match(/消耗(\d+)個抗性果/))) state.chilanBerries = Math.max(0, (state.chilanBerries||0) - parseInt(m[1]));
+    if ((m = safeNote.match(/消耗(\d+)個氣勢披帶/))) state.hasFocusSash = false;
+    if ((m = safeNote.match(/消耗(\d+)個弱點保險/))) state.hasWeaknessPolicy = false;
+    if ((m = safeNote.match(/消耗(\d+)個TM學習器/))) { const tmN = safeNote.match(/TM學習器:\s*(\S+)/); if (tmN && state.tms) state.tms[tmN[1]] = Math.max(0, (state.tms[tmN[1]]||0) - parseInt(m[1])); }
 
     if (rowAction === 'A' || rowAction === '捕捉') {
       const pid = (safeNote.match(/ID:(P\d+(?:_LEG)?|legacy_\d+)/) || [])[1] || 'legacy_' + evt.id;
       const pNameRaw = ((safeNote.match(/獲得:\s*([^|]+)/) || [])[1] || '未知寶可夢 (一般系)').trim();
-      let initLv = Math.min(99, Math.max(5, Math.max(5, state.lockedGymLevel) + (score === 100 ? 3 : (score >= 80 ? 2 : 0))));
+      let initLv = score >= 95 ? Math.max(5, Math.floor(score / 4)) : (score >= 75 ? Math.max(5, Math.floor(score / 6)) : Math.max(5, Math.floor(score / 8)));
       const lvMatch = pNameRaw.match(/(.+?)\s*\(Lv\.(\d+)\)/);
       if (lvMatch) { initLv = parseInt(lvMatch[2], 10); }
+      initLv = Math.min(initLv, Math.max(5, (state.lockedGymLevel || 5)) + 3);
       const cleanName = pNameRaw.includes('(') ? pNameRaw : pNameRaw + ' (一般系)';
       if (!state.roster[pid]) {
         state.roster[pid] = {
@@ -277,7 +300,7 @@ async function recalculateStudentState(studentId) {
       const isRowThisMonth = rowDate.getTime() >= startOfMonth;
       if (isRowToday && (safeNote.includes('[Daily]') || safeNote.includes('路人') || safeNote.includes('Raid'))) state.todayBattles++;
       if (isRowThisWeek && (safeNote.includes('[Gym]') || safeNote.includes('道館'))) state.weekGymWins++;
-      if (isRowThisMonth && (safeNote.includes('[League]') || safeNote.includes('大會') || safeNote.includes('魔王'))) state.monthLeagueWins++;
+      if (isRowThisMonth && (safeNote.includes('[League]') || safeNote.includes('大會') || safeNote.includes('魔王'))) { state.monthLeagueWins++; const lr = safeNote.match(/\[(.+?)\s*League\]/); if (lr) state.leagueRegionsWon[lr[1]] = true; }
     } else if (rowAction === 'E') {
       const nm = safeNote.match(/獲得:\s*([^|]+)/);
       if (nm && state.roster['P0']) {
@@ -307,17 +330,14 @@ async function recalculateStudentState(studentId) {
     ? (Date.now() - state.lastBadgeTime) / 86400000
     : (state.firstLogTime ? (Date.now() - state.firstLogTime) / 86400000 : 0);
 
-  // V5.4: calculate submit streak from tracked dates
-  const sortedDates = Object.keys(state.submitDates).sort();
-  let streak = 0;
-  const today = new Date();
-  for (let i = sortedDates.length - 1; i >= 0; i--) {
-    const expected = new Date(today);
-    expected.setDate(expected.getDate() - streak);
-    if (sortedDates[i] === expected.toDateString()) streak++;
+  state.submitStreak = 0;
+  const sortedSubDates = Object.keys(state.submitDates).sort((a, b) => new Date(b) - new Date(a));
+  for (let si = 0; si < sortedSubDates.length; si++) {
+    const expected = new Date();
+    expected.setDate(expected.getDate() - si);
+    if (sortedSubDates[si] === expected.toDateString()) state.submitStreak++;
     else break;
   }
-  state.streak = streak;
 
   // V5.4: MIN compensation — badges for persistent submitters
   var totalSubmitDays = Object.keys(state.submitDates).length;
@@ -396,6 +416,18 @@ async function recalculateStudentState(studentId) {
     weekGymWins: state.weekGymWins,
     monthLeagueWins: state.monthLeagueWins,
     quests: quests,
+    submitStreak: state.submitStreak || 0,
+    oranBerries: state.oranBerries || 0,
+    cheriBerries: state.cheriBerries || 0,
+    lumBerries: state.lumBerries || 0,
+    chilanBerries: state.chilanBerries || 0,
+    hasFocusSash: state.hasFocusSash || false,
+    hasEjectButton: state.hasEjectButton || false,
+    hasRockyHelmet: state.hasRockyHelmet || false,
+    hasWeaknessPolicy: state.hasWeaknessPolicy || false,
+    tms: state.tms || {},
+    simpleMode: state.simpleMode || false,
+    leagueRegionsWon: state.leagueRegionsWon || {},
     lastUpdated: Timestamp.now()
   };
 }
