@@ -4298,7 +4298,7 @@ function openPvPModal() {
   if (!globalData || !globalData.roster || globalData.roster.length === 0) { toast("你還沒有寶可夢！"); return; }
   if ((globalData.partyIds || []).length < 2) { toast("請先在 PC Box 設定至少 2 隻寶可夢的隊伍！"); return; }
   // daily limit: check today PvP events
-  if (globalData.todayBattles >= 1 && checkPvpDoneToday()) { toast("今日 PvP 已結束！每天限1次"); return; }
+  if (checkPvpDoneToday()) { toast("今日 PvP 已結束！每天限1次"); return; }
   var pkmnList = globalData.roster.filter(function(p){ return (globalData.partyIds || []).indexOf(p.id) !== -1; });
   if (pkmnList.length < 2) { toast("隊伍中至少需要 2 隻寶可夢！"); return; }
   pvpState = { playerParty: pkmnList.slice(), selectedIndex: 0, round: 1, isPlayerTurn: true, gameOver: false, log: [] };
@@ -4411,19 +4411,25 @@ function executePvPRound(playerMove) {
   if (!pvpState || pvpState.gameOver) return;
   var log = pvpState.log;
   var pAtk = pvpState.playerPkmn, pDef = pvpState.enemyPkmn;
-  executeSinglePvPAtk(pAtk, pDef, playerMove, log);
-  if (pDef.currentHp <= 0) { pvpState.gameOver = true; log.push("🎉 你贏了！"); savePvPResult(true); renderPvPBattle(); return; }
-  var enemyMove = pvpState.enemyPkmn.moves[Math.floor(Math.random() * pvpState.enemyPkmn.moves.length)];
-  var eAtk = pvpState.enemyPkmn, eDef = pvpState.playerPkmn;
-  executeSinglePvPAtk(eAtk, eDef, enemyMove, log);
-  if (eDef.currentHp <= 0) { pvpState.gameOver = true; log.push("💀 你輸了..."); savePvPResult(false); renderPvPBattle(); return; }
+  var eMove = pvpState.enemyPkmn.moves[Math.floor(Math.random() * pvpState.enemyPkmn.moves.length)];
+  if (pAtk.speed >= pDef.speed) {
+    executeSinglePvPAtk(pAtk, pDef, playerMove, log, true);
+    if (pDef.currentHp <= 0) { pvpState.gameOver = true; log.push("🎉 你贏了！"); savePvPResult(true); renderPvPBattle(); return; }
+    executeSinglePvPAtk(pDef, pAtk, eMove, log, false);
+    if (pAtk.currentHp <= 0) { pvpState.gameOver = true; log.push("💀 你輸了..."); savePvPResult(false); renderPvPBattle(); return; }
+  } else {
+    executeSinglePvPAtk(pDef, pAtk, eMove, log, false);
+    if (pAtk.currentHp <= 0) { pvpState.gameOver = true; log.push("💀 你輸了..."); savePvPResult(false); renderPvPBattle(); return; }
+    executeSinglePvPAtk(pAtk, pDef, playerMove, log, true);
+    if (pDef.currentHp <= 0) { pvpState.gameOver = true; log.push("🎉 你贏了！"); savePvPResult(true); renderPvPBattle(); return; }
+  }
   pvpState.round++;
   renderPvPBattle();
 }
 
-function executeSinglePvPAtk(attacker, defender, move, log) {
+function executeSinglePvPAtk(attacker, defender, move, log, isPlayer) {
   if (attacker.currentHp <= 0) return;
-  executeTurn(attacker, defender, defender, attacker, move, true, log);
+  executeTurn(attacker, defender, defender, attacker, move, isPlayer, log);
 }
 
 async function savePvPResult(won) {
