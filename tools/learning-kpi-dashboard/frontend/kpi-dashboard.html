@@ -2880,109 +2880,12 @@ function performAttack(moveName, isPlayer) {
   if (battleState.turnLock) return;
   battleState.turnLock = true;
 
-  var result = executeTurn(pAtk, pDef, battleState.enemy, battleState.playerPokemon, moveName, isPlayer, log);
-  renderBattleLog(log);
+  // 速度判定 — 決定先攻順序
+  var ps = battleState.playerPokemon.speed * Math.pow(1.1, (battleState.playerPokemon.statStages.speed || 0));
+  var es = battleState.enemy.speed * Math.pow(1.1, (battleState.enemy.statStages.speed || 0));
+  var enemyFaster = es > ps;
 
-  var attSide = isPlayer ? "player" : "enemy";
-  var defSide = isPlayer ? "enemy" : "player";
-  var moveDetails = getMoveDetails(moveName);
-  var typeColor = getTypeColor(moveDetails.type);
-  var moveCategory = moveDetails.category;
-
-  if (moveCategory === "變化") {
-    var center = getElementCenter(defSide + "PkmnName");
-    if (center) spawnCategoryParticles(center.x, center.y, typeColor, "變化");
-  } else {
-    sfx.hit();
-    shakeElement(defSide + "PkmnName");
-    flashElement(defSide + "PkmnName");
-    spawnImpactFlash(defSide, typeColor);
-    var center = getElementCenter(defSide + "PkmnName");
-    if (center) {
-      spawnParticles(center.x, center.y, 8, typeColor);
-      spawnHitRing(center.x, center.y, typeColor);
-      spawnCategoryParticles(center.x, center.y, typeColor, moveCategory);
-    }
-    // 晴天下火系招式火焰殘影
-    if (battleState && battleState.weather && battleState.weather.type === "sun" && moveDetails.type === "火") {
-      for (var fi = 0; fi < 3; fi++) { (function(fi2){ setTimeout(function(){ spawnAbilityFlare(defSide + "PkmnName", "#e74c3c"); }, fi2 * 80); })(fi); }
-    }
-  }
-  if (result.dmg > 0) {
-    var defHp = isPlayer ? battleState.enemy : battleState.playerPokemon;
-    animateHpBar(defSide + "HpBar", defSide + "HpText", defHp.currentHp, defHp.maxHp);
-    if (result.crit) { sfx.crit(); showLargeText("💢 會心一擊！", "#ffd700"); screenShake(); spawnEffectivenessEffect(2, center, typeColor); }
-    else if (result.effectiveness > 1) { showLargeText("💥 效果絕佳！", typeColor); spawnEffectivenessEffect(2, center, typeColor); }
-    else if (result.effectiveness > 0 && result.effectiveness < 1) showLargeText("⚠️ 效果不好...", "#999");
-    else if (result.effectiveness === 0) { showLargeText("🚫 沒有效果！", "#666"); spawnEffectivenessEffect(0, center, typeColor); }
-    if (result.hpBoosted && pAtk.abilityName) {
-      showLargeText("🔥 " + pAtk.abilityName + " 發動！", "#e74c3c");
-      spawnAbilityFlare(attSide + "PkmnName", "#e74c3c");
-    }
-    // 攜帶道具效果：貝殼之鈴（回復傷害12.5%HP）
-    if (isPlayer && pAtk.heldItem === "shellBell") {
-      var shellHeal = Math.max(1, Math.floor(result.dmg * 0.125));
-      pAtk.currentHp = Math.min(pAtk.maxHp, pAtk.currentHp + shellHeal);
-      log.push("🔔 貝殼之鈴回復了 " + shellHeal + " HP！");
-      renderBattleLog(log);
-      animateHpBar("playerHpBar", "playerHpText", pAtk.currentHp, pAtk.maxHp);
-      spawnItemGlow("playerPkmnName", "#2ecc71");
-    }
-    // 攜帶道具效果：生命寶珠（反彈10%最大HP）
-    if (isPlayer && pAtk.heldItem === "lifeOrb") {
-      var orbDmg = Math.max(1, Math.floor(pAtk.maxHp * 0.1));
-      pAtk.currentHp = Math.max(0, pAtk.currentHp - orbDmg);
-      log.push("🔴 生命寶珠反噬 " + orbDmg + " HP！");
-      renderBattleLog(log);
-      animateHpBar("playerHpBar", "playerHpText", pAtk.currentHp, pAtk.maxHp);
-      spawnItemGlow("playerPkmnName", "#e74c3c");
-      if (pAtk.currentHp <= 0) {
-        pAtk.currentHp = 0;
-        log.push("💀 " + pAtk.name + " 被生命寶珠反噬倒下了！");
-        renderBattleLog(log);
-      }
-    }
-  }
-  if (result.ko) {
-    sfx.faint();
-    setTimeout(function(){
-      faintAnimation(defSide + "PkmnName");
-      setTimeout(function(){
-        if (!isPlayer) {
-          battleState.playerWon = true;
-          endBattle(true);
-        } else {
-          if (battleState.enemy.currentHp <= 0) {
-            battleState.playerWon = true;
-            endBattle(true);
-          }
-        }
-        if (battleState) battleState.turnLock = false;
-      }, 650);
-    }, 300);
-    return;
-  }
-
-  if (battleState.playerPokemon.currentHp <= 0) {
-    var nextAlly = null;
-    for (var i = 0; i < battleState.playerParty.length; i++) {
-      var pk = battleState.playerParty[i];
-      if (pk.currentHp > 0) { nextAlly = pk; break; }
-    }
-    if (nextAlly) {
-      battleState.playerPokemon = nextAlly;
-      log.push("🔄 換上 " + nextAlly.name + "！");
-      renderBattleLog(log);
-      setTimeout(function(){ shakeElement("playerPkmnName"); }, 100);
-    } else {
-      battleState.playerWon = false;
-      endBattle(false);
-      battleState.turnLock = false;
-      return;
-    }
-  }
-
-  // 攜帶道具效果：先制之爪（20%機率讓敵人畏縮，跳過攻擊）
+  // 先制之爪檢查（20%機率讓敵人畏縮，跳過攻擊）
   var quickClawFlinch = false;
   if (isPlayer && pAtk.heldItem === "quickClaw" && Math.random() < 0.2 && battleState.enemy.currentHp > 0) {
     quickClawFlinch = true;
@@ -3002,117 +2905,239 @@ function performAttack(moveName, isPlayer) {
     log.push("⚡ " + battleState.enemy.name + " 的「加速」讓速度提升了！");
   }
 
+  // 根據速度順序決定執行方式
+  var doTurn = function(atk, def, move, isPlayerAtk, defSide, cb) {
+    var turnLog = [];
+    var tResult = executeTurn(atk, def, battleState.enemy, battleState.playerPokemon, move, isPlayerAtk, turnLog);
+    renderBattleLog(turnLog);
+    var mDetails = getMoveDetails(move);
+    var tColor = getTypeColor(mDetails.type);
+    if (mDetails.category === "變化") {
+      var c = getElementCenter(defSide + "PkmnName");
+      if (c) spawnCategoryParticles(c.x, c.y, tColor, "變化");
+    } else {
+      sfx.hit();
+      shakeElement(defSide + "PkmnName");
+      flashElement(defSide + "PkmnName");
+      spawnImpactFlash(defSide, tColor);
+      var c = getElementCenter(defSide + "PkmnName");
+      if (c) {
+        spawnParticles(c.x, c.y, 8, tColor);
+        spawnHitRing(c.x, c.y, tColor);
+        spawnCategoryParticles(c.x, c.y, tColor, mDetails.category);
+      }
+      if (battleState && battleState.weather && battleState.weather.type === "sun" && mDetails.type === "火") {
+        for (var fi = 0; fi < 3; fi++) (function(fi2){ setTimeout(function(){ spawnAbilityFlare(defSide + "PkmnName", "#e74c3c"); }, fi2 * 80); })(fi);
+      }
+    }
+    if (tResult.dmg > 0) {
+      animateHpBar(defSide + "HpBar", defSide + "HpText", def.currentHp, def.maxHp);
+      if (tResult.crit) { sfx.crit(); showLargeText("💢 會心一擊！", "#ffd700"); screenShake(); }
+      else if (tResult.effectiveness > 1) showLargeText("💥 效果絕佳！", tColor);
+      else if (tResult.effectiveness > 0 && tResult.effectiveness < 1) showLargeText("⚠️ 效果不好...", "#999");
+      else if (tResult.effectiveness === 0) showLargeText("🚫 沒有效果！", "#666");
+      if (tResult.hpBoosted && atk.abilityName) {
+        showLargeText("🔥 " + atk.abilityName + " 發動！", "#e74c3c");
+        spawnAbilityFlare(isPlayerAtk ? "playerPkmnName" : "enemyPkmnName", "#e74c3c");
+      }
+      // 貝殼之鈴（玩家專用）
+      if (isPlayerAtk && atk.heldItem === "shellBell") {
+        var shellHeal = Math.max(1, Math.floor(tResult.dmg * 0.125));
+        atk.currentHp = Math.min(atk.maxHp, atk.currentHp + shellHeal);
+        log.push("🔔 貝殼之鈴回復了 " + shellHeal + " HP！");
+        renderBattleLog(log);
+        animateHpBar("playerHpBar", "playerHpText", atk.currentHp, atk.maxHp);
+        spawnItemGlow("playerPkmnName", "#2ecc71");
+      }
+      // 生命寶珠（玩家專用）
+      if (isPlayerAtk && atk.heldItem === "lifeOrb") {
+        var orbDmg = Math.max(1, Math.floor(atk.maxHp * 0.1));
+        atk.currentHp = Math.max(0, atk.currentHp - orbDmg);
+        log.push("🔴 生命寶珠反噬 " + orbDmg + " HP！");
+        renderBattleLog(log);
+        animateHpBar("playerHpBar", "playerHpText", atk.currentHp, atk.maxHp);
+        spawnItemGlow("playerPkmnName", "#e74c3c");
+        if (atk.currentHp <= 0) {
+          atk.currentHp = 0;
+          log.push("💀 " + atk.name + " 被生命寶珠反噬倒下了！");
+          renderBattleLog(log);
+        }
+      }
+    }
+    return { result: tResult, moveDetails: mDetails, typeColor: tColor };
+  };
+
+  var afterEnemyDefense = function() {
+    // 凸凸頭盔、弱點保險、逃脱按鈕 — 這些是「防守方」道具，在受攻擊時觸發
+    // (已在 enemyHitDefense 中處理)
+  };
+
+  var enemyHitDefense = function(eResult, eMoveDetails) {
+    if (eResult.dmg > 0) {
+      // 凸凸頭盔: 物理攻擊反傷
+      if (battleState.playerPokemon.heldItem === "rockyHelmet" && eMoveDetails.category === "物理" && battleState.enemy.currentHp > 0) {
+        var helmetDmg = Math.max(1, Math.floor(battleState.enemy.maxHp / 6));
+        battleState.enemy.currentHp = Math.max(0, battleState.enemy.currentHp - helmetDmg);
+        log.push("⛑️ 凸凸頭盔反傷 " + helmetDmg + " HP！");
+        renderBattleLog(log);
+        spawnShieldFlash("enemyPkmnName", "#95a5a6");
+        if (battleState.enemy.currentHp <= 0) {
+          battleState.enemy.currentHp = 0;
+          log.push("💀 " + battleState.enemy.name + " 被反傷倒下了！");
+          renderBattleLog(log);
+          sfx.faint();
+          setTimeout(function(){ faintAnimation("enemyPkmnName"); setTimeout(function(){ battleState.playerWon = true; endBattle(true); if (battleState) battleState.turnLock = false; }, 650); }, 300);
+          return true;
+        }
+      }
+      // 弱點保險: 被剋時雙攻+2階
+      if (battleState.playerPokemon.heldItem === "weaknessPolicy" && eResult.effectiveness > 1 && battleState.playerPokemon.currentHp > 0) {
+        battleState.playerPokemon.heldItem = "";
+        battleState.playerPokemon.statStages.atk = Math.min(6, (battleState.playerPokemon.statStages.atk||0) + 2);
+        battleState.playerPokemon.statStages.spatk = Math.min(6, (battleState.playerPokemon.statStages.spatk||0) + 2);
+        log.push("📋 弱點保險發動！" + battleState.playerPokemon.name + " 雙攻大幅提升！（已消耗）");
+        showLargeText("📋 弱點保險！", "#e74c3c");
+        spawnItemGlow("playerPkmnName", "#f1c40f");
+        renderBattleLog(log);
+      }
+      // 逃脱按鈕: 受到攻擊後強制換怪
+      if (battleState.playerPokemon.heldItem === "ejectButton" && battleState.playerPokemon.currentHp > 0) {
+        var nextAlly3 = null;
+        for (var ej = 0; ej < battleState.playerParty.length; ej++) {
+          var ejPk = battleState.playerParty[ej];
+          if (ejPk.id !== battleState.playerPokemon.id && ejPk.currentHp > 0) { nextAlly3 = ejPk; break; }
+        }
+        if (nextAlly3) {
+          battleState.playerPokemon.heldItem = "";
+          log.push("🔘 逃脱按鈕啟動！" + battleState.playerPokemon.name + " 強制退場！");
+          battleState.playerPokemon = nextAlly3;
+          log.push("🔄 換上 " + nextAlly3.name + "！");
+          showLargeText("🔘 逃脱按鈕！", "#3498db");
+          spawnItemGlow("playerPkmnName", "#3498db");
+          renderBattleLog(log);
+        }
+      }
+    }
+    return false;
+  };
+
+  var handlePlayerKO = function(done) {
+    if (battleState.playerPokemon.currentHp <= 0) {
+      var nextAlly = null;
+      for (var i = 0; i < battleState.playerParty.length; i++) {
+        if (battleState.playerParty[i].currentHp > 0) { nextAlly = battleState.playerParty[i]; break; }
+      }
+      if (nextAlly) {
+        battleState.playerPokemon = nextAlly;
+        log.push("🔄 換上 " + nextAlly.name + "！");
+        renderBattleLog(log);
+        setTimeout(function(){ shakeElement("playerPkmnName"); }, 100);
+        if (done) done(false);
+      } else {
+        battleState.playerWon = false;
+        endBattle(false);
+        battleState.turnLock = false;
+        if (done) done(true);
+      }
+      return true;
+    }
+    return false;
+  };
+
+  if (enemyFaster && isPlayer && !quickClawFlinch && battleState.enemy.currentHp > 0) {
+    // === 敵方先攻 ===
+    var enemyMove = battleState.enemy.moves[Math.floor(Math.random() * battleState.enemy.moves.length)];
+    var eInfo = doTurn(battleState.enemy, battleState.playerPokemon, enemyMove, false, "player", null);
+    var enemyStopped = enemyHitDefense(eInfo.result, eInfo.moveDetails);
+    if (enemyStopped) return;
+
+    if (eInfo.result.ko || battleState.playerPokemon.currentHp <= 0) {
+      sfx.faint();
+      setTimeout(function(){
+        faintAnimation("playerPkmnName");
+        setTimeout(function(){
+          var gameOver = handlePlayerKO();
+          if (!gameOver) {
+            updateArenaUI();
+            if (battleState) processWeatherDecay(log);
+            if (battleState && !battleState.playerWon) battleState.turnLock = false;
+          }
+        }, 700);
+      }, 300);
+      return;
+    }
+
+    // 我方反擊
+    setTimeout(function() {
+      var pInfo = doTurn(battleState.playerPokemon, battleState.enemy, moveName, true, "enemy", null);
+      if (pInfo.result.ko) {
+        sfx.faint();
+        setTimeout(function(){
+          faintAnimation("enemyPkmnName");
+          setTimeout(function(){
+            if (battleState.enemy.currentHp <= 0) battleState.playerWon = true;
+            if (battleState.playerWon) endBattle(true);
+            if (battleState) battleState.turnLock = false;
+          }, 650);
+        }, 300);
+        return;
+      }
+      updateArenaUI();
+      if (battleState) processWeatherDecay(log);
+      battleState.turnLock = false;
+    }, 800);
+    return;
+  }
+
+  // === 玩家先攻 ===
+  if (battleState.enemy.currentHp <= 0 || quickClawFlinch) {
+    if (battleState) processWeatherDecay(log);
+    updateArenaUI();
+    battleState.turnLock = false;
+    return;
+  }
+
+  var pInfo = doTurn(battleState.playerPokemon, battleState.enemy, moveName, true, "enemy", null);
+
+  if (pInfo.result.ko) {
+    sfx.faint();
+    setTimeout(function(){
+      faintAnimation("enemyPkmnName");
+      setTimeout(function(){
+        if (battleState.enemy.currentHp <= 0) { battleState.playerWon = true; endBattle(true); }
+        if (battleState) battleState.turnLock = false;
+      }, 650);
+    }, 300);
+    return;
+  }
+
+  handlePlayerKO();
+
   if (battleState.enemy.currentHp > 0 && !battleState.playerWon && !quickClawFlinch) {
     setTimeout(function() {
       var enemyMove = battleState.enemy.moves[Math.floor(Math.random() * battleState.enemy.moves.length)];
-      var eLog = [];
-      var eResult = executeTurn(battleState.enemy, battleState.playerPokemon, battleState.playerPokemon, battleState.enemy, enemyMove, false, eLog);
-      renderBattleLog(eLog);
+      var eInfo = doTurn(battleState.enemy, battleState.playerPokemon, enemyMove, false, "player", null);
+      var enemyStopped = enemyHitDefense(eInfo.result, eInfo.moveDetails);
+      if (enemyStopped) return;
 
-      var eMoveDetails = getMoveDetails(enemyMove);
-      var eTypeColor = getTypeColor(eMoveDetails.type);
-      if (eMoveDetails.category === "變化") {
-        var pCenter = getElementCenter("playerPkmnName");
-        if (pCenter) spawnCategoryParticles(pCenter.x, pCenter.y, eTypeColor, "變化");
-      } else {
-        sfx.hit();
-        shakeElement("playerPkmnName");
-        flashElement("playerPkmnName");
-        spawnImpactFlash("player", eTypeColor);
-        var pCenter = getElementCenter("playerPkmnName");
-        if (pCenter) {
-          spawnParticles(pCenter.x, pCenter.y, 8, eTypeColor);
-          spawnHitRing(pCenter.x, pCenter.y, eTypeColor);
-          spawnCategoryParticles(pCenter.x, pCenter.y, eTypeColor, eMoveDetails.category);
-        }
-        // 晴天下火系招式火焰殘影
-        if (battleState && battleState.weather && battleState.weather.type === "sun" && eMoveDetails.type === "火") {
-          for (var ei = 0; ei < 3; ei++) { (function(ei2){ setTimeout(function(){ spawnAbilityFlare("playerPkmnName", "#e74c3c"); }, ei2 * 80); })(ei); }
-        }
-      }
-      if (eResult.dmg > 0) {
-        animateHpBar("playerHpBar", "playerHpText", battleState.playerPokemon.currentHp, battleState.playerPokemon.maxHp);
-        if (eResult.crit) { sfx.crit(); showLargeText("💢 會心一擊！", "#ffd700"); screenShake(); spawnEffectivenessEffect(2, pCenter, eTypeColor); }
-        else if (eResult.effectiveness > 1) { showLargeText("💥 效果絕佳！", eTypeColor); spawnEffectivenessEffect(2, pCenter, eTypeColor); }
-        else if (eResult.effectiveness > 0 && eResult.effectiveness < 1) showLargeText("⚠️ 效果不好...", "#999");
-        else if (eResult.effectiveness === 0) { showLargeText("🚫 沒有效果！", "#666"); spawnEffectivenessEffect(0, pCenter, eTypeColor); }
-        if (eResult.hpBoosted && battleState.enemy.abilityName) { showLargeText("🔥 " + battleState.enemy.abilityName + " 發動！", "#e74c3c"); spawnAbilityFlare("enemyPkmnName", "#e74c3c"); }
-        // 凸凸頭盔: 物理攻擊反傷
-        if (battleState.playerPokemon.heldItem === "rockyHelmet" && eMoveDetails.category === "物理" && battleState.enemy.currentHp > 0) {
-          var helmetDmg = Math.max(1, Math.floor(battleState.enemy.maxHp / 6));
-          battleState.enemy.currentHp = Math.max(0, battleState.enemy.currentHp - helmetDmg);
-          eLog.push("⛑️ 凸凸頭盔反傷 " + helmetDmg + " HP！");
-          renderBattleLog(eLog);
-          spawnShieldFlash("enemyPkmnName", "#95a5a6");
-          if (battleState.enemy.currentHp <= 0) {
-            battleState.enemy.currentHp = 0;
-            eLog.push("💀 " + battleState.enemy.name + " 被反傷倒下了！");
-            renderBattleLog(eLog);
-            sfx.faint();
-            setTimeout(function(){ faintAnimation("enemyPkmnName"); setTimeout(function(){ battleState.playerWon = true; endBattle(true); if (battleState) battleState.turnLock = false; }, 650); }, 300);
-            return;
-          }
-        }
-        // 弱點保險: 被剋時雙攻+2階
-        if (battleState.playerPokemon.heldItem === "weaknessPolicy" && eResult.effectiveness > 1 && battleState.playerPokemon.currentHp > 0) {
-          battleState.playerPokemon.heldItem = "";
-          battleState.playerPokemon.statStages.atk = Math.min(6, (battleState.playerPokemon.statStages.atk||0) + 2);
-          battleState.playerPokemon.statStages.spatk = Math.min(6, (battleState.playerPokemon.statStages.spatk||0) + 2);
-          eLog.push("📋 弱點保險發動！" + battleState.playerPokemon.name + " 雙攻大幅提升！（已消耗）");
-          showLargeText("📋 弱點保險！", "#e74c3c");
-          spawnItemGlow("playerPkmnName", "#f1c40f");
-          renderBattleLog(eLog);
-        }
-        // 逃脱按鈕: 受到攻擊後強制換怪
-        if (battleState.playerPokemon.heldItem === "ejectButton" && battleState.playerPokemon.currentHp > 0) {
-          var nextAlly3 = null;
-          for (var ej = 0; ej < battleState.playerParty.length; ej++) {
-            var ejPk = battleState.playerParty[ej];
-            if (ejPk.id !== battleState.playerPokemon.id && ejPk.currentHp > 0) { nextAlly3 = ejPk; break; }
-          }
-          if (nextAlly3) {
-            battleState.playerPokemon.heldItem = "";
-            eLog.push("🔘 逃脱按鈕啟動！" + battleState.playerPokemon.name + " 強制退場！");
-            battleState.playerPokemon = nextAlly3;
-            eLog.push("🔄 換上 " + nextAlly3.name + "！");
-            showLargeText("🔘 逃脱按鈕！", "#3498db");
-            spawnItemGlow("playerPkmnName", "#3498db");
-            renderBattleLog(eLog);
-          }
-        }
-      }
-      if (eResult.ko) { sfx.faint();
+      if (eInfo.result.ko) {
+        sfx.faint();
         setTimeout(function(){
-          if (battleState.playerPokemon.currentHp <= 0) {
-            var nextAlly2 = null;
-            for (var j = 0; j < battleState.playerParty.length; j++) {
-              if (battleState.playerParty[j].currentHp > 0) { nextAlly2 = battleState.playerParty[j]; break; }
-            }
-            if (nextAlly2) {
-              faintAnimation("playerPkmnName");
-              setTimeout(function(){
-                battleState.playerPokemon = nextAlly2;
-                eLog.push("🔄 換上 " + nextAlly2.name + "！");
-                renderBattleLog(eLog);
-                processBurnAndLeech(battleState.playerPokemon, battleState.enemy, eLog);
+          faintAnimation("playerPkmnName");
+          setTimeout(function(){
+            if (battleState.playerPokemon.currentHp <= 0) {
+              if (!handlePlayerKO()) {
                 updateArenaUI();
-                setTimeout(function(){ shakeElement("playerPkmnName"); }, 100);
-                if (battleState) processWeatherDecay(eLog);
+                if (battleState) processWeatherDecay(log);
                 if (battleState && !battleState.playerWon) battleState.turnLock = false;
-              }, 700);
-            } else {
-              faintAnimation("playerPkmnName");
-              setTimeout(function(){
-                battleState.playerWon = false;
-                endBattle(false);
-                if (battleState) battleState.turnLock = false;
-              }, 700);
+              }
             }
-          }
+          }, 700);
         }, 300);
-      } else {
+      }
+      if (!eInfo.result.ko) {
         updateArenaUI();
-        if (battleState) processWeatherDecay(eLog);
+        if (battleState) processWeatherDecay(log);
         if (battleState && !battleState.playerWon) battleState.turnLock = false;
       }
     }, 1200);
@@ -3696,7 +3721,11 @@ function updateArenaUI() {
       if (pk.currentHp <= 0) return;
       battleState.playerPokemon = pk;
       updateArenaUI();
-      var sl = []; sl.push("🔄 換上 " + pk.name + "！"); renderBattleLog(sl);
+      var sl = []; sl.push("🔄 換上 " + pk.name + "！");
+      var abLog = [];
+      applyEntryAbility(battleState.enemy, pk, battleState, abLog);
+      for (var abi = 0; abi < abLog.length; abi++) sl.push(abLog[abi]);
+      renderBattleLog(sl);
     }; })(ally);
     swapBtns.appendChild(btn2);
   }
@@ -3776,7 +3805,7 @@ function generateGymWaves(trainerLevel) {
     var pool = POKEMON_TIERS[tier];
     if (typeof window.getRegionPool === "function") {
       var rPool = window.getRegionPool(gymRegion).filter(function(e){
-        return POKEMON_TIERS[tier].indexOf(e) !== -1;
+        return POKEMON_TIERS[tier].some(function(p){ return p.name === e.name; });
       });
       if (rPool.length > 0) pool = rPool;
     }
