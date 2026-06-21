@@ -4811,9 +4811,9 @@ function updatePreview() {
     return base;
   }
 
-  // 原始公式：訓練 EXP
+  // 訓練 EXP (不含 lockedLevel 乘數)
   function origExpPreview(effScore, targetPkmn) {
-    var baseExp = Math.floor(effScore * 10 * Math.max(1, bL / 5));
+    var baseExp = Math.floor(effScore * 10);
     if (!targetPkmn) return baseExp;
     if (targetPkmn.currentLevel < bL) return Math.floor(baseExp * 1.5);
     if (targetPkmn.currentLevel > bL + 5) return Math.floor(baseExp * 0.3);
@@ -4843,7 +4843,7 @@ function updatePreview() {
     }
     coinHint = "💰 聯盟幣: " + origCoinsPreview(finalScore);
   } else {
-    var dailyExp = Math.floor(finalScore * 10 * Math.max(1, bL / 5));
+    var dailyExp = Math.floor(finalScore * 10);
     expHint = "✨ EXP: +" + dailyExp;
     coinHint = "💰 聯盟幣: " + origCoinsPreview(finalScore);
   }
@@ -5504,8 +5504,7 @@ function generateCapturePokemon(tier, targetType, level) {
     if (speciesT.indexOf(targetType) !== -1) candidates.push(evoName);
   }
   if (candidates.length === 0) {
-    var finalPool = (targetType !== "隨機" && tier === "一般") ? pool : pool;
-    var fallback = finalPool[Math.floor(Math.random() * finalPool.length)];
+    var fallback = pool[Math.floor(Math.random() * pool.length)];
     if (fallback.evolutions) {
       candidates = [getEvolvedName(fallback, level)];
     } else {
@@ -5564,10 +5563,10 @@ async function submitData() {
     return cs;
   }
 
-  // ── 原始公式：訓練 EXP (含 rubberband) ──
+  // ── 訓練 EXP (含 rubberband, 移除 lockedLevel 乘數防止雪球效應) ──
   function origExp(effScore, targetPkmn) {
     var bL = globalData ? (globalData.lockedGymLevel || 5) : 5;
-    var baseExp = Math.floor(effScore * 10 * Math.max(1, bL / 5));
+    var baseExp = Math.floor(effScore * 10);
     if (!targetPkmn) return baseExp;
     if (targetPkmn.currentLevel < bL) return Math.floor(baseExp * 1.5);
     if (targetPkmn.currentLevel > bL + 5) return Math.floor(baseExp * 0.3);

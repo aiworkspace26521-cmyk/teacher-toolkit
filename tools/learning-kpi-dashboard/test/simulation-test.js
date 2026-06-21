@@ -1044,9 +1044,9 @@ function calcCoins(score, hasBoth) {
   return base;
 }
 
-// V5.4 EXP calculation for training with Rubberband
+// V5.6 EXP calculation for training (移除 lockedLevel 乘數防止雪球)
 function calcTrainExp(score, lockedLevel, targetLevel) {
-  var base = Math.floor(score * 10 * Math.max(1, lockedLevel / 5));
+  var base = Math.floor(score * 10);
   if (targetLevel == null) return base;
   if (targetLevel < lockedLevel) return Math.floor(base * 1.5);
   if (targetLevel > lockedLevel + 5) return Math.floor(base * 0.3);
