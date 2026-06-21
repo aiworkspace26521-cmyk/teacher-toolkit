@@ -4,7 +4,7 @@ const fs = require('fs');
 const path = require('path');
 
 const FRONTEND = path.join(__dirname, '..', 'frontend', 'kpi-dashboard.html');
-const MANUAL = path.join(__dirname, '..', 'GAME-MANUAL.md');
+const MANUAL = path.join(__dirname, '..', 'GAME-MANUAL VER5.6.md');
 
 let errors = [];
 
