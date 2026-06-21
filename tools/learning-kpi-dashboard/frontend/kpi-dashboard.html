@@ -3371,7 +3371,7 @@ function finishGymVictory() {
     var waveMult = we.isLastWave ? 2.5 : 1.2;
     baseExp = Math.floor(baseExp * 1.8 * waveMult);
     var legBonus = checkIsLegendary(we.name) ? 1.5 : 1;
-    baseExp = Math.floor(baseExp * (globalData.hasAmuletCoin ? 1.5 : 1) * legBonus);
+    baseExp = Math.floor(baseExp * legBonus);
     baseExp = Math.floor(baseExp * (globalData.hasChampionCloak ? 1.5 : 1));
     cumulativeExp += baseExp;
   }
@@ -3380,7 +3380,7 @@ function finishGymVictory() {
     var share = j === 0 ? Math.floor(cumulativeExp * 1.2) : Math.floor(cumulativeExp * 0.3);
     totalExpGain += share;
   }
-  var coinsGain = 15 + Math.floor(battleState.enemy.level * 0.8);
+  var coinsGain = Math.floor((15 + Math.floor(battleState.enemy.level * 0.8)) * (globalData.hasAmuletCoin ? 1.5 : 1));
   var badgeGain = 0;
   if (battleState.isGym && globalData.daysSinceLastBadge >= 1) { badgeGain = 1; }
   var gi = battleState.gymInfo;
@@ -3423,7 +3423,8 @@ function endBattle(playerWon) {
     if (battleState.isLeague) baseExp = Math.floor(baseExp * 3.5);
     if (battleState.isWeeklyBoss) baseExp = Math.floor(baseExp * 2.5);
     var legBonus = checkIsLegendary(battleState.enemy.name) ? 1.5 : 1;
-    baseExp = Math.floor(baseExp * (globalData.hasAmuletCoin ? 1.5 : 1) * legBonus);
+    baseExp = Math.floor(baseExp * legBonus);
+    baseExp = Math.floor(baseExp * (globalData.hasChampionCloak ? 1.5 : 1));
 
     var expBreakdown = [];
     for (var j = 0; j < partyUsed.length; j++) {
@@ -3436,6 +3437,7 @@ function endBattle(playerWon) {
     if (battleState.isGym) coinsGain += 5;
     if (battleState.isLeague) coinsGain += 15;
     if (battleState.isWeeklyBoss) coinsGain += 20;
+    if (globalData.hasAmuletCoin) coinsGain = Math.floor(coinsGain * 1.5);
 
     // P4-2b: Defense battle reward
     var defRegion = battleState.enemy.defenseRegion;
@@ -3951,7 +3953,7 @@ function finishLeagueVictory() {
     var waveMult = we.isLastWave ? 4 : 2.5;
     baseExp = Math.floor(baseExp * 5 * waveMult);
     var legBonus = checkIsLegendary(we.name) ? 1.5 : 1;
-    baseExp = Math.floor(baseExp * (globalData.hasAmuletCoin ? 1.5 : 1) * legBonus);
+    baseExp = Math.floor(baseExp * legBonus);
     baseExp = Math.floor(baseExp * (globalData.hasChampionCloak ? 1.5 : 1));
     cumulativeExp += baseExp;
   }
@@ -3960,7 +3962,7 @@ function finishLeagueVictory() {
     var share = j === 0 ? Math.floor(cumulativeExp * 1.2) : Math.floor(cumulativeExp * 0.3);
     totalExpGain += share;
   }
-  var coinsGain = 80 + Math.floor(battleState.enemy.level * 1.5);
+  var coinsGain = Math.floor((80 + Math.floor(battleState.enemy.level * 1.5)) * (globalData.hasAmuletCoin ? 1.5 : 1));
   var captureText = "";
   var alreadyCaptured = globalData.monthLeagueWins > 0;
   var canCapture = !alreadyCaptured || Math.random() < 0.4;
@@ -4115,7 +4117,8 @@ function renderPCBoxContent() {
     { n: "神奇糖果", v: gd.candies || 0, icon: "🍬" },
     { n: "橙橙果", v: gd.oranBerries || 0, icon: "🍊" },
     { n: "奇異果", v: gd.cheriBerries || 0, icon: "🍒" },
-    { n: "木子果", v: gd.lumBerries || 0, icon: "🍇" }
+    { n: "木子果", v: gd.lumBerries || 0, icon: "🍇" },
+    { n: "抗性果", v: gd.chilanBerries || 0, icon: "🫐" }
   ];
   var invRow = document.createElement("div");
   invRow.style.cssText = "display:flex;flex-wrap:wrap;gap:4px;margin-bottom:8px;font-size:12px;";
