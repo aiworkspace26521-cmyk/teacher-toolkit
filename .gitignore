@@ -21,6 +21,7 @@ package-lock.json
 # Playwright + test
 .playwright-mcp/
 test-results/
+playwright-report/
 
 # Debug logs + screenshots
 console-errors*.txt

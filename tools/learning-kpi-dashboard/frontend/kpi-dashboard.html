@@ -6630,6 +6630,7 @@ function checkDefenseChallenge() {
 
 function startDefenseChallenge(region) {
   var trainerLevel = globalData.highestLevel || 5;
+  if (globalData.simpleMode) trainerLevel = Math.max(5, Math.floor(trainerLevel * 0.75));
   var leagueData = getLeagueData(region);
   var champ = leagueData.champion;
   var bossLevel = trainerLevel + champ.lvBonus + Math.floor(Math.random() * 6);
