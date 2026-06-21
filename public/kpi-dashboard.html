@@ -377,6 +377,7 @@
         <div class="kpi-box">徽章數<span class="val" id="kpiBadges">0</span></div>
         <div class="kpi-box" id="streakBox">🔥 連續天數<span class="val" id="kpiStreak">0</span></div>
       </div>
+      <div class="gym-preview" id="gymPreview" style="display:none;"></div>
       <div style="text-align:center;margin:6px 0;font-size:13px;"><label><input type="checkbox" id="simpleModeToggle" onchange="toggleSimpleMode()"> 🌱 簡單模式（敵方等級 ×0.75）</label></div>
       <div class="region-selector" style="display:flex;gap:6px;justify-content:center;margin-bottom:8px;padding:6px;background:#f8f9fa;border-radius:8px;border:2px solid #e0e0e0;">
       <span style="font-size:13px;font-weight:900;color:#555;line-height:32px;">🌍</span>
@@ -4573,6 +4574,8 @@ function renderBadgeCase() {
   var gym = getGymLeaderInfo(badges);
   var nextBadge = badges < (gymsCache || GYM_LEADERS).length ? (gymsCache || GYM_LEADERS)[badges] : null;
   var preview = $("gymPreview");
+  if (!preview) return;
+  preview.style.display = "block";
   if (nextBadge) {
     var dsb = globalData.daysSinceLastBadge;
     if (dsb === undefined) dsb = 0;
