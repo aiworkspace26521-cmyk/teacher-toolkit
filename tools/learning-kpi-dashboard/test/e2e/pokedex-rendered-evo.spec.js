@@ -15,7 +15,7 @@ test.describe('Pokédex Rendered Evolution Chain', () => {
     });
   }
 
-  test('Neil pokédex shows evolution chain for 尼多后', async ({ page }) => {
+  test('Neil pokédex shows Eevee evolution text (尼多后 data was cleared)', async ({ page }) => {
     await page.goto('/kpi');
     await page.waitForLoadState('networkidle');
     await page.selectOption('#studentSelect', 'Neil');
@@ -24,13 +24,7 @@ test.describe('Pokédex Rendered Evolution Chain', () => {
 
     var cardTexts = await openPokedex(page);
 
-    // Check 尼多后 card has evolution chain
-    var 尼多后Card = cardTexts.find(function(t) { return t.indexOf('尼多后') !== -1; });
-    expect(尼多后Card).toBeTruthy();
-    expect(尼多后Card).toContain('尼多蘭');
-    expect(尼多后Card).toContain('尼多娜');
-
-    // Check Eevee card has special evolution text
+    // Neil only has Eevee (starter) after test data cleanup
     var eeveeCard = cardTexts.find(function(t) { return t.indexOf('伊布') !== -1; });
     expect(eeveeCard).toBeTruthy();
     expect(eeveeCard).toContain('8種進化型態');

@@ -79,7 +79,7 @@ test.describe('KPI Dashboard Smoke Tests', () => {
     await page.selectOption('#studentSelect', 'Neil');
     await expect(page.locator('#kpiLevel')).not.toBeEmpty({ timeout: 15000 });
 
-    const boxBtn = page.locator('.nav-btn').filter({ hasText: /PC Box|寶可夢/ });
+    const boxBtn = page.locator('.nav-btn').filter({ hasText: /電腦/ });
     await expect(boxBtn).toBeVisible();
   });
 
@@ -111,18 +111,17 @@ test.describe('KPI Dashboard Smoke Tests', () => {
     expect(hasBattle).toBe(true);
   });
 
-  test('inline script event handlers are attached to student select', async ({ page }) => {
+  test('inline script event handlers work for student select', async ({ page }) => {
     await page.goto('/kpi');
     await page.waitForLoadState('networkidle');
-    await page.waitForTimeout(2000);
 
-    // Verify JS attached event listeners to studentSelect
-    const hasListeners = await page.evaluate(() => {
-      const el = document.getElementById('studentSelect');
-      if (!el) return false;
-      return typeof el.onchange === 'function' || el.getAttribute('onchange') !== null;
-    });
-    expect(hasListeners).toBe(true);
+    // Verify inline script-defined $ function exists (proves script executed)
+    const scriptLoaded = await page.evaluate(() => typeof $ === 'function');
+    expect(scriptLoaded).toBe(true);
+
+    // Verify change handler (attached via addEventListener) triggers data load
+    await page.selectOption('#studentSelect', 'Neil');
+    await expect(page.locator('#kpiLevel')).not.toBeEmpty({ timeout: 15000 });
   });
 
   test('no garbled text in page content', async ({ page, screenshot }) => {
