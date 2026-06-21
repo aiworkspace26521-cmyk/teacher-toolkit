@@ -5213,16 +5213,6 @@ function openTMLearn(pokemonId) {
   var body = $("tmModalBody");
   body.innerHTML = "<p style=\"font-size:13px;color:#666;\">為 <strong>" + pkmn.baseName + "</strong> 選擇要學習的招式（消耗 1 個萬能學習器）：</p>";
   body.innerHTML += "<p style=\"font-size:12px;color:#e67e22;\">📀 萬能學習器 x" + (globalData.tms.universal||0) + "</p>";
-  var typeFilter = document.createElement("select");
-  typeFilter.style.cssText = "width:100%;padding:8px;margin-bottom:10px;border-radius:6px;border:1px solid #ccc;";
-  var typeNames = ["全部","一般","火","水","草","電","冰","格鬥","毒","地面","飛行","超能力","蟲","岩石","幽靈","龍","惡","鋼","妖精"];
-  for (var tf = 0; tf < typeNames.length; tf++) {
-    var opt = document.createElement("option"); opt.value = typeNames[tf]; opt.text = typeNames[tf];
-    if (typeNames[tf] === "全部") opt.text = "🔥 全部屬性";
-    typeFilter.appendChild(opt);
-  }
-  typeFilter.onchange = function() { renderTMMoveList(pokemonId, typeFilter.value); };
-  body.appendChild(typeFilter);
   var moveList = document.createElement("div"); moveList.id = "tmMoveList";
   body.appendChild(moveList);
   renderTMMoveList(pokemonId, "全部");
@@ -5317,7 +5307,7 @@ function openForgetMove(pokemonId) {
     toast("✅ " + pkmn.baseName + " 忘記了 " + forgotten + "！");
     openCollection();
   } else {
-    toast("⚠️ 這是 " + pkmn.baseName + " 的基礎招式，無法遺忘。請用 TM 學習器覆蓋。");
+    toast("⚠️ 這是 " + pkmn.baseName + " 的基礎招式，無法遺忘。學習新 TM 會自動取代前段槽位。");
   }
 }
 
@@ -5421,6 +5411,7 @@ async function buyItem(itemId, cost, itemName) {
   if (onceItems[itemId] && globalData[onceItems[itemId]]) { toast("已擁有此道具！"); return; }
   globalData.coins -= cost;
   var note = "花費" + cost + "幣購買 " + itemName;
+  if (itemId === "tmUniversal") note += " TM學習器: universal";
   await executeSave({ studentId: globalData.studentId, score: 0, action: "商城兌換", expGained: 0, coinsGained: -cost, badgeChange: 0, note: note, extraNote: note, totalScore: 0, user: globalData.studentId }, function() {
     if (itemId === "potion") globalData.potions = (globalData.potions || 0) + 1;
     else if (itemId === "revive") globalData.revives = (globalData.revives || 0) + 1;
