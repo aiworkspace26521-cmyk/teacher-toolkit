@@ -879,14 +879,14 @@ async function recalculateStudentState(studentId, events) {
       var pid2 = (safeNote.match(/ID:(P\d+(?:_LEG)?|legacy_\d+)/)||[])[1];
       if (pid2) for (var k in state.roster) {
         var isHolder = state.roster[k].heldItem === 'expShare';
-        state.roster[k].totalExp += (k === pid2 || isHolder) ? expGained : Math.floor(expGained * 0.5);
+        state.roster[k].totalExp += (k === pid2) ? expGained : (isHolder ? Math.floor(expGained * 0.8) : Math.floor(expGained * 0.5));
       }
     } else if (rowAction === "\u6230\u9B25\u52DD\u5229") {
       var match = safeNote.match(/\u53C3\u8207(?:\u8005)?:\s*([^|]+)/);
       var parts = match ? match[1].split(",").map(function(s){return s.trim();}) : [];
       for (var k2 in state.roster) {
         var isHolder2 = state.roster[k2].heldItem === 'expShare';
-        state.roster[k2].totalExp += (parts.indexOf(k2) !== -1 || isHolder2) ? expGained : Math.floor(expGained * 0.5);
+        state.roster[k2].totalExp += (parts.indexOf(k2) !== -1) ? expGained : (isHolder2 ? Math.floor(expGained * 0.8) : Math.floor(expGained * 0.5));
       }
       var bossMatch = safeNote.match(/\uD83C\uDFC6 \u6355\u7372:\s*([^|]+)/);
       if (bossMatch) {
@@ -3427,8 +3427,8 @@ function endBattle(playerWon) {
     totalExpGain = baseExp;
     var expBreakdown = [];
     for (var j = 0; j < partyUsed.length; j++) {
-      var share = j === 0 ? Math.floor(baseExp * 1.2) : Math.floor(baseExp * 0.3);
-      expBreakdown.push((j === 0 ? "🛡️" : "⚔️") + partyUsed[j].baseName.replace(/^[^\s]*\s*/,"") + ": +" + share + (j === 0 ? "(先鋒×1.2)" : "(參與×0.3)"));
+      var share = j === 0 ? Math.floor(baseExp * 1.2) : Math.floor(baseExp * 0.5);
+      expBreakdown.push((j === 0 ? "🛡️" : "⚔️") + partyUsed[j].baseName.replace(/^[^\s]*\s*/,"") + ": +" + share + (j === 0 ? "(先鋒×1.2)" : "(參與×0.5)"));
     }
 
     var coinsGain = 5 + Math.floor(battleState.enemy.level * 0.5);
@@ -5325,7 +5325,7 @@ function openShop() {
     { id: "lumBerry", name: "木子果", cost: 25, desc: "解除任一異常狀態", icon: "🍇", cat: "消耗" },
     { id: "chilanBerry", name: "抗性果", cost: 30, desc: "降低被剋傷害一次（消耗品）", icon: "🫐", cat: "消耗" },
     // ═══ 裝備道具 ═══
-    { id: "expShare", name: "學習裝置", cost: 80, desc: "持有者100%經驗，隊伍50%", icon: "📖", once: true, cat: "裝備" },
+    { id: "expShare", name: "學習裝置", cost: 80, desc: "持有者80%經驗(隊伍50%)", icon: "📖", once: true, cat: "裝備" },
     { id: "expertBelt", name: "達人帶", cost: 100, desc: "效果絕佳時傷害再提升", icon: "🥋", once: true, cat: "裝備" },
     { id: "eviolite", name: "進化奇石", cost: 80, desc: "防禦力額外提升", icon: "💎", once: true, cat: "裝備" },
     { id: "championCloak", name: "冠軍披風", cost: 120, desc: "經驗值獲得量增加", icon: "👑", once: true, cat: "裝備" },
