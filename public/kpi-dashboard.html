@@ -1547,7 +1547,7 @@ var POKEMON_TIERS = {
 };
 
 var EVO_CONDITIONS = {
-  // 親密度進化 (happiness ≥ 180 + minLevel)
+  // 親密度進化 (happiness ≥ 120 + minLevel)
   "大嘴蝠": { type: "happiness", to: "叉字蝠", minLevel: 20, happiness: 120 },
   "吉利蛋": { type: "happiness", to: "幸福蛋", minLevel: 20, happiness: 120 },
   // 道具進化 (need specific item in inventory + minLevel)
@@ -4093,7 +4093,8 @@ function renderPCBoxContent() {
     var match = filtered.find(function(p){ return p.id === partyIds[i]; });
     if (match) {
       var abilNameP = getPokemonAbility(match.baseName);
-      slot.innerHTML = match.baseName + " Lv." + match.currentLevel + (abilNameP ? " <span style=\"font-size:10px;color:#8e44ad;\">[" + abilNameP + "]</span>" : "") + " <span title='檢視能力值詳情' style='cursor:pointer;font-size:12px;' onclick='event.stopPropagation();openPkmnDetail(\"" + match.id + "\")'>📊</span>";
+      var hParty = Math.min(match.happiness || 0, 120);
+      slot.innerHTML = match.baseName + " Lv." + match.currentLevel + (abilNameP ? " <span style=\"font-size:10px;color:#8e44ad;\">[" + abilNameP + "]</span>" : "") + (hParty > 0 ? " <span style=\"font-size:10px;color:#e74c3c;\">❤️ " + hParty + "/120</span>" : "") + " <span title='檢視能力值詳情' style='cursor:pointer;font-size:12px;' onclick='event.stopPropagation();openPkmnDetail(\"" + match.id + "\")'>📊</span>";
       slot.dataset.pokemonId = match.id;
       slot.classList.add("pc-filled");
     } else {
@@ -4179,7 +4180,8 @@ function renderPCBoxContent() {
     slot2.dataset.index = j; slot2.dataset.type = "box";
     if (boxed[j]) {
       var abilName3 = getPokemonAbility(boxed[j].baseName);
-      slot2.innerHTML = boxed[j].baseName + " Lv." + boxed[j].currentLevel + (abilName3 ? " <span style=\"font-size:10px;color:#8e44ad;\">[" + abilName3 + "]</span>" : "") + " <span title='檢視能力值詳情' style='cursor:pointer;font-size:12px;' onclick='event.stopPropagation();openPkmnDetail(\"" + boxed[j].id + "\")'>📊</span>";
+      var hBox = Math.min(boxed[j].happiness || 0, 120);
+      slot2.innerHTML = boxed[j].baseName + " Lv." + boxed[j].currentLevel + (abilName3 ? " <span style=\"font-size:10px;color:#8e44ad;\">[" + abilName3 + "]</span>" : "") + (hBox > 0 ? " <span style=\"font-size:10px;color:#e74c3c;\">❤️ " + hBox + "/120</span>" : "") + " <span title='檢視能力值詳情' style='cursor:pointer;font-size:12px;' onclick='event.stopPropagation();openPkmnDetail(\"" + boxed[j].id + "\")'>📊</span>";
       slot2.dataset.pokemonId = boxed[j].id;
       slot2.classList.add("pc-filled");
     } else {
@@ -4234,7 +4236,7 @@ function openPkmnDetail(pokemonId) {
       (abil ? "特性: " + abil : "") +
       (heldName ? " | " + heldIcon + " 持有: " + heldName : "") +
     "</div>" +
-    "<div style='font-size:11px;color:#999;'>捕獲日期: " + (pkmn.catchDate || "未知") + " | 好感度: " + (pkmn.happiness || 0) + "</div>";
+    "<div style='font-size:11px;color:#999;'>捕獲日期: " + (pkmn.catchDate || "未知") + " | 好感度: " + Math.min(pkmn.happiness || 0, 120) + "/120</div>";
   $("pkmnDetailModal").style.display = "flex";
 }
 
@@ -4650,15 +4652,10 @@ function updateDashboard() {
       if (leg && nameDisplay.indexOf("?") === -1) nameDisplay = "★ " + nameDisplay;
       // 持有道具顯示
       var heldBadge = HELD_ITEM_ICONS[p.heldItem] ? " <span style=\"font-size:11px;color:#8e44ad;\">" + HELD_ITEM_ICONS[p.heldItem] + "</span>" : "";
-      // 親密度顯示
-      var h = getHappiness(p);
-      var hearts = "";
-      if (h > 0) {
-        var fullHearts = Math.min(5, Math.floor(h / 40));
-        for (var hi = 0; hi < fullHearts; hi++) hearts += "\u2764\uFE0F";
-        for (var hi2 = fullHearts; hi2 < 5; hi2++) hearts += "\u{1F90D}";
-        hearts = " <span style=\"font-size:11px;\">" + hearts + "</span>";
-      }
+      // 親密度顯示 (❤️ 數值條)
+      var h = Math.min(getHappiness(p), 120);
+      var heartDisplay = h > 0 ? " <span style=\"font-size:11px;\">\u2764\uFE0F " + h + "/120</span>" : "";
+      var heartBar = h > 0 ? "<div style=\"margin-top:2px;background:#ffe0e0;border-radius:4px;height:4px;\"><div style=\"width:" + Math.round(h / 120 * 100) + "%;background:#e74c3c;height:4px;border-radius:4px;\"></div></div>" : "";
       // 進化按鈕
       var evoInfo = checkEvoReady(p, gd);
       var evoBtn = "";
@@ -4677,9 +4674,9 @@ function updateDashboard() {
         else if (evoCond.type === "trade") evoTag = " <span class=\"ability-tag\" style=\"background:#fdedec;color:#c0392b;\">🤝 交換進化</span>";
         else if (evoCond.type === "happiness") evoTag = " <span class=\"ability-tag\" style=\"background:#fdedec;color:#c0392b;\">💕 親密度進化</span>";
       }
-      card.innerHTML = "<div style=\"font-weight:bold;font-size:14px;\">" + nameDisplay + " " + typesHtml + abilBadge + dreamBadge + evoTag + heldBadge + hearts + "</div>" +
-        "<div style=\"font-size:12px;color:#666;\">Lv." + p.currentLevel + " | EXP " + p.expProgress + "/" + p.expNeeded + (h > 0 ? " | \u2764\uFE0F " + h : "") + "</div>" +
-        "<div style=\"margin-top:4px;background:#e0e0e0;border-radius:4px;height:6px;\"><div style=\"width:" + Math.round(p.expProgress / (p.expNeeded||1) * 100) + "%;background:" + typeColor + ";height:6px;border-radius:4px;\"></div></div>" +
+      card.innerHTML = "<div style=\"font-weight:bold;font-size:14px;\">" + nameDisplay + " " + typesHtml + abilBadge + dreamBadge + evoTag + heldBadge + heartDisplay + "</div>" +
+        "<div style=\"font-size:12px;color:#666;\">Lv." + p.currentLevel + " | EXP " + p.expProgress + "/" + p.expNeeded + "</div>" +
+        "<div style=\"margin-top:4px;background:#e0e0e0;border-radius:4px;height:6px;\"><div style=\"width:" + Math.round(p.expProgress / (p.expNeeded||1) * 100) + "%;background:" + typeColor + ";height:6px;border-radius:4px;\"></div></div>" + heartBar +
         (evoInfo ? "<div style=\"margin-top:4px;font-size:11px;color:#e67e22;font-weight:700;\">\u2B50 " + evoInfo.nextName + (evoInfo.info ? " (" + evoInfo.info + ")" : "") + evoBtn + "</div>" : "");
       rosterDiv.appendChild(card);
     }
