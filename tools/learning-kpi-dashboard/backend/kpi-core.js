@@ -272,7 +272,7 @@ async function recalculateStudentState(studentId) {
       if (pid) {
         for (const k in state.roster) {
           const isHolder = state.roster[k].heldItem === 'expShare';
-          state.roster[k].totalExp += (k === pid || isHolder) ? rowExp : Math.floor(rowExp * 0.5);
+          state.roster[k].totalExp += (k === pid) ? rowExp : (isHolder ? Math.floor(rowExp * 0.8) : Math.floor(rowExp * 0.5));
         }
       }
     } else if (rowAction === '戰鬥勝利') {
@@ -280,7 +280,7 @@ async function recalculateStudentState(studentId) {
       const parts = match ? match[1].split(',').map(s => s.trim()) : [];
       for (const k in state.roster) {
         const isHolder = state.roster[k].heldItem === 'expShare';
-        state.roster[k].totalExp += (parts.includes(k) || isHolder) ? rowExp : Math.floor(rowExp * 0.5);
+        state.roster[k].totalExp += (parts.includes(k)) ? rowExp : (isHolder ? Math.floor(rowExp * 0.8) : Math.floor(rowExp * 0.5));
       }
       const bossMatch = safeNote.match(/🏆 捕獲:\s*([^|]+)/);
       if (bossMatch) {
