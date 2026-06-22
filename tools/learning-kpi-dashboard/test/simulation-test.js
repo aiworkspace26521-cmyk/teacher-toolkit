@@ -1,4 +1,4 @@
-﻿#!/usr/bin/env node
+#!/usr/bin/env node
 /**
  * teacher-toolkit 學習 KPI 管理系統 — 9 個月模擬測試
  *
@@ -1211,7 +1211,7 @@ class SimulationStudent {
     // Wild encounter — simplified exp calculation
     const baseExp = 80 + Math.floor(playerLevel * 3);
     const legBonus = 1; // simplified
-    const expGain = Math.floor(baseExp * 1.2); // participant bonus for lead
+    const expGain = Math.floor(baseExp); // per-participant base
     const coinsGain = 5 + Math.floor(playerLevel * 0.5);
     const note = `戰鬥勝利 | 對手: 野生寶可夢 [路人] | 參與者: P0`;
     this.events.push({
@@ -1310,7 +1310,7 @@ class SimulationStudent {
       champExp = Math.floor(champExp * 5 * 4);
       cumulativeExp += champExp;
       cumulativeExp = Math.floor(cumulativeExp);
-      const totalExpGain = Math.floor(cumulativeExp * 1.2); // lead bonus
+      const totalExpGain = Math.floor(cumulativeExp); // per-participant base
       const coinsGain = 80 + Math.floor(level * 1.5);
       const note = `聯盟冠軍 [${regionName} League] | 四天王+冠軍 [${champ.name}] | 參與者: P0`;
       this.events.push({

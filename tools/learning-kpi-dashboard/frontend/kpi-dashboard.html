@@ -3377,10 +3377,7 @@ function finishGymVictory() {
     cumulativeExp += baseExp;
   }
   cumulativeExp = Math.floor(cumulativeExp);
-  for (var j = 0; j < partyUsed.length; j++) {
-    var share = j === 0 ? Math.floor(cumulativeExp * 1.2) : Math.floor(cumulativeExp * 0.3);
-    totalExpGain += share;
-  }
+  totalExpGain = cumulativeExp;
   var coinsGain = Math.floor((15 + Math.floor(battleState.enemy.level * 0.8)) * (globalData.hasAmuletCoin ? 1.5 : 1));
   var badgeGain = 0;
   if (battleState.isGym && globalData.daysSinceLastBadge >= 1) { badgeGain = 1; }
@@ -3389,7 +3386,7 @@ function finishGymVictory() {
   if (Math.random() < 0.15) {
     captureText = " | 🏆 捕獲: " + battleState.enemy.name;
   }
-  var msg = "🏆 道館制霸！擊敗 " + gi.leader + " 獲得 " + totalExpGain + " 經驗值, " + coinsGain + " 金幣" + captureText;
+  var msg = "🏆 道館制霸！擊敗 " + gi.leader + " 各隊員獲得 " + totalExpGain + " 經驗值, " + coinsGain + " 金幣" + captureText;
   if (badgeGain) msg += " + 🏅 " + badgeGain + " 枚徽章！";
   var noteContent = "⚔️ 道館勝利 | 館主: " + gi.leader + " (" + gi.name + ") [Gym] | 波次:" + battleState.totalWaves + " | 參與者: " + partyUsed.map(function(p){return p.id;}).join(",") + captureText;
   executeSave({ studentId: globalData.studentId, score: 0, action: "戰鬥勝利", expGained: totalExpGain, coinsGained: coinsGain, badgeChange: badgeGain, note: noteContent, extraNote: noteContent, totalScore: 0, user: globalData.studentId }, function() {
@@ -3427,10 +3424,10 @@ function endBattle(playerWon) {
     baseExp = Math.floor(baseExp * legBonus);
     baseExp = Math.floor(baseExp * (globalData.hasChampionCloak ? 1.5 : 1));
 
+    totalExpGain = baseExp;
     var expBreakdown = [];
     for (var j = 0; j < partyUsed.length; j++) {
       var share = j === 0 ? Math.floor(baseExp * 1.2) : Math.floor(baseExp * 0.3);
-      totalExpGain += share;
       expBreakdown.push((j === 0 ? "🛡️" : "⚔️") + partyUsed[j].baseName.replace(/^[^\s]*\s*/,"") + ": +" + share + (j === 0 ? "(先鋒×1.2)" : "(參與×0.3)"));
     }
 
@@ -3458,7 +3455,7 @@ function endBattle(playerWon) {
     }
 
     var defMsg = defRegion ? " | 🛡️ 衛冕成功 +5聯盟積分" : "";
-    var msg = "戰鬥勝利！獲得 " + totalExpGain + " 經驗值, " + coinsGain + " 金幣" + captureText + defMsg;
+    var msg = "戰鬥勝利！各隊員獲得 " + totalExpGain + " 經驗值, " + coinsGain + " 金幣" + captureText + defMsg;
     if (badgeGain) msg += " + " + badgeGain + " 徽章！";
     msg += "<br><span style='font-size:11px;color:#666;'>" + expBreakdown.join(" | ") + " | 📖 非參戰隊員獲得50%</span>";
     var noteContent = "⚔️ 戰鬥勝利 | 對手: " + battleState.enemy.name + (defRegion ? " [Defense" + defRegion + "]" : battleState.isGym ? " [Gym]" : battleState.isLeague ? " [League]" : battleState.isWeeklyBoss ? " [Boss]" : " [路人]") + " | 參與者: " + partyUsed.map(function(p){return p.id;}).join(",") + captureText + defMsg;
@@ -3959,16 +3956,13 @@ function finishLeagueVictory() {
     cumulativeExp += baseExp;
   }
   cumulativeExp = Math.floor(cumulativeExp);
-  for (var j = 0; j < partyUsed.length; j++) {
-    var share = j === 0 ? Math.floor(cumulativeExp * 1.2) : Math.floor(cumulativeExp * 0.3);
-    totalExpGain += share;
-  }
+  totalExpGain = cumulativeExp;
   var coinsGain = Math.floor((80 + Math.floor(battleState.enemy.level * 1.5)) * (globalData.hasAmuletCoin ? 1.5 : 1));
   var captureText = "";
   var alreadyCaptured = globalData.monthLeagueWins > 0;
   var canCapture = !alreadyCaptured || Math.random() < 0.4;
   if (canCapture) { captureText = " | 🏆 捕獲: " + battleState.enemy.name; }
-  var msg = "🏆 " + region + "聯盟冠軍！擊敗了四天王 & " + champ.name + "！獲得 " + totalExpGain + " 經驗值, " + coinsGain + " 金幣 +10聯盟積分" + captureText;
+  var msg = "🏆 " + region + "聯盟冠軍！擊敗了四天王 & " + champ.name + "！各隊員獲得 " + totalExpGain + " 經驗值, " + coinsGain + " 金幣 +10聯盟積分" + captureText;
   if (!alreadyCaptured) msg += " | 🌟 傳說捕獲！";
   var participantStr = partyUsed.map(function(p){ return p.id; }).join(",");
   var noteContent = "⚔️ 聯盟冠軍 [" + region + " League] | 四天王+冠軍 [" + champ.name + "] | 參與者: " + participantStr + captureText;
