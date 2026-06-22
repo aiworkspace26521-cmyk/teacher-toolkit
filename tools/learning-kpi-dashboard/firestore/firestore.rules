@@ -50,6 +50,17 @@ service cloud.firestore {
                     || request.auth.uid == "Admin";
     }
 
+    // pvp_battles: 挑戰者/防禦者讀寫各自戰鬥
+    match /pvp_battles/{battleId} {
+      allow read: if true;
+      allow create: if request.resource.data.challengerId == request.auth.uid
+                    || request.resource.data.defenderId == request.auth.uid;
+      allow update: if resource.data.challengerId == request.auth.uid
+                    || resource.data.defenderId == request.auth.uid
+                    || request.auth.uid == "Admin";
+      allow delete: if false;
+    }
+
     // 其餘全部拒絕
     match /{document=**} {
       allow read, write: if false;

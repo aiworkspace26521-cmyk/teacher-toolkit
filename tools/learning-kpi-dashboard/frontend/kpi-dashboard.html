@@ -268,6 +268,19 @@
     .btn-pvp-select:hover, .btn-pvp-start:hover { background: #f3e5f5; }
     .btn-pvp-start { background: #8e44ad; color: white; }
     .btn-pvp-start:hover { background: #7b1fa2; color: white; }
+    .pvp-team-slot { border:2px solid #8e44ad; border-radius:8px; padding:8px; margin:4px; cursor:pointer; background:white; transition:0.15s; display:inline-block; width:30%; vertical-align:top; font-size:12px; }
+    .pvp-team-slot.selected { border-color:#e74c3c; background:#fdedec; transform:scale(1.05); }
+    .pvp-team-slot.disabled { opacity:0.4; cursor:not-allowed; }
+    .pvp-invite-card { border:1px solid #ddd; border-radius:8px; padding:10px; margin-bottom:6px; background:#fafafa; display:flex; align-items:center; justify-content:space-between; font-size:13px; }
+    .pvp-invite-card .actions { display:flex; gap:5px; }
+    .pvp-invite-card .actions button { padding:5px 12px; border-radius:5px; border:none; font-weight:700; cursor:pointer; font-size:12px; }
+    .pvp-battle-3v3 { display:flex; flex-direction:column; gap:8px; }
+    .pvp-side-panel { background:#fafafa; border-radius:8px; padding:10px; border:2px solid #ddd; text-align:left; }
+    .pvp-side-panel.p1 { border-color:#3498db; background:#eaf2f8; }
+    .pvp-side-panel.p2 { border-color:#e74c3c; background:#fdedec; }
+    .pvp-pkmn-mini { display:flex; align-items:center; gap:6px; padding:4px 8px; margin:2px 0; border-radius:5px; background:rgba(255,255,255,0.7); font-size:12px; }
+    .pvp-pkmn-mini.active { font-weight:900; border:2px solid #f1c40f; }
+    .pvp-pkmn-mini.fainted { opacity:0.4; text-decoration:line-through; }
     .pc-slot { border: 2px solid #ccc; border-radius: 8px; padding: 6px; text-align: center; cursor: pointer; background: white; transition: 0.2s; font-size: 12px; box-shadow: 1px 1px 4px rgba(0,0,0,0.1); }
     .pc-filled { border-color: #9b59b6; background: #f3e5f5; }
     .pc-empty { background: #eee; color: #999; border-style: dashed; }
@@ -578,7 +591,23 @@
   </div>
 </div>
 
-<div id="pvpModal" class="modal"><div class="modal-content" style="border-color:#8e44ad;width:95%;"><h3 style="color:#8e44ad;margin-top:0;">🆚 PvP對戰</h3><div style="text-align:right;margin-bottom:6px;"><button onclick="closeModal('pvpModal');openRankingModal();" style="background:none;border:1px solid #8e44ad;color:#8e44ad;border-radius:4px;padding:4px 10px;font-size:12px;cursor:pointer;">🏆 天梯排名</button></div><div id="pvpSelection"></div><div id="pvpBattle"></div><button class="close-btn" onclick="closeModal('pvpModal')">離開</button></div></div>
+<div id="pvpModal" class="modal"><div class="modal-content" style="border-color:#8e44ad;width:95%;max-width:520px;">
+  <h3 style="color:#8e44ad;margin-top:0;">🆚 PvP對戰</h3>
+  <div style="text-align:right;margin-bottom:6px;">
+    <button onclick="closeModal('pvpModal');openRankingModal();" style="background:none;border:1px solid #8e44ad;color:#8e44ad;border-radius:4px;padding:4px 10px;font-size:12px;cursor:pointer;">🏆 天梯排名</button>
+  </div>
+  <!-- Lobby -->
+  <div id="pvpLobby">
+    <div id="pvpIncoming" style="margin-bottom:10px;"></div>
+    <div id="pvpOutgoing" style="margin-bottom:10px;"></div>
+    <div id="pvpOpponentList" style="margin-bottom:10px;"></div>
+  </div>
+  <!-- Team Selection -->
+  <div id="pvpTeamSelection" style="display:none;"></div>
+  <!-- 3v3 Battle -->
+  <div id="pvpBattle3v3" style="display:none;"></div>
+  <button class="close-btn" onclick="closePvP()">離開</button>
+</div></div>
 
 <div id="tradeModal" class="modal"><div class="modal-content" style="border-color:#e67e22;">
   <h3 style="color:#e67e22;margin-top:0;">🤝 寶可夢交換所</h3>
@@ -4285,25 +4314,30 @@ async function savePCBox() {
     console.error("savePCBox error:", e);
   }
 }
-// ===== PVP =====
-var pvpState = null;
-
-var pvpOpponentInfo = null;
+// ===== U5 PvP 3v3 Rewrite =====
+var pvp3 = null;
+var pvpUnsub = [];
+var pvpBattleDocId = null;
+var pvpPickList = [];
+var pvpBattleUnsub = null;
 
 function openPvPModal() {
   if (!globalData || !globalData.roster || globalData.roster.length === 0) { toast("你還沒有寶可夢！"); return; }
-  if ((globalData.partyIds || []).length < 2) { toast("請先在 PC Box 設定至少 2 隻寶可夢的隊伍！"); return; }
-  // daily limit: check today PvP events
+  if ((globalData.partyIds || []).length < 3) { toast("請先在 PC Box 設定至少 3 隻寶可夢的隊伍！"); return; }
   if (checkPvpDoneToday()) { toast("今日 PvP 已結束！每天限1次"); return; }
-  var pkmnList = globalData.roster.filter(function(p){ return (globalData.partyIds || []).indexOf(p.id) !== -1; });
-  if (pkmnList.length < 2) { toast("隊伍中至少需要 2 隻寶可夢！"); return; }
-  pvpState = { playerParty: pkmnList.slice(), selectedIndex: 0, round: 1, isPlayerTurn: true, gameOver: false, log: [] };
-  pvpOpponentInfo = null;
   $("pvpModal").style.display = "flex";
-  fetchPvPOpponent(function(info) {
-    pvpOpponentInfo = info;
-    renderPvPSelection();
-  });
+  $("pvpLobby").style.display = "block";
+  $("pvpTeamSelection").style.display = "none";
+  $("pvpBattle3v3").style.display = "none";
+  renderPvPLobby();
+  startPvPSnapshot();
+}
+function closePvP() {
+  for (var ui = 0; ui < pvpUnsub.length; ui++) { if (pvpUnsub[ui]) pvpUnsub[ui](); }
+  pvpUnsub = [];
+  if (pvpBattleUnsub) { pvpBattleUnsub(); pvpBattleUnsub = null; }
+  pvp3 = null; pvpBattleDocId = null; pvpPickList = [];
+  $("pvpModal").style.display = "none";
 }
 function checkPvpDoneToday() {
   if (!window.__pvpEvents) return false;
@@ -4313,134 +4347,542 @@ function checkPvpDoneToday() {
   }
   return false;
 }
-function fetchPvPOpponent(cb) {
-  if (typeof db === "undefined") { cb(null); return; }
-  var cacheKey = "pvp_candidates_" + getCurrentSeason();
-  var cached = sessionStorage.getItem(cacheKey);
-  if (cached) {
-    try {
-      var candidates = JSON.parse(cached);
-      if (candidates.length > 0) {
-        var pick = candidates[Math.floor(Math.random() * candidates.length)];
-        cb(pick);
-        return;
-      }
-    } catch(e) {}
+
+// ── Lobby ──
+function renderPvPLobby() {
+  $("pvpIncoming").innerHTML = "<div style='font-weight:900;font-size:13px;color:#8e44ad;'>📥 收到的挑戰</div><div id='pvpIncomingList'><span style='font-size:12px;color:#999;'>載入中...</span></div>";
+  $("pvpOutgoing").innerHTML = "<div style='font-weight:900;font-size:13px;color:#e67e22;'>📤 發出的挑戰</div><div id='pvpOutgoingList'><span style='font-size:12px;color:#999;'>載入中...</span></div>";
+  $("pvpOpponentList").innerHTML = "<div style='font-weight:900;font-size:13px;color:#3498db;'>👤 選擇對手</div><div style='font-size:12px;color:#999;margin:4px 0;'>選擇對象發起 3vs3 挑戰</div><div id='pvpOpponentItems'></div>";
+  fetchPvPOpponentList();
+}
+
+function startPvPSnapshot() {
+  if (!db) return;
+  for (var ui = 0; ui < pvpUnsub.length; ui++) { if (pvpUnsub[ui]) pvpUnsub[ui](); }
+  pvpUnsub = [];
+  var myId = globalData.studentId;
+  try {
+    pvpUnsub.push(db.collection("pvp_battles")
+      .where("defenderId", "==", myId).where("status", "in", ["invited", "accepted", "in_progress"])
+      .orderBy("updatedAt", "desc").onSnapshot(function(snap) { updatePvPIncoming(snap); }, function(){}));
+  } catch(e) {}
+  try {
+    pvpUnsub.push(db.collection("pvp_battles")
+      .where("challengerId", "==", myId).where("status", "in", ["invited", "accepted", "in_progress"])
+      .orderBy("updatedAt", "desc").onSnapshot(function(snap) { updatePvPOutgoing(snap); }, function(){}));
+  } catch(e) {}
+}
+
+function updatePvPIncoming(snap) {
+  var listDiv = $("pvpIncomingList");
+  if (!listDiv) return;
+  var items = [];
+  snap.forEach(function(d){ items.push({ id: d.id, data: d.data() }); });
+  if (items.length === 0) { listDiv.innerHTML = "<span style='font-size:12px;color:#999;'>目前沒有收到的挑戰</span>"; return; }
+  var html = "";
+  for (var i = 0; i < items.length; i++) {
+    var d = items[i].data;
+    var statusTag = d.status === "invited" ? "⏳ 等待回應" : d.status === "accepted" ? "✅ 已接受" : "⚔️ 戰鬥中";
+    var actions = "";
+    if (d.status === "invited") {
+      actions = "<button style='background:#27ae60;color:white;' onclick='acceptPvP(\"" + items[i].id + "\")'>接受</button>" +
+                "<button style='background:#e74c3c;color:white;' onclick='rejectPvP(\"" + items[i].id + "\")'>拒絕</button>";
+    } else if (d.status === "accepted" && !d.defenderReady) {
+      actions = "<button style='background:#8e44ad;color:white;' onclick='openPvPTeamSelection(\"" + items[i].id + "\",false)'>選擇隊伍</button>";
+    } else if (d.status === "accepted" && d.defenderReady && d.challengerReady) {
+      actions = "<button style='background:#e74c3c;color:white;' onclick='startPvPBattle3v3(\"" + items[i].id + "\")'>進入戰鬥</button>";
+    }
+    html += "<div class='pvp-invite-card'><div><strong>" + d.challengerId + "</strong> → 你 <span style='font-size:11px;color:#666;'>" + statusTag + "</span></div><div class='actions'>" + actions + "</div></div>";
   }
+  listDiv.innerHTML = html;
+}
+
+function updatePvPOutgoing(snap) {
+  var listDiv = $("pvpOutgoingList");
+  if (!listDiv) return;
+  var items = [];
+  var myId = globalData.studentId;
+  snap.forEach(function(d){
+    var data = d.data();
+    if (data.challengerId === myId) items.push({ id: d.id, data: data });
+  });
+  if (items.length === 0) { listDiv.innerHTML = "<span style='font-size:12px;color:#999;'>目前沒有發出的挑戰</span>"; return; }
+  var html = "";
+  for (var i = 0; i < items.length; i++) {
+    var d = items[i].data;
+    var statusTag = d.status === "invited" ? "⏳ 等待接受" : d.status === "accepted" ? "✅ 對方已接受" : "⚔️ 戰鬥中";
+    var actions = "";
+    if (d.status === "invited") {
+      actions = "<button style='background:#e74c3c;color:white;' onclick='cancelPvP(\"" + items[i].id + "\")'>取消</button>";
+    } else if (d.status === "accepted" && !d.challengerReady) {
+      actions = "<button style='background:#8e44ad;color:white;' onclick='openPvPTeamSelection(\"" + items[i].id + "\",true)'>選擇隊伍</button>";
+    } else if (d.status === "accepted" && d.challengerReady && d.defenderReady) {
+      actions = "<button style='background:#e74c3c;color:white;' onclick='startPvPBattle3v3(\"" + items[i].id + "\")'>進入戰鬥</button>";
+    }
+    html += "<div class='pvp-invite-card'><div><strong>你</strong> → " + d.defenderId + " <span style='font-size:11px;color:#666;'>" + statusTag + "</span></div><div class='actions'>" + actions + "</div></div>";
+  }
+  listDiv.innerHTML = html;
+}
+
+function fetchPvPOpponentList() {
+  var listDiv = $("pvpOpponentItems");
+  if (!listDiv) return;
+  if (!db) { listDiv.innerHTML = "<span style='font-size:12px;color:#999;'>資料庫尚未連線</span>"; return; }
+  listDiv.innerHTML = "<span style='font-size:12px;color:#999;'>載入中...</span>";
   db.collection("kpi_students").limit(20).get().then(function(snap) {
-    var candidates = [];
+    var myId = globalData.studentId;
+    var html = "";
     snap.forEach(function(doc) {
-      if (doc.id === globalData.studentId) return;
+      if (doc.id === myId) return;
       var d = doc.data();
-      if (d.roster && d.roster.length >= 2 && d.partyIds && d.partyIds.length >= 2) candidates.push(d);
+      if (!d.roster || d.roster.length < 3 || !d.partyIds || d.partyIds.length < 3) return;
+      html += "<div class='pvp-invite-card'><div><strong>" + doc.id + "</strong> <span style='font-size:11px;color:#666;'>" + (d.roster.length + "隻") + "</span></div>" +
+        "<div class='actions'><button style='background:#8e44ad;color:white;' onclick='invitePvP(\"" + doc.id + "\")'>⚔️ 挑戰</button></div></div>";
     });
-    if (candidates.length === 0) { cb(null); return; }
-    var cacheList = candidates.map(function(c) { return { studentId: c.id, roster: c.roster, partyIds: c.partyIds || [] }; });
-    try { sessionStorage.setItem(cacheKey, JSON.stringify(cacheList)); } catch(e) {}
-    var pick = candidates[Math.floor(Math.random() * candidates.length)];
-    cb({ studentId: pick.id, roster: pick.roster, partyIds: pick.partyIds || [] });
-  }).catch(function() { cb(null); });
+    if (!html) html = "<span style='font-size:12px;color:#999;'>目前沒有可挑戰的對象（對方需有 3+ 寶可夢）</span>";
+    listDiv.innerHTML = html;
+  }).catch(function() { listDiv.innerHTML = "<span style='font-size:12px;color:#999;'>載入失敗</span>"; });
 }
 
-function renderPvPSelection() {
-  var selDiv = $("pvpSelection");
-  var oppLabel = pvpOpponentInfo ? "👤 " + pvpOpponentInfo.studentId : "🤖 訓練賽 (自己隊伍)";
-  selDiv.innerHTML = "<h3>選擇上場的寶可夢：</h3><div style='font-size:12px;color:#8e44ad;margin-bottom:8px;'>對手: " + oppLabel + "</div>";
-  var list = pvpState.playerParty;
-  for (var i = 0; i < list.length; i++) {
-    var btn = document.createElement("button"); btn.className = "btn-pvp-select";
-    btn.innerHTML = (i === pvpState.selectedIndex ? "👉 " : "") + list[i].baseName + " Lv." + list[i].currentLevel;
-    btn.onclick = (function(idx) { return function() { pvpState.selectedIndex = idx; renderPvPSelection(); }; })(i);
-    selDiv.appendChild(btn);
-  }
-  var startBtn = document.createElement("button"); startBtn.className = "btn-pvp-start";
-  startBtn.innerHTML = "⚔️ " + (pvpOpponentInfo ? "向宿敵挑戰！" : "開始訓練賽！");
-  startBtn.onclick = function() {
-    var chosen = pvpState.playerParty[pvpState.selectedIndex];
-    var enemy = null;
-    if (pvpOpponentInfo) {
-      var eList = pvpOpponentInfo.roster.filter(function(p){ return (pvpOpponentInfo.partyIds || []).indexOf(p.id) !== -1; });
-      if (eList.length > 0) enemy = eList[Math.floor(Math.random() * eList.length)];
-    }
-    if (!enemy) {
-      var eList2 = globalData.roster.filter(function(p){ return (globalData.partyIds || []).indexOf(p.id) !== -1 && p.id !== chosen.id; });
-      if (eList2.length === 0) { toast("需要至少一隻不同的寶可夢作為對手！"); return; }
-      enemy = eList2[Math.floor(Math.random() * eList2.length)];
-    }
-    pvpState.playerPkmn = createPlayerPokemon(chosen);
-    pvpState.enemyPkmn = createPlayerPokemon(enemy);
-    pvpState.isPlayerTurn = pvpState.playerPkmn.speed >= pvpState.enemyPkmn.speed;
-    pvpState.log = [];
-    renderPvPBattle();
+// ── Invite / Accept / Cancel / Reject ──
+async function invitePvP(opponentId) {
+  if (!db) { toast("資料庫尚未連線"); return; }
+  var myId = globalData.studentId;
+  var inviteDoc = {
+    challengerId: myId,
+    defenderId: opponentId,
+    status: "invited",
+    partyChallenger: [],
+    partyDefender: [],
+    activeChallenger: 0,
+    activeDefender: 0,
+    turn: 1,
+    currentTurn: "challenger",
+    log: [],
+    result: null,
+    challengerReady: false,
+    defenderReady: false,
+    createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+    updatedAt: firebase.firestore.FieldValue.serverTimestamp()
   };
-  selDiv.appendChild(startBtn);
+  try {
+    var ref = await db.collection("pvp_battles").add(inviteDoc);
+    toast("已向 " + opponentId + " 發出挑戰！");
+    openPvPTeamSelection(ref.id, true);
+  } catch(e) { toast("邀請失敗：" + e.message); }
 }
 
-function renderPvPBattle() {
-  if (!pvpState) return;
-  var div = $("pvpBattle");
-  div.innerHTML = "";
-  var h = document.createElement("h3"); h.innerHTML = "PvP 對戰 - 第 " + pvpState.round + " 回合"; div.appendChild(h);
-  if (pvpOpponentInfo) { var oppTag = document.createElement("div"); oppTag.style.cssText = "font-size:11px;color:#8e44ad;margin-bottom:4px;"; oppTag.innerHTML = "對手: " + pvpOpponentInfo.studentId; div.appendChild(oppTag); }
-  var pInfo = document.createElement("div");
-  pInfo.innerHTML = "👤 " + pvpState.playerPkmn.name + " HP: " + pvpState.playerPkmn.currentHp + "/" + pvpState.playerPkmn.maxHp + (pvpState.playerPkmn.status ? " ["+pvpState.playerPkmn.status+"]" : "");
-  div.appendChild(pInfo);
-  var eInfo = document.createElement("div");
-  eInfo.innerHTML = "👹 " + pvpState.enemyPkmn.name + " HP: " + pvpState.enemyPkmn.currentHp + "/" + pvpState.enemyPkmn.maxHp + (pvpState.enemyPkmn.status ? " ["+pvpState.enemyPkmn.status+"]" : "");
-  div.appendChild(eInfo);
-  if (!pvpState.gameOver) {
-    var movesDiv = document.createElement("div"); movesDiv.className = "pvp-moves";
-    var moves = pvpState.playerPkmn.moves;
-    for (var i = 0; i < moves.length; i++) {
-      var mBtn = document.createElement("button"); mBtn.className = "btn-move";
-      mBtn.innerHTML = moves[i]; mBtn.onclick = (function(mv) { return function() { executePvPRound(mv); }; })(moves[i]);
-      movesDiv.appendChild(mBtn);
+async function cancelPvP(battleId) {
+  if (!db) return;
+  try {
+    await db.collection("pvp_battles").doc(battleId).update({ status: "cancelled", updatedAt: firebase.firestore.FieldValue.serverTimestamp() });
+    toast("已取消挑戰");
+  } catch(e) { toast("取消失敗"); }
+}
+
+async function acceptPvP(battleId) {
+  if (!db) return;
+  try {
+    await db.collection("pvp_battles").doc(battleId).update({ status: "accepted", updatedAt: firebase.firestore.FieldValue.serverTimestamp() });
+    toast("已接受挑戰！請選擇你的 3 隻寶可夢");
+    openPvPTeamSelection(battleId, false);
+  } catch(e) { toast("接受失敗：" + e.message); }
+}
+
+async function rejectPvP(battleId) {
+  if (!db) return;
+  try {
+    await db.collection("pvp_battles").doc(battleId).update({ status: "cancelled", updatedAt: firebase.firestore.FieldValue.serverTimestamp() });
+    toast("已拒絕挑戰");
+  } catch(e) { toast("拒絕失敗"); }
+}
+
+// ── Team Selection (pick 3) ──
+function openPvPTeamSelection(battleId, isChallenger) {
+  pvpBattleDocId = battleId;
+  pvp3 = { battleId: battleId, isChallenger: isChallenger, picks: [] };
+  pvpPickList = [];
+  $("pvpLobby").style.display = "none";
+  $("pvpTeamSelection").style.display = "block";
+  $("pvpBattle3v3").style.display = "none";
+  renderPvPTeamSelection();
+}
+
+function renderPvPTeamSelection() {
+  var div = $("pvpTeamSelection");
+  var partyPkmn = globalData.roster.filter(function(p){ return (globalData.partyIds || []).indexOf(p.id) !== -1; });
+  var html = "<h4 style='margin:0 0 8px;color:#8e44ad;'>選擇 3 隻出戰寶可夢</h4>";
+  html += "<div style='font-size:12px;color:#666;margin-bottom:8px;'>已選 " + pvpPickList.length + "/3</div><div style='text-align:center;'>";
+  for (var i = 0; i < partyPkmn.length; i++) {
+    var p = partyPkmn[i];
+    var isPicked = pvpPickList.indexOf(p.id) !== -1;
+    var cls = "pvp-team-slot";
+    if (isPicked) cls += " selected";
+    if (pvpPickList.length >= 3 && !isPicked) cls += " disabled";
+    html += "<div class='" + cls + "' onclick='togglePvPPick(\"" + p.id + "\")'>" +
+      "<strong>" + p.baseName + "</strong><br>Lv." + p.currentLevel + "<br>❤️ " + (p.happiness||0) + "/120" +
+      (isPicked ? "<br>✅ 已選" : "") + "</div>";
+  }
+  html += "</div>";
+  var canStart = pvpPickList.length === 3;
+  html += "<button class='btn-pvp-start' style='margin-top:10px;' onclick='confirmPvPTeam()' " + (canStart ? "" : "disabled style='opacity:0.4;'") + ">✅ 確認隊伍" + (canStart ? "" : "（需選3隻）") + "</button>";
+  html += "<button class='close-btn' style='margin-top:6px;' onclick='backToPvPLobby()'>返回</button>";
+  div.innerHTML = html;
+}
+
+function togglePvPPick(pkmnId) {
+  var idx = pvpPickList.indexOf(pkmnId);
+  if (idx !== -1) { pvpPickList.splice(idx, 1); }
+  else if (pvpPickList.length < 3) { pvpPickList.push(pkmnId); }
+  else { toast("最多選 3 隻！"); }
+  renderPvPTeamSelection();
+}
+
+async function confirmPvPTeam() {
+  if (pvpPickList.length !== 3) { toast("請選擇 3 隻寶可夢！"); return; }
+  if (!db) { toast("資料庫尚未連線"); return; }
+  var partyPkmn = globalData.roster.filter(function(p){ return pvpPickList.indexOf(p.id) !== -1; });
+  var prepared = partyPkmn.map(function(p){ return createPlayerPokemon(p); });
+  var updateField = pvp3.isChallenger ? "partyChallenger" : "partyDefender";
+  var readyField = pvp3.isChallenger ? "challengerReady" : "defenderReady";
+  var update = {};
+  update[updateField] = prepared.map(function(p){ return JSON.parse(JSON.stringify(p)); });
+  update[readyField] = true;
+  update.updatedAt = firebase.firestore.FieldValue.serverTimestamp();
+  try {
+    await db.collection("pvp_battles").doc(pvpBattleDocId).set(update, { merge: true });
+    toast("隊伍已確認！等待對方選擇...");
+    $("pvpTeamSelection").style.display = "none";
+    $("pvpLobby").style.display = "block";
+    renderPvPLobby();
+    // Check if both ready
+    checkBothReady();
+  } catch(e) { toast("確認失敗：" + e.message); }
+}
+
+function backToPvPLobby() {
+  pvpBattleDocId = null; pvp3 = null; pvpPickList = [];
+  $("pvpTeamSelection").style.display = "none";
+  $("pvpLobby").style.display = "block";
+  renderPvPLobby();
+  startPvPSnapshot();
+}
+
+function checkBothReady() {
+  if (!db || !pvpBattleDocId) return;
+  db.collection("pvp_battles").doc(pvpBattleDocId).get().then(function(doc) {
+    if (!doc.exists) return;
+    var d = doc.data();
+    if (d.challengerReady && d.defenderReady && d.status === "accepted") {
+      startPvPBattle3v3(pvpBattleDocId);
     }
-    div.appendChild(movesDiv);
-  }
-  var logDiv = document.createElement("div"); logDiv.id = "pvpLog";
-  renderBattleLog(pvpState.log, logDiv);
-  div.appendChild(logDiv);
+  }).catch(function(){});
 }
 
-function executePvPRound(playerMove) {
-  if (!pvpState || pvpState.gameOver) return;
-  var log = pvpState.log;
-  var pAtk = pvpState.playerPkmn, pDef = pvpState.enemyPkmn;
-  var eMove = pvpState.enemyPkmn.moves[Math.floor(Math.random() * pvpState.enemyPkmn.moves.length)];
-  if (pAtk.speed >= pDef.speed) {
-    executeSinglePvPAtk(pAtk, pDef, playerMove, log, true);
-    if (pDef.currentHp <= 0) { pvpState.gameOver = true; log.push("🎉 你贏了！"); savePvPResult(true); renderPvPBattle(); return; }
-    executeSinglePvPAtk(pDef, pAtk, eMove, log, false);
-    if (pAtk.currentHp <= 0) { pvpState.gameOver = true; log.push("💀 你輸了..."); savePvPResult(false); renderPvPBattle(); return; }
+// ── 3v3 Battle ──
+function startPvPBattle3v3(battleId) {
+  if (!db) return;
+  pvpBattleDocId = battleId;
+  $("pvpLobby").style.display = "none";
+  $("pvpTeamSelection").style.display = "none";
+  $("pvpBattle3v3").style.display = "block";
+  // Listen for battle updates
+  if (pvpBattleUnsub) { pvpBattleUnsub(); pvpBattleUnsub = null; }
+  pvpBattleUnsub = db.collection("pvp_battles").doc(battleId).onSnapshot(function(snap) {
+    if (!snap.exists) return;
+    var d = snap.data();
+    if (d.status === "completed") {
+      renderPvPResult3v3(d);
+      return;
+    }
+    // Build local battle state
+    var myId = globalData.studentId;
+    var isChallenger = d.challengerId === myId;
+    pvp3 = {
+      battleId: battleId,
+      isChallenger: isChallenger,
+      doc: d,
+      myParty: isChallenger ? d.partyChallenger : d.partyDefender,
+      enemyParty: isChallenger ? d.partyDefender : d.partyChallenger,
+      myActive: isChallenger ? (d.activeChallenger||0) : (d.activeDefender||0),
+      enemyActive: isChallenger ? (d.activeDefender||0) : (d.activeChallenger||0),
+      myId: myId,
+      enemyId: isChallenger ? d.defenderId : d.challengerId,
+      currentTurn: d.currentTurn || "challenger",
+      turn: d.turn || 1,
+      log: d.log || [],
+      result: d.result
+    };
+    renderBattle3v3();
+  }, function(err) {
+    $("pvpBattle3v3").innerHTML = "<p style='color:#e74c3c;'>載入戰鬥失敗</p>";
+  });
+
+  // Mark battle as in_progress
+  db.collection("pvp_battles").doc(battleId).update({
+    status: "in_progress",
+    updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+  }).catch(function(){});
+}
+
+function renderBattle3v3() {
+  if (!pvp3) return;
+  var div = $("pvpBattle3v3");
+  var d = pvp3.doc;
+  var isChallenger = pvp3.isChallenger;
+  var myActive = pvp3.myParty[pvp3.myActive];
+  var enemyActive = pvp3.enemyParty[pvp3.enemyActive];
+  var isMyTurn = (isChallenger && d.currentTurn === "challenger") || (!isChallenger && d.currentTurn === "defender");
+  var isEnemyTurn = !isMyTurn;
+
+  var html = "<div style='text-align:center;font-weight:900;font-size:15px;color:#8e44ad;margin-bottom:6px;'>⚔️ 第 " + (d.turn||1) + " 回合</div>";
+
+  // Enemy panel
+  html += "<div class='pvp-side-panel p2'><h4 style='margin:0 0 4px;font-size:13px;'>👹 " + pvp3.enemyId + "</h4>";
+  // Enemy party bar
+  for (var ei = 0; ei < pvp3.enemyParty.length; ei++) {
+    var ep = pvp3.enemyParty[ei];
+    var eCls = "pvp-pkmn-mini";
+    if (ei === pvp3.enemyActive) eCls += " active";
+    if (ep.currentHp <= 0) eCls += " fainted";
+    html += "<div class='" + eCls + "'>" + ep.name + " Lv." + ep.level + " HP: " + Math.max(0,ep.currentHp) + "/" + ep.maxHp + "</div>";
+  }
+  // Enemy active HP bar
+  if (enemyActive && enemyActive.currentHp > 0) {
+    var eHpPct = Math.max(0, Math.round(enemyActive.currentHp / enemyActive.maxHp * 100));
+    html += "<div class='hp-bar-bg'><div class='hp-bar-fill' style='width:" + eHpPct + "%;" + (eHpPct > 50 ? "background:#e74c3c" : eHpPct > 25 ? "background:#f39c12" : "background:#e74c3c") + "'></div></div>";
+  }
+  html += "</div>";
+
+  // VS divider
+  html += "<div style='text-align:center;font-size:24px;margin:4px 0;'>⚡</div>";
+
+  // My panel
+  html += "<div class='pvp-side-panel p1'><h4 style='margin:0 0 4px;font-size:13px;'>👤 " + globalData.studentId + "</h4>";
+  // My party bar
+  for (var mi = 0; mi < pvp3.myParty.length; mi++) {
+    var mp = pvp3.myParty[mi];
+    var mCls = "pvp-pkmn-mini";
+    if (mi === pvp3.myActive) mCls += " active";
+    if (mp.currentHp <= 0) mCls += " fainted";
+    html += "<div class='" + mCls + "'>" + mp.name + " Lv." + mp.level + " HP: " + Math.max(0,mp.currentHp) + "/" + mp.maxHp + "</div>";
+  }
+  // My active HP bar
+  if (myActive && myActive.currentHp > 0) {
+    var mHpPct = Math.max(0, Math.round(myActive.currentHp / myActive.maxHp * 100));
+    html += "<div class='hp-bar-bg'><div class='hp-bar-fill' style='width:" + mHpPct + "%;" + (mHpPct > 50 ? "background:#27ae60" : mHpPct > 25 ? "background:#f39c12" : "background:#e74c3c") + "'></div></div>";
+  }
+  html += "</div>";
+
+  // Log
+  var logArr = d.log || [];
+  var recentLog = logArr.slice(-5).join("<br>");
+  html += "<div id='pvpLog'>" + recentLog + "</div>";
+
+  // Action area
+  if (d.status === "completed") {
+    var won = (isChallenger && d.result === "challenger_win") || (!isChallenger && d.result === "defender_win");
+    html += "<div style='text-align:center;padding:15px;font-size:18px;font-weight:900;color:" + (won ? "#27ae60" : "#e74c3c") + ";'>" + (won ? "🎉 你贏了！" : "💀 你輸了...") + "</div>";
+    html += "<button class='close-btn' onclick='closePvP()'>離開</button>";
+  } else if (isMyTurn) {
+    if (myActive && myActive.currentHp <= 0) {
+      // Need to switch
+      html += renderPvPSwitchUI();
+    } else if (myActive) {
+      // Show move buttons
+      html += "<div style='font-weight:900;font-size:13px;color:#27ae60;text-align:center;margin:6px 0;'>🎯 輪到你了！選擇招式</div>";
+      html += "<div class='moveset-grid'>";
+      for (var mvi = 0; mvi < myActive.moves.length; mvi++) {
+        var mv = myActive.moves[mvi];
+        var mvDetail = getMoveDetails(mv);
+        var mvType = mvDetail ? mvDetail.type : "一般";
+        html += "<button class='move-btn type-" + mvType + "' onclick='executePvPTurn(\"" + mv + "\")'>" + mv + "</button>";
+      }
+      html += "</div>";
+      // Switch button
+      var aliveCount = 0;
+      for (var si = 0; si < pvp3.myParty.length; si++) { if (pvp3.myParty[si].currentHp > 0 && si !== pvp3.myActive) aliveCount++; }
+      if (aliveCount > 0) {
+        html += "<button class='btn-pvp-select' style='text-align:center;' onclick='showPvPSwitch()'>🔄 更換寶可夢</button>";
+      }
+    }
   } else {
-    executeSinglePvPAtk(pDef, pAtk, eMove, log, false);
-    if (pAtk.currentHp <= 0) { pvpState.gameOver = true; log.push("💀 你輸了..."); savePvPResult(false); renderPvPBattle(); return; }
-    executeSinglePvPAtk(pAtk, pDef, playerMove, log, true);
-    if (pDef.currentHp <= 0) { pvpState.gameOver = true; log.push("🎉 你贏了！"); savePvPResult(true); renderPvPBattle(); return; }
+    html += "<div style='text-align:center;padding:10px;font-size:14px;color:#666;'>⏳ 等待 " + pvp3.enemyId + " 行動...</div>";
   }
-  pvpState.round++;
-  renderPvPBattle();
+
+  div.innerHTML = html;
 }
 
-function executeSinglePvPAtk(attacker, defender, move, log, isPlayer) {
-  if (attacker.currentHp <= 0) return;
-  executeTurn(attacker, defender, defender, attacker, move, isPlayer, log);
+function renderPvPSwitchUI() {
+  var html = "<div style='font-weight:900;font-size:13px;color:#e74c3c;text-align:center;margin:6px 0;'>⚠️ " + pvp3.myParty[pvp3.myActive].name + " 無法戰鬥！選擇上場的寶可夢</div>";
+  for (var i = 0; i < pvp3.myParty.length; i++) {
+    if (i === pvp3.myActive || pvp3.myParty[i].currentHp <= 0) continue;
+    var p = pvp3.myParty[i];
+    var hpPct = Math.round(p.currentHp / p.maxHp * 100);
+    html += "<button class='btn-pvp-select' style='text-align:left;' onclick='doPvPSwitch(" + i + ")'>" + p.name + " Lv." + p.level + " HP: " + p.currentHp + "/" + p.maxHp + " (" + hpPct + "%)</button>";
+  }
+  return html;
 }
 
-async function savePvPResult(won) {
+function showPvPSwitch() {
+  var div = $("pvpBattle3v3");
+  var html = "<div style='font-weight:900;font-size:13px;color:#3498db;text-align:center;margin:6px 0;'>🔄 選擇上場的寶可夢</div>";
+  for (var i = 0; i < pvp3.myParty.length; i++) {
+    if (i === pvp3.myActive || pvp3.myParty[i].currentHp <= 0) continue;
+    var p = pvp3.myParty[i];
+    html += "<button class='btn-pvp-select' style='text-align:left;' onclick='doPvPSwitch(" + i + ")'>" + p.name + " Lv." + p.level + " HP: " + p.currentHp + "/" + p.maxHp + "</button>";
+  }
+  html += "<button class='close-btn' style='margin-top:6px;' onclick='renderBattle3v3()'>取消</button>";
+  div.innerHTML = html;
+}
+
+// ── Turn execution ──
+async function executePvPTurn(moveName) {
+  if (!pvp3 || !pvpBattleDocId || !db) return;
+  var d = pvp3.doc;
+  var isChallenger = pvp3.isChallenger;
+  var isMyTurn = (isChallenger && d.currentTurn === "challenger") || (!isChallenger && d.currentTurn === "defender");
+  if (!isMyTurn) { toast("還不是你的回合！"); return; }
+
+  // Clone current state for calculation
+  var myActive = JSON.parse(JSON.stringify(pvp3.myParty[pvp3.myActive]));
+  var enemyActive = JSON.parse(JSON.stringify(pvp3.enemyParty[pvp3.enemyActive]));
+  var log = (d.log || []).slice();
+  var myIsPlayer = isChallenger;
+
+  // Resolve the attack
+  var result = executeTurn(myActive, enemyActive, enemyActive, myActive, moveName, true, log);
+
+  // Swap attacker/defender references back
+  var updatedMyParty = JSON.parse(JSON.stringify(pvp3.myParty));
+  var updatedEnemyParty = JSON.parse(JSON.stringify(pvp3.enemyParty));
+  updatedMyParty[pvp3.myActive] = myActive;
+  updatedEnemyParty[pvp3.enemyActive] = enemyActive;
+
+  // Check KO
+  var ko = (enemyActive.currentHp <= 0);
+  var enemyAllDead = true;
+  var myAllDead = true;
+
+  if (ko) {
+    log.push("💀 " + enemyActive.name + " 倒下了！");
+  }
+
+  // Check if enemy team is wiped
+  for (var ei = 0; ei < updatedEnemyParty.length; ei++) {
+    if (updatedEnemyParty[ei].currentHp > 0) { enemyAllDead = false; break; }
+  }
+  for (var mi = 0; mi < updatedMyParty.length; mi++) {
+    if (updatedMyParty[mi].currentHp > 0) { myAllDead = false; break; }
+  }
+
+  if (enemyAllDead) {
+    // I win
+    log.push("🎉 " + globalData.studentId + " 贏得了對戰！");
+    var winner = isChallenger ? "challenger_win" : "defender_win";
+    var update = {
+      log: log,
+      partyChallenger: isChallenger ? updatedMyParty : updatedEnemyParty,
+      partyDefender: isChallenger ? updatedEnemyParty : updatedMyParty,
+      status: "completed",
+      result: winner,
+      updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+    };
+    await db.collection("pvp_battles").doc(pvpBattleDocId).update(update);
+    savePvPResult3v3(true);
+    return;
+  }
+
+  if (myAllDead) {
+    log.push("💀 " + globalData.studentId + " 輸了...");
+    var winner2 = isChallenger ? "defender_win" : "challenger_win";
+    var update2 = {
+      log: log,
+      partyChallenger: isChallenger ? updatedMyParty : updatedEnemyParty,
+      partyDefender: isChallenger ? updatedEnemyParty : updatedMyParty,
+      status: "completed",
+      result: winner2,
+      updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+    };
+    await db.collection("pvp_battles").doc(pvpBattleDocId).update(update2);
+    savePvPResult3v3(false);
+    return;
+  }
+
+  // If enemy active fainted but team has alive mons, enemy auto-switches to first alive
+  var enemyActiveIdx = isChallenger ? (d.activeDefender||0) : (d.activeChallenger||0);
+  if (updatedEnemyParty[enemyActiveIdx].currentHp <= 0) {
+    for (var swi = 0; swi < updatedEnemyParty.length; swi++) {
+      if (updatedEnemyParty[swi].currentHp > 0) {
+        enemyActiveIdx = swi;
+        log.push("🔄 對手換上了 " + updatedEnemyParty[swi].name);
+        break;
+      }
+    }
+  }
+
+  // Switch turn
+  var nextTurn = isChallenger ? "defender" : "challenger";
+  var update = {
+    log: log,
+    partyChallenger: isChallenger ? updatedMyParty : updatedEnemyParty,
+    partyDefender: isChallenger ? updatedEnemyParty : updatedMyParty,
+    activeChallenger: isChallenger ? pvp3.myActive : enemyActiveIdx,
+    activeDefender: isChallenger ? enemyActiveIdx : pvp3.myActive,
+    turn: (d.turn||1) + 1,
+    currentTurn: nextTurn,
+    updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+  };
+
+  try {
+    await db.collection("pvp_battles").doc(pvpBattleDocId).update(update);
+  } catch(e) { console.warn("PvP turn error", e); }
+}
+
+async function doPvPSwitch(index) {
+  if (!pvp3 || !pvpBattleDocId || !db) return;
+  var d = pvp3.doc;
+  var isChallenger = pvp3.isChallenger;
+  var field = isChallenger ? "activeChallenger" : "activeDefender";
+  var update = {};
+  update[field] = index;
+  update.turn = (d.turn||1) + 1;
+  update.currentTurn = isChallenger ? "defender" : "challenger";
+  update.updatedAt = firebase.firestore.FieldValue.serverTimestamp();
+  var log = (d.log || []).slice();
+  log.push("🔄 " + globalData.studentId + " 換上了 " + pvp3.myParty[index].name);
+  update.log = log;
+  try {
+    await db.collection("pvp_battles").doc(pvpBattleDocId).update(update);
+  } catch(e) { console.warn("PvP switch error", e); }
+}
+
+// ── Save result ──
+async function savePvPResult3v3(won) {
   var exp = won ? 50 : 10;
   var coins = won ? 10 : 2;
-  var vsId = pvpOpponentInfo ? pvpOpponentInfo.studentId : "訓練賽";
-  var note = "⚔️ PvP對戰 " + (won ? "勝利" : "敗北") + " | vs " + vsId + " | " + pvpState.enemyPkmn.name;
+  var vsId = pvp3 ? pvp3.enemyId : "未知";
+  var note = "⚔️ PvP對戰 " + (won ? "勝利" : "敗北") + " | vs " + vsId;
   await executeSave({ studentId: globalData.studentId, score: 0, action: "PvP", expGained: exp, coinsGained: coins, badgeChange: 0, note: note, extraNote: note, totalScore: 0, user: globalData.studentId }, null, false);
   if (!window.__pvpEvents) window.__pvpEvents = [];
   window.__pvpEvents.push(new Date().toDateString());
-  // Update ELO ranking
-  if (pvpOpponentInfo && pvpOpponentInfo.studentId && pvpOpponentInfo.studentId !== "訓練賽") {
-    await updatePvPRanking(globalData.studentId, pvpOpponentInfo.studentId, won);
+  if (vsId !== "未知") {
+    await updatePvPRanking(globalData.studentId, vsId, won);
   }
   toast(won ? "🎉 PvP 勝利！" : "💪 下次加油！");
+}
+
+function renderPvPResult3v3(d) {
+  if (!pvp3) return;
+  var div = $("pvpBattle3v3");
+  var isChallenger = pvp3.isChallenger;
+  var won = (isChallenger && d.result === "challenger_win") || (!isChallenger && d.result === "defender_win");
+  var logHtml = (d.log || []).join("<br>");
+  div.innerHTML = "<div style='text-align:center;padding:20px;'>" +
+    "<div style='font-size:48px;margin-bottom:10px;'>" + (won ? "🎉" : "💀") + "</div>" +
+    "<div style='font-size:22px;font-weight:900;color:" + (won ? "#27ae60" : "#e74c3c") + ";margin-bottom:15px;'>" + (won ? "勝利！" : "敗北...") + "</div>" +
+    "<div id='pvpLog'>" + logHtml + "</div>" +
+    "<button class='close-btn' style='margin-top:15px;' onclick='closePvP()'>離開</button></div>";
 }
 
 // ── PvP ELO Ranking System (P8-5) ──────────────────────────────────
