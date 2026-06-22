@@ -1,4 +1,4 @@
-#!/usr/bin/env node
+﻿#!/usr/bin/env node
 /**
  * teacher-toolkit 學習 KPI 管理系統 — 9 個月模擬測試
  *

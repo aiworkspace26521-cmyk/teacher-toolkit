@@ -804,7 +804,7 @@ async function recalculateStudentState(studentId, events) {
     if (rowAction === "\u6BCF\u65E5\u63D0\u4EA4" || rowAction === "\u6355\u6349" || rowAction === "A") {
       for (var hid in state.roster) {
         if (!happinessToday[hid]) happinessToday[hid] = 0;
-        happinessToday[hid] += 1;
+        happinessToday[hid] += 2;
       }
     }
     // 親密度: 戰鬥勝利參與者+2
@@ -1548,8 +1548,8 @@ var POKEMON_TIERS = {
 
 var EVO_CONDITIONS = {
   // 親密度進化 (happiness ≥ 180 + minLevel)
-  "大嘴蝠": { type: "happiness", to: "叉字蝠", minLevel: 20, happiness: 180 },
-  "吉利蛋": { type: "happiness", to: "幸福蛋", minLevel: 20, happiness: 180 },
+  "大嘴蝠": { type: "happiness", to: "叉字蝠", minLevel: 20, happiness: 120 },
+  "吉利蛋": { type: "happiness", to: "幸福蛋", minLevel: 20, happiness: 120 },
   // 道具進化 (need specific item in inventory + minLevel)
   "電擊獸": { type: "item", to: "電擊魔獸", item: "電擊盒", minLevel: 30 },
   "鴨嘴火獸": { type: "item", to: "鴨嘴炎獸", item: "岩漿盒", minLevel: 30 },
@@ -6678,4 +6678,4 @@ function openLeagueRanking() {
 
 </script>
 <script src="pokemon-gen2-9.js"></script>
-</html>
+</html>
