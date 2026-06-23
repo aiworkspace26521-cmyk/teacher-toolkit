@@ -833,7 +833,7 @@ async function recalculateStudentState(studentId, events) {
     if (rowAction === "\u6BCF\u65E5\u63D0\u4EA4" || rowAction === "\u6355\u6349" || rowAction === "A") {
       for (var hid in state.roster) {
         if (!happinessToday[hid]) happinessToday[hid] = 0;
-        happinessToday[hid] += 2;
+        happinessToday[hid] += 1;
       }
     }
     // 親密度: 戰鬥勝利參與者+2
@@ -6016,27 +6016,32 @@ async function submitData() {
     var fullUnlock = badges >= 16;
     var tier = "一般";
     var captureLevel = Math.max(5, Math.floor(score / 8));
+    var streak = (globalData && globalData.submitStreak) || 0;
+    var streakBonus = 0;
+    if (streak >= 7) { streakBonus = 0.06; }
+    else if (streak >= 5) { streakBonus = 0.03; }
+    else if (streak >= 3) { streakBonus = 0.01; }
     if (score >= 95) {
-      if (fullUnlock) {
-        tier = Math.random() < 0.06 ? "傳說" : (Math.random() < 0.6 ? "稀有" : "一般");
-      } else if (canLegendary) {
-        tier = Math.random() < 0.06 ? "傳說" : (Math.random() < 0.6 ? "稀有" : "一般");
+      if (fullUnlock || canLegendary) {
+        var legChance = 0.06 + streakBonus;
+        tier = Math.random() < legChance ? "傳說" : (Math.random() < 0.6 ? "稀有" : "一般");
       } else {
         tier = Math.random() < 0.6 ? "稀有" : "一般";
       }
       captureLevel = Math.max(5, Math.floor(score / 4));
     } else if (score >= 75) {
       if (canLegendary) {
-        tier = Math.random() < 0.05 ? "傳說" : (Math.random() < 0.35 ? "稀有" : "一般");
+        var legChance = 0.05 + streakBonus;
+        tier = Math.random() < legChance ? "傳說" : (Math.random() < 0.35 ? "稀有" : "一般");
       } else {
         tier = Math.random() < 0.35 ? "稀有" : "一般";
       }
       captureLevel = Math.max(5, Math.floor(score / 6));
     } else if (score >= 60) {
-      tier = Math.random() < 0.15 ? "稀有" : "一般";
+      var legChance = 0.02 + streakBonus;
+      tier = Math.random() < legChance ? "傳說" : (Math.random() < 0.15 ? "稀有" : "一般");
       captureLevel = Math.max(5, Math.floor(score / 8));
     }
-    var streak = (globalData && globalData.submitStreak) || 0;
     if (streak >= 10 && score >= 60) { tier = "傳說"; captureLevel = Math.max(captureLevel, Math.floor(score / 4)); }
     else if (streak >= 5 && score >= 60 && tier === "一般") { tier = "稀有"; }
     var targetType = $("baitAttr").value;

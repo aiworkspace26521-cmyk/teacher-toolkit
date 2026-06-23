@@ -367,8 +367,8 @@ const TYPE_CHART = {
 };
 
 const EVO_CONDITIONS = {
-  "大嘴蝠": { type: "happiness", to: "叉字蝠", minLevel: 20, happiness: 180 },
-  "吉利蛋": { type: "happiness", to: "幸福蛋", minLevel: 20, happiness: 180 },
+  "大嘴蝠": { type: "happiness", to: "叉字蝠", minLevel: 20, happiness: 120 },
+  "吉利蛋": { type: "happiness", to: "幸福蛋", minLevel: 20, happiness: 120 },
   "電擊獸": { type: "item", to: "電擊魔獸", item: "電擊盒", minLevel: 30 },
   "鴨嘴火獸": { type: "item", to: "鴨嘴炎獸", item: "岩漿盒", minLevel: 30 },
   "海刺龍": { type: "item", to: "刺龍王", item: "龍之鱗片", minLevel: 30 },
@@ -700,24 +700,25 @@ function determineCaptureTier(score, badges, streak) {
   const canLegendary = badges >= 8;
   const fullUnlock = badges >= 16;
   let tier = "一般";
+  let streakBonus = 0;
+  if (streak >= 7) streakBonus = 0.06;
+  else if (streak >= 5) streakBonus = 0.03;
+  else if (streak >= 3) streakBonus = 0.01;
   if (score >= 95) {
-    if (fullUnlock) {
-      tier = Math.random() < 0.06 ? "傳說" : (Math.random() < 0.6 ? "稀有" : "一般");
-    } else if (canLegendary) {
-      tier = Math.random() < 0.06 ? "傳說" : (Math.random() < 0.6 ? "稀有" : "一般");
+    if (fullUnlock || canLegendary) {
+      tier = Math.random() < (0.06 + streakBonus) ? "傳說" : (Math.random() < 0.6 ? "稀有" : "一般");
     } else {
       tier = Math.random() < 0.6 ? "稀有" : "一般";
     }
   } else if (score >= 75) {
     if (canLegendary) {
-      tier = Math.random() < 0.05 ? "傳說" : (Math.random() < 0.35 ? "稀有" : "一般");
+      tier = Math.random() < (0.05 + streakBonus) ? "傳說" : (Math.random() < 0.35 ? "稀有" : "一般");
     } else {
       tier = Math.random() < 0.35 ? "稀有" : "一般";
     }
   } else if (score >= 60) {
-    tier = Math.random() < 0.15 ? "稀有" : "一般";
+    tier = Math.random() < (0.02 + streakBonus) ? "傳說" : (Math.random() < 0.15 ? "稀有" : "一般");
   }
-  // Streak bonus (matches frontend)
   if (streak >= 10 && score >= 60) { tier = "傳說"; }
   else if (streak >= 5 && score >= 60 && tier === "一般") { tier = "稀有"; }
   return tier;
