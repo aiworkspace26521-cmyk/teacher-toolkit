@@ -120,7 +120,7 @@ node test/game-manual-consistency.js  # 文件一致性檢查
 ```javascript
 // console 測試
 console.log(getPokemonType("妙蛙花")); // ["草","毒"]
-console.log(getEffectiveness("水", "妙蛙花")); // 0.25 (水→草=0.5, 水→毒=0.5)
+console.log(getEffectiveness("水", "妙蛙花")); // 0.5 (水→草=0.5, 水→毒=1.0)
 console.log(getEffectiveness("超能力", "妙蛙花")); // 1 (超→草=1, 超→毒=1)
 console.log(getEffectiveness("飛行", "妙蛙花")); // 2 (飛行→草=2, 飛行→毒=1)
 ```
