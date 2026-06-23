@@ -696,7 +696,16 @@ function checkEvoReady(pkmn, gd) {
 }
 
 // Determine capture tier based on score, badges, and streak
-function determineCaptureTier(score, badges, streak) {
+function calcAvgHappiness(roster) {
+  if (!roster || roster.length === 0) return 0;
+  var sum = 0, count = 0;
+  for (var i = 0; i < roster.length; i++) {
+    if (roster[i]) { sum += roster[i].happiness || 0; count++; }
+  }
+  return count > 0 ? Math.round(sum / count) : 0;
+}
+
+function determineCaptureTier(score, badges, streak, avgHappiness) {
   const canLegendary = badges >= 8;
   const fullUnlock = badges >= 16;
   let tier = "一般";
@@ -704,20 +713,24 @@ function determineCaptureTier(score, badges, streak) {
   if (streak >= 7) streakBonus = 0.06;
   else if (streak >= 5) streakBonus = 0.03;
   else if (streak >= 3) streakBonus = 0.01;
+  var hapMultiplier = avgHappiness >= 100 ? 1.5 : (avgHappiness >= 60 ? 1.2 : 1.0);
   if (score >= 95) {
     if (fullUnlock || canLegendary) {
-      tier = Math.random() < (0.06 + streakBonus) ? "傳說" : (Math.random() < 0.6 ? "稀有" : "一般");
+      var legChance = 0.06 * hapMultiplier + streakBonus;
+      tier = Math.random() < legChance ? "傳說" : (Math.random() < 0.6 * hapMultiplier ? "稀有" : "一般");
     } else {
-      tier = Math.random() < 0.6 ? "稀有" : "一般";
+      tier = Math.random() < 0.6 * hapMultiplier ? "稀有" : "一般";
     }
   } else if (score >= 75) {
     if (canLegendary) {
-      tier = Math.random() < (0.05 + streakBonus) ? "傳說" : (Math.random() < 0.35 ? "稀有" : "一般");
+      var legChance = 0.05 * hapMultiplier + streakBonus;
+      tier = Math.random() < legChance ? "傳說" : (Math.random() < 0.35 * hapMultiplier ? "稀有" : "一般");
     } else {
-      tier = Math.random() < 0.35 ? "稀有" : "一般";
+      tier = Math.random() < 0.35 * hapMultiplier ? "稀有" : "一般";
     }
   } else if (score >= 60) {
-    tier = Math.random() < (0.02 + streakBonus) ? "傳說" : (Math.random() < 0.15 ? "稀有" : "一般");
+    var legChance = 0.02 * hapMultiplier + streakBonus;
+    tier = Math.random() < legChance ? "傳說" : (Math.random() < 0.15 * hapMultiplier ? "稀有" : "一般");
   }
   if (streak >= 10 && score >= 60) { tier = "傳說"; }
   else if (streak >= 5 && score >= 60 && tier === "一般") { tier = "稀有"; }
@@ -1105,7 +1118,8 @@ class SimulationStudent {
     // --- ACTION: Normal submit / Capture / Train ---
     if (mode === 1 && score >= 50) {
       // CAPTURE ACTION
-      const tier = determineCaptureTier(finalScore, badges, streak);
+      const avgHappiness = currentState ? calcAvgHappiness(currentState.roster) : 0;
+      const tier = determineCaptureTier(finalScore, badges, streak, avgHappiness);
       let captureLevel;
       if (finalScore >= 95) captureLevel = Math.floor(finalScore / 4);
       else if (finalScore >= 75) captureLevel = Math.floor(finalScore / 6);
