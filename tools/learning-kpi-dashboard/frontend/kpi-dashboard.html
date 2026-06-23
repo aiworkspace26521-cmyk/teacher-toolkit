@@ -2421,9 +2421,11 @@ function calculateMovePower(move, attacker, defender, isPlayerAttacker) {
   }
   var variance = 0.85 + Math.random() * 0.15;
   var finalDamage = Math.floor(baseDamage * variance);
-  // 攜帶道具效果：焦點鏡（2倍會心率）
-  var critChance = 0.0625;
-  if (attacker.heldItem === "focusLens") critChance = 0.125;
+  // 攜帶道具效果：焦點鏡（2倍會心率）+ 好感度會心率加成（每20點+0.75%）
+  var baseCrit = 0.0625;
+  var happinessBonus = Math.floor((attacker.happiness || 0) / 20) * 0.0075;
+  var critChance = baseCrit + happinessBonus;
+  if (attacker.heldItem === "focusLens") critChance = 0.125 + happinessBonus;
   var crit = Math.random() < critChance;
   // 攜帶道具效果：AV背心特防加成（防禦方）
   if (defender.heldItem === "assaultVest" && details.category !== "物理") {
