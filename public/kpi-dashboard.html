@@ -2471,7 +2471,7 @@ function applyStatusEffect(move, defender) {
 
 function executeTurn(playerAtk, playerDef, enemyAtk, enemyDef, moveName, isPlayer, log) {
   var attacker = isPlayer ? playerAtk : enemyAtk;
-  var defender = isPlayer ? enemyDef : playerDef;
+  var defender = isPlayer ? playerDef : enemyDef;
   var result = { dmg:0, crit:false, effText:"", ko:false, moveName: moveName, isPlayer: isPlayer };
 
   if (attacker.currentHp <= 0) { result.ko = true; return result; }
