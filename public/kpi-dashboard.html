@@ -2348,7 +2348,8 @@ function createPlayerPokemon(pokemon) {
     status: null, statStages: { atk:0,def:0,spatk:0,spdef:0,speed:0,evasion:0,accuracy:0 },
     ability: abilData, abilityName: abilName,
     heldItem: pokemon.heldItem || "",
-    dreamAbility: dreamAbil, dreamAbilityName: dreamAbil ? dreamAbil.name : null
+    dreamAbility: dreamAbil, dreamAbilityName: dreamAbil ? dreamAbil.name : null,
+    happiness: pokemon.happiness || 0
   };
 }
 
