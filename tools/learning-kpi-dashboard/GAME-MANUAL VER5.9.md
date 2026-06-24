@@ -1452,12 +1452,7 @@ tools/learning-kpi-dashboard/
 
 ### ⚠️ 已知問題（V5.9）
 
-1. ✅ **EXP 訓練雪球效應** — **已修復**（V5.6 Step 6）
-2. 🟡 **pokemon-gen2-9.js 亂碼** — 經 webfetch + Playwright 截圖確認 UTF-8 正確，瀏覽器快取問題建議 Ctrl+F5 硬刷新
-3. ✅ **任務區 Playwright 測試** — **已補上**（V5.6）：4 項測試全部通過
-4. ✅ **圖鑑過濾 Playwright 測試** — **已補上**（V5.6）：6 項測試全部通過
-5. ✅ **U2 戰鬥 EXP 漂移** — **已修復**（V5.8）：前後端 recalculateStudentState 同步
-6. ✅ **U5 PvP 重製** — **已完成**（V5.9）：即時邀請 + 3vs3 隊伍戰
+1. 🟡 **pokemon-gen2-9.js 亂碼** — 經 webfetch + Playwright 截圖確認 UTF-8 正確，瀏覽器快取問題建議 Ctrl+F5 硬刷新
 
 ---
 
