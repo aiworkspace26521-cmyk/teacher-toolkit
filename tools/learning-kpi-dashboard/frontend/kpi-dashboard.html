@@ -2383,7 +2383,7 @@ function calculateMovePower(move, attacker, defender, isPlayerAttacker) {
   if (legAtk && legDef) baseDamage = Math.floor(baseDamage * 1.5);
   if (eff > 1) baseDamage = Math.floor(baseDamage * eff);
   else if (eff < 1 && eff > 0 && details.type !== "一般") baseDamage = Math.floor(baseDamage * eff);
-  else if (eff === 0) return 0;
+  else if (eff === 0) return { damage: 0, crit: false, effectiveness: 0, moveType: details.type, weather: "", hpBoosted: false };
   if (battleState && battleState.weather) {
     var wt = battleState.weather.type;
     if (wt === "rain") {
@@ -3019,7 +3019,7 @@ function performAttack(moveName, isPlayer) {
           log.push("💀 " + battleState.enemy.name + " 被反傷倒下了！");
           renderBattleLog(log);
           sfx.faint();
-          setTimeout(function(){ faintAnimation("enemyPkmnName"); setTimeout(function(){ battleState.playerWon = true; endBattle(true); if (battleState) battleState.turnLock = false; }, 650); }, 300);
+          setTimeout(function(){ faintAnimation("enemyPkmnName"); setTimeout(function(){ battleState.playerWon = true; battleState.turnLock = false; endBattle(true); }, 650); }, 300);
           return true;
         }
       }
@@ -3068,8 +3068,8 @@ function performAttack(moveName, isPlayer) {
         if (done) done(false);
       } else {
         battleState.playerWon = false;
-        endBattle(false);
         battleState.turnLock = false;
+        endBattle(false);
         if (done) done(true);
       }
       return true;
@@ -3082,7 +3082,7 @@ function performAttack(moveName, isPlayer) {
     var enemyMove = battleState.enemy.moves[Math.floor(Math.random() * battleState.enemy.moves.length)];
     var eInfo = doTurn(battleState.enemy, battleState.playerPokemon, enemyMove, false, "player", null);
     var enemyStopped = enemyHitDefense(eInfo.result, eInfo.moveDetails);
-    if (enemyStopped) return;
+    if (enemyStopped) { battleState.turnLock = false; return; }
 
     if (eInfo.result.ko || battleState.playerPokemon.currentHp <= 0) {
       sfx.faint();
@@ -3090,7 +3090,9 @@ function performAttack(moveName, isPlayer) {
         faintAnimation("playerPkmnName");
         setTimeout(function(){
           var gameOver = handlePlayerKO();
-          if (!gameOver) {
+          if (gameOver) {
+            if (battleState && !battleState.playerWon) battleState.turnLock = false;
+          } else {
             updateArenaUI();
             if (battleState) processWeatherDecay(log);
             if (battleState && !battleState.playerWon) battleState.turnLock = false;
@@ -3151,7 +3153,7 @@ function performAttack(moveName, isPlayer) {
       var enemyMove = battleState.enemy.moves[Math.floor(Math.random() * battleState.enemy.moves.length)];
       var eInfo = doTurn(battleState.enemy, battleState.playerPokemon, enemyMove, false, "player", null);
       var enemyStopped = enemyHitDefense(eInfo.result, eInfo.moveDetails);
-      if (enemyStopped) return;
+      if (enemyStopped) { battleState.turnLock = false; return; }
 
       if (eInfo.result.ko) {
         sfx.faint();
@@ -3162,6 +3164,8 @@ function performAttack(moveName, isPlayer) {
               if (!handlePlayerKO()) {
                 updateArenaUI();
                 if (battleState) processWeatherDecay(log);
+                if (battleState && !battleState.playerWon) battleState.turnLock = false;
+              } else {
                 if (battleState && !battleState.playerWon) battleState.turnLock = false;
               }
             }
