@@ -4343,7 +4343,6 @@ var pvpBattleUnsub = null;
 function openPvPModal() {
   if (!globalData || !globalData.roster || globalData.roster.length === 0) { toast("你還沒有寶可夢！"); return; }
   if ((globalData.partyIds || []).length < 1) { toast("請先在 PC Box 設定至少 1 隻寶可夢的隊伍！"); return; }
-  if (checkPvpDoneToday()) { toast("今日 PvP 已結束！每天限1次"); return; }
   $("pvpModal").style.display = "flex";
   $("pvpLobby").style.display = "block";
   $("pvpTeamSelection").style.display = "none";
@@ -4460,8 +4459,9 @@ function fetchPvPOpponentList() {
       if (doc.id === myId) return;
       var d = doc.data();
       if (!d.roster || d.roster.length < 1 || !d.partyIds || d.partyIds.length < 1) return;
+      var btnDisabled = checkPvpDoneToday() ? " disabled style='opacity:0.4;'" : "";
       html += "<div class='pvp-invite-card'><div><strong>" + doc.id + "</strong> <span style='font-size:11px;color:#666;'>" + (d.roster.length + "隻") + "</span></div>" +
-        "<div class='actions'><button style='background:#8e44ad;color:white;' onclick='invitePvP(\"" + doc.id + "\")'>⚔️ 挑戰</button></div></div>";
+        "<div class='actions'><button style='background:#8e44ad;color:white;'" + btnDisabled + " onclick='invitePvP(\"" + doc.id + "\")'>⚔️ 挑戰</button></div></div>";
     });
     if (!html) html = "<span style='font-size:12px;color:#999;'>目前沒有可挑戰的對象（對方需有 1+ 寶可夢）</span>";
     listDiv.innerHTML = html;
@@ -4471,6 +4471,7 @@ function fetchPvPOpponentList() {
 // ── Invite / Accept / Cancel / Reject ──
 async function invitePvP(opponentId) {
   if (!db) { toast("資料庫尚未連線"); return; }
+  if (checkPvpDoneToday()) { toast("今日 PvP 已結束！每天限1次"); return; }
   var myId = globalData.studentId;
   var inviteDoc = {
     challengerId: myId,
