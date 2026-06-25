@@ -3066,13 +3066,14 @@ function performAttack(moveName, isPlayer) {
         renderBattleLog(log);
         setTimeout(function(){ shakeElement("playerPkmnName"); }, 100);
         if (done) done(false);
+        return false;
       } else {
         battleState.playerWon = false;
         battleState.turnLock = false;
         endBattle(false);
         if (done) done(true);
+        return true;
       }
-      return true;
     }
     return false;
   };
@@ -3093,9 +3094,9 @@ function performAttack(moveName, isPlayer) {
           if (gameOver) {
             if (battleState && !battleState.playerWon) battleState.turnLock = false;
           } else {
-            updateArenaUI();
-            if (battleState) processWeatherDecay(log);
             if (battleState && !battleState.playerWon) battleState.turnLock = false;
+            if (battleState) processWeatherDecay(log);
+            updateArenaUI();
           }
         }, 700);
       }, 300);
@@ -3117,9 +3118,9 @@ function performAttack(moveName, isPlayer) {
         }, 300);
         return;
       }
-      updateArenaUI();
-      if (battleState) processWeatherDecay(log);
       battleState.turnLock = false;
+      if (battleState) processWeatherDecay(log);
+      updateArenaUI();
     }, 800);
     return;
   }
@@ -3127,8 +3128,8 @@ function performAttack(moveName, isPlayer) {
   // === 玩家先攻 ===
   if (battleState.enemy.currentHp <= 0 || quickClawFlinch) {
     if (battleState) processWeatherDecay(log);
-    updateArenaUI();
     battleState.turnLock = false;
+    updateArenaUI();
     return;
   }
 
@@ -3162,9 +3163,9 @@ function performAttack(moveName, isPlayer) {
           setTimeout(function(){
             if (battleState.playerPokemon.currentHp <= 0) {
               if (!handlePlayerKO()) {
-                updateArenaUI();
-                if (battleState) processWeatherDecay(log);
                 if (battleState && !battleState.playerWon) battleState.turnLock = false;
+                if (battleState) processWeatherDecay(log);
+                updateArenaUI();
               } else {
                 if (battleState && !battleState.playerWon) battleState.turnLock = false;
               }
@@ -3173,15 +3174,15 @@ function performAttack(moveName, isPlayer) {
         }, 300);
       }
       if (!eInfo.result.ko) {
-        updateArenaUI();
-        if (battleState) processWeatherDecay(log);
         if (battleState && !battleState.playerWon) battleState.turnLock = false;
+        if (battleState) processWeatherDecay(log);
+        updateArenaUI();
       }
     }, 1200);
   } else {
     if (battleState) processWeatherDecay(log);
-    updateArenaUI();
     battleState.turnLock = false;
+    updateArenaUI();
   }
 }
 
