@@ -4411,6 +4411,8 @@ function updatePvPIncoming(snap) {
       actions = "<button style='background:#8e44ad;color:white;' onclick='openPvPTeamSelection(\"" + items[i].id + "\",false)'>選擇隊伍</button>";
     } else if (d.status === "accepted" && d.defenderReady && d.challengerReady) {
       actions = "<button style='background:#e74c3c;color:white;' onclick='startPvPBattle3v3(\"" + items[i].id + "\")'>進入戰鬥</button>";
+    } else if (d.status === "in_progress") {
+      actions = "<button style='background:#e74c3c;color:white;' onclick='startPvPBattle3v3(\"" + items[i].id + "\")'>⚔️ 進入戰鬥</button>";
     }
     html += "<div class='pvp-invite-card'><div><strong>" + d.challengerId + "</strong> → 你 <span style='font-size:11px;color:#666;'>" + statusTag + "</span></div><div class='actions'>" + actions + "</div></div>";
   }
@@ -4438,6 +4440,8 @@ function updatePvPOutgoing(snap) {
       actions = "<button style='background:#8e44ad;color:white;' onclick='openPvPTeamSelection(\"" + items[i].id + "\",true)'>選擇隊伍</button>";
     } else if (d.status === "accepted" && d.challengerReady && d.defenderReady) {
       actions = "<button style='background:#e74c3c;color:white;' onclick='startPvPBattle3v3(\"" + items[i].id + "\")'>進入戰鬥</button>";
+    } else if (d.status === "in_progress") {
+      actions = "<button style='background:#e74c3c;color:white;' onclick='startPvPBattle3v3(\"" + items[i].id + "\")'>⚔️ 進入戰鬥</button>";
     }
     html += "<div class='pvp-invite-card'><div><strong>你</strong> → " + d.defenderId + " <span style='font-size:11px;color:#666;'>" + statusTag + "</span></div><div class='actions'>" + actions + "</div></div>";
   }
