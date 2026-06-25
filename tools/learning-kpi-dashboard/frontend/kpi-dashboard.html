@@ -1068,6 +1068,7 @@ async function fetchStudentData(studentId, pendingEvent) {
     } catch(e) { console.warn("Failed to restore TM data:", e); }
     await loadAchievementsFromFirestore(studentId);
     if (isAdmin) globalData.todayCompleted = false;
+    if (globalData.todayCompleted) globalData.todayCompleted = false;
     if (globalData.monthLeagueWins > 0 && globalData.leagueRegionsWon) {
       var monthKey = new Date().getFullYear() + "-" + (new Date().getMonth() + 1);
       for (var rn in globalData.leagueRegionsWon) { leagueCompletedMonths[rn] = monthKey; }
@@ -3832,7 +3833,7 @@ function renderBattleLog(messages, container) {
 function updateBattleButtons() {
   var arena = $("arenaBattleBtn");
   if (!arena) return;
-  if (!globalData || globalData.todayCompleted) { arena.style.display = "none"; return; }
+  if (!globalData) { arena.style.display = "none"; return; }
   var battlesToday = globalData.todayBattles || 0;
   arena.style.display = battlesToday >= 5 ? "none" : "inline-block";
   arena.innerHTML = "⚔️ 路人戰 (" + (5 - battlesToday) + "/5)";
