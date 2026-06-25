@@ -43,21 +43,18 @@ service cloud.firestore {
       allow delete: if resource.data.senderId == request.auth.uid;
     }
 
-    // pvp_ranking: 公開讀取，學生僅可寫入自己的紀錄
+    // pvp_ranking: 公開讀取，學生可寫入自己的排名
     match /pvp_ranking/{studentId} {
       allow read: if true;
-      allow write: if request.auth.uid == studentId
-                    || request.auth.uid == "Admin";
+      allow write: if request.resource.data.elo is number;
     }
 
     // pvp_battles: 挑戰者/防禦者讀寫各自戰鬥
     match /pvp_battles/{battleId} {
       allow read: if true;
-      allow create: if request.resource.data.challengerId == request.auth.uid
-                    || request.resource.data.defenderId == request.auth.uid;
-      allow update: if resource.data.challengerId == request.auth.uid
-                    || resource.data.defenderId == request.auth.uid
-                    || request.auth.uid == "Admin";
+      allow create: if request.resource.data.challengerId is string
+                    && request.resource.data.defenderId is string;
+      allow update: if resource.data.challengerId is string;
       allow delete: if false;
     }
 

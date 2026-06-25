@@ -4356,6 +4356,7 @@ function closePvP() {
   pvpUnsub = [];
   if (pvpBattleUnsub) { pvpBattleUnsub(); pvpBattleUnsub = null; }
   pvp3 = null; pvpBattleDocId = null; pvpPickList = [];
+  window._pvpResolving = false;
   $("pvpModal").style.display = "none";
 }
 function checkPvpDoneToday() {
@@ -4617,12 +4618,14 @@ function startPvPBattle3v3(battleId) {
     // Build local battle state
     var myId = globalData.studentId;
     var isChallenger = d.challengerId === myId;
+    var myParty = isChallenger ? d.partyChallenger : d.partyDefender;
+    var enemyParty = isChallenger ? d.partyDefender : d.partyChallenger;
     pvp3 = {
       battleId: battleId,
       isChallenger: isChallenger,
       doc: d,
-      myParty: isChallenger ? d.partyChallenger : d.partyDefender,
-      enemyParty: isChallenger ? d.partyDefender : d.partyChallenger,
+      myParty: myParty,
+      enemyParty: enemyParty,
       myActive: isChallenger ? (d.activeChallenger||0) : (d.activeDefender||0),
       enemyActive: isChallenger ? (d.activeDefender||0) : (d.activeChallenger||0),
       myId: myId,
@@ -4632,6 +4635,24 @@ function startPvPBattle3v3(battleId) {
       log: d.log || [],
       result: d.result
     };
+    // 安全網：任一方全滅則自動結束戰鬥
+    var allMyFainted = true;
+    var allEnemyFainted = true;
+    for (var wi = 0; wi < myParty.length; wi++) { if (myParty[wi].currentHp > 0) { allMyFainted = false; break; } }
+    for (var wj = 0; wj < enemyParty.length; wj++) { if (enemyParty[wj].currentHp > 0) { allEnemyFainted = false; break; } }
+    if (d.status !== "completed" && !window._pvpResolving && (allMyFainted || allEnemyFainted)) {
+      window._pvpResolving = true;
+      var iWon = allEnemyFainted;
+      var resultStr = isChallenger ? (iWon ? "challenger_win" : "defender_win") : (iWon ? "defender_win" : "challenger_win");
+      var log = d.log || [];
+      log.push(iWon ? "🎉 " + myId + " 贏得了對戰！" : "💀 " + myId + " 輸了...");
+      db.collection("pvp_battles").doc(battleId).update({
+        status: "completed", result: resultStr, log: log,
+        updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+      }).catch(function(){});
+      savePvPResult3v3(iWon);
+      return;
+    }
     renderBattle3v3();
   }, function(err) {
     $("pvpBattle3v3").innerHTML = "<p style='color:#e74c3c;'>載入戰鬥失敗</p>";
