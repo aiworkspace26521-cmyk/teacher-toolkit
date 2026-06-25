@@ -3147,42 +3147,53 @@ function performAttack(moveName, isPlayer) {
     return;
   }
 
-  handlePlayerKO();
+  var hpkResult = handlePlayerKO();
 
-  if (battleState.enemy.currentHp > 0 && !battleState.playerWon && !quickClawFlinch) {
+  if (battleState && battleState.enemy.currentHp > 0 && !battleState.playerWon && !quickClawFlinch && !hpkResult) {
     setTimeout(function() {
       var enemyMove = battleState.enemy.moves[Math.floor(Math.random() * battleState.enemy.moves.length)];
       var eInfo = doTurn(battleState.enemy, battleState.playerPokemon, enemyMove, false, "player", null);
       var enemyStopped = enemyHitDefense(eInfo.result, eInfo.moveDetails);
       if (enemyStopped) { battleState.turnLock = false; return; }
 
-      if (eInfo.result.ko) {
+      if (battleState.enemy.currentHp <= 0) {
         sfx.faint();
-        setTimeout(function(){
+        setTimeout(function() {
+          faintAnimation("enemyPkmnName");
+          setTimeout(function() {
+            battleState.playerWon = true;
+            battleState.turnLock = false;
+            endBattle(true);
+          }, 650);
+        }, 300);
+        return;
+      }
+
+      if (battleState.playerPokemon.currentHp <= 0) {
+        sfx.faint();
+        setTimeout(function() {
           faintAnimation("playerPkmnName");
-          setTimeout(function(){
-            if (battleState.playerPokemon.currentHp <= 0) {
-              if (!handlePlayerKO()) {
-                if (battleState && !battleState.playerWon) battleState.turnLock = false;
-                if (battleState) processWeatherDecay(log);
-                updateArenaUI();
-              } else {
-                if (battleState && !battleState.playerWon) battleState.turnLock = false;
-              }
+          setTimeout(function() {
+            if (!handlePlayerKO()) {
+              if (battleState && !battleState.playerWon) battleState.turnLock = false;
+              if (battleState) processWeatherDecay(log);
+              updateArenaUI();
+            } else {
+              if (battleState && !battleState.playerWon) battleState.turnLock = false;
             }
           }, 700);
         }, 300);
+        return;
       }
-      if (!eInfo.result.ko) {
-        if (battleState && !battleState.playerWon) battleState.turnLock = false;
-        if (battleState) processWeatherDecay(log);
-        updateArenaUI();
-      }
+
+      if (battleState && !battleState.playerWon) battleState.turnLock = false;
+      if (battleState) processWeatherDecay(log);
+      updateArenaUI();
     }, 1200);
   } else {
     if (battleState) processWeatherDecay(log);
-    battleState.turnLock = false;
-    updateArenaUI();
+    if (battleState) battleState.turnLock = false;
+    if (battleState) updateArenaUI();
   }
 }
 
