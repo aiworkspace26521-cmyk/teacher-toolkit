@@ -4342,7 +4342,7 @@ var pvpBattleUnsub = null;
 
 function openPvPModal() {
   if (!globalData || !globalData.roster || globalData.roster.length === 0) { toast("你還沒有寶可夢！"); return; }
-  if ((globalData.partyIds || []).length < 3) { toast("請先在 PC Box 設定至少 3 隻寶可夢的隊伍！"); return; }
+  if ((globalData.partyIds || []).length < 1) { toast("請先在 PC Box 設定至少 1 隻寶可夢的隊伍！"); return; }
   if (checkPvpDoneToday()) { toast("今日 PvP 已結束！每天限1次"); return; }
   $("pvpModal").style.display = "flex";
   $("pvpLobby").style.display = "block";
@@ -4371,7 +4371,7 @@ function checkPvpDoneToday() {
 function renderPvPLobby() {
   $("pvpIncoming").innerHTML = "<div style='font-weight:900;font-size:13px;color:#8e44ad;'>📥 收到的挑戰</div><div id='pvpIncomingList'><span style='font-size:12px;color:#999;'>載入中...</span></div>";
   $("pvpOutgoing").innerHTML = "<div style='font-weight:900;font-size:13px;color:#e67e22;'>📤 發出的挑戰</div><div id='pvpOutgoingList'><span style='font-size:12px;color:#999;'>載入中...</span></div>";
-  $("pvpOpponentList").innerHTML = "<div style='font-weight:900;font-size:13px;color:#3498db;'>👤 選擇對手</div><div style='font-size:12px;color:#999;margin:4px 0;'>選擇對象發起 3vs3 挑戰</div><div id='pvpOpponentItems'></div>";
+  $("pvpOpponentList").innerHTML = "<div style='font-weight:900;font-size:13px;color:#3498db;'>👤 選擇對手</div><div style='font-size:12px;color:#999;margin:4px 0;'>選擇對象發起 PvP 挑戰</div><div id='pvpOpponentItems'></div>";
   fetchPvPOpponentList();
 }
 
@@ -4454,11 +4454,11 @@ function fetchPvPOpponentList() {
     snap.forEach(function(doc) {
       if (doc.id === myId) return;
       var d = doc.data();
-      if (!d.roster || d.roster.length < 3 || !d.partyIds || d.partyIds.length < 3) return;
+      if (!d.roster || d.roster.length < 1 || !d.partyIds || d.partyIds.length < 1) return;
       html += "<div class='pvp-invite-card'><div><strong>" + doc.id + "</strong> <span style='font-size:11px;color:#666;'>" + (d.roster.length + "隻") + "</span></div>" +
         "<div class='actions'><button style='background:#8e44ad;color:white;' onclick='invitePvP(\"" + doc.id + "\")'>⚔️ 挑戰</button></div></div>";
     });
-    if (!html) html = "<span style='font-size:12px;color:#999;'>目前沒有可挑戰的對象（對方需有 3+ 寶可夢）</span>";
+    if (!html) html = "<span style='font-size:12px;color:#999;'>目前沒有可挑戰的對象（對方需有 1+ 寶可夢）</span>";
     listDiv.innerHTML = html;
   }).catch(function() { listDiv.innerHTML = "<span style='font-size:12px;color:#999;'>載入失敗</span>"; });
 }
@@ -4503,7 +4503,7 @@ async function acceptPvP(battleId) {
   if (!db) return;
   try {
     await db.collection("pvp_battles").doc(battleId).update({ status: "accepted", updatedAt: firebase.firestore.FieldValue.serverTimestamp() });
-    toast("已接受挑戰！請選擇你的 3 隻寶可夢");
+    toast("已接受挑戰！請選擇你的 1~3 隻寶可夢");
     openPvPTeamSelection(battleId, false);
   } catch(e) { toast("接受失敗：" + e.message); }
 }
@@ -4530,8 +4530,8 @@ function openPvPTeamSelection(battleId, isChallenger) {
 function renderPvPTeamSelection() {
   var div = $("pvpTeamSelection");
   var partyPkmn = globalData.roster.filter(function(p){ return (globalData.partyIds || []).indexOf(p.id) !== -1; });
-  var html = "<h4 style='margin:0 0 8px;color:#8e44ad;'>選擇 3 隻出戰寶可夢</h4>";
-  html += "<div style='font-size:12px;color:#666;margin-bottom:8px;'>已選 " + pvpPickList.length + "/3</div><div style='text-align:center;'>";
+  var html = "<h4 style='margin:0 0 8px;color:#8e44ad;'>選擇 1~3 隻出戰寶可夢</h4>";
+  html += "<div style='font-size:12px;color:#666;margin-bottom:8px;'>已選 " + pvpPickList.length + "/3（選擇 1~3 隻）</div><div style='text-align:center;'>";
   for (var i = 0; i < partyPkmn.length; i++) {
     var p = partyPkmn[i];
     var isPicked = pvpPickList.indexOf(p.id) !== -1;
@@ -4543,8 +4543,8 @@ function renderPvPTeamSelection() {
       (isPicked ? "<br>✅ 已選" : "") + "</div>";
   }
   html += "</div>";
-  var canStart = pvpPickList.length === 3;
-  html += "<button class='btn-pvp-start' style='margin-top:10px;' onclick='confirmPvPTeam()' " + (canStart ? "" : "disabled style='opacity:0.4;'") + ">✅ 確認隊伍" + (canStart ? "" : "（需選3隻）") + "</button>";
+  var canStart = pvpPickList.length >= 1;
+  html += "<button class='btn-pvp-start' style='margin-top:10px;' onclick='confirmPvPTeam()' " + (canStart ? "" : "disabled style='opacity:0.4;'") + ">✅ 確認隊伍" + (canStart ? "" : "（需選1~3隻）") + "</button>";
   html += "<button class='close-btn' style='margin-top:6px;' onclick='backToPvPLobby()'>返回</button>";
   div.innerHTML = html;
 }
@@ -4558,7 +4558,7 @@ function togglePvPPick(pkmnId) {
 }
 
 async function confirmPvPTeam() {
-  if (pvpPickList.length !== 3) { toast("請選擇 3 隻寶可夢！"); return; }
+  if (pvpPickList.length < 1) { toast("請選擇至少 1 隻寶可夢！"); return; }
   if (!db) { toast("資料庫尚未連線"); return; }
   var partyPkmn = globalData.roster.filter(function(p){ return pvpPickList.indexOf(p.id) !== -1; });
   var prepared = partyPkmn.map(function(p){ return createPlayerPokemon(p); });
