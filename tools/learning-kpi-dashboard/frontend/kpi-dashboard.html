@@ -558,7 +558,9 @@
       <button class="b-btn b-btn-flee" style="width:100%;" onclick="fleeBattle()">🏃 逃走</button>
     </div>
     <div id="arenaResultPhase" style="display:none;">
-      <div id="resultMessage" style="font-size:18px;font-weight:700;padding:20px;"></div>
+      <div id="resultMessage" style="font-size:18px;font-weight:700;padding:16px 20px 8px;"></div>
+      <div id="resultRewards" style="font-size:14px;padding:0 20px 12px;text-align:center;"></div>
+      <button id="resultConfirmBtn" class="close-btn" style="margin:4px auto 8px;display:none;background:#27ae60;color:white;font-size:16px;padding:8px 32px;" onclick="closeBattleResult()">✅ 確認</button>
     </div>
     <div id="battleLog" style="margin-top:10px;"><p style="color:#f1c40f;">準備就緒</p></div>
   </div>
@@ -3461,6 +3463,10 @@ function endBattle(playerWon) {
     return;
   }
   battleState.battleOver = true;
+  // Show result phase immediately (no longer depends on Firestore callback)
+  $("arenaBattlePhase").style.display = "none";
+  $("arenaResultPhase").style.display = "block";
+  $("resultMessage").style.display = "block";
   if (playerWon) {
     sfx.levelup();
     var totalExpGain = 0, partyUsed = [];
@@ -3507,35 +3513,48 @@ function endBattle(playerWon) {
     }
 
     var defMsg = defRegion ? " | 🛡️ 衛冕成功 +5聯盟積分" : "";
-    var msg = "戰鬥勝利！各隊員獲得 " + totalExpGain + " 經驗值, " + coinsGain + " 金幣" + captureText + defMsg;
-    if (badgeGain) msg += " + " + badgeGain + " 徽章！";
-    msg += "<br><span style='font-size:11px;color:#666;'>" + expBreakdown.join(" | ") + " | 📖 非參戰隊員獲得50%</span>";
-    var noteContent = "⚔️ 戰鬥勝利 | 對手: " + battleState.enemy.name + (defRegion ? " [Defense" + defRegion + "]" : battleState.isGym ? " [Gym]" : battleState.isLeague ? " [League]" : battleState.isWeeklyBoss ? " [Boss]" : " [路人]") + " | 參與者: " + partyUsed.map(function(p){return p.id;}).join(",") + captureText + defMsg;
-    executeSave({ studentId: globalData.studentId, score: 0, action: "戰鬥勝利", expGained: totalExpGain, coinsGained: coinsGain, badgeChange: badgeGain, note: noteContent, extraNote: noteContent, totalScore: 0, user: globalData.studentId }, function() {
-      $("arenaBattlePhase").style.display = "none";
-      $("arenaResultPhase").style.display = "block";
-      $("resultMessage").innerHTML = msg;
-      $("resultMessage").style.display = "block";
-      // Auto-evolve after battle
-      var evoParties = battleState ? battleState.playerParty : [];
-      for (var evi = 0; evi < evoParties.length; evi++) {
-        var evoPkmn = evoParties[evi];
-        var evoMatch = globalData.roster.find(function(r){ return r.id === evoPkmn.id; });
-        if (!evoMatch) continue;
-        var evoRaw = getRawName(evoPkmn.baseName);
-        if (evoRaw !== "伊布") continue;
-        var estLevel = calcLevelAndExp((evoMatch.totalExp||0) + totalExpGain, evoMatch.initialLevel||5).level;
-        if (estLevel >= 16) { doEvolve(evoPkmn.id); break; }
+    var msg = "🎉 戰鬥勝利！各隊員獲得 " + totalExpGain + " 經驗值, " + coinsGain + " 金幣" + captureText + defMsg;
+    if (badgeGain) msg += " + 🏅 " + badgeGain + " 徽章！";
+    $("resultMessage").innerHTML = msg;
+
+    // Build rewards display with level-up tracking
+    var rewardsHtml = "<div style='font-size:13px;color:#555;margin-bottom:6px;'>" + expBreakdown.join(" | ") + "</div>";
+    rewardsHtml += "<div style='font-size:12px;color:#888;'>📖 非參戰隊員獲得50%</div>";
+    var levelUpList = [];
+    for (var li = 0; li < battleState.playerParty.length; li++) {
+      var ppp = battleState.playerParty[li];
+      var matchR = globalData.roster.find(function(r){ return r.id === ppp.id; });
+      if (!matchR) continue;
+      var beforeLv = matchR.currentLevel || 5;
+      var share2 = li === 0 ? Math.floor(baseExp * 1.2) : Math.floor(baseExp * 0.5);
+      if (ppp.currentHp <= 0 && !battleState.gymWaves) share2 = Math.floor(share2 * 0.5);
+      var newTE = (matchR.totalExp || 0) + share2;
+      var afterLv = calcLevelAndExp(newTE, matchR.initialLevel || 5).level;
+      if (afterLv > beforeLv) {
+        levelUpList.push(ppp.baseName.replace(/^[^\s]*\s*/,"") + " Lv." + beforeLv + "→" + afterLv);
       }
-    }, false);
+    }
+    if (levelUpList.length > 0) {
+      rewardsHtml += "<div style='font-size:14px;color:#27ae60;margin-top:8px;font-weight:700;'>✨ " + levelUpList.join("、") + " 升級了！</div>";
+    }
+    $("resultRewards").innerHTML = rewardsHtml;
+
+    // Save to Firestore (async, no callback dependency)
+    var noteContent = "⚔️ 戰鬥勝利 | 對手: " + battleState.enemy.name + (defRegion ? " [Defense" + defRegion + "]" : battleState.isGym ? " [Gym]" : battleState.isLeague ? " [League]" : battleState.isWeeklyBoss ? " [Boss]" : " [路人]") + " | 參與者: " + partyUsed.map(function(p){return p.id;}).join(",") + captureText + defMsg;
+    executeSave({ studentId: globalData.studentId, score: 0, action: "戰鬥勝利", expGained: totalExpGain, coinsGained: coinsGain, badgeChange: badgeGain, note: noteContent, extraNote: noteContent, totalScore: 0, user: globalData.studentId }, null, false);
   } else {
-    $("arenaBattlePhase").style.display = "none";
-    $("arenaResultPhase").style.display = "block";
-    $("resultMessage").innerHTML = "💀 全軍覆沒... 再接再厲！";
-    $("resultMessage").style.display = "block";
+    $("resultMessage").innerHTML = "💀 全軍覆沒... 對戰失敗！";
+    $("resultRewards").innerHTML = "";
   }
   battleState = null;
-  setTimeout(function() { closeModal("battleModal"); $("resultMessage").style.display = "none"; updateDashboard(); }, 3000);
+  $("resultConfirmBtn").style.display = "block";
+}
+
+function closeBattleResult() {
+  closeModal("battleModal");
+  $("resultConfirmBtn").style.display = "none";
+  $("resultRewards").innerHTML = "";
+  updateDashboard();
 }
 // ===== ARENA UI =====
 function applyEntryAbility(enemy, playerFirst, battleStateRef, log) {
@@ -4469,9 +4488,8 @@ function fetchPvPOpponentList() {
       if (doc.id === myId) return;
       var d = doc.data();
       if (!d.roster || d.roster.length < 1 || !d.partyIds || d.partyIds.length < 1) return;
-      var btnDisabled = checkPvpDoneToday() ? " disabled style='opacity:0.4;'" : "";
       html += "<div class='pvp-invite-card'><div><strong>" + doc.id + "</strong> <span style='font-size:11px;color:#666;'>" + (d.roster.length + "隻") + "</span></div>" +
-        "<div class='actions'><button style='background:#8e44ad;color:white;'" + btnDisabled + " onclick='invitePvP(\"" + doc.id + "\")'>⚔️ 挑戰</button></div></div>";
+        "<div class='actions'><button style='background:#8e44ad;color:white;' onclick='invitePvP(\"" + doc.id + "\")'>⚔️ 挑戰</button></div></div>";
     });
     if (!html) html = "<span style='font-size:12px;color:#999;'>目前沒有可挑戰的對象（對方需有 1+ 寶可夢）</span>";
     listDiv.innerHTML = html;
@@ -4480,7 +4498,7 @@ function fetchPvPOpponentList() {
 
 // ── Invite / Accept / Cancel / Reject ──
 async function invitePvP(opponentId) {
-  if (!db) { toast("資料庫尚未連線"); return; }
+  if (!db || !firebase || !firebase.firestore) { toast("資料庫尚未連線"); return; }
   if (checkPvpDoneToday()) { toast("今日 PvP 已結束！每天限1次"); return; }
   var myId = globalData.studentId;
   var inviteDoc = {
@@ -4504,7 +4522,7 @@ async function invitePvP(opponentId) {
     var ref = await db.collection("pvp_battles").add(inviteDoc);
     toast("已向 " + opponentId + " 發出挑戰！");
     openPvPTeamSelection(ref.id, true);
-  } catch(e) { toast("邀請失敗：" + e.message); }
+  } catch(e) { console.error("invitePvP error:", e); toast("邀請失敗：" + e.message); }
 }
 
 async function cancelPvP(battleId) {
