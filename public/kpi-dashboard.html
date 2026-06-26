@@ -3440,15 +3440,40 @@ function finishGymVictory() {
   }
   var msg = "🏆 道館制霸！擊敗 " + gi.leader + " 各隊員獲得 " + totalExpGain + " 經驗值, " + coinsGain + " 金幣" + captureText;
   if (badgeGain) msg += " + 🏅 " + badgeGain + " 枚徽章！";
+  $("arenaBattlePhase").style.display = "none";
+  $("arenaResultPhase").style.display = "block";
+  $("resultMessage").innerHTML = msg;
+  $("resultMessage").style.display = "block";
+  // Build rewards display
+  var rewardsHtml = "<div style='font-size:13px;color:#555;margin-bottom:6px;'>";
+  var expParts = [];
+  for (var j = 0; j < partyUsed.length; j++) {
+    var share = j === 0 ? Math.floor(totalExpGain * 1.2) : Math.floor(totalExpGain * 0.5);
+    expParts.push((j === 0 ? "🛡️" : "⚔️") + partyUsed[j].name.replace(/^[^\s]*\s*/,"") + ": +" + share + (j === 0 ? "(先鋒×1.2)" : "(參與×0.5)"));
+  }
+  rewardsHtml += expParts.join(" | ") + "</div>";
+  rewardsHtml += "<div style='font-size:12px;color:#888;'>📖 非參戰隊員獲得50%</div>";
+  var levelUpList = [];
+  for (var li = 0; li < battleState.playerParty.length; li++) {
+    var ppp = battleState.playerParty[li];
+    var matchR = globalData.roster.find(function(r){ return r.id === ppp.id; });
+    if (!matchR) continue;
+    var beforeLv = matchR.currentLevel || 5;
+    var share2 = li === 0 ? Math.floor(totalExpGain * 1.2) : Math.floor(totalExpGain * 0.5);
+    var newTE = (matchR.totalExp || 0) + share2;
+    var afterLv = calcLevelAndExp(newTE, matchR.initialLevel || 5).level;
+    if (afterLv > beforeLv) {
+      levelUpList.push(ppp.name.replace(/^[^\s]*\s*/,"") + " Lv." + beforeLv + "→" + afterLv);
+    }
+  }
+  if (levelUpList.length > 0) {
+    rewardsHtml += "<div style='font-size:14px;color:#27ae60;margin-top:8px;font-weight:700;'>✨ " + levelUpList.join("、") + " 升級了！</div>";
+  }
+  $("resultRewards").innerHTML = rewardsHtml;
   var noteContent = "⚔️ 道館勝利 | 館主: " + gi.leader + " (" + gi.name + ") [Gym] | 波次:" + battleState.totalWaves + " | 參與者: " + partyUsed.map(function(p){return p.id;}).join(",") + captureText;
-  executeSave({ studentId: globalData.studentId, score: 0, action: "戰鬥勝利", expGained: totalExpGain, coinsGained: coinsGain, badgeChange: badgeGain, note: noteContent, extraNote: noteContent, totalScore: 0, user: globalData.studentId }, function() {
-    $("arenaBattlePhase").style.display = "none";
-    $("arenaResultPhase").style.display = "block";
-    $("resultMessage").innerHTML = msg;
-    $("resultMessage").style.display = "block";
-  }, false);
+  executeSave({ studentId: globalData.studentId, score: 0, action: "戰鬥勝利", expGained: totalExpGain, coinsGained: coinsGain, badgeChange: badgeGain, note: noteContent, extraNote: noteContent, totalScore: 0, user: globalData.studentId }, null, false);
   battleState = null;
-  setTimeout(function() { closeModal("battleModal"); $("resultMessage").style.display = "none"; }, 3000);
+  $("resultConfirmBtn").style.display = "block";
 }
 
 function endBattle(playerWon) {
@@ -3486,7 +3511,7 @@ function endBattle(playerWon) {
     var expBreakdown = [];
     for (var j = 0; j < partyUsed.length; j++) {
       var share = j === 0 ? Math.floor(baseExp * 1.2) : Math.floor(baseExp * 0.5);
-      expBreakdown.push((j === 0 ? "🛡️" : "⚔️") + partyUsed[j].baseName.replace(/^[^\s]*\s*/,"") + ": +" + share + (j === 0 ? "(先鋒×1.2)" : "(參與×0.5)"));
+      expBreakdown.push((j === 0 ? "🛡️" : "⚔️") + partyUsed[j].name.replace(/^[^\s]*\s*/,"") + ": +" + share + (j === 0 ? "(先鋒×1.2)" : "(參與×0.5)"));
     }
 
     var coinsGain = 5 + Math.floor(battleState.enemy.level * 0.5);
@@ -3531,7 +3556,7 @@ function endBattle(playerWon) {
       var newTE = (matchR.totalExp || 0) + share2;
       var afterLv = calcLevelAndExp(newTE, matchR.initialLevel || 5).level;
       if (afterLv > beforeLv) {
-        levelUpList.push(ppp.baseName.replace(/^[^\s]*\s*/,"") + " Lv." + beforeLv + "→" + afterLv);
+        levelUpList.push(ppp.name.replace(/^[^\s]*\s*/,"") + " Lv." + beforeLv + "→" + afterLv);
       }
     }
     if (levelUpList.length > 0) {
@@ -4044,16 +4069,41 @@ function finishLeagueVictory() {
   if (canCapture) { captureText = " | 🏆 捕獲: " + battleState.enemy.name; }
   var msg = "🏆 " + region + "聯盟冠軍！擊敗了四天王 & " + champ.name + "！各隊員獲得 " + totalExpGain + " 經驗值, " + coinsGain + " 金幣 +10聯盟積分" + captureText;
   if (!alreadyCaptured) msg += " | 🌟 傳說捕獲！";
+  $("arenaBattlePhase").style.display = "none";
+  $("arenaResultPhase").style.display = "block";
+  $("resultMessage").innerHTML = msg;
+  $("resultMessage").style.display = "block";
+  // Build rewards display
+  var rewardsHtml = "<div style='font-size:13px;color:#555;margin-bottom:6px;'>";
+  var expParts = [];
+  for (var j = 0; j < partyUsed.length; j++) {
+    var share = j === 0 ? Math.floor(totalExpGain * 1.2) : Math.floor(totalExpGain * 0.5);
+    expParts.push((j === 0 ? "🛡️" : "⚔️") + partyUsed[j].name.replace(/^[^\s]*\s*/,"") + ": +" + share + (j === 0 ? "(先鋒×1.2)" : "(參與×0.5)"));
+  }
+  rewardsHtml += expParts.join(" | ") + "</div>";
+  rewardsHtml += "<div style='font-size:12px;color:#888;'>📖 非參戰隊員獲得50%</div>";
+  var levelUpList = [];
+  for (var li = 0; li < battleState.playerParty.length; li++) {
+    var ppp = battleState.playerParty[li];
+    var matchR = globalData.roster.find(function(r){ return r.id === ppp.id; });
+    if (!matchR) continue;
+    var beforeLv = matchR.currentLevel || 5;
+    var share2 = li === 0 ? Math.floor(totalExpGain * 1.2) : Math.floor(totalExpGain * 0.5);
+    var newTE = (matchR.totalExp || 0) + share2;
+    var afterLv = calcLevelAndExp(newTE, matchR.initialLevel || 5).level;
+    if (afterLv > beforeLv) {
+      levelUpList.push(ppp.name.replace(/^[^\s]*\s*/,"") + " Lv." + beforeLv + "→" + afterLv);
+    }
+  }
+  if (levelUpList.length > 0) {
+    rewardsHtml += "<div style='font-size:14px;color:#27ae60;margin-top:8px;font-weight:700;'>✨ " + levelUpList.join("、") + " 升級了！</div>";
+  }
+  $("resultRewards").innerHTML = rewardsHtml;
   var participantStr = partyUsed.map(function(p){ return p.id; }).join(",");
   var noteContent = "⚔️ 聯盟冠軍 [" + region + " League] | 四天王+冠軍 [" + champ.name + "] | 參與者: " + participantStr + captureText;
-  executeSave({ studentId: globalData.studentId, score: 0, action: "戰鬥勝利", expGained: totalExpGain, coinsGained: coinsGain, badgeChange: 0, note: noteContent, extraNote: noteContent, totalScore: 0, user: globalData.studentId }, function() {
-    $("arenaBattlePhase").style.display = "none";
-    $("arenaResultPhase").style.display = "block";
-    $("resultMessage").innerHTML = msg;
-    $("resultMessage").style.display = "block";
-  }, false);
+  executeSave({ studentId: globalData.studentId, score: 0, action: "戰鬥勝利", expGained: totalExpGain, coinsGained: coinsGain, badgeChange: 0, note: noteContent, extraNote: noteContent, totalScore: 0, user: globalData.studentId }, null, false);
   battleState = null;
-  setTimeout(function() { closeModal("battleModal"); $("resultMessage").style.display = "none"; }, 4000);
+  $("resultConfirmBtn").style.display = "block";
 }
 
 function startLeagueBattle(region) {
