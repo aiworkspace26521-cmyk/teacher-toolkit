@@ -830,7 +830,7 @@ async function recalculateStudentState(studentId, events) {
     state.badges += badgeChange;
     if (badgeChange > 0) state.lastBadgeTime = rowDate.getTime();
     state.coins += coinsGained;
-    if (rowDate.toDateString() === todayStr && ["\u5546\u57CE\u514C\u63DB","\u6230\u9B25\u6D88\u8017","\u7269\u54C1\u6D88\u8017","E","\u6230\u9B25\u52DD\u5229","\u7CFB\u7D71\u6E2C\u8A66","trade","\u6355\u6349","A","\u7CD6\u679C\u5347\u7D1A","B"].indexOf(rowAction) === -1) state.todayCompleted = true;
+    if (rowDate.toDateString() === todayStr && ["\u5546\u57CE\u514C\u63DB","\u6230\u9B25\u6D88\u8017","\u7269\u54C1\u6D88\u8017","E","\u6230\u9B25\u52DD\u5229","\u7CFB\u7D71\u6E2C\u8A66","trade","\u6355\u6349","A","\u7CD6\u679C\u5347\u7D1A","B","\u9053\u5177\u88DD\u5099","PvP"].indexOf(rowAction) === -1) state.todayCompleted = true;
     if (["\u5546\u57CE\u514C\u63DB","\u6230\u9B25\u6D88\u8017","\u7269\u54C1\u6D88\u8017","E","\u7CFB\u7D71\u6E2C\u8A66","trade","\u9053\u5177\u88DD\u5099"].indexOf(rowAction) === -1) submitDates[rowDate.toDateString()] = true;
     // 親密度: 每日提交全員+1
     if (rowAction === "\u6BCF\u65E5\u63D0\u4EA4" || rowAction === "\u6355\u6349" || rowAction === "A") {
@@ -5915,6 +5915,7 @@ function openForgetMove(pokemonId) {
 
 function openShop() {
   if (!globalData) return;
+  $("shopCoins").innerHTML = globalData.coins || 0;
   var items = [
     // ═══ 消耗品 ═══
     { id: "potion", name: "好傷藥", cost: 15, desc: "回復一隻寶可夢50% HP", icon: "💊", cat: "消耗" },
