@@ -581,6 +581,12 @@
   <button class="close-btn" onclick="closeModal('pkmnDetailModal')" style="margin-top:10px;">關閉</button>
 </div></div>
 
+<div id="equipModal" class="modal"><div class="modal-content" style="border-color:#27ae60;max-width:420px;width:95%;padding:15px;max-height:80vh;overflow-y:auto;">
+  <h3 style="color:#27ae60;margin-top:0;" id="equipModalTitle">🎒 選擇裝備對象</h3>
+  <div id="equipModalList"></div>
+  <button class="close-btn" onclick="closeModal('equipModal')">取消</button>
+</div></div>
+
 <div id="tmModal" class="modal">
   <div class="modal-content" style="border-color:#9b59b6;max-width:550px;width:95%;padding:15px;">
     <h3 style="color:#8e44ad;margin-top:0;">📀 招式學習器</h3>
@@ -1607,6 +1613,11 @@ var EVO_ITEMS = {
   "王者之證": { cost: 55, icon: "👑", desc: "讓呆呆獸→呆殼獸、蚊香君→蚊香泳士" },
 };
 var HELD_ITEMS = {
+  expShare:    { name: "學習裝置",  cost: 80,  icon: "📖", desc: "持有者80%經驗(隊伍50%)", flag: "expSharePurchased" },
+  expertBelt:  { name: "達人帶",   cost: 100, icon: "🥋", desc: "效果絕佳時傷害再提升", flag: "hasExpertBelt" },
+  eviolite:    { name: "進化奇石",  cost: 80,  icon: "💎", desc: "防禦力額外提升", flag: "hasEviolite" },
+  championCloak: { name: "冠軍披風", cost: 120, icon: "👑", desc: "經驗值獲得量增加", flag: "hasChampionCloak" },
+  amuletCoin:  { name: "護符金幣",  cost: 100, icon: "🪙", desc: "戰鬥獲得金幣增加", flag: "hasAmuletCoin" },
   quickClaw:   { name: "先制之爪", cost: 100, icon: "🔪", desc: "20%機率先攻", flag: "hasQuickClaw" },
   focusLens:   { name: "焦點鏡",   cost: 80,  icon: "🔍", desc: "會心一擊機率2倍", flag: "hasFocusLens" },
   shellBell:   { name: "貝殼之鈴", cost: 90,  icon: "🔔", desc: "攻擊時回復12.5%傷害HP", flag: "hasShellBell" },
@@ -1617,7 +1628,7 @@ var HELD_ITEMS = {
   rockyHelmet: { name: "凸凸頭盔", cost: 130, icon: "⛑️", desc: "受到物理攻擊反傷1/6", flag: "hasRockyHelmet" },
   weaknessPolicy: { name: "弱點保險", cost: 140, icon: "📋", desc: "被剋時雙攻+2階（消耗品）", flag: "hasWeaknessPolicy" },
 };
-var HELD_ITEM_ICONS = { expShare: "📖" };
+var HELD_ITEM_ICONS = {};
 for (var _hi in HELD_ITEMS) HELD_ITEM_ICONS[_hi] = HELD_ITEMS[_hi].icon;
 function getRawName(baseName) {
   return baseName.replace(/^[^\w\u4e00-\u9fff]+\s*/u,"").replace(/\s*\(.*\)/,"");
@@ -2390,7 +2401,7 @@ function calculateMovePower(move, attacker, defender, isPlayerAttacker) {
   var eff = getEffectiveness(details.type, defender.type);
   var legAtk = checkIsLegendary(attacker.name);
   var legDef = checkIsLegendary(defender.name);
-  var evioliteDef = (!isPlayerAttacker && globalData && globalData.hasEviolite) ? 1.5 : 1;
+  var evioliteDef = (!isPlayerAttacker && defender.heldItem === "eviolite") ? 1.5 : 1;
   if (details.category === "物理") {
     var atkStat = attacker.atk * Math.pow(1.1, attacker.statStages.atk);
     var defStat = defender.def * Math.pow(1.1, defender.statStages.def) * evioliteDef;
@@ -2426,7 +2437,7 @@ function calculateMovePower(move, attacker, defender, isPlayerAttacker) {
   baseDamage = Math.max(1, baseDamage);
   var hpBoosted = false;
   if (attacker.ability && attacker.ability.trigger === "hpBoost" && attacker.currentHp < attacker.maxHp * attacker.ability.hpThresh && details.type === attacker.ability.type) { baseDamage = Math.floor(baseDamage * attacker.ability.mult); hpBoosted = true; }
-  if (isPlayerAttacker && eff > 1 && globalData && globalData.hasExpertBelt) baseDamage = Math.floor(baseDamage * 1.2);
+  if (isPlayerAttacker && eff > 1 && attacker.heldItem === "expertBelt") baseDamage = Math.floor(baseDamage * 1.2);
   // 抗性果護盾：降低被剋傷害
   if (!isPlayerAttacker && battleState && battleState.chilanShield && eff > 1) {
     baseDamage = Math.floor(baseDamage * 0.5);
@@ -4238,7 +4249,8 @@ function renderPCBoxContent() {
     if (match) {
       var abilNameP = getPokemonAbility(match.baseName);
       var hParty = Math.min(match.happiness || 0, 120);
-      slot.innerHTML = match.baseName + " Lv." + match.currentLevel + (abilNameP ? " <span style=\"font-size:10px;color:#8e44ad;\">[" + abilNameP + "]</span>" : "") + (hParty > 0 ? " <span style=\"font-size:10px;color:#e74c3c;\">❤️ " + hParty + "/120</span>" : "") + " <span title='檢視能力值詳情' style='cursor:pointer;font-size:12px;' onclick='event.stopPropagation();openPkmnDetail(\"" + match.id + "\")'>📊</span>";
+      var heldIconP = HELD_ITEM_ICONS[match.heldItem] ? " " + HELD_ITEM_ICONS[match.heldItem] : "";
+      slot.innerHTML = match.baseName + " Lv." + match.currentLevel + heldIconP + (abilNameP ? " <span style=\"font-size:10px;color:#8e44ad;\">[" + abilNameP + "]</span>" : "") + (hParty > 0 ? " <span style=\"font-size:10px;color:#e74c3c;\">❤️ " + hParty + "/120</span>" : "") + " <span title='檢視能力值詳情' style='cursor:pointer;font-size:12px;' onclick='event.stopPropagation();openPkmnDetail(\"" + match.id + "\")'>📊</span>";
       slot.dataset.pokemonId = match.id;
       slot.classList.add("pc-filled");
     } else {
@@ -4279,20 +4291,7 @@ function renderPCBoxContent() {
   var heldSection = document.createElement("div");
   heldSection.style.cssText = "font-size:12px;margin-bottom:6px;";
   var heldLabels = [];
-  if (gd.expSharePurchased) heldLabels.push({ id:"expShare", name:"學習裝置", icon:"📖" });
-  if (gd.hasExpertBelt) heldLabels.push({ id:"expertBelt", name:"達人帶", icon:"🥋" });
-  if (gd.hasEviolite) heldLabels.push({ id:"eviolite", name:"進化奇石", icon:"💎" });
-  if (gd.hasChampionCloak) heldLabels.push({ id:"championCloak", name:"冠軍披風", icon:"👑" });
-  if (gd.hasAmuletCoin) heldLabels.push({ id:"amuletCoin", name:"護符金幣", icon:"🪙" });
-  if (gd.hasQuickClaw) heldLabels.push({ id:"quickClaw", name:"先制之爪", icon:"🔪" });
-  if (gd.hasFocusLens) heldLabels.push({ id:"focusLens", name:"焦點鏡", icon:"🔍" });
-  if (gd.hasShellBell) heldLabels.push({ id:"shellBell", name:"貝殼之鈴", icon:"🔔" });
-  if (gd.hasLifeOrb) heldLabels.push({ id:"lifeOrb", name:"生命寶珠", icon:"🔴" });
-  if (gd.hasAssaultVest) heldLabels.push({ id:"assaultVest", name:"AV背心", icon:"🦺" });
-  if (gd.hasFocusSash) heldLabels.push({ id:"focusSash", name:"氣勢披帶", icon:"🎗️" });
-  if (gd.hasEjectButton) heldLabels.push({ id:"ejectButton", name:"逃脱按鈕", icon:"🔘" });
-  if (gd.hasRockyHelmet) heldLabels.push({ id:"rockyHelmet", name:"凸凸頭盔", icon:"⛑️" });
-  if (gd.hasWeaknessPolicy) heldLabels.push({ id:"weaknessPolicy", name:"弱點保險", icon:"📋" });
+  for (var _hid2 in HELD_ITEMS) { if (gd[HELD_ITEMS[_hid2].flag]) heldLabels.push({ id:_hid2, name:HELD_ITEMS[_hid2].name, icon:HELD_ITEMS[_hid2].icon }); }
   if (gd.tms && gd.tms.universal) heldLabels.push({ id:"tmUniversal", name:"萬能學習器 x" + gd.tms.universal, icon:"📀" });
   for (var ei in EVO_ITEMS) { if (gd[ei]) heldLabels.push({ id:ei, name:EVO_ITEMS[ei].name, icon:EVO_ITEMS[ei].icon }); }
   if (heldLabels.length > 0) {
@@ -4325,7 +4324,8 @@ function renderPCBoxContent() {
     if (boxed[j]) {
       var abilName3 = getPokemonAbility(boxed[j].baseName);
       var hBox = Math.min(boxed[j].happiness || 0, 120);
-      slot2.innerHTML = boxed[j].baseName + " Lv." + boxed[j].currentLevel + (abilName3 ? " <span style=\"font-size:10px;color:#8e44ad;\">[" + abilName3 + "]</span>" : "") + (hBox > 0 ? " <span style=\"font-size:10px;color:#e74c3c;\">❤️ " + hBox + "/120</span>" : "") + " <span title='檢視能力值詳情' style='cursor:pointer;font-size:12px;' onclick='event.stopPropagation();openPkmnDetail(\"" + boxed[j].id + "\")'>📊</span>";
+      var heldIconB = HELD_ITEM_ICONS[boxed[j].heldItem] ? " " + HELD_ITEM_ICONS[boxed[j].heldItem] : "";
+      slot2.innerHTML = boxed[j].baseName + " Lv." + boxed[j].currentLevel + heldIconB + (abilName3 ? " <span style=\"font-size:10px;color:#8e44ad;\">[" + abilName3 + "]</span>" : "") + (hBox > 0 ? " <span style=\"font-size:10px;color:#e74c3c;\">❤️ " + hBox + "/120</span>" : "") + " <span title='檢視能力值詳情' style='cursor:pointer;font-size:12px;' onclick='event.stopPropagation();openPkmnDetail(\"" + boxed[j].id + "\")'>📊</span>";
       slot2.dataset.pokemonId = boxed[j].id;
       slot2.classList.add("pc-filled");
     } else {
@@ -4353,9 +4353,11 @@ function openPkmnDetail(pokemonId) {
   var leg = checkIsLegendary(pkmn.baseName);
   var stage = EVO_STAGE_MAP[raw] !== undefined ? EVO_STAGE_MAP[raw] : 0;
   var baseTotal = leg ? 600 : (300 + Math.min(stage, 2) * 100);
-  var heldName = pkmn.heldItem === "expShare" ? "學習裝置" : (HELD_ITEMS[pkmn.heldItem] ? HELD_ITEMS[pkmn.heldItem].name : "");
+  var heldName = HELD_ITEMS[pkmn.heldItem] ? HELD_ITEMS[pkmn.heldItem].name : "";
   var heldIcon = HELD_ITEM_ICONS[pkmn.heldItem] || "";
   var inParty = (globalData.partyIds || []).indexOf(pkmn.id) !== -1;
+  function heldStatBonus(heldId) { if (heldId === "eviolite") return "DEF x1.5, SPDEF x1.5"; if (heldId === "assaultVest") return "SPDEF x1.5"; return ""; }
+  var heldBonus = heldStatBonus(pkmn.heldItem);
   body.innerHTML =
     "<div style='display:flex;align-items:center;gap:8px;margin-bottom:8px;'>" +
       "<span style='font-size:20px;font-weight:700;'>" + pkmn.baseName + "</span>" +
@@ -4374,6 +4376,7 @@ function openPkmnDetail(pokemonId) {
         "<div>🌐 SPD <strong>" + stats.spdef + "</strong></div>" +
         "<div>💨 SPE <strong>" + stats.speed + "</strong></div>" +
       "</div>" +
+      (heldBonus ? "<div style='font-size:11px;color:#27ae60;margin-top:4px;border-top:1px solid #ddd;padding-top:4px;'>道具加成 (" + heldIcon + heldName + "): " + heldBonus + "</div>" : "") +
       "<div style='font-size:11px;color:#999;margin-top:4px;border-top:1px solid #ddd;padding-top:4px;'>種族值基準: " + baseTotal + " | 屬性: " + stats.type + "</div>" +
     "</div>" +
     "<div style='font-size:12px;color:#555;margin-bottom:4px;'>" +
@@ -5332,7 +5335,7 @@ function updateDashboard() {
     var holderParts = [];
     for (var _hi2 in HELD_ITEM_ICONS) {
       var holder = gd.roster.find(function(p){ return p.heldItem === _hi2; });
-      if (holder) holderParts.push(HELD_ITEM_ICONS[_hi2] + " " + (_hi2 === "expShare" ? "學習裝置" : HELD_ITEMS[_hi2].name) + ": " + holder.baseName);
+      if (holder) holderParts.push(HELD_ITEM_ICONS[_hi2] + " " + HELD_ITEMS[_hi2].name + ": " + holder.baseName);
     }
     if (holderParts.length) {
       itemDisplay.innerHTML += (holdItems.length ? " | " : "") + holderParts.join(" | ");
@@ -5791,13 +5794,13 @@ function openCollection() {
     var nameD = p.baseName;
     if (leg2 && nameD.indexOf("✨") === -1) nameD = "✨ " + nameD;
     var inParty = (globalData.partyIds || []).indexOf(p.id) !== -1;
-    var holdBadge = p.heldItem ? "<span style=\"margin-left:8px;font-size:11px;color:#8e44ad;\">" + (HELD_ITEM_ICONS[p.heldItem] || "📦") + " 持有" + (p.heldItem === "expShare" ? "學習裝置" : (HELD_ITEMS[p.heldItem] ? HELD_ITEMS[p.heldItem].name : p.heldItem)) + "</span>" : "";
+    var holdBadge = p.heldItem ? "<span style=\"margin-left:8px;font-size:11px;color:#8e44ad;\">" + (HELD_ITEM_ICONS[p.heldItem] || "📦") + " 持有" + (HELD_ITEMS[p.heldItem] ? HELD_ITEMS[p.heldItem].name : p.heldItem) + "</span>" : "";
     var equipBtn = "";
-    var allPurchasedHeld = { expShare: globalData.expSharePurchased };
+    var allPurchasedHeld = {};
     for (var _hi4 in HELD_ITEMS) allPurchasedHeld[_hi4] = globalData[HELD_ITEMS[_hi4].flag] || false;
     for (var _hid in allPurchasedHeld) {
       if (!allPurchasedHeld[_hid]) continue;
-      var itemName = _hid === "expShare" ? "學習裝置" : HELD_ITEMS[_hid].name;
+      var itemName = HELD_ITEMS[_hid] ? HELD_ITEMS[_hid].name : _hid;
       var icon = HELD_ITEM_ICONS[_hid] || "📦";
       if (p.heldItem === _hid) {
         equipBtn += "<button class=\"buy-btn\" style=\"padding:2px 8px;font-size:11px;margin-top:4px;margin-right:4px;\" onclick=\"unequipHeldItem('" + p.id + "','" + _hid + "')\">卸下" + itemName + "</button>";
@@ -5987,16 +5990,7 @@ function openShop() {
     }
     var owned = false;
     if (it.once) {
-      if (it.id === "expShare") owned = globalData.expSharePurchased;
-      else if (it.id === "expertBelt") owned = globalData.hasExpertBelt;
-      else if (it.id === "eviolite") owned = globalData.hasEviolite;
-      else if (it.id === "championCloak") owned = globalData.hasChampionCloak;
-      else if (it.id === "amuletCoin") owned = globalData.hasAmuletCoin;
-      else if (it.id === "focusSash") owned = globalData.hasFocusSash;
-      else if (it.id === "ejectButton") owned = globalData.hasEjectButton;
-      else if (it.id === "rockyHelmet") owned = globalData.hasRockyHelmet;
-      else if (it.id === "weaknessPolicy") owned = globalData.hasWeaknessPolicy;
-      else if (HELD_ITEMS[it.id]) owned = globalData[HELD_ITEMS[it.id].flag] || false;
+      if (HELD_ITEMS[it.id]) owned = globalData[HELD_ITEMS[it.id].flag] || false;
       else if (EVO_ITEMS[it.id]) owned = globalData[it.id] || false;
     }
     var card = document.createElement("div"); card.className = "shop-card";
@@ -6013,8 +6007,6 @@ function openShop() {
 async function buyItem(itemId, cost, itemName) {
   if ((globalData.coins || 0) < cost) { toast("金幣不足！"); return; }
   var onceItems = {};
-  onceItems.expShare = "expSharePurchased"; onceItems.expertBelt = "hasExpertBelt";
-  onceItems.eviolite = "hasEviolite"; onceItems.championCloak = "hasChampionCloak"; onceItems.amuletCoin = "hasAmuletCoin";
   for (var hi in HELD_ITEMS) onceItems[hi] = HELD_ITEMS[hi].flag;
   // 進化道具
   if (EVO_ITEMS[itemId]) {
@@ -6055,27 +6047,38 @@ async function buyItem(itemId, cost, itemName) {
 
 function openQuickEquip(itemId) {
   if (!globalData || !globalData.roster) return;
-  var roster = globalData.roster;
-  var itemName = itemId === "expShare" ? "學習裝置" : (HELD_ITEMS[itemId] ? HELD_ITEMS[itemId].name : itemId);
-  var msg = "選擇要裝備" + itemName + "的寶可夢：\n\n";
-  var choices = [];
-  for (var qi = 0; qi < roster.length; qi++) {
-    var p = roster[qi];
-    if (p.heldItem === itemId) continue;
-    choices.push(p);
-    msg += (qi + 1) + ". " + p.baseName + " Lv." + p.currentLevel + "\n";
+  var itemData = HELD_ITEMS[itemId];
+  var itemName = itemData ? itemData.name : itemId;
+  var itemIcon = itemData ? itemData.icon : "📦";
+  var list = $("equipModalList");
+  list.innerHTML = "";
+  $("equipModalTitle").innerHTML = "🎒 選擇要裝備" + itemIcon + itemName + "的寶可夢";
+  var eligible = globalData.roster.filter(function(p){ return p.heldItem !== itemId; });
+  if (eligible.length === 0) { toast("所有寶可夢都已持有" + itemName); return; }
+  var holderId = null;
+  for (var ek in globalData.roster) { if (globalData.roster[ek].heldItem === itemId) { holderId = globalData.roster[ek].id; break; } }
+  for (var qi = 0; qi < eligible.length; qi++) {
+    var p = eligible[qi];
+    var pType = getPokemonType(p.baseName);
+    var typeColor = getTypeColor(pType);
+    var card = document.createElement("div");
+    card.style.cssText = "display:flex;align-items:center;gap:8px;padding:8px;border-radius:8px;margin:4px 0;cursor:pointer;background:#f9f9f9;border-left:4px solid " + typeColor + ";transition:background 0.15s;";
+    card.onmouseover = function(){ this.style.background = "#e8f8f5"; };
+    card.onmouseout = function(){ this.style.background = "#f9f9f9"; };
+    card.onclick = function(){ closeModal('equipModal'); equipHeldItem(p.id, itemId); };
+    var curHold = p.heldItem ? " <span style='font-size:10px;color:#8e44ad;'>[目前:" + (HELD_ITEM_ICONS[p.heldItem] || "") + (HELD_ITEMS[p.heldItem] ? HELD_ITEMS[p.heldItem].name : p.heldItem) + "]</span>" : " <span style='font-size:10px;color:#999;'>[無裝備]</span>";
+    var heldBonus = "";
+    if (itemId === "eviolite") heldBonus = " <span style='font-size:10px;color:#27ae60;'>DEF/SPDEF x1.5</span>";
+    else if (itemId === "assaultVest") heldBonus = " <span style='font-size:10px;color:#27ae60;'>SPDEF x1.5</span>";
+    else if (itemData && itemData.desc) heldBonus = " <span style='font-size:10px;color:#888;'>" + itemData.desc + "</span>";
+    card.innerHTML = "<span style='font-size:16px;'>" + renderTypeBadges(pType) + "</span><strong>" + p.baseName + "</strong> Lv." + p.currentLevel + curHold + heldBonus;
+    list.appendChild(card);
   }
-  if (choices.length === 0) { toast("所有寶可夢都已持有" + itemName); return; }
-  msg += "\n請輸入編號 (1~" + choices.length + ")";
-  var choice = prompt(msg);
-  if (!choice) return;
-  var idx = parseInt(choice) - 1;
-  if (isNaN(idx) || idx < 0 || idx >= choices.length) { toast("無效選擇"); return; }
-  equipHeldItem(choices[idx].id, itemId);
+  $("equipModal").style.display = "flex";
 }
 async function equipHeldItem(pokemonId, itemId) {
-  var itemName = itemId === "expShare" ? "學習裝置" : HELD_ITEMS[itemId].name;
-  var flag = itemId === "expShare" ? "expSharePurchased" : HELD_ITEMS[itemId].flag;
+  var itemName = HELD_ITEMS[itemId] ? HELD_ITEMS[itemId].name : itemId;
+  var flag = HELD_ITEMS[itemId] ? HELD_ITEMS[itemId].flag : null;
   if (!globalData[flag]) { toast("請先購買" + itemName + "！"); return; }
   for (var i = 0; i < globalData.roster.length; i++) {
     if (globalData.roster[i].heldItem === itemId) { toast("已有其他寶可夢持有" + itemName + "！請先卸下。"); return; }
@@ -6090,7 +6093,7 @@ async function equipHeldItem(pokemonId, itemId) {
 }
 
 async function unequipHeldItem(pokemonId, itemId) {
-  var itemName = itemId === "expShare" ? "學習裝置" : HELD_ITEMS[itemId].name;
+  var itemName = HELD_ITEMS[itemId] ? HELD_ITEMS[itemId].name : itemId;
   var note = "卸下" + itemName;
   await executeSave({ studentId: globalData.studentId, score: 0, action: "道具裝備", expGained: 0, coinsGained: 0, badgeChange: 0, note: note, extraNote: note, totalScore: 0, user: globalData.studentId }, function() {
     var target = globalData.roster.find(function(p){ return p.id === pokemonId; });

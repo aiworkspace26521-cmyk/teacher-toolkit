@@ -255,7 +255,7 @@ async function recalculateStudentState(studentId) {
         };
       }
     } else if (rowAction === '道具裝備') {
-      const HELD_NAMES = { expShare: '學習裝置', quickClaw: '先制之爪', focusLens: '焦點鏡', shellBell: '貝殼之鈴', lifeOrb: '生命寶珠', assaultVest: 'AV背心' };
+      const HELD_NAMES = { expShare: '學習裝置', expertBelt: '達人帶', eviolite: '進化奇石', championCloak: '冠軍披風', amuletCoin: '護符金幣', quickClaw: '先制之爪', focusLens: '焦點鏡', shellBell: '貝殼之鈴', lifeOrb: '生命寶珠', assaultVest: 'AV背心', focusSash: '氣勢披帶', ejectButton: '逃脱按鈕', rockyHelmet: '凸凸頭盔', weaknessPolicy: '弱點保險' };
       for (const [hid, hname] of Object.entries(HELD_NAMES)) {
         const ep = new RegExp(`裝備${hname}給\\s*ID:(\\S+)`);
         const em = safeNote.match(ep);
