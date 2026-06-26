@@ -857,8 +857,6 @@ async function recalculateStudentState(studentId, events) {
       }
     }
     if (rowAction === "\u5546\u57CE\u514C\u63DB") {
-      var cm = safeNote.match(/\u82B1\u8CBB(\d+)\u5E63/);
-      if (cm) state.coins -= parseInt(cm[1]);
       if (safeNote.indexOf("\u597D\u50B7\u85E5") !== -1) state.potions++;
       if (safeNote.indexOf("\u6D3B\u529B\u584A") !== -1) state.revives++;
       if (safeNote.indexOf("\u795E\u5947\u7CD6\u679C") !== -1) state.candies++;
@@ -871,7 +869,7 @@ async function recalculateStudentState(studentId, events) {
       if (safeNote.indexOf("\u51A0\u8ECD\u62AB\u98A8") !== -1) state.hasChampionCloak = true;
       if (safeNote.indexOf("\u5148\u5236\u4E4B\u722A") !== -1) state.hasQuickClaw = true;
       if (safeNote.indexOf("\u7126\u9EDE\u93E1") !== -1) state.hasFocusLens = true;
-      if (safeNote.indexOf("\u8C9D\u6BBB\u4E4B\u9234") !== -1) state.hasShellBell = true;
+      if (safeNote.indexOf("\u8C9D\u6BBC\u4E4B\u9234") !== -1) state.hasShellBell = true;
       if (safeNote.indexOf("\u751F\u547D\u5BF6\u73E0") !== -1) state.hasLifeOrb = true;
       if (safeNote.indexOf("AV\u80CC\u5FC3") !== -1) state.hasAssaultVest = true;
       if (safeNote.indexOf("\u6A59\u6A59\u679C") !== -1) state.oranBerries = (state.oranBerries||0) + 1;

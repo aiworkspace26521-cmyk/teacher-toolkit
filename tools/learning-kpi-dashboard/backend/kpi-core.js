@@ -164,7 +164,7 @@ async function recalculateStudentState(studentId) {
     }
 
     if (rowDate.toDateString() === todayStr &&
-        !['商城兌換', '戰鬥消耗', '物品消耗', 'E', '戰鬥勝利', '系統測試', 'trade', '捕捉', 'A', '糖果升級', 'B'].includes(rowAction)) {
+        !['商城兌換', '戰鬥消耗', '物品消耗', 'E', '戰鬥勝利', '系統測試', 'trade', '捕捉', 'A', '糖果升級', 'B', '道具裝備', 'PvP'].includes(rowAction)) {
       state.todayCompleted = true;
     }
 
@@ -190,8 +190,6 @@ async function recalculateStudentState(studentId) {
     }
 
     if (rowAction === '商城兌換') {
-      const costMatch = safeNote.match(/花費(\d+)幣/);
-      if (costMatch) state.coins -= parseInt(costMatch[1]);
       if (safeNote.includes('好傷藥')) state.potions++;
       if (safeNote.includes('活力塊')) state.revives++;
       if (safeNote.includes('神奇糖果')) state.candies++;
