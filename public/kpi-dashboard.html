@@ -597,6 +597,7 @@
   <h3 style="color:#8e44ad;margin-top:0;">🆚 PvP對戰</h3>
   <div style="text-align:right;margin-bottom:6px;">
     <button onclick="closeModal('pvpModal');openRankingModal();" style="background:none;border:1px solid #8e44ad;color:#8e44ad;border-radius:4px;padding:4px 10px;font-size:12px;cursor:pointer;">🏆 天梯排名</button>
+    <button onclick="resetTodayData()" style="background:none;border:1px solid #e74c3c;color:#e74c3c;border-radius:4px;padding:4px 10px;font-size:12px;cursor:pointer;margin-left:4px;">🔄 重置今日</button>
   </div>
   <!-- Lobby -->
   <div id="pvpLobby">
@@ -1070,7 +1071,6 @@ async function fetchStudentData(studentId, pendingEvent) {
     } catch(e) { console.warn("Failed to restore TM data:", e); }
     await loadAchievementsFromFirestore(studentId);
     if (isAdmin) globalData.todayCompleted = false;
-    if (globalData.todayCompleted) globalData.todayCompleted = false;
     if (globalData.monthLeagueWins > 0 && globalData.leagueRegionsWon) {
       var monthKey = new Date().getFullYear() + "-" + (new Date().getMonth() + 1);
       for (var rn in globalData.leagueRegionsWon) { leagueCompletedMonths[rn] = monthKey; }
@@ -3554,7 +3554,12 @@ function closeBattleResult() {
   closeModal("battleModal");
   $("resultConfirmBtn").style.display = "none";
   $("resultRewards").innerHTML = "";
+  $("resultMessage").innerHTML = "";
+  $("resultMessage").style.display = "none";
+  $("arenaResultPhase").style.display = "none";
+  $("arenaBattlePhase").style.display = "block";
   updateDashboard();
+  updateBattleButtons();
 }
 // ===== ARENA UI =====
 function applyEntryAbility(enemy, playerFirst, battleStateRef, log) {
@@ -4394,6 +4399,22 @@ function checkPvpDoneToday() {
     if (window.__pvpEvents[pi].startsWith(todayKey)) return true;
   }
   return false;
+}
+
+function resetTodayData() {
+  window.__pvpEvents = [];
+  if (db && globalData && globalData.studentId) {
+    db.collection("kpi_students").doc(globalData.studentId).set({ todayCompleted: false, todayBattles: 0 }, { merge: true });
+    globalData.todayCompleted = false;
+    globalData.todayBattles = 0;
+    localStorage.removeItem("kpi_cache_" + globalData.studentId);
+    sessionStorage.removeItem("kpi_cache_" + globalData.studentId);
+    updateDashboard();
+    updateBattleButtons();
+    toast("今日資料已重置！可重新測試戰鬥");
+  } else {
+    toast("今日 PvP 記錄已清除（重新整理頁面後完全生效）");
+  }
 }
 
 // ── Lobby ──
