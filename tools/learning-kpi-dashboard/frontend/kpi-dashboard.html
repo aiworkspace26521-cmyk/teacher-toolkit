@@ -908,8 +908,35 @@ async function recalculateStudentState(studentId, events) {
       var initLv = score >= 95 ? Math.max(5, Math.floor(score / 4)) : (score >= 75 ? Math.max(5, Math.floor(score / 6)) : Math.max(5, Math.floor(score / 8)));
       var lvMatch = pNameRaw.match(/(.+?)\s*\(Lv\.(\d+)\)/);
       if (lvMatch) initLv = parseInt(lvMatch[2], 10);
+      var lvFromNote = safeNote.match(/\|\s*Lv\.(\d+)\s*\|/);
+      if (lvFromNote) initLv = parseInt(lvFromNote[1], 10);
       initLv = Math.min(initLv, Math.max(5, (state.lockedGymLevel || 5)) + 3);
       var cleanName = pNameRaw.indexOf("(") !== -1 ? pNameRaw : pNameRaw + " (\u4E00\u822C\u7CFB)";
+      // Re-evaluate evolution chain against capped level
+      if (typeof EVO_STAGE_MAP !== "undefined" && initLv >= 5) {
+        var _rawEvo = typeof getRawName === "function" ? getRawName(cleanName) : null;
+        if (_rawEvo) {
+          for (var _et in POKEMON_TIERS) {
+            var _efound = false;
+            for (var _ei = 0; _ei < POKEMON_TIERS[_et].length; _ei++) {
+              var _es = POKEMON_TIERS[_et][_ei];
+              if (!_es.evolutions || _es.eevee) continue;
+              if (_es.name === _rawEvo || _es.evolutions.indexOf(_rawEvo) !== -1) {
+                var _correctEvo = typeof getEvolvedName === "function" ? getEvolvedName(_es, initLv) : _rawEvo;
+                if (_correctEvo !== _rawEvo) {
+                  var _correctTypes = (typeof POKEMON_SPECIES_TYPES !== "undefined" && POKEMON_SPECIES_TYPES[_correctEvo]) || ["\u4E00\u822C"];
+                  var _isLeg = typeof checkIsLegendary === "function" ? checkIsLegendary(_correctEvo) : false;
+                  var _prefix2 = _isLeg ? "\u2728 " : "\u2B50 ";
+                  cleanName = _prefix2 + _correctEvo + " (" + _correctTypes.join("/") + ")";
+                }
+                _efound = true;
+                break;
+              }
+            }
+            if (_efound) break;
+          }
+        }
+      }
       if (!state.roster[pid]) state.roster[pid] = { id: pid, baseName: cleanName, totalExp: 0, initialLevel: initLv, catchDate: rowDate.getFullYear()+"/"+((rowDate.getMonth()+1)+"").padStart(2,"0")+"/"+(rowDate.getDate()+"").padStart(2,"0"), heldItem: "" };
     } else if (rowAction === "B" || rowAction === "\u7CD6\u679C\u5347\u7D1A") {
       var pid2 = (safeNote.match(/ID:(P\d+(?:_LEG)?|legacy_\d+)/)||[])[1];
@@ -1132,12 +1159,14 @@ async function executeSave(record, successCb, closeBattleModal) {
   var fbRecord = { studentId: record.user || record.studentId, tasks: record.tasks || [], score: record.totalScore || record.score || 0, action: record.action, expGained: record.expGained || 0, coinsGained: record.coinsGained || 0, badgeChange: record.badgeChange || 0, note: record.extraNote || record.note || "" };
   var result = await saveEventToFirestore(fbRecord);
   if (result && result.success) {
+    // Mark todayCompleted immediately for daily submits (defensive: survives fetchStudentData failure)
+    if (fbRecord.action === "\u6BCF\u65E5\u63D0\u4EA4" && globalData) globalData.todayCompleted = true;
     if (successCb) setTimeout(successCb, 100);
     if (closeBattleModal) closeModal("battleModal");
     var savedEvent = { id: result.eventId }; for (var k in fbRecord) savedEvent[k] = fbRecord[k];
     savedEvent.timestamp = firebase.firestore.Timestamp.now();
     await fetchStudentData(fbRecord.studentId, savedEvent);
-  } else { btn.disabled = false; btn.innerText = oldTxt; toast("Save failed"); }
+  } else { btn.disabled = false; btn.innerText = oldTxt; toast("Save failed"); if (globalData && fbRecord.action === "\u6BCF\u65E5\u63D0\u4EA4") globalData.todayCompleted = false; }
   _isSaving = false;
 }
 // P4-5c: Debounced student doc field writer — batches small writes into one set()
@@ -5487,8 +5516,13 @@ function updatePreview() {
   $("hiddenAction").value = actionLabel;
 
   if (finalScore > 0) {
-    $("submitBtn").disabled = false;
-    $("submitBtn").textContent = "🚀 送出今日紀錄";
+    // Don't re-enable submit if already completed today
+    if (globalData && globalData.todayCompleted && !isAdmin) {
+      $("submitBtn").disabled = true;
+    } else {
+      $("submitBtn").disabled = false;
+      $("submitBtn").textContent = "🚀 送出今日紀錄";
+    }
   } else {
     $("submitBtn").disabled = true;
     $("submitBtn").textContent = "請選擇任務";
@@ -6149,7 +6183,7 @@ async function submitData() {
         toast("今日已完成！");
         return;
       }
-    } catch (e) { /* Firestore query failed, proceed with caution */ }
+    } catch (e) { console.warn("submitData double-check query failed:", e); }
   }
   var score = parseInt($("hiddenScore").value) || 0;
   if (score <= 0) { toast("請選擇任務！"); return; }
@@ -6200,6 +6234,7 @@ async function submitData() {
     var fullUnlock = badges >= 16;
     var tier = "一般";
     var captureLevel = Math.max(5, Math.floor(score / 8));
+    var lockedGymLevel = globalData ? globalData.lockedGymLevel || 5 : 5;
     var streak = (globalData && globalData.submitStreak) || 0;
     var streakBonus = 0;
     if (streak >= 7) { streakBonus = 0.06; }
@@ -6230,11 +6265,12 @@ async function submitData() {
     }
     if (streak >= 10 && score >= 60) { tier = "傳說"; captureLevel = Math.max(captureLevel, Math.floor(score / 4)); }
     else if (streak >= 5 && score >= 60 && tier === "一般") { tier = "稀有"; }
+    captureLevel = Math.min(captureLevel, Math.max(5, lockedGymLevel) + 3);
     var targetType = $("baitAttr").value;
     var captured = generateCapturePokemon(tier, targetType, captureLevel);
     var expGain = 0;
     var coinsGain = origCoins(score);
-    var note = "📅 " + monthName + " | 捕捉: " + captured.name + " | ID:" + captured.id + " | 類型: " + targetType;
+    var note = "📅 " + monthName + " | 捕捉: " + captured.name + " | Lv." + captured.level + " | ID:" + captured.id + " | 類型: " + targetType;
     var record = { user: studentId, studentId: studentId, totalScore: score, score: score, action: "捕捉", expGained: expGain, coinsGained: coinsGain, badgeChange: 0, tasks: tasks, note: note, extraNote: note };
     await executeSave(record, function() {
       toast("🎉 捕捉到 " + captured.name + " Lv." + captured.level + "！" + (captured.isLegendary ? " 🌟 傳說級！" : ""));
@@ -6257,6 +6293,10 @@ async function submitData() {
       toast("🎯 " + targetName + " 獲得 " + expGain + " EXP（集中訓練）！");
     }, true);
   } else {
+    // Immediate guard: prevent re-entry before async save completes
+    globalData.todayCompleted = true;
+    $("submitBtn").innerHTML = "✅ Done"; $("submitBtn").disabled = true;
+    document.querySelectorAll(".task-cb, input[name=\"actionType\"]").forEach(function(el){ el.disabled = true; });
     var expGain = score * 10;
     var coinsGain = origCoins(score);
     var note = "📅 " + monthName + " | 任務: " + tasks.join(", ") + (action ? " | 加分: " + action : "");
@@ -6264,6 +6304,10 @@ async function submitData() {
     await executeSave(record, function() {
       toast("🎉 今日紀錄已送出！獲得 " + expGain + " EXP, " + coinsGain + " 金幣！");
     }, true);
+    // If save failed, rollback the guard so user can retry
+    if (!$("submitBtn").disabled || $("submitBtn").innerHTML.indexOf("Failed") !== -1) {
+      globalData.todayCompleted = false;
+    }
   }
 }
 
