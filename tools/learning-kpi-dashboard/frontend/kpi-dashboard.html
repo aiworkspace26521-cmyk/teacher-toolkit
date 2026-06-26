@@ -1661,6 +1661,23 @@ function getEvolvedName(species, level) {
     var idx = Math.min(stage - 1, species.evolutions.length - 1);
     return species.evolutions[idx];
   }
+  if (typeof EVO_STAGE_MAP !== "undefined" && EVO_STAGE_MAP[species.name] > 0) {
+    var minLevel = EVO_STAGE_MAP[species.name] * 15;
+    if (level < minLevel) {
+      var searchName = species.name;
+      if (typeof EEVEELUTION_IBU !== "undefined" && EEVEELUTION_IBU[species.name]) {
+        searchName = EEVEELUTION_IBU[species.name];
+      }
+      for (var _t in POKEMON_TIERS) {
+        for (var _i = 0; _i < POKEMON_TIERS[_t].length; _i++) {
+          var _p = POKEMON_TIERS[_t][_i];
+          if (!_p.eevee && _p.evolutions && _p.evolutions.indexOf(searchName) !== -1) {
+            return _p.name;
+          }
+        }
+      }
+    }
+  }
   return species.name;
 }
 function checkEvoReady(pkmn, gd) {
@@ -6094,19 +6111,14 @@ function generateCapturePokemon(tier, targetType, level) {
   var candidates = [];
   for (var i = 0; i < pool.length; i++) {
     var s = pool[i];
-    var evoName = s.name;
-    if (s.evolutions) evoName = getEvolvedName(s, level);
+    var evoName = getEvolvedName(s, level);
     if (targetType === "隨機") { candidates.push(evoName); continue; }
     var speciesT = POKEMON_SPECIES_TYPES[evoName] || ["一般"];
     if (speciesT.indexOf(targetType) !== -1) candidates.push(evoName);
   }
   if (candidates.length === 0) {
     var fallback = pool[Math.floor(Math.random() * pool.length)];
-    if (fallback.evolutions) {
-      candidates = [getEvolvedName(fallback, level)];
-    } else {
-      candidates = [fallback.name];
-    }
+    candidates = [getEvolvedName(fallback, level)];
   }
   var chosenName = candidates[Math.floor(Math.random() * candidates.length)];
   var chosenTypes = POKEMON_SPECIES_TYPES[chosenName] || ["一般"];

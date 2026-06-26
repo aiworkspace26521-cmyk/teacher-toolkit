@@ -751,19 +751,30 @@ for (var k2 in extraTypes2) { POKEMON_SPECIES_TYPES[k2] = extraTypes2[k2]; }
 for (var m2 in extraMoves2) { MOVE_DATABASE[m2] = extraMoves2[m2]; }
 for (var s2 in extraSig2) { SIGNATURE_MOVES[s2] = extraSig2[s2]; }
 
-// ========== RECOMPUTE EVO_STAGE_MAP ==========
+// ========== EVO_STAGE_MAP with alias support ==========
+// Standalone evolved-form entries must NOT overwrite stages set by parent evolutions.
+var EEVEELUTION_IBU = {
+  "雷精靈":"雷伊布","水精靈":"水伊布","火精靈":"火伊布",
+  "太陽精靈":"太陽伊布","月亮精靈":"月亮伊布",
+  "葉精靈":"葉伊布","冰精靈":"冰伊布","仙子精靈":"仙子伊布"
+};
 EVO_STAGE_MAP = (function(){
   var m = {};
   for (var t in POKEMON_TIERS) {
     for (var i = 0; i < POKEMON_TIERS[t].length; i++) {
       var e = POKEMON_TIERS[t][i];
-      m[e.name] = 0;
+      if (m[e.name] === undefined) m[e.name] = 0;
       if (e.evolutions) {
         for (var j = 0; j < e.evolutions.length; j++) {
           m[e.evolutions[j]] = j + 1;
         }
       }
     }
+  }
+  // Apply Eeveelution alias mapping (精靈 ↔ 伊布 naming)
+  for (var _alias in EEVEELUTION_IBU) {
+    var _ibu = EEVEELUTION_IBU[_alias];
+    if (m[_ibu] !== undefined) m[_alias] = m[_ibu];
   }
   return m;
 })();
