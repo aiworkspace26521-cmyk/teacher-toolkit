@@ -3942,7 +3942,8 @@ function generateGymWaves(trainerLevel) {
 
 function startBattle(isGym, isLeague) {
   if (!globalData || typeof globalData.highestLevel === "undefined") return;
-  if (globalData.todayCompleted) { toast("今日已完成！"); return; }
+  var battlesToday = globalData.todayBattles || 0;
+  if (battlesToday >= 5) { toast("今日路人戰次數已用盡！"); return; }
   if (isGym && (globalData.weekGymWins || 0) >= 3) { toast("本週道館挑戰次數已用盡（上限3次）！"); return; }
   var trainerLevel = globalData.highestLevel || 5;
   if (globalData.simpleMode) trainerLevel = Math.max(5, Math.floor(trainerLevel * 0.75));
