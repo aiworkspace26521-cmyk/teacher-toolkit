@@ -1078,6 +1078,7 @@ async function fetchStudentData(studentId, pendingEvent) {
     globalData.partyIds = [];
     if (savedParty) { try { var parsed = JSON.parse(savedParty); globalData.partyIds = parsed.filter(function(id){ return globalData.roster.some(function(p){return p.id === id;}); }); } catch(e) {} }
     if (globalData.partyIds.length === 0) { var sorted = globalData.roster.slice().sort(function(a,b){ return b.currentLevel - a.currentLevel; }); globalData.partyIds = sorted.slice(0, 6).map(function(p){ return p.id; }); }
+    if (db && globalData.studentId) { db.collection("kpi_students").doc(globalData.studentId).set({ partyIds: globalData.partyIds }, { merge: true }).catch(function(e){}); }
         if (!cacheLoaded) { hideSkeleton(); updateDashboard(); renderActions(); }
         updateBattleButtons();
     // show task/strategy sections for non-admin users
@@ -3439,6 +3440,8 @@ function finishGymVictory() {
   if (badgeGain) msg += " + 🏅 " + badgeGain + " 枚徽章！";
   var noteContent = "⚔️ 道館勝利 | 館主: " + gi.leader + " (" + gi.name + ") [Gym] | 波次:" + battleState.totalWaves + " | 參與者: " + partyUsed.map(function(p){return p.id;}).join(",") + captureText;
   executeSave({ studentId: globalData.studentId, score: 0, action: "戰鬥勝利", expGained: totalExpGain, coinsGained: coinsGain, badgeChange: badgeGain, note: noteContent, extraNote: noteContent, totalScore: 0, user: globalData.studentId }, function() {
+    $("arenaBattlePhase").style.display = "none";
+    $("arenaResultPhase").style.display = "block";
     $("resultMessage").innerHTML = msg;
     $("resultMessage").style.display = "block";
   }, false);
@@ -3509,6 +3512,8 @@ function endBattle(playerWon) {
     msg += "<br><span style='font-size:11px;color:#666;'>" + expBreakdown.join(" | ") + " | 📖 非參戰隊員獲得50%</span>";
     var noteContent = "⚔️ 戰鬥勝利 | 對手: " + battleState.enemy.name + (defRegion ? " [Defense" + defRegion + "]" : battleState.isGym ? " [Gym]" : battleState.isLeague ? " [League]" : battleState.isWeeklyBoss ? " [Boss]" : " [路人]") + " | 參與者: " + partyUsed.map(function(p){return p.id;}).join(",") + captureText + defMsg;
     executeSave({ studentId: globalData.studentId, score: 0, action: "戰鬥勝利", expGained: totalExpGain, coinsGained: coinsGain, badgeChange: badgeGain, note: noteContent, extraNote: noteContent, totalScore: 0, user: globalData.studentId }, function() {
+      $("arenaBattlePhase").style.display = "none";
+      $("arenaResultPhase").style.display = "block";
       $("resultMessage").innerHTML = msg;
       $("resultMessage").style.display = "block";
       // Auto-evolve after battle
@@ -3524,6 +3529,8 @@ function endBattle(playerWon) {
       }
     }, false);
   } else {
+    $("arenaBattlePhase").style.display = "none";
+    $("arenaResultPhase").style.display = "block";
     $("resultMessage").innerHTML = "💀 全軍覆沒... 再接再厲！";
     $("resultMessage").style.display = "block";
   }
@@ -4016,6 +4023,8 @@ function finishLeagueVictory() {
   var participantStr = partyUsed.map(function(p){ return p.id; }).join(",");
   var noteContent = "⚔️ 聯盟冠軍 [" + region + " League] | 四天王+冠軍 [" + champ.name + "] | 參與者: " + participantStr + captureText;
   executeSave({ studentId: globalData.studentId, score: 0, action: "戰鬥勝利", expGained: totalExpGain, coinsGained: coinsGain, badgeChange: 0, note: noteContent, extraNote: noteContent, totalScore: 0, user: globalData.studentId }, function() {
+    $("arenaBattlePhase").style.display = "none";
+    $("arenaResultPhase").style.display = "block";
     $("resultMessage").innerHTML = msg;
     $("resultMessage").style.display = "block";
   }, false);
