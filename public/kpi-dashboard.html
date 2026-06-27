@@ -1065,7 +1065,7 @@ async function fetchStudentData(studentId, pendingEvent) {
             var ta = $("task-container"); if (ta) ta.style.display = "block";
             var sb = $("strategyBox"); if (sb) sb.style.display = "block";
           }
-          if (globalData.todayCompleted && !isAdmin) { btn.innerHTML = "\u2705 Done"; btn.disabled = true; document.querySelectorAll(".task-cb, input[name=\"actionType\"]").forEach(function(el){ el.checked = false; el.disabled = true; }); document.querySelectorAll(".action-option").forEach(function(el){ el.classList.remove("selected"); }); $("previewBox").innerHTML = "\u{1F31F} Today done!"; }
+          if (globalData.todayCompleted) { btn.innerHTML = "\u2705 Done"; btn.disabled = true; document.querySelectorAll(".task-cb, input[name=\"actionType\"]").forEach(function(el){ el.checked = false; el.disabled = true; }); document.querySelectorAll(".action-option").forEach(function(el){ el.classList.remove("selected"); }); $("previewBox").innerHTML = "\u{1F31F} Today done!"; }
           else { btn.disabled = false; btn.textContent = "\u{1F680} Submit"; document.querySelectorAll(".task-cb, input[name=\"actionType\"]").forEach(function(el){ el.checked = false; el.disabled = false; }); document.querySelectorAll(".action-option").forEach(function(el){ el.classList.remove("selected"); }); }
           cacheLoaded = true;
         }
@@ -1101,7 +1101,6 @@ async function fetchStudentData(studentId, pendingEvent) {
       }
     } catch(e) { console.warn("Failed to restore TM data:", e); }
     await loadAchievementsFromFirestore(studentId);
-    if (isAdmin) globalData.todayCompleted = false;
     if (globalData.monthLeagueWins > 0 && globalData.leagueRegionsWon) {
       var monthKey = new Date().getFullYear() + "-" + (new Date().getMonth() + 1);
       for (var rn in globalData.leagueRegionsWon) { leagueCompletedMonths[rn] = monthKey; }
@@ -1131,7 +1130,7 @@ async function fetchStudentData(studentId, pendingEvent) {
     saveQuestsToFirestore(studentId, globalQuestProgress);
     renderQuests();
     updateTradeBadge();
-    if (globalData.todayCompleted && !isAdmin) { btn.innerHTML = "\u2705 Done"; btn.disabled = true; document.querySelectorAll(".task-cb, input[name=\"actionType\"]").forEach(function(el){ el.checked = false; el.disabled = true; }); document.querySelectorAll(".action-option").forEach(function(el){ el.classList.remove("selected"); }); $("previewBox").innerHTML = "\u{1F31F} Today done!"; }
+    if (globalData.todayCompleted) { btn.innerHTML = "\u2705 Done"; btn.disabled = true; document.querySelectorAll(".task-cb, input[name=\"actionType\"]").forEach(function(el){ el.checked = false; el.disabled = true; }); document.querySelectorAll(".action-option").forEach(function(el){ el.classList.remove("selected"); }); $("previewBox").innerHTML = "\u{1F31F} Today done!"; }
     else { btn.disabled = false; btn.textContent = "\u{1F680} Submit"; document.querySelectorAll(".task-cb, input[name=\"actionType\"]").forEach(function(el){ el.checked = false; el.disabled = false; }); document.querySelectorAll(".action-option").forEach(function(el){ el.classList.remove("selected"); }); }
     var ev = globalData.roster.find(function(p){ return p.id === "P0" && p.baseName.indexOf("\u4F0A\u5E03") !== -1; });
     if (ev && ev.currentLevel >= 16 && !globalData.todayCompleted && ev.baseName === "\u{1F43E} \u4F0A\u5E03 (\u4E00\u822C\u7CFB)") $("eeveeModal").style.display = "flex";
@@ -5517,11 +5516,11 @@ function updatePreview() {
 
   if (finalScore > 0) {
     // Don't re-enable submit if already completed today
-    if (globalData && globalData.todayCompleted && !isAdmin) {
+    if (globalData && globalData.todayCompleted) {
       $("submitBtn").disabled = true;
     } else {
       $("submitBtn").disabled = false;
-      $("submitBtn").textContent = "🚀 送出今日紀錄";
+      $("submitBtn").textContent = "\u{1F680} \u9001\u51FA\u4ECA\u65E5\u7D00\u9304";
     }
   } else {
     $("submitBtn").disabled = true;
@@ -6168,9 +6167,11 @@ async function submitData() {
   if (!globalData) return;
   if (_dataLoading) { toast("資料載入中，請稍候..."); return; }
   if (_isSaving) { toast("正在儲存中，請勿重複點擊"); return; }
-  if (globalData.todayCompleted && !isAdmin) { toast("今日已完成！"); return; }
+  if (globalData.todayCompleted) { toast("今日已完成！"); return; }
+  // Disable button immediately to prevent double-click during async
+  $("submitBtn").disabled = true; $("submitBtn").textContent = "處理中...";
   // Double-check with Firestore in case session cache is stale
-  if (!isAdmin && !globalData.todayCompleted) {
+  if (!globalData.todayCompleted) {
     try {
       var todayStart = new Date(); todayStart.setHours(0, 0, 0, 0);
       var existingSnapshot = await db.collection("kpi_events")
@@ -6187,7 +6188,7 @@ async function submitData() {
   }
   // Re-check after async — concurrent clicks bypass earlier guards
   if (_isSaving) { toast("正在儲存中，請勿重複點擊"); return; }
-  if (globalData.todayCompleted && !isAdmin) { toast("今日已完成！"); return; }
+  if (globalData.todayCompleted) { toast("今日已完成！"); return; }
   var score = parseInt($("hiddenScore").value) || 0;
   if (score <= 0) { toast("請選擇任務！"); return; }
   var tasks = [];
@@ -6231,7 +6232,7 @@ async function submitData() {
   }
 
   if (actionType === "capture") {
-    if (globalData.todayCompleted && !isAdmin) { toast("今日已完成！"); return; }
+    if (globalData.todayCompleted) { toast("今日已完成！"); return; }
     if (score < 50) { toast("分數不足 50，無法捕捉新寶可夢！"); return; }
     var badges = globalData ? globalData.badges || 0 : 0;
     var canLegendary = badges >= 8;
@@ -6286,7 +6287,7 @@ async function submitData() {
       globalData.todayCompleted = false;
     }
   } else if (actionType === "train") {
-    if (globalData.todayCompleted && !isAdmin) { toast("今日已完成！"); return; }
+    if (globalData.todayCompleted) { toast("今日已完成！"); return; }
     var targetId = $("trainTarget").value;
     if (!targetId) { toast("請選擇強化目標！"); return; }
     var targetName = "指定寶可夢";
