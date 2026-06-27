@@ -196,7 +196,10 @@ var EVO_STAGE_OVERRIDES = {
   "櫻花魚":1,                    // 珍珠貝 split — direct evo
   "伽勒爾呆呆王":1,              // 伽勒爾呆呆獸 split
   "雪妖女":1,                    // 雪童子 split — direct evo
-  "艾路雷朵":2                   // 拉魯拉絲 chain — from 奇魯莉安
+  "艾路雷朵":2,                  // 拉魯拉絲 chain — from 奇魯莉安
+  "幸福蛋":2,                    // 3-stage chain — overwritten by 吉利蛋's entry
+  "黑夜魔靈":2,                  // 3-stage chain — overwritten by 彷徨夜靈's entry
+  "羅絲雷朵":2                   // 3-stage chain — overwritten by 毒薔薇's entry
 };
 
 function _fixEvoNameAfterCap(cleanName, initLv) {

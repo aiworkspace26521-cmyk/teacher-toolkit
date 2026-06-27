@@ -569,6 +569,9 @@ function buildEvoStageMap() {
   m["伽勒爾呆呆王"] = 1;
   m["雪妖女"] = 1;
   m["艾路雷朵"] = 2;
+  m["幸福蛋"] = 2;
+  m["黑夜魔靈"] = 2;
+  m["羅絲雷朵"] = 2;
   return m;
 }
 const EVO_STAGE_MAP = buildEvoStageMap();

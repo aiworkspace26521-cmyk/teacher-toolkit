@@ -787,6 +787,9 @@ EVO_STAGE_MAP = (function(){
   m["伽勒爾呆呆王"] = 1;                // 伽勒爾呆呆獸 split
   m["雪妖女"] = 1;                      // 雪童子 split — direct evo (like 冰鬼護)
   m["艾路雷朵"] = 2;                    // 拉魯拉絲 chain — from 奇魯莉安 (like 沙奈朵)
+  m["幸福蛋"] = 2;                      // 3-stage chain — overwritten by 吉利蛋's entry
+  m["黑夜魔靈"] = 2;                    // 3-stage chain — overwritten by 彷徨夜靈's entry
+  m["羅絲雷朵"] = 2;                    // 3-stage chain — overwritten by 毒薔薇's entry
   return m;
 })();
 
