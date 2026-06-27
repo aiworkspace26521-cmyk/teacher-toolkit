@@ -538,16 +538,37 @@ const QUESTS = {
 // Build EVO_STAGE_MAP
 function buildEvoStageMap() {
   const m = {};
+  const EEVEELUTION_IBU = {
+    "雷精靈":"雷伊布","水精靈":"水伊布","火精靈":"火伊布",
+    "太陽精靈":"太陽伊布","月亮精靈":"月亮伊布",
+    "葉精靈":"葉伊布","冰精靈":"冰伊布","仙子精靈":"仙子伊布"
+  };
   for (const t in POKEMON_TIERS) {
     for (const e of POKEMON_TIERS[t]) {
-      m[e.name] = 0;
+      if (m[e.name] === undefined) m[e.name] = 0;
       if (e.evolutions) {
-        for (let j = 0; j < e.evolutions.length; j++) {
-          m[e.evolutions[j]] = j + 1;
+        if (e.eevee) {
+          for (let j = 0; j < e.evolutions.length; j++) { m[e.evolutions[j]] = 1; }
+        } else {
+          for (let j = 0; j < e.evolutions.length; j++) {
+            m[e.evolutions[j]] = j + 1;
+          }
         }
       }
     }
   }
+  // Apply Eeveelution alias mapping
+  for (const alias in EEVEELUTION_IBU) {
+    const ibu = EEVEELUTION_IBU[alias];
+    if (m[ibu] !== undefined) m[alias] = m[ibu];
+  }
+  // EVO_STAGE_OVERRIDES: split evolutions whose chain index ≠ actual stage
+  m["艾比郎"] = 1; m["柯波朗"] = 1;
+  m["呆呆王"] = 1;
+  m["櫻花魚"] = 1;
+  m["伽勒爾呆呆王"] = 1;
+  m["雪妖女"] = 1;
+  m["艾路雷朵"] = 2;
   return m;
 }
 const EVO_STAGE_MAP = buildEvoStageMap();

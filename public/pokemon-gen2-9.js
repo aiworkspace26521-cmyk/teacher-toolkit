@@ -765,8 +765,12 @@ EVO_STAGE_MAP = (function(){
       var e = POKEMON_TIERS[t][i];
       if (m[e.name] === undefined) m[e.name] = 0;
       if (e.evolutions) {
-        for (var j = 0; j < e.evolutions.length; j++) {
-          m[e.evolutions[j]] = j + 1;
+        if (e.eevee) {
+          for (var j = 0; j < e.evolutions.length; j++) { m[e.evolutions[j]] = 1; }
+        } else {
+          for (var j = 0; j < e.evolutions.length; j++) {
+            m[e.evolutions[j]] = j + 1;
+          }
         }
       }
     }
@@ -776,6 +780,13 @@ EVO_STAGE_MAP = (function(){
     var _ibu = EEVEELUTION_IBU[_alias];
     if (m[_ibu] !== undefined) m[_alias] = m[_ibu];
   }
+  // EVO_STAGE_OVERRIDES: split evolutions whose chain index ≠ actual stage
+  m["艾比郎"] = 1; m["柯波朗"] = 1;    // 巴爾郎 split — both direct evo (like 沙瓦郎)
+  m["呆呆王"] = 1;                      // 呆呆獸 split — direct evo (like 呆殼獸)
+  m["櫻花魚"] = 1;                      // 珍珠貝 split — direct evo (like 獵斑魚)
+  m["伽勒爾呆呆王"] = 1;                // 伽勒爾呆呆獸 split
+  m["雪妖女"] = 1;                      // 雪童子 split — direct evo (like 冰鬼護)
+  m["艾路雷朵"] = 2;                    // 拉魯拉絲 chain — from 奇魯莉安 (like 沙奈朵)
   return m;
 })();
 
