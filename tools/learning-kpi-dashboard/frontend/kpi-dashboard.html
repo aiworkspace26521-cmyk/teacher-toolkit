@@ -836,7 +836,7 @@ async function recalculateStudentState(studentId, events) {
     state.badges += badgeChange;
     if (badgeChange > 0) state.lastBadgeTime = rowDate.getTime();
     state.coins += coinsGained;
-    if (rowDate.toDateString() === todayStr && ["\u5546\u57CE\u514C\u63DB","\u6230\u9B25\u6D88\u8017","\u7269\u54C1\u6D88\u8017","E","\u6230\u9B25\u52DD\u5229","\u7CFB\u7D71\u6E2C\u8A66","trade","\u6355\u6349","A","\u7CD6\u679C\u5347\u7D1A","B","\u9053\u5177\u88DD\u5099","PvP"].indexOf(rowAction) === -1) state.todayCompleted = true;
+    if (rowDate.toDateString() === todayStr && ["\u5546\u57CE\u514C\u63DB","\u6230\u9B25\u6D88\u8017","\u7269\u54C1\u6D88\u8017","E","\u6230\u9B25\u52DD\u5229","\u7CFB\u7D71\u6E2C\u8A66","trade","A","B","\u9053\u5177\u88DD\u5099","PvP"].indexOf(rowAction) === -1) state.todayCompleted = true;
     if (["\u5546\u57CE\u514C\u63DB","\u6230\u9B25\u6D88\u8017","\u7269\u54C1\u6D88\u8017","E","\u7CFB\u7D71\u6E2C\u8A66","trade","\u9053\u5177\u88DD\u5099"].indexOf(rowAction) === -1) submitDates[rowDate.toDateString()] = true;
     // 親密度: 每日提交全員+1
     if (rowAction === "\u6BCF\u65E5\u63D0\u4EA4" || rowAction === "\u6355\u6349" || rowAction === "A") {
@@ -6185,6 +6185,9 @@ async function submitData() {
       }
     } catch (e) { console.warn("submitData double-check query failed:", e); }
   }
+  // Re-check after async — concurrent clicks bypass earlier guards
+  if (_isSaving) { toast("正在儲存中，請勿重複點擊"); return; }
+  if (globalData.todayCompleted && !isAdmin) { toast("今日已完成！"); return; }
   var score = parseInt($("hiddenScore").value) || 0;
   if (score <= 0) { toast("請選擇任務！"); return; }
   var tasks = [];
@@ -6228,6 +6231,7 @@ async function submitData() {
   }
 
   if (actionType === "capture") {
+    if (globalData.todayCompleted && !isAdmin) { toast("今日已完成！"); return; }
     if (score < 50) { toast("分數不足 50，無法捕捉新寶可夢！"); return; }
     var badges = globalData ? globalData.badges || 0 : 0;
     var canLegendary = badges >= 8;
@@ -6270,12 +6274,19 @@ async function submitData() {
     var captured = generateCapturePokemon(tier, targetType, captureLevel);
     var expGain = 0;
     var coinsGain = origCoins(score);
+    globalData.todayCompleted = true;
+    $("submitBtn").innerHTML = "✅ Done"; $("submitBtn").disabled = true;
+    document.querySelectorAll(".task-cb, input[name=\"actionType\"]").forEach(function(el){ el.disabled = true; });
     var note = "📅 " + monthName + " | 捕捉: " + captured.name + " | Lv." + captured.level + " | ID:" + captured.id + " | 類型: " + targetType;
     var record = { user: studentId, studentId: studentId, totalScore: score, score: score, action: "捕捉", expGained: expGain, coinsGained: coinsGain, badgeChange: 0, tasks: tasks, note: note, extraNote: note };
     await executeSave(record, function() {
       toast("🎉 捕捉到 " + captured.name + " Lv." + captured.level + "！" + (captured.isLegendary ? " 🌟 傳說級！" : ""));
     }, true);
+    if (!$("submitBtn").disabled || $("submitBtn").innerHTML.indexOf("Failed") !== -1) {
+      globalData.todayCompleted = false;
+    }
   } else if (actionType === "train") {
+    if (globalData.todayCompleted && !isAdmin) { toast("今日已完成！"); return; }
     var targetId = $("trainTarget").value;
     if (!targetId) { toast("請選擇強化目標！"); return; }
     var targetName = "指定寶可夢";
@@ -6287,11 +6298,17 @@ async function submitData() {
       var x = Math.floor(expGain / 10);
       coinsGain += x;
     }
+    globalData.todayCompleted = true;
+    $("submitBtn").innerHTML = "✅ Done"; $("submitBtn").disabled = true;
+    document.querySelectorAll(".task-cb, input[name=\"actionType\"]").forEach(function(el){ el.disabled = true; });
     var note = "📅 " + monthName + " | 強化: " + targetName + " | 集中訓練 +" + expGain + " EXP | ID:" + targetId;
     var record = { user: studentId, studentId: studentId, totalScore: score, score: score, action: "糖果升級", expGained: expGain, coinsGained: coinsGain, badgeChange: 0, tasks: tasks, note: note, extraNote: note };
     await executeSave(record, function() {
       toast("🎯 " + targetName + " 獲得 " + expGain + " EXP（集中訓練）！");
     }, true);
+    if (!$("submitBtn").disabled || $("submitBtn").innerHTML.indexOf("Failed") !== -1) {
+      globalData.todayCompleted = false;
+    }
   } else {
     // Immediate guard: prevent re-entry before async save completes
     globalData.todayCompleted = true;

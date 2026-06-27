@@ -190,7 +190,7 @@ async function recalculateStudentState(studentId) {
     }
 
     if (rowDate.toDateString() === todayStr &&
-        !['商城兌換', '戰鬥消耗', '物品消耗', 'E', '戰鬥勝利', '系統測試', 'trade', '捕捉', 'A', '糖果升級', 'B', '道具裝備', 'PvP'].includes(rowAction)) {
+        !['商城兌換', '戰鬥消耗', '物品消耗', 'E', '戰鬥勝利', '系統測試', 'trade', 'A', 'B', '道具裝備', 'PvP'].includes(rowAction)) {
       state.todayCompleted = true;
     }
 
