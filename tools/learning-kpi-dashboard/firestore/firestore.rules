@@ -34,13 +34,14 @@ service cloud.firestore {
       allow write: if false;
     }
 
-    // trade_offers: 學生名義控制
+    // trade_offers: 學生名義控制（無 Auth，改用欄位存在檢查）
     match /trade_offers/{offerId} {
       allow read: if true;
-      allow create: if request.resource.data.senderId == request.auth.uid;
-      allow update: if resource.data.senderId == request.auth.uid
-                    || resource.data.targetId == request.auth.uid;
-      allow delete: if resource.data.senderId == request.auth.uid;
+      allow create: if request.resource.data.fromId is string
+                    && request.resource.data.toId is string;
+      allow update: if resource.data.fromId is string
+                    || resource.data.toId is string;
+      allow delete: if resource.data.fromId is string;
     }
 
     // pvp_ranking: 公開讀取，學生可寫入自己的排名
