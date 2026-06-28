@@ -600,6 +600,18 @@ async function recalculateStudentState(studentId) {
       }
     } else if (rowAction === '滿級轉化') {
       state.coins += rowCoins;
+    } else if (rowAction === 'trade') {
+      if (evt.tradeType === 'recv' && evt.tradedPokemon) {
+        try {
+          const tradedPkmn = JSON.parse(evt.tradedPokemon);
+          const pid = evt.tradePokemonId || tradedPkmn.id;
+          tradedPkmn.heldItem = tradedPkmn.heldItem || '';
+          tradedPkmn.catchDate = tradedPkmn.catchDate || `${rowDate.getFullYear()}/${(rowDate.getMonth() + 1).toString().padStart(2, '0')}/${rowDate.getDate().toString().padStart(2, '0')}`;
+          state.roster[pid] = tradedPkmn;
+        } catch (e) { console.warn('trade recv parse error:', e); }
+      } else if (evt.tradeType === 'send' && evt.tradePokemonId) {
+        delete state.roster[evt.tradePokemonId];
+      }
     }
 
     let currentIterLevel = 5;

@@ -990,6 +990,18 @@ async function recalculateStudentState(studentId, events) {
           for (var ek2 in state.roster) { if (state.roster[ek2].heldItem === hid2) state.roster[ek2].heldItem = ""; }
         }
       }
+    } else if (rowAction === "trade") {
+      if (evt.tradeType === "recv" && evt.tradedPokemon) {
+        try {
+          var tradedPkmn = JSON.parse(evt.tradedPokemon);
+          var pid3 = evt.tradePokemonId || tradedPkmn.id;
+          tradedPkmn.heldItem = tradedPkmn.heldItem || "";
+          tradedPkmn.catchDate = tradedPkmn.catchDate || rowDate.getFullYear()+"/"+((rowDate.getMonth()+1)+"").padStart(2,"0")+"/"+(rowDate.getDate()+"").padStart(2,"0");
+          state.roster[pid3] = tradedPkmn;
+        } catch(e) { console.warn("trade recv parse error:", e); }
+      } else if (evt.tradeType === "send" && evt.tradePokemonId) {
+        delete state.roster[evt.tradePokemonId];
+      }
     }
     var currentIterLevel = 5;
     for (var k3 in state.roster) { var l = calcLevelAndExp(state.roster[k3].totalExp, state.roster[k3].initialLevel).level; if (l > currentIterLevel) currentIterLevel = l; }
@@ -1648,10 +1660,10 @@ var EVO_ITEMS = {
 };
 var HELD_ITEMS = {
   expShare:    { name: "學習裝置",  cost: 80,  icon: "📖", desc: "持有者80%經驗(隊伍50%)", flag: "expSharePurchased" },
-  expertBelt:  { name: "達人帶",   cost: 100, icon: "🥋", desc: "效果絕佳時傷害再提升", flag: "hasExpertBelt" },
-  eviolite:    { name: "進化奇石",  cost: 80,  icon: "💎", desc: "防禦力額外提升", flag: "hasEviolite" },
-  championCloak: { name: "冠軍披風", cost: 120, icon: "👑", desc: "經驗值獲得量增加", flag: "hasChampionCloak" },
-  amuletCoin:  { name: "護符金幣",  cost: 100, icon: "🪙", desc: "戰鬥獲得金幣增加", flag: "hasAmuletCoin" },
+  expertBelt:  { name: "達人帶",   cost: 100, icon: "🥋",   desc: "效果絕佳時傷害x1.2", flag: "hasExpertBelt" },
+  eviolite:    { name: "進化奇石",  cost: 80,  icon: "💎", desc: "防禦/特防x1.5", flag: "hasEviolite" },
+  championCloak: { name: "冠軍披風", cost: 120, icon: "👑", desc: "獲得經驗值x1.5", flag: "hasChampionCloak" },
+  amuletCoin:  { name: "護符金幣",  cost: 100, icon: "🪙", desc: "獲得金幣x1.5", flag: "hasAmuletCoin" },
   quickClaw:   { name: "先制之爪", cost: 100, icon: "🔪", desc: "20%機率先攻", flag: "hasQuickClaw" },
   focusLens:   { name: "焦點鏡",   cost: 80,  icon: "🔍", desc: "會心一擊機率2倍", flag: "hasFocusLens" },
   shellBell:   { name: "貝殼之鈴", cost: 90,  icon: "🔔", desc: "攻擊時回復12.5%傷害HP", flag: "hasShellBell" },
@@ -6001,10 +6013,10 @@ function openShop() {
     { id: "chilanBerry", name: "抗性果", cost: 30, desc: "降低被剋傷害一次（消耗品）", icon: "🫐", cat: "消耗" },
     // ═══ 裝備道具 ═══
     { id: "expShare", name: "學習裝置", cost: 80, desc: "持有者80%經驗(隊伍50%)", icon: "📖", once: true, cat: "裝備" },
-    { id: "expertBelt", name: "達人帶", cost: 100, desc: "效果絕佳時傷害再提升", icon: "🥋", once: true, cat: "裝備" },
-    { id: "eviolite", name: "進化奇石", cost: 80, desc: "防禦力額外提升", icon: "💎", once: true, cat: "裝備" },
-    { id: "championCloak", name: "冠軍披風", cost: 120, desc: "經驗值獲得量增加", icon: "👑", once: true, cat: "裝備" },
-    { id: "amuletCoin", name: "護符金幣", cost: 100, desc: "戰鬥獲得金幣增加", icon: "🪙", once: true, cat: "裝備" },
+    { id: "expertBelt", name: "達人帶", cost: 100, desc: "效果絕佳時傷害x1.2", icon: "🥋", once: true, cat: "裝備" },
+    { id: "eviolite", name: "進化奇石", cost: 80, desc: "防禦/特防x1.5", icon: "💎", once: true, cat: "裝備" },
+    { id: "championCloak", name: "冠軍披風", cost: 120, desc: "獲得經驗值x1.5", icon: "👑", once: true, cat: "裝備" },
+    { id: "amuletCoin", name: "護符金幣", cost: 100, desc: "獲得金幣x1.5", icon: "🪙", once: true, cat: "裝備" },
     { id: "quickClaw", name: "先制之爪", cost: 100, desc: "20%機率先攻", icon: "🔪", once: true, cat: "裝備" },
     { id: "focusLens", name: "焦點鏡", cost: 80, desc: "會心一擊機率2倍", icon: "🔍", once: true, cat: "裝備" },
     { id: "shellBell", name: "貝殼之鈴", cost: 90, desc: "攻擊時回復12.5%傷害HP", icon: "🔔", once: true, cat: "裝備" },
@@ -6219,9 +6231,6 @@ async function submitData() {
   var monthName = ["","一月","二月","三月","四月","五月","六月","七月","八月","九月","十月","十一月","十二月"][(month + 2) % 12 + 1] || (month + "月");
   var studentId = globalData.studentId;
 
-  var actionTypeEl = document.querySelector("input[name=\"actionType\"]:checked");
-  var actionType = actionTypeEl ? actionTypeEl.value : "";
-
   var hasBoth = $("cb-exercise") && $("cb-exercise").checked && $("cb-sleep") && $("cb-sleep").checked;
 
   // ── 原始公式：扣金幣 (threshold-based) ──
@@ -6252,7 +6261,7 @@ async function submitData() {
     return baseExp;
   }
 
-  if (actionType === "capture") {
+  if (action === "capture") {
     if (globalData.todayCompleted) { toast("今日已完成！"); return; }
     if (score < 50) { toast("分數不足 50，無法捕捉新寶可夢！"); return; }
     var badges = globalData ? globalData.badges || 0 : 0;
@@ -6307,7 +6316,7 @@ async function submitData() {
     if (!$("submitBtn").disabled || $("submitBtn").innerHTML.indexOf("Failed") !== -1) {
       globalData.todayCompleted = false;
     }
-  } else if (actionType === "train") {
+  } else if (action === "train") {
     if (globalData.todayCompleted) { toast("今日已完成！"); return; }
     var targetId = $("trainTarget").value;
     if (!targetId) { toast("請選擇強化目標！"); return; }

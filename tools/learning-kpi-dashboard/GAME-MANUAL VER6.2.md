@@ -1,8 +1,8 @@
 ﻿# 學習 KPI 管理系統 — 遊戲系統說明書 V6.2
 
-> 最後更新：2026-06-27
+> 最後更新：2026-06-28
 > 部署網址：https://opencodefirebase.web.app/kpi
-> 對應版本：13 步驟系統優化計畫全部完成 + OPTIMIZATION-ROADMAP Phase 1~3 (U1~U5+U7) 全完成 + 裝備系統 UI/UX + 進化階層 vs 捕捉等級全面修復 + EVO_STAGE_MAP 全面審計
+> 對應版本：13 步驟系統優化計畫全部完成 + OPTIMIZATION-ROADMAP Phase 1~3 (U1~U5+U7) 全完成 + 裝備系統 UI/UX + 進化階層 vs 捕捉等級全面修復 + EVO_STAGE_MAP 全面審計 + 交換系統 Replay 修復 + 裝備描述數值化
 > ⚠️ **本版本為當前最新版本**
 
 ---
