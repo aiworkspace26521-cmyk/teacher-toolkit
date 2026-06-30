@@ -583,12 +583,13 @@ const EVO_STAGE_MAP = buildEvoStageMap();
 function getExpNeeded(lvl) {
   if (lvl <= 10) return lvl * 30;
   if (lvl <= 20) return lvl * 60;
-  if (lvl <= 35) return lvl * 120;
-  if (lvl <= 55) return lvl * 200;
-  if (lvl <= 75) return lvl * 350;
-  if (lvl <= 85) return lvl * 800;
-  if (lvl <= 92) return lvl * 3500;
-  return lvl * 5000;
+  if (lvl <= 35) return lvl * 100;
+  if (lvl <= 55) return lvl * 180;
+  if (lvl <= 75) return lvl * 300;
+  if (lvl <= 85) return lvl * 500;
+  if (lvl <= 92) return lvl * 1000;
+  if (lvl <= 105) return lvl * 2000;
+  return lvl * 3000;
 }
 
 function calcLevelAndExp(totalExp, initialLevel) {
@@ -599,9 +600,9 @@ function calcLevelAndExp(totalExp, initialLevel) {
     cur -= expNeeded;
     lvl++;
     expNeeded = getExpNeeded(lvl);
-    if (lvl >= 99) { lvl = 99; cur = 0; expNeeded = 0; break; }
+    if (lvl >= 120) { lvl = 120; cur = 0; expNeeded = 0; break; }
   }
-  if (lvl >= 99) { lvl = 99; cur = 0; expNeeded = 0; }
+  if (lvl >= 120) { lvl = 120; cur = 0; expNeeded = 0; }
   return { level: lvl, expProgress: cur, expNeeded };
 }
 
@@ -1000,11 +1001,6 @@ function recalculateState(studentId, events) {
     ? (dNow.getTime() - state.lastBadgeTime) / 86400000
     : (state.firstLogTime ? (dNow.getTime() - state.firstLogTime) / 86400000 : 0);
 
-  // MIN 補償：長期提交但少戰鬥的玩家自動獲得徽章
-  const totalSubmitDays = state.submitDates ? Object.keys(state.submitDates).length : 0;
-  if (totalSubmitDays >= 60) state.badges += 5;
-  else if (totalSubmitDays >= 30) state.badges += 2;
-
   const rosterArray = [];
   let finalHighestLevel = 5;
   for (const k in state.roster) {
@@ -1278,8 +1274,12 @@ class SimulationStudent {
       return;
     }
 
-    // Determine if player can win: level must be >= gym level requirement
-    const requiredLevel = 5 + gym.lvBonus;
+    // Fixed expected level for this badge
+    const EXPECTED_LEVEL = [13,18,21,24,25,27,30,33,36,39,42,45,49,52,56,60,64,67,70,73,76,79,82,85,88,90,92,94,96,97,98,98];
+    const expectedLevel = EXPECTED_LEVEL[Math.min(gymIndex, EXPECTED_LEVEL.length - 1)];
+    // Player can win if their level >= expected level with relief
+    const ratio = level / expectedLevel;
+    const requiredLevel = ratio >= 1.0 ? expectedLevel : (ratio >= 0.85 ? expectedLevel - 1 : (ratio >= 0.7 ? expectedLevel - 3 : Math.floor(expectedLevel * 0.75)));
     const canWin = level >= requiredLevel;
 
     if (canWin) {
@@ -1290,8 +1290,7 @@ class SimulationStudent {
       let cumulativeExp = 0;
       for (let wi = 0; wi < totalWaves; wi++) {
         const isLast = (wi === totalWaves - 1);
-        const waveLvBonus = isLast ? gym.lvBonus : Math.floor(gym.lvBonus * 0.4);
-        const waveLevel = Math.max(5, level + waveLvBonus);
+        const waveLevel = isLast ? expectedLevel : expectedLevel - 2;
         let baseExp = 80 + Math.floor(waveLevel * 3);
         const waveMult = isLast ? 2.5 : 1.2;
         baseExp = Math.floor(baseExp * 1.8 * waveMult);
@@ -1331,8 +1330,13 @@ class SimulationStudent {
     const region = LEAGUE_REGIONS[regionName];
     const champ = region.champion;
 
-    // Proportional threshold: lower leagues accessible earlier
-    const requiredLevel = Math.floor(champ.lvBonus * 0.55);
+    // Fixed expected level based on current badge count
+    const EXPECTED_LEVEL = [13,18,21,24,25,27,30,33,36,39,42,45,49,52,56,60,64,67,70,73,76,79,82,85,88,90,92,94,96,97,98,98];
+    const badgeIdx = Math.min(badges, EXPECTED_LEVEL.length - 1);
+    const expectedLv = EXPECTED_LEVEL[Math.min(Math.min(badgeIdx, 31), EXPECTED_LEVEL.length - 1)];
+    const e4Level = Math.max(5, expectedLv + Math.round(champ.lvBonus * 0.04));
+    const champLevel = Math.max(5, expectedLv + Math.round(champ.lvBonus * 0.06));
+    const requiredLevel = e4Level;
     const canWin = level >= requiredLevel;
 
     if (canWin) {
@@ -1340,12 +1344,12 @@ class SimulationStudent {
       // League reward calculation
       let cumulativeExp = 0;
       for (const e4 of region.eliteFour) {
-        let baseExp = 80 + Math.floor((level + e4.lvBonus) * 3);
+        let baseExp = 80 + Math.floor((e4Level) * 3);
         baseExp = Math.floor(baseExp * 5 * 2.5);
         cumulativeExp += baseExp;
       }
       // Champion wave
-      let champExp = 80 + Math.floor((level + champ.lvBonus) * 3);
+      let champExp = 80 + Math.floor((champLevel) * 3);
       champExp = Math.floor(champExp * 5 * 4);
       cumulativeExp += champExp;
       cumulativeExp = Math.floor(cumulativeExp);

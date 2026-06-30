@@ -70,12 +70,13 @@ function computeQuestProgress(events) {
 function getExpNeeded(lvl) {
   if (lvl <= 10) return lvl * 30;
   if (lvl <= 20) return lvl * 60;
-  if (lvl <= 35) return lvl * 120;
-  if (lvl <= 55) return lvl * 200;
-  if (lvl <= 75) return lvl * 350;
-  if (lvl <= 85) return lvl * 800;
-  if (lvl <= 92) return lvl * 3500;
-  return lvl * 5000;
+  if (lvl <= 35) return lvl * 100;
+  if (lvl <= 55) return lvl * 180;
+  if (lvl <= 75) return lvl * 300;
+  if (lvl <= 85) return lvl * 500;
+  if (lvl <= 92) return lvl * 1000;
+  if (lvl <= 105) return lvl * 2000;
+  return lvl * 3000;
 }
 function calcLevelAndExp(totalExp, initialLevel) {
   let lvl = initialLevel || 5;
@@ -85,9 +86,9 @@ function calcLevelAndExp(totalExp, initialLevel) {
     currentExp -= expNeeded;
     lvl++;
     expNeeded = getExpNeeded(lvl);
-    if (lvl >= 99) { lvl = 99; currentExp = 0; expNeeded = 0; break; }
+    if (lvl >= 120) { lvl = 120; currentExp = 0; expNeeded = 0; break; }
   }
-  if (lvl >= 99) { lvl = 99; currentExp = 0; expNeeded = 0; }
+  if (lvl >= 120) { lvl = 120; currentExp = 0; expNeeded = 0; }
   return { level: lvl, expProgress: currentExp, expNeeded };
 }
 
@@ -487,11 +488,6 @@ async function recalculateStudentState(studentId) {
     if (sortedSubDates[si] === expected.toDateString()) state.submitStreak++;
     else break;
   }
-
-  // V5.4: MIN compensation — badges for persistent submitters
-  var totalSubmitDays = Object.keys(state.submitDates).length;
-  if (totalSubmitDays >= 60) state.badges += 5;
-  else if (totalSubmitDays >= 30) state.badges += 2;
 
   const rosterArray = [];
   let finalHighestLevel = 5;

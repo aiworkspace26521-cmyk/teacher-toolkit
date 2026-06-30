@@ -765,19 +765,28 @@ function getSeededRandom(str) {
 function getExpNeeded(lvl) {
   if (lvl <= 10) return lvl * 30;
   if (lvl <= 20) return lvl * 60;
-  if (lvl <= 35) return lvl * 120;
-  if (lvl <= 55) return lvl * 200;
-  if (lvl <= 75) return lvl * 350;
-  if (lvl <= 85) return lvl * 800;
-  if (lvl <= 92) return lvl * 3500;
-  return lvl * 5000;
+  if (lvl <= 35) return lvl * 100;
+  if (lvl <= 55) return lvl * 180;
+  if (lvl <= 75) return lvl * 300;
+  if (lvl <= 85) return lvl * 500;
+  if (lvl <= 92) return lvl * 1000;
+  if (lvl <= 105) return lvl * 2000;
+  return lvl * 3000;
 }
 function calcLevelAndExp(totalExp, initialLevel) {
   var lvl = initialLevel || 5, cur = totalExp;
   var expNeeded = getExpNeeded(lvl);
-  while (cur >= expNeeded) { cur -= expNeeded; lvl++; expNeeded = getExpNeeded(lvl); if (lvl >= 99) { lvl = 99; cur = 0; expNeeded = 0; break; } }
-  if (lvl >= 99) { lvl = 99; cur = 0; expNeeded = 0; }
+  while (cur >= expNeeded) { cur -= expNeeded; lvl++; expNeeded = getExpNeeded(lvl); if (lvl >= 120) { lvl = 120; cur = 0; expNeeded = 0; break; } }
+  if (lvl >= 120) { lvl = 120; cur = 0; expNeeded = 0; }
   return { level: lvl, expProgress: cur, expNeeded: expNeeded };
+}
+var EXPECTED_LEVEL = [13,18,21,24,25,27,30,33,36,39,42,45,49,52,56,60,64,67,70,73,76,79,82,85,88,90,92,94,96,97,98,98];
+function getEffectiveLevel(expectedLv, playerLevel) {
+  var ratio = playerLevel / expectedLv;
+  if (ratio >= 1.0) return expectedLv;
+  if (ratio >= 0.85) return expectedLv - 1;
+  if (ratio >= 0.7) return expectedLv - 3;
+  return Math.floor(expectedLv * 0.75);
 }
 function getStartOfWeek(date) {
   var d = new Date(date); var day = d.getDay() || 7;
@@ -2360,14 +2369,13 @@ var ARENA_EXP_BASE = 80, BATTLE_MAP = {}, battleState = null;
 function generateEnemy(trainerLevel, isGym, isLeague, regionOpt) {
   var tier = "一般", levelBonus = 0;
   var roll = Math.random();
-  if (isLeague) { tier = "傳說"; levelBonus = Math.floor(trainerLevel * 0.6); }
-  else if (isGym) { tier = "稀有"; levelBonus = Math.floor(trainerLevel * 0.4); }
-  else if (roll < 0.01) { tier = "傳說"; levelBonus = Math.floor(trainerLevel * 0.3); }
-  else if (roll < 0.25) { tier = "稀有"; levelBonus = Math.floor(trainerLevel * 0.2); }
+  if (roll < 0.01) { tier = "傳說"; levelBonus = 3; }
+  else if (roll < 0.25) { tier = "稀有"; levelBonus = 1; }
 
   if (POKEMON_TIERS[tier].length === 0) tier = "一般";
-  var REGION_LVBONUS = { "關都":-5, "城都":0, "合眾":5, "卡洛斯":10, "豐緣":5, "神奧":3 };
-  var regionAdj = REGION_LVBONUS[regionOpt] || 0;
+  var badges = typeof globalData !== "undefined" && globalData ? (globalData.badges || 0) : 0;
+  var expectedLv = EXPECTED_LEVEL[Math.min(badges, EXPECTED_LEVEL.length - 1)];
+  var effectiveLv = getEffectiveLevel(expectedLv, trainerLevel);
   var pool = POKEMON_TIERS[tier];
   if (typeof window.getRegionPool === "function" && regionOpt) {
     var rPool = window.getRegionPool(regionOpt).filter(function(e){
@@ -2376,7 +2384,7 @@ function generateEnemy(trainerLevel, isGym, isLeague, regionOpt) {
     if (rPool.length > 0) pool = rPool;
   }
   var species = pool[Math.floor(Math.random() * pool.length)];
-  var baseLevel = Math.max(5, trainerLevel + levelBonus + regionAdj + Math.floor(Math.random() * 3));
+  var baseLevel = Math.max(5, effectiveLv + levelBonus + Math.floor(Math.random() * 3));
   var evoName = getEvolvedName(species, baseLevel);
   var speciesTypes = POKEMON_SPECIES_TYPES[evoName] || ["一般"];
   var pt = speciesTypes.join("/");
@@ -3977,11 +3985,13 @@ function generateGymWaves(trainerLevel) {
   var badges = globalData.badges || 0;
   var gymInfo = getGymLeaderInfo(badges);
   var gymRegion = gymInfo.region || "關都";
+  var expectedLv = EXPECTED_LEVEL[Math.min(badges, EXPECTED_LEVEL.length - 1)];
+  var effectiveLv = getEffectiveLevel(expectedLv, trainerLevel);
   var waves = [];
   var waveCount = gymInfo.waves;
   for (var wi = 0; wi < waveCount; wi++) {
     var isLast = (wi === waveCount - 1);
-    var waveLvBonus = isLast ? gymInfo.lvBonus : Math.floor(gymInfo.lvBonus * 0.4);
+    var waveLevel = isLast ? effectiveLv : effectiveLv - 2;
     var tier = isLast ? "稀有" : "一般";
     var enemy = { isGym: true, isLeague: false, isWeeklyBoss: false, waveIndex: wi, isLastWave: isLast };
     var speciesType = gymInfo.type;
@@ -3995,19 +4005,19 @@ function generateGymWaves(trainerLevel) {
     var filteredPool = [];
     for (var pi = 0; pi < pool.length; pi++) {
       var s = pool[pi];
-      var evoName = getEvolvedName(s, trainerLevel + waveLvBonus);
+      var evoName = getEvolvedName(s, waveLevel);
       var st = POKEMON_SPECIES_TYPES[evoName] || ["一般"];
       if (st.indexOf(speciesType) !== -1 || st.indexOf("一般") !== -1) filteredPool.push({ name: evoName, types: st, legendary: s.legendary });
     }
     if (filteredPool.length < 2) {
       for (var pi2 = 0; pi2 < POKEMON_TIERS[tier].length; pi2++) {
         var s2 = POKEMON_TIERS[tier][pi2];
-        var en2 = getEvolvedName(s2, trainerLevel + waveLvBonus);
+        var en2 = getEvolvedName(s2, waveLevel);
         filteredPool.push({ name: en2, types: POKEMON_SPECIES_TYPES[en2] || ["一般"], legendary: s2.legendary });
       }
     }
     var chosen = filteredPool[Math.floor(Math.random() * filteredPool.length)];
-    var baseLevel = Math.max(5, trainerLevel + waveLvBonus + Math.floor(Math.random() * 4));
+    var baseLevel = Math.max(5, waveLevel + Math.floor(Math.random() * 3));
     var pt = chosen.types.join("/");
     var prefix = chosen.legendary ? "✨ " : (isLast ? "👑 " : "⭐ ");
     var displayName = prefix + chosen.name + " (" + pt + ")";
@@ -4048,7 +4058,10 @@ function startBossBattle() {
   if (globalData.todayCompleted) { toast("今日已完成！"); return; }
   var trainerLevel = globalData.highestLevel || 5;
   if (globalData.simpleMode) trainerLevel = Math.max(5, Math.floor(trainerLevel * 0.75));
-  var bossLevel = trainerLevel + 8;
+  var badges = globalData.badges || 0;
+  var expectedLv = EXPECTED_LEVEL[Math.min(badges, EXPECTED_LEVEL.length - 1)];
+  var effectiveLv = getEffectiveLevel(expectedLv, trainerLevel);
+  var bossLevel = effectiveLv + 8;
   var enemy = createEnemyPokemon("✨ 傳說魔王 (傳說)", bossLevel, false, false);
   enemy.isWeeklyBoss = true;
   openArena(enemy);
@@ -4067,6 +4080,7 @@ function generateLeagueGauntlet(trainerLevel, region) {
   if (leagueCompletedMonths[region] === monthKey) return { waves: [], leagueInfo: null, completed: true };
   var e4 = leagueData.eliteFour;
   var champ = leagueData.champion;
+  var expectedLv = EXPECTED_LEVEL[Math.min(Math.min(badges, 31), EXPECTED_LEVEL.length - 1)];
   var waves = [];
   var leagueInfo = { name: region + "聯盟", emoji: "🏆", leader: "四天王+冠軍", region: region };
   for (var li = 0; li < 4; li++) {
@@ -4074,21 +4088,22 @@ function generateLeagueGauntlet(trainerLevel, region) {
     var tier = li < 2 ? "稀有" : "傳說";
     var pool = POKEMON_TIERS[tier].slice();
     var candidates = [];
+    var e4Level = Math.max(5, expectedLv + Math.round(e4m.lvBonus * 0.04));
     for (var pi = 0; pi < pool.length; pi++) {
       var s = pool[pi];
-      var evoName = getEvolvedName(s, trainerLevel + e4m.lvBonus);
+      var evoName = getEvolvedName(s, e4Level);
       var st = POKEMON_SPECIES_TYPES[evoName] || ["一般"];
       if (st.indexOf(e4m.type) !== -1 || e4m.type === "混合") candidates.push({ name: evoName, types: st, legendary: s.legendary });
     }
     if (candidates.length < 2) {
       for (var pi2 = 0; pi2 < pool.length; pi2++) {
         var s2 = pool[pi2];
-        var en2 = getEvolvedName(s2, trainerLevel + e4m.lvBonus);
+        var en2 = getEvolvedName(s2, e4Level);
         candidates.push({ name: en2, types: POKEMON_SPECIES_TYPES[en2] || ["一般"], legendary: s2.legendary });
       }
     }
     var chosen = candidates[Math.floor(Math.random() * candidates.length)];
-    var baseLevel = Math.max(5, trainerLevel + e4m.lvBonus + Math.floor(Math.random() * 5));
+    var baseLevel = Math.max(5, e4Level + Math.floor(Math.random() * 3));
     var pt = chosen.types.join("/");
     var prefix = chosen.legendary ? "✨ " : "👑 ";
     var displayName = prefix + chosen.name + " (" + pt + ")";
@@ -4102,7 +4117,7 @@ function generateLeagueGauntlet(trainerLevel, region) {
   var champPkmn = champPool[Math.floor(Math.random() * champPool.length)];
   var champEvo = champPkmn.name;
   var champTypes = POKEMON_SPECIES_TYPES[champEvo] || ["一般"];
-  var champLevel = Math.max(5, trainerLevel + champ.lvBonus + Math.floor(Math.random() * 6));
+  var champLevel = Math.max(5, expectedLv + Math.round(champ.lvBonus * 0.06) + Math.floor(Math.random() * 3));
   var champPt = champTypes.join("/");
   var champDisplay = "✨ 冠軍 " + champEvo + " (" + champPt + ")";
   waves.push({
@@ -7338,9 +7353,11 @@ function checkDefenseChallenge() {
 function startDefenseChallenge(region) {
   var trainerLevel = globalData.highestLevel || 5;
   if (globalData.simpleMode) trainerLevel = Math.max(5, Math.floor(trainerLevel * 0.75));
+  var badges = globalData.badges || 0;
+  var expectedLv = EXPECTED_LEVEL[Math.min(badges, EXPECTED_LEVEL.length - 1)];
   var leagueData = getLeagueData(region);
   var champ = leagueData.champion;
-  var bossLevel = trainerLevel + champ.lvBonus + Math.floor(Math.random() * 6);
+  var bossLevel = Math.max(5, expectedLv + Math.round(champ.lvBonus * 0.06) + Math.floor(Math.random() * 6));
   var enemy = createEnemyPokemon("✨ 衛冕者 (" + champ.type + ")", bossLevel, false, false);
   enemy.isWeeklyBoss = true;
   enemy.defenseRegion = region;
