@@ -414,7 +414,7 @@
       <button class="nav-btn btn-daily" id="arenaBattleBtn" onclick="sfx.click();startBattle(false,false)">🚶 路人戰</button>
       <button class="nav-btn btn-gym" id="btnGymBattle" onclick="sfx.click();startBattle(true,false)">⚔️ 道館戰</button>
       <button class="nav-btn btn-boss" id="btnBossBattle" onclick="sfx.click();startBossBattle()" style="display:none;">👑 魔王戰</button>
-      <button class="nav-btn btn-league" id="btnLeagueBattle" onclick="sfx.click();startLeagueBattle()" style="display:none;">🏆 聯盟賽</button>
+      <button class="nav-btn btn-league" id="btnLeagueBattle" onclick="sfx.click();promptE4Challenge()" style="display:none;">🏆 聯盟賽</button>
       <button class="nav-btn btn-pvp" id="btnLeagueRanking" onclick="sfx.click();openLeagueRanking()" style="background:#2c3e50;color:white;display:none;">📊 聯盟排名</button>
       <button class="nav-btn btn-pvp" onclick="sfx.click();openRankingModal()" style="background:#8e44ad;color:white;" id="btnPvPRanking">🏆 PvP天梯</button>
     </div>
@@ -768,8 +768,19 @@ function getWeekLabel() {
   return map[getWeekType()] || "📌 一般訓練週";
 }
 function getWeekBonusDesc() {
-  var map = { W1: "無特殊加成", W2: "道館 EXP +50%、金幣 +10", W3: "路人戰 EXP +30%", W4: "魔王降臨！四天王等待挑戰" };
+  var map = { W1: "無特殊加成", W2: "道館 EXP +50%、金幣 +10", W3: "路人戰 EXP +30%", W4: "道館戰 + 四天王挑戰" };
   return map[getWeekType()] || "";
+}
+function getE4ChallengeForBadges(badges) {
+  if (badges >= 4 && badges < 8) return { region: "關都", half: "first", name: "關都聯盟前半", requiredBadges: 4 };
+  if (badges >= 8 && badges < 12) return { region: "關都", half: "second", name: "關都聯盟後半+冠軍", requiredBadges: 8 };
+  if (badges >= 12 && badges < 16) return { region: "城都", half: "first", name: "城都聯盟前半", requiredBadges: 12 };
+  if (badges >= 16 && badges < 20) return { region: "城都", half: "second", name: "城都聯盟後半+冠軍", requiredBadges: 16 };
+  if (badges >= 20 && badges < 24) return { region: "合眾", half: "first", name: "合眾聯盟前半", requiredBadges: 20 };
+  if (badges >= 24 && badges < 28) return { region: "合眾", half: "second", name: "合眾聯盟後半+冠軍", requiredBadges: 24 };
+  if (badges >= 28 && badges < 32) return { region: "卡洛斯", half: "first", name: "卡洛斯聯盟前半", requiredBadges: 28 };
+  if (badges >= 32) return { region: "卡洛斯", half: "second", name: "卡洛斯聯盟後半+冠軍", requiredBadges: 32 };
+  return null;
 }
 function getSeededRandom(str) {
   var h = 0;
@@ -1938,6 +1949,7 @@ var LEAGUE_REGIONS = {
   }
 };
 var leagueCompletedMonths = {};
+var e4Completed = {};
 var leagueChampions = {};
 var leaguePoints = {};
 var DEFENSE_COOLDOWN_DAYS = 3;
@@ -4000,7 +4012,7 @@ function updateEventBanner() {
     W1: { text: "📌 一般訓練週", color: "#ffebee", bg: "#fff3e0", border: "#e74c3c" },
     W2: { text: "⚡ 道館加成週 — 道館挑戰 EXP +50%、金幣 +10", color: "#e67e22", bg: "#fff8e1", border: "#f39c12" },
     W3: { text: "📚 訓練強化週 — 路人戰 EXP +30%", color: "#2e7d32", bg: "#e8f5e9", border: "#4caf50" },
-    W4: { text: "👑 Boss 週 — 魔王降臨！四天王等待挑戰！", color: "#c0392b", bg: "#ffebee", border: "#e74c3c" }
+    W4: { text: "👑 Boss 週 — 道館戰 + 四天王挑戰！", color: "#c0392b", bg: "#ffebee", border: "#e74c3c" }
   };
   var info = labels[wt] || labels.W1;
   if (!globalData || globalData.todayCompleted) {
@@ -4129,18 +4141,24 @@ function getLeagueData(region) {
   return LEAGUE_REGIONS[region] || LEAGUE_REGIONS["關都"];
 }
 
-function generateLeagueGauntlet(trainerLevel, region) {
+function generateLeagueGauntlet(trainerLevel, region, half) {
   var badges = globalData.badges || 0;
   var leagueData = getLeagueData(region);
   if (badges < leagueData.requiredBadges) return null;
   var monthKey = new Date().getFullYear() + "-" + (new Date().getMonth() + 1);
-  if (leagueCompletedMonths[region] === monthKey) return { waves: [], leagueInfo: null, completed: true };
+  var e4Key = half ? region + "_" + half : region;
+  if (e4Completed[e4Key] === monthKey) return { waves: [], leagueInfo: null, completed: true };
+  if (!half && leagueCompletedMonths[region] === monthKey) return { waves: [], leagueInfo: null, completed: true };
   var e4 = leagueData.eliteFour;
   var champ = leagueData.champion;
   var expectedLv = EXPECTED_LEVEL[Math.min(Math.min(badges, 31), EXPECTED_LEVEL.length - 1)];
+  var effectiveLv = getEffectiveLevel(expectedLv, trainerLevel);
   var waves = [];
-  var leagueInfo = { name: region + "聯盟", emoji: "🏆", leader: "四天王+冠軍", region: region };
-  for (var li = 0; li < 4; li++) {
+  var leaderLabel = half === "first" ? "四天王前半" : (half === "second" ? "四天王後半+冠軍" : "四天王+冠軍");
+  var leagueInfo = { name: region + "聯盟", emoji: "🏆", leader: leaderLabel, region: region, half: half || "full" };
+  var startIdx = half === "first" ? 0 : (half === "second" ? 2 : 0);
+  var endIdx = half === "first" ? 2 : (half === "second" ? 4 : 4);
+  for (var li = startIdx; li < endIdx; li++) {
     var e4m = e4[li];
     var tier = li < 2 ? "稀有" : "傳說";
     var pool = POKEMON_TIERS[tier].slice();
@@ -4170,18 +4188,21 @@ function generateLeagueGauntlet(trainerLevel, region) {
       bossName: e4m.name, bossType: e4m.type, bossEmoji: e4m.emoji, leagueRegion: region
     });
   }
-  var champPool = POKEMON_TIERS["傳說"].slice();
-  var champPkmn = champPool[Math.floor(Math.random() * champPool.length)];
-  var champEvo = champPkmn.name;
-  var champTypes = POKEMON_SPECIES_TYPES[champEvo] || ["一般"];
-  var champLevel = Math.max(5, expectedLv + Math.round(champ.lvBonus * 0.06) + Math.floor(Math.random() * 3));
-  var champPt = champTypes.join("/");
-  var champDisplay = "✨ 冠軍 " + champEvo + " (" + champPt + ")";
-  waves.push({
-    name: champDisplay, level: champLevel, isGym: false, isLeague: true,
-    isLastWave: true, isWeeklyBoss: false, waveIndex: 4,
-    bossName: champ.name, bossType: champ.type, bossEmoji: champ.emoji, leagueRegion: region
-  });
+  if (half !== "first") {
+    var champPool = POKEMON_TIERS["傳說"].slice();
+    var champPkmn = champPool[Math.floor(Math.random() * champPool.length)];
+    var champEvo = champPkmn.name;
+    var champTypes = POKEMON_SPECIES_TYPES[champEvo] || ["一般"];
+    var champLevel = Math.max(5, expectedLv + Math.round(champ.lvBonus * 0.06) + Math.floor(Math.random() * 3));
+    var champPt = champTypes.join("/");
+    var champDisplay = "✨ 冠軍 " + champEvo + " (" + champPt + ")";
+    waves.push({
+      name: champDisplay, level: champLevel, isGym: false, isLeague: true,
+      isLastWave: waves.length === 0, isWeeklyBoss: false, waveIndex: endIdx,
+      bossName: champ.name, bossType: champ.type, bossEmoji: champ.emoji, leagueRegion: region
+    });
+  }
+  if (waves.length > 0) waves[waves.length - 1].isLastWave = true;
   return { waves: waves, leagueInfo: leagueInfo, completed: false };
 }
 
@@ -4189,10 +4210,15 @@ function finishLeagueVictory() {
   battleState.battleOver = true;
   battleState.playerWon = true;
   var region = battleState.leagueRegion || "關都";
+  var leagueHalf = battleState.leagueHalf;
   var leagueData = getLeagueData(region);
   var champ = leagueData.champion;
   var monthKey = new Date().getFullYear() + "-" + (new Date().getMonth() + 1);
-  leagueCompletedMonths[region] = monthKey;
+  if (leagueHalf) {
+    e4Completed[region + "_" + leagueHalf] = monthKey;
+  } else {
+    leagueCompletedMonths[region] = monthKey;
+  }
   leagueChampions[region] = globalData.studentId;
   leaguePoints[region] = (leaguePoints[region] || 0) + 10;
   var totalExpGain = 0, partyUsed = [];
@@ -4257,7 +4283,7 @@ function finishLeagueVictory() {
   $("resultConfirmBtn").style.display = "block";
 }
 
-function startLeagueBattle(region) {
+function startLeagueBattle(region, half) {
   if (!globalData || typeof globalData.highestLevel === "undefined") return;
   if (globalData.todayCompleted) { toast("今日已完成！"); return; }
   region = region || currentRegion;
@@ -4265,10 +4291,11 @@ function startLeagueBattle(region) {
   var badges = globalData.badges || 0;
   if (badges < leagueData.requiredBadges) { toast("需要 " + leagueData.requiredBadges + " 枚徽章才能挑戰" + region + "聯盟！"); return; }
   var monthKey = new Date().getFullYear() + "-" + (new Date().getMonth() + 1);
-  if (leagueCompletedMonths[region] === monthKey) { toast(region + "聯盟本月已通關，下個月再來！"); return; }
+  var e4Key = half ? region + "_" + half : region;
+  if (e4Completed[e4Key] === monthKey) { toast(region + "本階段本月已通關，下個月再來！"); return; }
   var trainerLevel = globalData.highestLevel || 5;
   if (globalData.simpleMode) trainerLevel = Math.max(5, Math.floor(trainerLevel * 0.75));
-  var result = generateLeagueGauntlet(trainerLevel, region);
+  var result = generateLeagueGauntlet(trainerLevel, region, half);
   if (!result || result.completed) { toast("本月聯盟已完成！"); return; }
   var waveEnemies = [];
   for (var wi = 0; wi < result.waves.length; wi++) {
@@ -4282,6 +4309,21 @@ function startLeagueBattle(region) {
     waveEnemies.push(e);
   }
   openArenaLeague(waveEnemies, result.leagueInfo);
+}
+function promptE4Challenge() {
+  if (!isBossWeek()) { toast("四天王挑戰僅在 Boss 週開放！"); return; }
+  if (!globalData || globalData.todayCompleted) { toast("今日已完成！"); return; }
+  var badges = globalData.badges || 0;
+  var challenge = getE4ChallengeForBadges(badges);
+  if (!challenge) { toast("尚未達到四天王挑戰門檻（需 4 枚以上徽章）"); return; }
+  var mKey = new Date().getFullYear() + "-" + (new Date().getMonth() + 1);
+  if (e4Completed[challenge.region + "_" + challenge.half] === mKey) { toast("本月四天王挑戰已完成！下個月再來！"); return; }
+  $("confirmModalText").innerHTML = "🏆 " + challenge.name + "<br><br>四天王在 Boss 週等待挑戰！<br>是否接受挑戰？<br><br><small style='color:#888;'>可選擇跳過，不影響徽章收集進度</small>";
+  $("confirmBtnYes").onclick = function() {
+    $("confirmModal").style.display = "none";
+    startLeagueBattle(challenge.region, challenge.half);
+  };
+  $("confirmModal").style.display = "flex";
 }
 
 function openArenaLeague(waveEnemies, leagueInfo) {
@@ -4302,8 +4344,8 @@ function openArenaLeague(waveEnemies, leagueInfo) {
     playerPokemon: firstPkmn, playerParty: party, enemy: waveEnemies[0],
     isGym: false, isLeague: true, turnLock: false, battleOver: false, playerWon: false,
     gymWaves: waveEnemies, currentWave: 0, totalWaves: waveEnemies.length,
-    gymInfo: { name: region + "聯盟", emoji: "🏆", leader: "四天王+冠軍" },
-    weather: null, leagueRegion: region
+    gymInfo: { name: region + "聯盟", emoji: "🏆", leader: leagueInfo.leader || "四天王+冠軍" },
+    weather: null, leagueRegion: region, leagueHalf: leagueInfo.half
   };
   var abilityLog3 = [];
   applyEntryAbility(battleState.enemy, firstPkmn, battleState, abilityLog3);
@@ -4313,7 +4355,7 @@ function openArenaLeague(waveEnemies, leagueInfo) {
   $("arenaResultPhase").style.display = "none";
   $("arenaItemPanel").style.display = "none";
   $("resultMessage").style.display = "none";
-  $("battleTitle").innerHTML = "🏆 " + region + "聯盟 — 四天王 (1/" + waveEnemies.length + ")";
+  $("battleTitle").innerHTML = "🏆 " + region + "聯盟 — " + (leagueInfo.leader || "四天王+冠軍") + " (1/" + waveEnemies.length + ")";
   updateArenaUI();
   var enemyBox = $("enemyPkmnName");
   if (enemyBox) { enemyBox.classList.remove("entry-animation"); void enemyBox.offsetWidth; enemyBox.classList.add("entry-animation"); }
@@ -5476,22 +5518,21 @@ function updateDashboard() {
     }
   }
   
-  // League button visibility
+  // League button visibility — W4 only, badge-dynamic
   var leagueBtn = $("btnLeagueBattle");
   var rankBtn = $("btnLeagueRanking");
   if (leagueBtn) {
     var badges = gd.badges || 0;
-    var monthKey = new Date().getFullYear() + "-" + (new Date().getMonth() + 1);
-    var anyLeagueAvailable = false;
-    for (var rn in LEAGUE_REGIONS) {
-      if (badges >= LEAGUE_REGIONS[rn].requiredBadges && leagueCompletedMonths[rn] !== monthKey) {
-        anyLeagueAvailable = true; break;
-      }
-    }
-    leagueBtn.style.display = (badges >= 8 && anyLeagueAvailable && !gd.todayCompleted) ? "inline-block" : "none";
+    var mKey = new Date().getFullYear() + "-" + (new Date().getMonth() + 1);
+    var challenge = getE4ChallengeForBadges(badges);
+    var canE4 = challenge && isBossWeek() && !gd.todayCompleted && e4Completed[challenge.region + "_" + challenge.half] !== mKey;
+    leagueBtn.innerHTML = challenge ? "🏆 " + challenge.name : "🏆 聯盟賽";
+    leagueBtn.style.display = canE4 ? "inline-block" : "none";
+    leagueBtn._e4Region = challenge ? challenge.region : null;
+    leagueBtn._e4Half = challenge ? challenge.half : null;
   }
   if (rankBtn) {
-    rankBtn.style.display = (gd.badges || 0) >= 8 ? "inline-block" : "none";
+    rankBtn.style.display = (gd.badges || 0) >= 4 ? "inline-block" : "none";
   }
   updateBattleButtons();
 } catch(e) { console.warn("updateDashboard Error:", e); }
@@ -7424,6 +7465,7 @@ function startDefenseChallenge(region) {
   if (globalData.simpleMode) trainerLevel = Math.max(5, Math.floor(trainerLevel * 0.75));
   var badges = globalData.badges || 0;
   var expectedLv = EXPECTED_LEVEL[Math.min(badges, EXPECTED_LEVEL.length - 1)];
+  var effectiveLv = getEffectiveLevel(expectedLv, trainerLevel);
   var leagueData = getLeagueData(region);
   var champ = leagueData.champion;
   var bossLevel = Math.max(5, expectedLv + Math.round(champ.lvBonus * 0.06) + Math.floor(Math.random() * 6));
