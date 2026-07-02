@@ -2793,13 +2793,13 @@ function spawnParticles(x, y, count, color, type) {
   }
 }
 
-function spawnHitRing(x, y, color) {
+function spawnHitRing(x, y, color, parentEl) {
   var ring = document.createElement("div");
   ring.className = "hit-ring";
   ring.style.setProperty("--ring-x", x + "px");
   ring.style.setProperty("--ring-y", y + "px");
   ring.style.setProperty("--ring-color", color || "#fff");
-  var battleContent = document.querySelector("#battleModal .modal-content");
+  var battleContent = parentEl || document.querySelector("#battleModal .modal-content");
   if (battleContent) {
     battleContent.style.position = "relative";
     battleContent.appendChild(ring);
@@ -2807,22 +2807,22 @@ function spawnHitRing(x, y, color) {
   setTimeout(function(){ ring.remove(); }, 600);
 }
 
-function spawnCategoryParticles(x, y, color, category) {
+function spawnCategoryParticles(x, y, color, category, parentEl) {
+  var targetEl = parentEl || document.querySelector("#battleModal .modal-content");
   if (category === "物理") {
     for (var i = 0; i < 6; i++) {
       var line = document.createElement("div");
       line.className = "slash-line";
       var angle = (i / 6) * Math.PI;
       var dist = 40 + Math.random() * 30;
-      var cx = $("battleModal .modal-content") || document.querySelector("#battleModal .modal-content");
-      var rect = cx ? cx.getBoundingClientRect() : { left:0, top:0 };
+      var rect = targetEl ? targetEl.getBoundingClientRect() : { left:0, top:0 };
       line.style.left = (x - rect.left + Math.cos(angle) * dist) + "px";
       line.style.top = (y - rect.top + Math.sin(angle) * dist) + "px";
       line.style.width = (20 + Math.random() * 20) + "px";
       line.style.background = color;
       line.style.transform = "rotate(" + (angle * 180 / Math.PI) + "deg)";
       line.style.transformOrigin = "left center";
-      if (cx) cx.appendChild(line);
+      if (targetEl) targetEl.appendChild(line);
       setTimeout(function(el){ el.remove(); }, 500, line);
     }
   } else if (category === "特殊") {
@@ -2830,13 +2830,12 @@ function spawnCategoryParticles(x, y, color, category) {
       var swirl = document.createElement("div");
       swirl.className = "energy-swirl";
       swirl.style.setProperty("--swirl-color", color);
-      var cx2 = document.querySelector("#battleModal .modal-content");
-      if (!cx2) continue;
-      var rect2 = cx2.getBoundingClientRect();
+      if (!targetEl) continue;
+      var rect2 = targetEl.getBoundingClientRect();
       swirl.style.left = (x - rect2.left - 30 + (Math.random() - 0.5) * 40) + "px";
       swirl.style.top = (y - rect2.top - 30 + (Math.random() - 0.5) * 40) + "px";
       swirl.style.animationDelay = (i * 0.08) + "s";
-      cx2.appendChild(swirl);
+      targetEl.appendChild(swirl);
       setTimeout(function(el){ el.remove(); }, 700, swirl);
     }
   } else {
@@ -2844,13 +2843,12 @@ function spawnCategoryParticles(x, y, color, category) {
       var sp = document.createElement("div");
       sp.className = "sparkle";
       sp.style.background = color;
-      var cx3 = document.querySelector("#battleModal .modal-content");
-      if (!cx3) continue;
-      var rect3 = cx3.getBoundingClientRect();
+      if (!targetEl) continue;
+      var rect3 = targetEl.getBoundingClientRect();
       sp.style.left = (x - rect3.left + (Math.random() - 0.5) * 50) + "px";
       sp.style.top = (y - rect3.top + (Math.random() - 0.5) * 50) + "px";
       sp.style.animationDelay = (Math.random() * 0.2) + "s";
-      cx3.appendChild(sp);
+      targetEl.appendChild(sp);
       setTimeout(function(el){ el.remove(); }, 800, sp);
     }
   }
@@ -4620,7 +4618,7 @@ function closePvP() {
   pvpUnsub = [];
   if (pvpBattleUnsub) { pvpBattleUnsub(); pvpBattleUnsub = null; }
   pvp3 = null; pvpBattleDocId = null; pvpPickList = [];
-  window._pvpResolving = false;
+  window._pvpResolving = false; _pvpInitDone = false;
   $("pvpModal").style.display = "none";
 }
 function checkPvpDoneToday() {
@@ -4888,8 +4886,14 @@ function checkBothReady() {
 }
 
 // ── 3v3 Battle ──
+var _pvpInitDone = false;
+var _pvpLocalAnim = false;
+var _pvpPrevMyActive = -1;
+var _pvpPrevEnemyActive = -1;
+
 function startPvPBattle3v3(battleId) {
   if (!db) return;
+  _pvpInitDone = false;
   pvpBattleDocId = battleId;
   $("pvpLobby").style.display = "none";
   $("pvpTeamSelection").style.display = "none";
@@ -4968,106 +4972,118 @@ function renderBattle3v3() {
   var myActive = pvp3.myParty[pvp3.myActive];
   var enemyActive = pvp3.enemyParty[pvp3.enemyActive];
   var isMyTurn = (isChallenger && d.currentTurn === "challenger") || (!isChallenger && d.currentTurn === "defender");
-  var isEnemyTurn = !isMyTurn;
 
-  var turnStr = (d.turn||1);
-  var html = "<div style='text-align:center;font-weight:900;font-size:15px;color:#8e44ad;margin-bottom:6px;'>⚔️ " + pvp3.enemyId + " vs " + globalData.studentId + " — 第 " + turnStr + " 回合</div>";
+  // ── Initial render: build DOM skeleton once (HP bars persist for smooth transition) ──
+  if (!_pvpInitDone) {
+    var sk = "";
+    sk += "<div id='pvpTitle' style='text-align:center;font-weight:900;font-size:15px;color:#8e44ad;margin-bottom:6px;'></div>";
+    sk += "<div class='pvp-side-panel p2'><h4 style='margin:0 0 4px;font-size:13px;' id='pvpEnemyHeader'>👹 </h4>";
+    for (var si = 0; si < 6; si++) sk += "<div class='pvp-pkmn-mini' id='pvpEnemySlot" + si + "' style='display:none'><span id='pvpEnemyHp" + si + "'></span></div>";
+    sk += "<div class='hp-bar-bg'><div id='pvpEnemyBar' class='hp-bar-fill' style='width:100%'></div></div></div>";
+    sk += "<div style='text-align:center;font-size:24px;margin:4px 0;'>⚡</div>";
+    sk += "<div class='pvp-side-panel p1'><h4 style='margin:0 0 4px;font-size:13px;' id='pvpMyHeader'>👤 </h4>";
+    for (var si = 0; si < 6; si++) sk += "<div class='pvp-pkmn-mini' id='pvpMySlot" + si + "' style='display:none'><span id='pvpMyHp" + si + "'></span></div>";
+    sk += "<div class='hp-bar-bg'><div id='pvpMyBar' class='hp-bar-fill' style='width:100%'></div></div></div>";
+    sk += "<div id='pvpLog'></div>";
+    sk += "<div id='pvpActionArea'></div>";
+    div.innerHTML = sk;
+    // Set initial HP bar widths directly (element not yet painted — no transition possible)
+    if (enemyActive && enemyActive.currentHp > 0) {
+      $("pvpEnemyBar").style.width = Math.round(enemyActive.currentHp / enemyActive.maxHp * 100) + "%";
+    }
+    if (myActive && myActive.currentHp > 0) {
+      $("pvpMyBar").style.width = Math.round(myActive.currentHp / myActive.maxHp * 100) + "%";
+    }
+    _pvpInitDone = true;
+  }
 
-  // Enemy panel
-  html += "<div class='pvp-side-panel p2'><h4 style='margin:0 0 4px;font-size:13px;'>👹 " + pvp3.enemyId + "</h4>";
-  // Enemy party bar
-  for (var ei = 0; ei < pvp3.enemyParty.length; ei++) {
-    var ep = pvp3.enemyParty[ei];
-    var eCls = "pvp-pkmn-mini";
-    var eIsActive = (ei === pvp3.enemyActive);
-    if (eIsActive) eCls += " active";
-    if (ep.currentHp <= 0) eCls += " fainted";
-    html += "<div class='" + eCls + "' id='pvpEnemySlot" + ei + "'>" + ep.name + " Lv." + ep.level + " HP: <span id='pvpEnemyHp" + ei + "'>" + Math.max(0,ep.currentHp) + "/" + ep.maxHp + "</span></div>";
-  }
-  // Enemy active HP bar — start from previous HP for smooth animation
-  var prevMyHpMap = window._pvpPrevMyHp || {};
-  var prevEnemyHpMap = window._pvpPrevEnemyHp || {};
-  if (enemyActive && enemyActive.currentHp > 0) {
-    var ePrevHp = prevEnemyHpMap[pvp3.enemyActive];
-    if (ePrevHp === undefined) ePrevHp = enemyActive.maxHp;
-    var eInitPct = Math.round(ePrevHp / enemyActive.maxHp * 100);
-    html += "<div class='hp-bar-bg'><div id='pvpEnemyBar' class='hp-bar-fill' style='width:" + eInitPct + "%'></div></div>";
-  }
-  html += "</div>";
+  // ── Update existing DOM elements ──
+  // Title
+  $("pvpTitle").innerHTML = "⚔️ " + pvp3.enemyId + " vs " + globalData.studentId + " — 第 " + (d.turn||1) + " 回合";
 
-  // VS divider
-  html += "<div style='text-align:center;font-size:24px;margin:4px 0;'>⚡</div>";
+  // Enemy party slots
+  for (var i = 0; i < 6; i++) {
+    var slot = $("pvpEnemySlot" + i);
+    if (!slot) continue;
+    if (i < pvp3.enemyParty.length) {
+      var ep = pvp3.enemyParty[i];
+      slot.style.display = "";
+      var eCls = "pvp-pkmn-mini";
+      if (i === pvp3.enemyActive) eCls += " active";
+      if (ep.currentHp <= 0) eCls += " fainted";
+      slot.className = eCls;
+      slot.innerHTML = ep.name + " Lv." + ep.level + " HP: <span id='pvpEnemyHp" + i + "'>" + Math.max(0,ep.currentHp) + "/" + ep.maxHp + "</span>";
+    } else {
+      slot.style.display = "none";
+    }
+  }
 
-  // My panel
-  html += "<div class='pvp-side-panel p1'><h4 style='margin:0 0 4px;font-size:13px;'>👤 " + globalData.studentId + "</h4>";
-  // My party bar
-  for (var mi = 0; mi < pvp3.myParty.length; mi++) {
-    var mp = pvp3.myParty[mi];
-    var mCls = "pvp-pkmn-mini";
-    var mIsActive = (mi === pvp3.myActive);
-    if (mIsActive) mCls += " active";
-    if (mp.currentHp <= 0) mCls += " fainted";
-    html += "<div class='" + mCls + "' id='pvpMySlot" + mi + "'>" + mp.name + " Lv." + mp.level + " HP: <span id='pvpMyHp" + mi + "'>" + Math.max(0,mp.currentHp) + "/" + mp.maxHp + "</span></div>";
+  // My party slots
+  for (var i = 0; i < 6; i++) {
+    var slot = $("pvpMySlot" + i);
+    if (!slot) continue;
+    if (i < pvp3.myParty.length) {
+      var mp = pvp3.myParty[i];
+      slot.style.display = "";
+      var mCls = "pvp-pkmn-mini";
+      if (i === pvp3.myActive) mCls += " active";
+      if (mp.currentHp <= 0) mCls += " fainted";
+      slot.className = mCls;
+      slot.innerHTML = mp.name + " Lv." + mp.level + " HP: <span id='pvpMyHp" + i + "'>" + Math.max(0,mp.currentHp) + "/" + mp.maxHp + "</span>";
+    } else {
+      slot.style.display = "none";
+    }
   }
-  // My active HP bar — start from previous HP for smooth animation
-  if (myActive && myActive.currentHp > 0) {
-    var mPrevHp = prevMyHpMap[pvp3.myActive];
-    if (mPrevHp === undefined) mPrevHp = myActive.maxHp;
-    var mInitPct = Math.round(mPrevHp / myActive.maxHp * 100);
-    html += "<div class='hp-bar-bg'><div id='pvpMyBar' class='hp-bar-fill' style='width:" + mInitPct + "%'></div></div>";
+
+  // ── Animate HP bars (skip if local animation from executePvPTurn is still playing) ──
+  var myActiveChanged = (pvp3.myActive !== _pvpPrevMyActive);
+  var enemyActiveChanged = (pvp3.enemyActive !== _pvpPrevEnemyActive);
+  _pvpPrevMyActive = pvp3.myActive;
+  _pvpPrevEnemyActive = pvp3.enemyActive;
+  if (myActiveChanged || enemyActiveChanged) {
+    _pvpLocalAnim = false;
   }
-  html += "</div>";
+  if (!_pvpLocalAnim) {
+    if (enemyActive && enemyActive.currentHp > 0) {
+      animateHpBar("pvpEnemyBar", null, enemyActive.currentHp, enemyActive.maxHp, null);
+    }
+    if (myActive && myActive.currentHp > 0) {
+      animateHpBar("pvpMyBar", null, myActive.currentHp, myActive.maxHp, null);
+    }
+  }
 
   // Log
-  var logArr = d.log || [];
-  var recentLog = logArr.slice(-5).join("<br>");
-  html += "<div id='pvpLog'>" + recentLog + "</div>";
+  $("pvpLog").innerHTML = (d.log || []).slice(-5).join("<br>");
 
-  // Action area
+  // ── Action area (innerHTML on isolated container — no effect on HP bar elements) ──
+  var act = "";
   if (d.status === "completed") {
     var won = (isChallenger && d.result === "challenger_win") || (!isChallenger && d.result === "defender_win");
-    html += "<div style='text-align:center;padding:15px;font-size:18px;font-weight:900;color:" + (won ? "#27ae60" : "#e74c3c") + ";'>" + (won ? "🎉 你贏了！" : "💀 你輸了...") + "</div>";
-    html += "<button class='close-btn' onclick='closePvP()'>離開</button>";
+    act = "<div style='text-align:center;padding:15px;font-size:18px;font-weight:900;color:" + (won ? "#27ae60" : "#e74c3c") + ";'>" + (won ? "🎉 你贏了！" : "💀 你輸了...") + "</div>";
+    act += "<button class='close-btn' onclick='closePvP()'>離開</button>";
   } else if (isMyTurn) {
     if (myActive && myActive.currentHp <= 0) {
-      // Need to switch
-      html += renderPvPSwitchUI();
+      act = renderPvPSwitchUI();
     } else if (myActive) {
-      // Show move buttons
-      html += "<div style='font-weight:900;font-size:13px;color:#27ae60;text-align:center;margin:6px 0;'>🎯 輪到你了！選擇招式</div>";
-      html += "<div class='moveset-grid'>";
+      act = "<div style='font-weight:900;font-size:13px;color:#27ae60;text-align:center;margin:6px 0;'>🎯 輪到你了！選擇招式</div>";
+      act += "<div class='moveset-grid'>";
       for (var mvi = 0; mvi < myActive.moves.length; mvi++) {
         var mv = myActive.moves[mvi];
         var mvDetail = getMoveDetails(mv);
         var mvType = mvDetail ? mvDetail.type : "一般";
-        html += "<button class='move-btn type-" + mvType + "' onclick='executePvPTurn(\"" + mv + "\")'>" + mv + "</button>";
+        act += "<button class='move-btn type-" + mvType + "' onclick='executePvPTurn(\"" + mv + "\")'>" + mv + "</button>";
       }
-      html += "</div>";
-      // Switch button
-      var aliveCount = 0;
-      for (var si = 0; si < pvp3.myParty.length; si++) { if (pvp3.myParty[si].currentHp > 0 && si !== pvp3.myActive) aliveCount++; }
-      if (aliveCount > 0) {
-        html += "<button class='btn-pvp-select' style='text-align:center;' onclick='showPvPSwitch()'>🔄 更換寶可夢</button>";
+      act += "</div>";
+      var alive = 0;
+      for (var ai = 0; ai < pvp3.myParty.length; ai++) { if (pvp3.myParty[ai].currentHp > 0 && ai !== pvp3.myActive) alive++; }
+      if (alive > 0) {
+        act += "<button class='btn-pvp-select' style='text-align:center;' onclick='showPvPSwitch()'>🔄 更換寶可夢</button>";
       }
     }
   } else {
-    html += "<div style='text-align:center;padding:10px;font-size:14px;color:#666;'>⏳ 等待 " + pvp3.enemyId + " 行動...</div>";
+    act = "<div style='text-align:center;padding:10px;font-size:14px;color:#666;'>⏳ 等待 " + pvp3.enemyId + " 行動...</div>";
   }
-
-  div.innerHTML = html;
-  // Animate HP bars: HTML already starts from previous HP, just animate to current
-  setTimeout(function(){
-    if (!pvp3) return;
-    var prevMy = window._pvpPrevMyHp || {}, prevEnemy = window._pvpPrevEnemyHp || {};
-    var ma2 = pvp3.myParty[pvp3.myActive];
-    var ea2 = pvp3.enemyParty[pvp3.enemyActive];
-    if (ma2) animateHpBar("pvpMyBar", "pvpMyHp" + pvp3.myActive, ma2.currentHp, ma2.maxHp, null);
-    if (ea2) animateHpBar("pvpEnemyBar", "pvpEnemyHp" + pvp3.enemyActive, ea2.currentHp, ea2.maxHp, null);
-    prevMy[pvp3.myActive] = ma2 ? ma2.currentHp : null;
-    prevEnemy[pvp3.enemyActive] = ea2 ? ea2.currentHp : null;
-    window._pvpPrevMyHp = prevMy;
-    window._pvpPrevEnemyHp = prevEnemy;
-  }, 20);
+  $("pvpActionArea").innerHTML = act;
 }
 
 function renderPvPSwitchUI() {
@@ -5089,13 +5105,12 @@ function renderPvPSwitchUI() {
 }
 
 function showPvPSwitch() {
-  var div = $("pvpBattle3v3");
   var hasTarget = false;
   for (var si = 0; si < pvp3.myParty.length; si++) {
     if (si !== pvp3.myActive && pvp3.myParty[si].currentHp > 0) { hasTarget = true; break; }
   }
   if (!hasTarget) {
-    div.innerHTML = "<div style='text-align:center;padding:10px;font-size:13px;color:#e74c3c;'>⚠️ 沒有可上場的寶可夢</div><button class='close-btn' onclick='renderBattle3v3()'>返回</button>";
+    $("pvpActionArea").innerHTML = "<div style='text-align:center;padding:10px;font-size:13px;color:#e74c3c;'>⚠️ 沒有可上場的寶可夢</div><button class='close-btn' onclick='renderBattle3v3()'>返回</button>";
     return;
   }
   var html = "<div style='font-weight:900;font-size:13px;color:#3498db;text-align:center;margin:6px 0;'>🔄 選擇上場的寶可夢</div>";
@@ -5105,7 +5120,7 @@ function showPvPSwitch() {
     html += "<button class='btn-pvp-select' style='text-align:left;' onclick='doPvPSwitch(" + i + ")'>" + p.name + " Lv." + p.level + " HP: " + p.currentHp + "/" + p.maxHp + "</button>";
   }
   html += "<button class='close-btn' style='margin-top:6px;' onclick='renderBattle3v3()'>取消</button>";
-  div.innerHTML = html;
+  $("pvpActionArea").innerHTML = html;
 }
 
 // ── Turn execution ──
@@ -5143,6 +5158,46 @@ async function executePvPTurn(moveName) {
     if ($("pvpEnemySlot" + pvp3.enemyActive)) {
       showLargeText("會心一擊！");
     }
+  }
+
+    // Local HP animation + particles (immediate, not waiting for Firestore round-trip)
+    if (result.dmg > 0) {
+      var mDet2 = getMoveDetails(moveName);
+      var tCol = getTypeColor(mDet2 ? mDet2.type : "一般");
+      // Impact flash on enemy panel (PvP equivalent of spawnImpactFlash for .arena-hp-section)
+      var pvpEnemyPanel = document.querySelector("#pvpBattle3v3 .pvp-side-panel.p2");
+      if (pvpEnemyPanel) {
+        var flash = document.createElement("div");
+        flash.className = "impact-flash";
+        flash.style.background = "radial-gradient(circle, " + tCol + "66 0%, transparent 70%)";
+        pvpEnemyPanel.style.position = "relative";
+        pvpEnemyPanel.appendChild(flash);
+        setTimeout(function(){ flash.remove(); }, 600);
+      }
+      animateHpBar("pvpEnemyBar", null, enemyActive.currentHp, enemyActive.maxHp, null);
+      var ec = getElementCenter("pvpEnemySlot" + pvp3.enemyActive);
+      if (ec) {
+        // Move particle container to PvP modal so particles are visible
+        var pvpContent = document.querySelector("#pvpModal .modal-content");
+        var pContainer = $("particleContainer");
+        if (pContainer && pvpContent) {
+          if (!pvpContent.contains(pContainer)) {
+            pvpContent.style.position = "relative";
+            pvpContent.appendChild(pContainer);
+          }
+        } else if (!pContainer && pvpContent) {
+          pContainer = document.createElement("div");
+          pContainer.id = "particleContainer";
+          pContainer.className = "particle-container";
+          pvpContent.style.position = "relative";
+          pvpContent.appendChild(pContainer);
+        }
+        spawnParticles(ec.x, ec.y, 8, tCol);
+        spawnHitRing(ec.x, ec.y, tCol, pvpContent);
+        if (mDet2 && mDet2.category !== "變化") spawnCategoryParticles(ec.x, ec.y, tCol, mDet2.category, pvpContent);
+      }
+      _pvpLocalAnim = true;
+      setTimeout(function(){ _pvpLocalAnim = false; }, Math.max(getAnimDelay(1500), 200));
   }
 
   // Check KO
