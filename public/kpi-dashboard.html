@@ -275,11 +275,13 @@
     .pvp-invite-card { border:1px solid #ddd; border-radius:8px; padding:10px; margin-bottom:6px; background:#fafafa; display:flex; align-items:center; justify-content:space-between; font-size:13px; }
     .pvp-invite-card .actions { display:flex; gap:5px; }
     .pvp-invite-card .actions button { padding:5px 12px; border-radius:5px; border:none; font-weight:700; cursor:pointer; font-size:12px; }
+    #pvpModal .modal-content { display:flex; flex-direction:column; }
+    #pvpBattle3v3, #pvpLobby, #pvpTeamSelection { flex:1 1 auto; overflow-y:auto; min-height:0; }
     .pvp-battle-3v3 { display:flex; flex-direction:column; gap:8px; }
     .pvp-side-panel { background:#fafafa; border-radius:8px; padding:10px; border:2px solid #ddd; text-align:left; }
     .pvp-side-panel.p1 { border-color:#3498db; background:#eaf2f8; }
     .pvp-side-panel.p2 { border-color:#e74c3c; background:#fdedec; }
-    .pvp-pkmn-mini { display:flex; align-items:center; gap:6px; padding:4px 8px; margin:2px 0; border-radius:5px; background:rgba(255,255,255,0.7); font-size:12px; }
+    .pvp-pkmn-mini { display:flex; align-items:center; gap:4px; padding:2px 6px; margin:1px 0; border-radius:4px; background:rgba(255,255,255,0.7); font-size:12px; }
     .pvp-pkmn-mini.active { font-weight:900; border:2px solid #f1c40f; }
     .pvp-pkmn-mini.fainted { opacity:0.4; text-decoration:line-through; }
     .pc-slot { border: 2px solid #ccc; border-radius: 8px; padding: 6px; text-align: center; cursor: pointer; background: white; transition: 0.2s; font-size: 12px; box-shadow: 1px 1px 4px rgba(0,0,0,0.1); }
@@ -602,7 +604,7 @@
   </div>
 </div>
 
-<div id="pvpModal" class="modal"><div class="modal-content" style="border-color:#8e44ad;width:95%;max-width:520px;">
+<div id="pvpModal" class="modal"><div class="modal-content" style="border-color:#8e44ad;width:95%;max-width:750px;max-height:98vh;padding:12px;display:flex;flex-direction:column;">
   <h3 style="color:#8e44ad;margin-top:0;">🆚 PvP對戰</h3>
   <div style="text-align:right;margin-bottom:6px;">
     <button onclick="closeModal('pvpModal');openRankingModal();" style="background:none;border:1px solid #8e44ad;color:#8e44ad;border-radius:4px;padding:4px 10px;font-size:12px;cursor:pointer;">🏆 天梯排名</button>
@@ -2830,11 +2832,12 @@ function spawnParticles(x, y, count, color, type) {
 function spawnHitRing(x, y, color, parentEl) {
   var ring = document.createElement("div");
   ring.className = "hit-ring";
-  ring.style.setProperty("--ring-x", x + "px");
-  ring.style.setProperty("--ring-y", y + "px");
-  ring.style.setProperty("--ring-color", color || "#fff");
   var battleContent = parentEl || document.querySelector("#battleModal .modal-content");
   if (battleContent) {
+    var rect = battleContent.getBoundingClientRect();
+    ring.style.setProperty("--ring-x", (x - rect.left) + "px");
+    ring.style.setProperty("--ring-y", (y - rect.top) + "px");
+    ring.style.setProperty("--ring-color", color || "#fff");
     battleContent.style.position = "relative";
     battleContent.appendChild(ring);
   }
@@ -2985,11 +2988,11 @@ function spawnEffectivenessEffect(effectiveness, center, typeColor) {
   }
 }
 
-function spawnAbilityFlare(elementId, color) {
+function spawnAbilityFlare(elementId, color, containerEl) {
   var el = $(elementId);
   if (!el) return;
   var rect = el.getBoundingClientRect();
-  var modal = document.querySelector("#battleModal .modal-content");
+  var modal = containerEl || document.querySelector("#battleModal .modal-content");
   if (!modal) return;
   var modalRect = modal.getBoundingClientRect();
   var flare = document.createElement("div");
@@ -3017,11 +3020,11 @@ function spawnItemGlow(elementId, color) {
   setTimeout(function(){ if (glow.parentNode) glow.remove(); }, 700);
 }
 
-function spawnShieldFlash(elementId, color) {
+function spawnShieldFlash(elementId, color, containerEl) {
   var el = $(elementId);
   if (!el) return;
   var rect = el.getBoundingClientRect();
-  var modal = document.querySelector("#battleModal .modal-content");
+  var modal = containerEl || document.querySelector("#battleModal .modal-content");
   if (!modal) return;
   var modalRect = modal.getBoundingClientRect();
   var shield = document.createElement("div");
@@ -5192,12 +5195,37 @@ async function executePvPTurn(moveName) {
   updatedMyParty[pvp3.myActive] = myActive;
   updatedEnemyParty[pvp3.enemyActive] = enemyActive;
 
-  // Visual effects
-  sfx.hit();
-  shakeElement("pvpEnemySlot" + pvp3.enemyActive);
-  flashElement("pvpEnemySlot" + pvp3.enemyActive);
+  // Determine move category
   var mDet2 = getMoveDetails(moveName);
   var tCol = getTypeColor(mDet2 ? mDet2.type : "一般");
+  var isStatusMove = mDet2 && mDet2.category === "変化";
+
+  // Move particle container to PvP modal so particles are visible (shared setup)
+  var pvpContent = document.querySelector("#pvpModal .modal-content");
+  var pContainer = $("particleContainer");
+  if (pContainer && pvpContent) {
+    if (!pvpContent.contains(pContainer)) {
+      pvpContent.style.position = "relative";
+      pvpContent.appendChild(pContainer);
+    }
+  } else if (!pContainer && pvpContent) {
+    pContainer = document.createElement("div");
+    pContainer.id = "particleContainer";
+    pContainer.className = "particle-container";
+    pvpContent.style.position = "relative";
+    pvpContent.appendChild(pContainer);
+  }
+
+  if (isStatusMove) {
+    // Status moves: only sparkle particles, no hit/shake/hp animation
+    var sec = getElementCenter("pvpEnemyBar");
+    if (sec) spawnCategoryParticles(sec.x, sec.y, tCol, "変化", pvpContent);
+  } else {
+    // Attack moves: full hit effects
+    sfx.hit();
+    shakeElement("pvpEnemySlot" + pvp3.enemyActive);
+    flashElement("pvpEnemySlot" + pvp3.enemyActive);
+  }
 
   if (result.crit) {
     sfx.crit();
@@ -5213,6 +5241,19 @@ async function executePvPTurn(moveName) {
     showLargeText("🚫 沒有效果！", "#666");
   }
 
+  // Contact Damage visual (Rough Skin / Iron Barbs)
+  if (result.contactDmg && result.contactDmg > 0) {
+    spawnAbilityFlare("pvpMySlot" + pvp3.myActive, "#e74c3c", pvpContent);
+    showLargeText(" Rough Skin! ", "#e74c3c");
+    animateHpBarJS("pvpMyBar", myActive.currentHp, myActive.maxHp, null);
+  }
+
+  // Sturdy / Focus Sash survive visual
+  if (result.hpBoosted) {
+    spawnShieldFlash("pvpEnemySlot" + pvp3.enemyActive, "#2ecc71", pvpContent);
+    showLargeText(" 挺住了！", "#2ecc71");
+  }
+
     // Local HP animation + particles (immediate, not waiting for Firestore round-trip)
     if (result.dmg > 0) {
       // Impact flash on enemy panel (PvP equivalent of spawnImpactFlash for .arena-hp-section)
@@ -5226,23 +5267,8 @@ async function executePvPTurn(moveName) {
         setTimeout(function(){ flash.remove(); }, 600);
       }
       animateHpBarJS("pvpEnemyBar", enemyActive.currentHp, enemyActive.maxHp, null);
-      var ec = getElementCenter("pvpEnemySlot" + pvp3.enemyActive);
+      var ec = getElementCenter("pvpEnemyBar");
       if (ec) {
-        // Move particle container to PvP modal so particles are visible
-        var pvpContent = document.querySelector("#pvpModal .modal-content");
-        var pContainer = $("particleContainer");
-        if (pContainer && pvpContent) {
-          if (!pvpContent.contains(pContainer)) {
-            pvpContent.style.position = "relative";
-            pvpContent.appendChild(pContainer);
-          }
-        } else if (!pContainer && pvpContent) {
-          pContainer = document.createElement("div");
-          pContainer.id = "particleContainer";
-          pContainer.className = "particle-container";
-          pvpContent.style.position = "relative";
-          pvpContent.appendChild(pContainer);
-        }
         spawnParticles(ec.x, ec.y, 8, tCol);
         spawnHitRing(ec.x, ec.y, tCol, pvpContent);
         if (mDet2 && mDet2.category !== "變化") spawnCategoryParticles(ec.x, ec.y, tCol, mDet2.category, pvpContent);
@@ -5355,6 +5381,12 @@ async function doPvPSwitch(index) {
   log.push("🔄 " + globalData.studentId + " 換上了 " + pvp3.myParty[index].name);
   update.log = log;
   sfx.entry();
+  var newSlot = $("pvpMySlot" + index);
+  if (newSlot) {
+    newSlot.classList.remove("entry-animation");
+    void newSlot.offsetWidth;
+    newSlot.classList.add("entry-animation");
+  }
   try {
     await db.collection("pvp_battles").doc(pvpBattleDocId).update(update);
   } catch(e) { console.warn("PvP switch error", e); }
