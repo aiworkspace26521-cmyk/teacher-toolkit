@@ -2718,6 +2718,40 @@ function animateHpBar(barId, textId, currentHp, maxHp, callback) {
     if (callback) callback();
   }, delay);
 }
+function animateHpBarJS(barId, currentHp, maxHp, callback) {
+  var bar = $(barId);
+  if (!bar) { if (callback) callback(); return; }
+  var targetPct = Math.round(currentHp / maxHp * 100);
+  if (BATTLE_SPEED === 0) {
+    bar.style.width = targetPct + "%";
+    bar.className = "hp-bar-fill " + (targetPct > 50 ? "hp-green" : targetPct > 25 ? "hp-yellow" : "hp-red");
+    if (callback) callback();
+    return;
+  }
+  var startPct = parseFloat(bar.style.width);
+  if (isNaN(startPct)) startPct = targetPct;
+  if (startPct === targetPct) {
+    bar.className = "hp-bar-fill " + (targetPct > 50 ? "hp-green" : targetPct > 25 ? "hp-yellow" : "hp-red");
+    if (callback) callback();
+    return;
+  }
+  var duration = getAnimDelay(1250);
+  var startTime = performance.now();
+  function tick(now) {
+    var elapsed = now - startTime;
+    var progress = Math.min(elapsed / duration, 1);
+    var eased = 1 - Math.pow(1 - progress, 2);
+    var current = startPct + (targetPct - startPct) * eased;
+    bar.style.width = Math.round(current) + "%";
+    bar.className = "hp-bar-fill " + (targetPct > 50 ? "hp-green" : targetPct > 25 ? "hp-yellow" : "hp-red");
+    if (progress < 1) {
+      requestAnimationFrame(tick);
+    } else {
+      if (callback) callback();
+    }
+  }
+  requestAnimationFrame(tick);
+}
 
 function shakeElement(id) {
   var el = typeof id === "string" ? $(id) : id;
@@ -4890,10 +4924,12 @@ var _pvpInitDone = false;
 var _pvpLocalAnim = false;
 var _pvpPrevMyActive = -1;
 var _pvpPrevEnemyActive = -1;
+var _pvpSlotCache = {};
 
 function startPvPBattle3v3(battleId) {
   if (!db) return;
   _pvpInitDone = false;
+  _pvpSlotCache = {};
   pvpBattleDocId = battleId;
   $("pvpLobby").style.display = "none";
   $("pvpTeamSelection").style.display = "none";
@@ -5001,7 +5037,7 @@ function renderBattle3v3() {
   // Title
   $("pvpTitle").innerHTML = "⚔️ " + pvp3.enemyId + " vs " + globalData.studentId + " — 第 " + (d.turn||1) + " 回合";
 
-  // Enemy party slots
+  // Enemy party slots (diff-based to avoid forced layout)
   for (var i = 0; i < 6; i++) {
     var slot = $("pvpEnemySlot" + i);
     if (!slot) continue;
@@ -5012,13 +5048,17 @@ function renderBattle3v3() {
       if (i === pvp3.enemyActive) eCls += " active";
       if (ep.currentHp <= 0) eCls += " fainted";
       slot.className = eCls;
-      slot.innerHTML = ep.name + " Lv." + ep.level + " HP: <span id='pvpEnemyHp" + i + "'>" + Math.max(0,ep.currentHp) + "/" + ep.maxHp + "</span>";
+      var eContent = ep.name + " Lv." + ep.level + " HP: <span id='pvpEnemyHp" + i + "'>" + Math.max(0,ep.currentHp) + "/" + ep.maxHp + "</span>";
+      if (_pvpSlotCache["enemy" + i] !== eContent) {
+        _pvpSlotCache["enemy" + i] = eContent;
+        slot.innerHTML = eContent;
+      }
     } else {
       slot.style.display = "none";
     }
   }
 
-  // My party slots
+  // My party slots (diff-based)
   for (var i = 0; i < 6; i++) {
     var slot = $("pvpMySlot" + i);
     if (!slot) continue;
@@ -5029,7 +5069,11 @@ function renderBattle3v3() {
       if (i === pvp3.myActive) mCls += " active";
       if (mp.currentHp <= 0) mCls += " fainted";
       slot.className = mCls;
-      slot.innerHTML = mp.name + " Lv." + mp.level + " HP: <span id='pvpMyHp" + i + "'>" + Math.max(0,mp.currentHp) + "/" + mp.maxHp + "</span>";
+      var mContent = mp.name + " Lv." + mp.level + " HP: <span id='pvpMyHp" + i + "'>" + Math.max(0,mp.currentHp) + "/" + mp.maxHp + "</span>";
+      if (_pvpSlotCache["my" + i] !== mContent) {
+        _pvpSlotCache["my" + i] = mContent;
+        slot.innerHTML = mContent;
+      }
     } else {
       slot.style.display = "none";
     }
@@ -5045,10 +5089,10 @@ function renderBattle3v3() {
   }
   if (!_pvpLocalAnim) {
     if (enemyActive && enemyActive.currentHp > 0) {
-      animateHpBar("pvpEnemyBar", null, enemyActive.currentHp, enemyActive.maxHp, null);
+      animateHpBarJS("pvpEnemyBar", enemyActive.currentHp, enemyActive.maxHp, null);
     }
     if (myActive && myActive.currentHp > 0) {
-      animateHpBar("pvpMyBar", null, myActive.currentHp, myActive.maxHp, null);
+      animateHpBarJS("pvpMyBar", myActive.currentHp, myActive.maxHp, null);
     }
   }
 
@@ -5152,18 +5196,25 @@ async function executePvPTurn(moveName) {
   sfx.hit();
   shakeElement("pvpEnemySlot" + pvp3.enemyActive);
   flashElement("pvpEnemySlot" + pvp3.enemyActive);
+  var mDet2 = getMoveDetails(moveName);
+  var tCol = getTypeColor(mDet2 ? mDet2.type : "一般");
+
   if (result.crit) {
     sfx.crit();
     screenShake();
     if ($("pvpEnemySlot" + pvp3.enemyActive)) {
-      showLargeText("會心一擊！");
+      showLargeText("💢 會心一擊！", "#ffd700");
     }
+  } else if (result.effectiveness > 1) {
+    showLargeText("💥 效果絕佳！", tCol);
+  } else if (result.effectiveness > 0 && result.effectiveness < 1) {
+    showLargeText("⚠️ 效果不好...", "#999");
+  } else if (result.effectiveness === 0) {
+    showLargeText("🚫 沒有效果！", "#666");
   }
 
     // Local HP animation + particles (immediate, not waiting for Firestore round-trip)
     if (result.dmg > 0) {
-      var mDet2 = getMoveDetails(moveName);
-      var tCol = getTypeColor(mDet2 ? mDet2.type : "一般");
       // Impact flash on enemy panel (PvP equivalent of spawnImpactFlash for .arena-hp-section)
       var pvpEnemyPanel = document.querySelector("#pvpBattle3v3 .pvp-side-panel.p2");
       if (pvpEnemyPanel) {
@@ -5174,7 +5225,7 @@ async function executePvPTurn(moveName) {
         pvpEnemyPanel.appendChild(flash);
         setTimeout(function(){ flash.remove(); }, 600);
       }
-      animateHpBar("pvpEnemyBar", null, enemyActive.currentHp, enemyActive.maxHp, null);
+      animateHpBarJS("pvpEnemyBar", enemyActive.currentHp, enemyActive.maxHp, null);
       var ec = getElementCenter("pvpEnemySlot" + pvp3.enemyActive);
       if (ec) {
         // Move particle container to PvP modal so particles are visible
