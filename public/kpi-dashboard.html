@@ -1,4 +1,4 @@
-﻿﻿<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="zh-TW">
 <head>
   <meta charset="utf-8">
@@ -630,6 +630,8 @@
   <!-- Team Selection -->
   <div id="pvpTeamSelection" style="display:none;"></div>
   <!-- 3v3 Battle -->
+  <div id="pvpWeatherDisplay" style="display:none;text-align:center;padding:5px;margin-bottom:8px;border-radius:6px;font-weight:700;font-size:14px;"></div>
+  <div id="pvpLargeTextOverlay" class="large-text-overlay" style="display:none;"></div>
   <div id="pvpBattle3v3" style="display:none;"></div>
   <button class="close-btn" onclick="confirmLeavePvP()">離開</button>
 </div></div>
@@ -2594,10 +2596,10 @@ function applyStatusEffect(move, defender) {
   if (eff === "debuff_def") { defender.statStages.def = Math.max(-6, defender.statStages.def - 1); return "⬇️ " + defender.name + " 防禦降低了！"; }
   if (eff === "protect") { defender.protect = true; return "🛡️ " + defender.name + " 使用了守住！"; }
   if (eff === "leech_seed") { defender.leechSeed = true; return "🌱 " + defender.name + " 被寄生種子了！"; }
-  if (eff === "weather_rain") { if (battleState) { battleState.weather = { type: "rain", duration: 5 }; spawnWeatherParticles(); } if (typeof sfx !== "undefined") sfx.weather(); showLargeText("🌧️ 開始下雨了！", "#3498db"); return "🌧️ 天氣變成下雨了！（持續5回合）"; }
-  if (eff === "weather_sun") { if (battleState) { battleState.weather = { type: "sun", duration: 5 }; spawnWeatherParticles(); } if (typeof sfx !== "undefined") sfx.weather(); showLargeText("☀️ 大晴天！", "#e67e22"); return "☀️ 天氣變成大晴天了！（持續5回合）"; }
-  if (eff === "weather_sand") { if (battleState) { battleState.weather = { type: "sand", duration: 5 }; spawnWeatherParticles(); } if (typeof sfx !== "undefined") sfx.weather(); showLargeText("🌪️ 沙暴來了！", "#d4a853"); return "🌪️ 天氣變成沙暴了！（持續5回合）"; }
-  if (eff === "weather_hail") { if (battleState) { battleState.weather = { type: "hail", duration: 5 }; spawnWeatherParticles(); } if (typeof sfx !== "undefined") sfx.weather(); showLargeText("❄️ 冰雹來了！", "#85c1e9"); return "❄️ 天氣變成冰雹了！（持續5回合）"; }
+  if (eff === "weather_rain") { if (battleState) { battleState.weather = { type: "rain", duration: 5 }; spawnWeatherParticles(); } if (typeof pvp3 !== "undefined" && pvp3) { pvp3.weather = { type: "rain", duration: 5 }; } if (typeof sfx !== "undefined") sfx.weather(); showLargeText("🌧️ 開始下雨了！", "#3498db"); return "🌧️ 天氣變成下雨了！（持續5回合）"; }
+  if (eff === "weather_sun") { if (battleState) { battleState.weather = { type: "sun", duration: 5 }; spawnWeatherParticles(); } if (typeof pvp3 !== "undefined" && pvp3) { pvp3.weather = { type: "sun", duration: 5 }; } if (typeof sfx !== "undefined") sfx.weather(); showLargeText("☀️ 大晴天！", "#e67e22"); return "☀️ 天氣變成大晴天了！（持續5回合）"; }
+  if (eff === "weather_sand") { if (battleState) { battleState.weather = { type: "sand", duration: 5 }; spawnWeatherParticles(); } if (typeof pvp3 !== "undefined" && pvp3) { pvp3.weather = { type: "sand", duration: 5 }; } if (typeof sfx !== "undefined") sfx.weather(); showLargeText("🌪️ 沙暴來了！", "#d4a853"); return "🌪️ 天氣變成沙暴了！（持續5回合）"; }
+  if (eff === "weather_hail") { if (battleState) { battleState.weather = { type: "hail", duration: 5 }; spawnWeatherParticles(); } if (typeof pvp3 !== "undefined" && pvp3) { pvp3.weather = { type: "hail", duration: 5 }; } if (typeof sfx !== "undefined") sfx.weather(); showLargeText("❄️ 冰雹來了！", "#85c1e9"); return "❄️ 天氣變成冰雹了！（持續5回合）"; }
   return "";
 }
 
@@ -2698,7 +2700,7 @@ function executeTurn(playerAtk, playerDef, enemyAtk, enemyDef, moveName, isPlaye
 
 function showLargeText(text, color, duration) {
   duration = duration || 1200;
-  var el = $("largeTextOverlay");
+  var el = (pvp3 && $("pvpModal") && $("pvpModal").style.display !== "none") ? $("pvpLargeTextOverlay") : $("largeTextOverlay");
   if (!el) return;
   el.innerHTML = text;
   el.style.color = color || "#fff";
@@ -2932,7 +2934,7 @@ function animateWeatherUpdate() {
 }
 
 function spawnWeatherParticles(container, weather) {
-  var c = container || document.querySelector("#battleModal .modal-content");
+  var c = container || document.querySelector("#pvpModal .modal-content") || document.querySelector("#battleModal .modal-content");
   var w = weather || (battleState && battleState.weather);
   if (!c || !w) return;
   var wt = w.type;
@@ -2941,7 +2943,8 @@ function spawnWeatherParticles(container, weather) {
   for (var wi = 0; wi < count; wi++) {
     (function(idx) {
       setTimeout(function() {
-        if (!battleState || !battleState.weather || battleState.weather.type !== wt) return;
+        var currentW = (battleState && battleState.weather) || w;
+        if (!currentW || currentW.type !== wt) return;
         var p = document.createElement("div");
         p.className = typeClass;
         p.style.left = (10 + Math.random() * 80) + "%";
@@ -4873,7 +4876,7 @@ async function invitePvP(opponentId) {
   var pvpWeather = null;
   if (Math.random() < 0.3) {
     var wTypes = ["rain","sun","sand","hail"];
-    pvpWeather = { type: wTypes[Math.floor(Math.random()*4)], duration: 99 };
+    pvpWeather = { type: wTypes[Math.floor(Math.random()*4)], duration: 5 };
   }
   var inviteDoc = {
     challengerId: myId,
@@ -4938,7 +4941,7 @@ function openPvPTeamSelection(battleId, isChallenger) {
 
 function renderPvPTeamSelection() {
   var div = $("pvpTeamSelection");
-  var partyPkmn = globalData.roster.filter(function(p){ return (globalData.partyIds || []).indexOf(p.id) !== -1; });
+  var partyPkmn = (globalData.partyIds || []).map(function(id){ return globalData.roster.find(function(p){ return p.id === id; }); }).filter(function(p){ return p; });
   var maxPick = partyPkmn.length;
   var html = "<h4 style='margin:0 0 8px;color:#8e44ad;'>選擇 1~" + maxPick + " 隻出戰寶可夢</h4>";
   html += "<div style='font-size:12px;color:#666;margin-bottom:8px;'>已選 " + pvpPickList.length + " 隻（可選 1~" + maxPick + " 隻）</div><div style='text-align:center;'>";
@@ -4972,7 +4975,7 @@ function togglePvPPick(pkmnId) {
 async function confirmPvPTeam() {
   if (pvpPickList.length < 1) { toast("請選擇至少 1 隻寶可夢！"); return; }
   if (!db) { toast("資料庫尚未連線"); return; }
-  var partyPkmn = globalData.roster.filter(function(p){ return pvpPickList.indexOf(p.id) !== -1; });
+  var partyPkmn = (globalData.partyIds || []).map(function(id){ return globalData.roster.find(function(p){ return p.id === id; }); }).filter(function(p){ return p && pvpPickList.indexOf(p.id) !== -1; });
   var prepared = partyPkmn.map(function(p){ return createPlayerPokemon(p); });
   var updateField = pvp3.isChallenger ? "partyChallenger" : "partyDefender";
   var readyField = pvp3.isChallenger ? "challengerReady" : "defenderReady";
@@ -5056,6 +5059,27 @@ function startPvPBattle3v3(battleId) {
       result: d.result,
       weather: d.weather || null
     };
+    // ── 初始天氣：特性觸發（PvP）──
+    if (!pvp3.weather) {
+      var myLead = myParty[pvp3.myActive];
+      var enemyLead = enemyParty[pvp3.enemyActive];
+      var wNames = {sun:"☀️ 大晴天",rain:"🌧️ 下雨",sand:"🌪️ 沙暴",hail:"❄️ 冰雹"};
+      if (enemyLead && enemyLead.ability && enemyLead.ability.trigger === "weatherEntry") {
+        pvp3.weather = { type: enemyLead.ability.weather, duration: 5 };
+        log.push(wNames[enemyLead.ability.weather] + " 籠罩了戰場！（持續5回合）");
+        if (typeof sfx !== "undefined") sfx.weather();
+      } else if (myLead && myLead.ability && myLead.ability.trigger === "weatherEntry") {
+        pvp3.weather = { type: myLead.ability.weather, duration: 5 };
+        log.push(wNames[myLead.ability.weather] + " 籠罩了戰場！（持續5回合）");
+        if (typeof sfx !== "undefined") sfx.weather();
+      }
+    }
+    if (pvp3.weather) {
+      setTimeout(function(){
+        var pvpContainer = document.querySelector("#pvpModal .modal-content");
+        if (pvpContainer) spawnWeatherParticles(pvpContainer, pvp3.weather);
+      }, 500);
+    }
     // 安全網：任一方全滅則自動結束戰鬥
     var allMyFainted = true;
     var allEnemyFainted = true;
@@ -5086,11 +5110,39 @@ function startPvPBattle3v3(battleId) {
     if (battleEl) battleEl.classList.add("entry-animation");
   }, 100);
 
-  // Mark battle as in_progress
-  db.collection("pvp_battles").doc(battleId).update({
+  // Mark battle as in_progress (sync initial weather if set by abilities)
+  var initUpdate = {
     status: "in_progress",
     updatedAt: firebase.firestore.FieldValue.serverTimestamp()
-  }).catch(function(){});
+  };
+  if (pvp3 && pvp3.weather && !d.weather) { initUpdate.weather = pvp3.weather; }
+  db.collection("pvp_battles").doc(battleId).update(initUpdate).catch(function(){});
+}
+
+function updatePvPWeatherUI() {
+  var wd = $("pvpWeatherDisplay");
+  if (!wd) return;
+  if (pvp3 && pvp3.weather) {
+    var wIcons = { rain: "🌧️", sun: "☀️", sand: "🌪️", hail: "❄️" };
+    var wNames = { rain: "下雨", sun: "大晴天", sand: "沙暴", hail: "冰雹" };
+    var wColors = { rain: "#3498db", sun: "#e67e22", sand: "#d4a853", hail: "#85c1e9" };
+    wd.style.display = "block";
+    wd.style.background = wColors[pvp3.weather.type] + "22";
+    wd.style.border = "2px solid " + (wColors[pvp3.weather.type] || "#999");
+    wd.innerHTML = wIcons[pvp3.weather.type] + " " + wNames[pvp3.weather.type]
+      + "（剩餘 " + pvp3.weather.duration + " 回合）"
+      + (pvp3.weather.duration <= 2 ? " ⏳" : "");
+    wd.classList.remove("weather-pulse", "weather-end");
+    void wd.offsetWidth;
+    if (pvp3.weather.duration <= 2) {
+      wd.classList.add("weather-end");
+      setTimeout(function(){ var el = $("pvpWeatherDisplay"); if (el) el.classList.remove("weather-end"); }, 800);
+    } else {
+      wd.classList.add("weather-pulse");
+    }
+  } else {
+    wd.style.display = "none";
+  }
 }
 
 function renderBattle3v3() {
@@ -5128,17 +5180,15 @@ function renderBattle3v3() {
 
   // ── Update existing DOM elements ──
   // Title
-  var pvpWeatherText = "";
-  if (pvp3.weather) {
-    var wMap = { rain:"🌧️ 下雨", sun:"☀️ 大晴天", sand:"🌪️ 沙暴", hail:"❄️ 冰雹" };
-    pvpWeatherText = " | " + (wMap[pvp3.weather.type] || "🌤️ " + pvp3.weather.type);
-  }
-  $("pvpTitle").innerHTML = "⚔️ " + pvp3.enemyId + " vs " + globalData.studentId + " — 第 " + (d.turn||1) + " 回合" + pvpWeatherText;
+  $("pvpTitle").innerHTML = "⚔️ " + pvp3.enemyId + " vs " + globalData.studentId + " — 第 " + (d.turn||1) + " 回合";
+
+  // Weather display bar
+  updatePvPWeatherUI();
 
   // Weather particles
   if (pvp3.weather) {
-    var pvpModalContent = document.querySelector("#pvpModal .modal-content");
-    if (pvpModalContent) spawnWeatherParticles(pvpModalContent, pvp3.weather);
+    var pvpModalContent2 = document.querySelector("#pvpModal .modal-content");
+    if (pvpModalContent2) spawnWeatherParticles(pvpModalContent2, pvp3.weather);
   }
 
   // Enemy party slots (diff-based to avoid forced layout)
@@ -5431,6 +5481,7 @@ async function executePvPTurn(moveName) {
 
   // ── Held item effects (PvP) ──
   var ejectSwitchTo = -1;
+  var preItemMyHp = myActive.currentHp;
   if (result.dmg > 0) {
     // 貝殼之鈴（攻擊方）
     if (processShellBellEffect(myActive, result.dmg, log)) {
@@ -5471,6 +5522,20 @@ async function executePvPTurn(moveName) {
         spawnItemGlow("pvpEnemySlot" + pvp3.enemyActive, "#3498db", pvpContent);
       }
     }
+  }
+
+  // ── Track attacker HP change from held items ──
+  var attackerHpChanged = (myActive.currentHp !== preItemMyHp);
+
+  // ── Weather duration decay (PvP) ──
+  if (pvp3.weather) {
+    pvp3.weather.duration--;
+    if (pvp3.weather.duration <= 0) {
+      var wNames2 = { rain: "🌧️ 下雨", sun: "☀️ 大晴天", sand: "🌪️ 沙暴", hail: "❄️ 冰雹" };
+      log.push((wNames2[pvp3.weather.type] || "天氣") + " 結束了！");
+      pvp3.weather = null;
+    }
+    updatePvPWeatherUI();
   }
 
   // Check KO
@@ -5550,11 +5615,20 @@ async function executePvPTurn(moveName) {
     currentTurn: nextTurn,
     updatedAt: firebase.firestore.FieldValue.serverTimestamp()
   };
-  // Only write the party that was hit (defender), not the attacker's party
+  update.weather = pvp3.weather || null;
+  // Write the defender's party
   if (isChallenger) {
     update.partyDefender = updatedEnemyParty;
   } else {
     update.partyChallenger = updatedEnemyParty;
+  }
+  // Also write attacker's party if held items changed HP (凸凸頭盔/貝殼之鈴/生命寶珠)
+  if (attackerHpChanged) {
+    if (isChallenger) {
+      update.partyChallenger = updatedMyParty;
+    } else {
+      update.partyDefender = updatedMyParty;
+    }
   }
   // Update active indices
   update.activeChallenger = isChallenger ? pvp3.myActive : enemyActiveIdx;
