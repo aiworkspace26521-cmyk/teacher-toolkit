@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+﻿﻿<!DOCTYPE html>
 <html lang="zh-TW">
 <head>
   <meta charset="utf-8">
@@ -90,6 +90,17 @@
     .modal-content h3 { margin-top: 0; }
     .close-btn { background: #95a5a6; color: white; border: none; padding: 10px; width: 100%; border-radius: 8px; font-weight: 700; cursor: pointer; margin-top: 15px; }
     .close-btn:hover { background: #7f8c8d; }
+    .pvp-leave-overlay { position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); z-index:9999; display:flex; align-items:center; justify-content:center; }
+    .pvp-leave-dialog { background:white; border-radius:16px; padding:28px; text-align:center; max-width:320px; width:90%; box-shadow:0 8px 30px rgba(0,0,0,0.3); }
+    .pvp-leave-dialog h3 { margin:0 0 6px; font-size:18px; color:#8e44ad; }
+    .pvp-leave-dialog p { margin:0 0 20px; font-size:13px; color:#888; }
+    .pvp-leave-dialog button { display:block; width:100%; padding:12px; margin-bottom:8px; border:none; border-radius:10px; font-weight:700; cursor:pointer; font-size:14px; }
+    .pvp-leave-dialog .btn-surrender { background:#e74c3c; color:white; }
+    .pvp-leave-dialog .btn-surrender:hover { background:#c0392b; }
+    .pvp-leave-dialog .btn-temp-leave { background:#95a5a6; color:white; }
+    .pvp-leave-dialog .btn-temp-leave:hover { background:#7f8c8d; }
+    .pvp-leave-dialog .btn-cancel { background:none; border:none; color:#999; font-size:12px; padding:6px; margin-top:4px; }
+    .pvp-leave-dialog .btn-cancel:hover { color:#666; }
     .shop-item { border: 2px solid #ddd; padding: 10px; margin-bottom: 10px; border-radius: 8px; display: flex; justify-content: space-between; align-items: center; text-align: left; position: relative; }
     .shop-item-info h4 { margin: 0 0 3px; color: var(--kpi-blue); font-size: 14px; }
     .shop-item-info p { margin: 0; font-size: 12px; color: #666; }
@@ -620,7 +631,7 @@
   <div id="pvpTeamSelection" style="display:none;"></div>
   <!-- 3v3 Battle -->
   <div id="pvpBattle3v3" style="display:none;"></div>
-  <button class="close-btn" onclick="closePvP()">離開</button>
+  <button class="close-btn" onclick="confirmLeavePvP()">離開</button>
 </div></div>
 
 <div id="tradeModal" class="modal"><div class="modal-content" style="border-color:#e67e22;">
@@ -4688,6 +4699,47 @@ function closePvP() {
   window._pvpResolving = false; _pvpInitDone = false;
   $("pvpModal").style.display = "none";
 }
+
+function confirmLeavePvP() {
+  if (!pvp3 || !pvpBattleDocId || !pvp3.doc || pvp3.doc.status === "completed") { closePvP(); return; }
+  var overlay = document.createElement("div");
+  overlay.id = "pvpLeaveOverlay";
+  overlay.className = "pvp-leave-overlay";
+  overlay.innerHTML = '<div class="pvp-leave-dialog">' +
+    '<h3>確定離開對戰？</h3>' +
+    '<p>選擇離開方式：</p>' +
+    '<button class="btn-surrender" onclick="surrenderPvP()">投降退出（對手獲勝）</button>' +
+    '<button class="btn-temp-leave" onclick="tempLeavePvP()">暫離開（可繼續對戰）</button>' +
+    '<button class="btn-cancel" onclick="hidePvpLeaveConfirm()">取消</button>' +
+    '</div>';
+  document.body.appendChild(overlay);
+}
+function hidePvpLeaveConfirm() {
+  var el = document.getElementById("pvpLeaveOverlay");
+  if (el) el.remove();
+}
+function tempLeavePvP() {
+  hidePvpLeaveConfirm();
+  closePvP();
+}
+async function surrenderPvP() {
+  if (!pvp3 || !pvpBattleDocId) { closePvP(); return; }
+  hidePvpLeaveConfirm();
+  var isChallenger = pvp3.isChallenger;
+  var resultStr = isChallenger ? "defender_win" : "challenger_win";
+  var log = pvp3.log || [];
+  log.push(globalData.studentId + " 投降了");
+  try {
+    await db.collection("pvp_battles").doc(pvpBattleDocId).update({
+      status: "completed",
+      result: resultStr,
+      log: log,
+      updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+    });
+    savePvPResult3v3(false);
+  } catch(e) {}
+}
+
 function checkPvpDoneToday() {
   if (!window.__pvpEvents) return false;
   var todayKey = new Date().toDateString();
@@ -4979,6 +5031,7 @@ function startPvPBattle3v3(battleId) {
     if (!snap.exists) return;
     var d = snap.data();
     if (d.status === "completed") {
+      if (pvp3) pvp3.doc = d;
       renderPvPResult3v3(d);
       return;
     }
