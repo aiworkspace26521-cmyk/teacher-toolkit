@@ -418,6 +418,7 @@
     </div>
     <div class="button-row" style="grid-template-columns:repeat(3,1fr);" id="navButtonRow">
       <button class="nav-btn btn-pcbox" onclick="sfx.click();openPCBoxModal()">💻 電腦</button>
+      <button class="nav-btn btn-pcbox" onclick="sfx.click();openCollection()">📖 成就圖鑑</button>
       <button class="nav-btn btn-weakdex" onclick="sfx.click();openPokedex()">📖 全國圖鑑</button>
       <button class="nav-btn btn-weakdex" onclick="sfx.click();openWeaknessDex()">📖 弱勢圖鑑</button>
       <button class="nav-btn btn-collection" onclick="sfx.click();openTrophyCabinet()">🏆 獎盃櫃</button>
@@ -6730,7 +6731,7 @@ function openQuickEquip(itemId) {
     card.style.cssText = "display:flex;align-items:center;gap:8px;padding:8px;border-radius:8px;margin:4px 0;cursor:pointer;background:#f9f9f9;border-left:4px solid " + typeColor + ";transition:background 0.15s;";
     card.onmouseover = function(){ this.style.background = "#e8f8f5"; };
     card.onmouseout = function(){ this.style.background = "#f9f9f9"; };
-    card.onclick = function(){ closeModal('equipModal'); equipHeldItem(p.id, itemId); };
+    card.onclick = (function(pid){ return function(){ closeModal('equipModal'); equipHeldItem(pid, itemId); }; })(p.id);
     var curHold = p.heldItem ? " <span style='font-size:10px;color:#8e44ad;'>[目前:" + (HELD_ITEM_ICONS[p.heldItem] || "") + (HELD_ITEMS[p.heldItem] ? HELD_ITEMS[p.heldItem].name : p.heldItem) + "]</span>" : " <span style='font-size:10px;color:#999;'>[無裝備]</span>";
     var heldBonus = "";
     if (itemId === "eviolite") heldBonus = " <span style='font-size:10px;color:#27ae60;'>DEF/SPDEF x1.5</span>";
@@ -6752,7 +6753,8 @@ async function equipHeldItem(pokemonId, itemId) {
   await executeSave({ studentId: globalData.studentId, score: 0, action: "道具裝備", expGained: 0, coinsGained: 0, badgeChange: 0, note: note, extraNote: note, totalScore: 0, user: globalData.studentId }, function() {
     var target = globalData.roster.find(function(p){ return p.id === pokemonId; });
     if (target) { target.heldItem = itemId; }
-    openCollection(); updateDashboard();
+    updateDashboard();
+    if ($("pcBoxModal") && $("pcBoxModal").style.display === "flex") { renderPCBoxContent(); } else { openCollection(); }
   }, false);
   toast("✅ 裝備" + itemName + "成功！");
 }
@@ -6763,15 +6765,14 @@ async function unequipHeldItem(pokemonId, itemId) {
   await executeSave({ studentId: globalData.studentId, score: 0, action: "道具裝備", expGained: 0, coinsGained: 0, badgeChange: 0, note: note, extraNote: note, totalScore: 0, user: globalData.studentId }, function() {
     var target = globalData.roster.find(function(p){ return p.id === pokemonId; });
     if (target) { target.heldItem = ""; }
-    openCollection(); updateDashboard();
+    updateDashboard();
+    if ($("pcBoxModal") && $("pcBoxModal").style.display === "flex") { renderPCBoxContent(); } else { openCollection(); }
   }, false);
   toast("✅ 已卸下" + itemName + "！");
 }
 
 function unequipFromPCBox(pokemonId, itemId) {
-  unequipHeldItem(pokemonId, itemId).then(function() {
-    setTimeout(function(){ openPCBoxModal(); }, 300);
-  });
+  unequipHeldItem(pokemonId, itemId);
 }
 
 function generateCapturePokemon(tier, targetType, level) {
