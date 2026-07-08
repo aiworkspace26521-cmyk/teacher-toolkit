@@ -418,7 +418,6 @@
     </div>
     <div class="button-row" style="grid-template-columns:repeat(3,1fr);" id="navButtonRow">
       <button class="nav-btn btn-pcbox" onclick="sfx.click();openPCBoxModal()">💻 電腦</button>
-      <button class="nav-btn btn-pcbox" onclick="sfx.click();openCollection()">📖 成就圖鑑</button>
       <button class="nav-btn btn-weakdex" onclick="sfx.click();openPokedex()">📖 全國圖鑑</button>
       <button class="nav-btn btn-weakdex" onclick="sfx.click();openWeaknessDex()">📖 弱勢圖鑑</button>
       <button class="nav-btn btn-collection" onclick="sfx.click();openTrophyCabinet()">🏆 獎盃櫃</button>
@@ -593,9 +592,16 @@
   </div>
 </div>
 
-<div id="pkmnDetailModal" class="modal"><div class="modal-content" style="border-color:#2980b9;max-width:380px;width:95%;padding:18px;border-radius:12px;">
+<div id="pkmnDetailModal" class="modal"><div class="modal-content" style="border-color:#2980b9;max-width:420px;width:95%;padding:18px;border-radius:12px;">
   <div id="pkmnDetailBody"></div>
   <button class="close-btn" onclick="closeModal('pkmnDetailModal')" style="margin-top:10px;">關閉</button>
+</div></div>
+
+<div id="compareModal" class="modal"><div class="modal-content" style="border-color:#2980b9;max-width:800px;width:95%;padding:15px;max-height:90vh;overflow-y:auto;">
+  <h3 style="color:#2980b9;margin-top:0;">⚖️ 能力值對比</h3>
+  <div id="compareSelectionBar" style="margin-bottom:8px;display:flex;flex-wrap:wrap;gap:4px;"></div>
+  <div id="compareBody" style="min-height:200px;"></div>
+  <button class="close-btn" onclick="closeModal('compareModal')">關閉</button>
 </div></div>
 
 <div id="equipModal" class="modal"><div class="modal-content" style="border-color:#27ae60;max-width:420px;width:95%;padding:15px;max-height:80vh;overflow-y:auto;">
@@ -4455,6 +4461,23 @@ function openPCBoxModal() {
   for (var ti = 0; ti < allTypes.length; ti++) { var o = document.createElement("option"); o.value = allTypes[ti]; o.textContent = allTypes[ti]; typeFilter.appendChild(o); }
   typeFilter.onchange = function() { renderPCBoxContent(); };
   searchBar.appendChild(typeFilter);
+  var sortSelect = document.createElement("select"); sortSelect.id = "pcBoxSort";
+  sortSelect.style.cssText = "padding:6px;border:1px solid #ccc;border-radius:6px;font-size:13px;";
+  var sortOptions = [
+    { value: "default", label: "預設排序" },
+    { value: "level", label: "⬇ 等級" },
+    { value: "statTotal", label: "⬇ 能力值總和" },
+    { value: "name", label: "⬆ 名稱" }
+  ];
+  for (var si = 0; si < sortOptions.length; si++) { var so = document.createElement("option"); so.value = sortOptions[si].value; so.textContent = sortOptions[si].label; sortSelect.appendChild(so); }
+  sortSelect.onchange = function() { renderPCBoxContent(); };
+  searchBar.appendChild(sortSelect);
+  // 比較按鈕
+  var cmpBtn = document.createElement("button");
+  cmpBtn.textContent = "⚖️ 比較";
+  cmpBtn.style.cssText = "padding:4px 10px;border:1px solid #2980b9;background:#3498db;color:white;border-radius:6px;cursor:pointer;font-size:12px;";
+  cmpBtn.onclick = function() { closeModal('pcBoxModal'); openCompareModal(); };
+  searchBar.appendChild(cmpBtn);
   box.appendChild(searchBar);
   renderPCBoxContent();
 }
@@ -4479,6 +4502,20 @@ function renderPCBoxContent() {
     }
     return true;
   });
+  var sortMode = ($("pcBoxSort") ? $("pcBoxSort").value : "default");
+  if (sortMode === "level") {
+    filtered.sort(function(a,b){ return (b.currentLevel||0) - (a.currentLevel||0); });
+  } else if (sortMode === "statTotal") {
+    filtered.sort(function(a,b){
+      var sa = getPokemonStats(a.baseName, a.currentLevel);
+      var sb = getPokemonStats(b.baseName, b.currentLevel);
+      var ta = (sa.hp||0)+(sa.atk||0)+(sa.def||0)+(sa.spatk||0)+(sa.spdef||0)+(sa.speed||0);
+      var tb = (sb.hp||0)+(sb.atk||0)+(sb.def||0)+(sb.spatk||0)+(sb.spdef||0)+(sb.speed||0);
+      return tb - ta;
+    });
+  } else if (sortMode === "name") {
+    filtered.sort(function(a,b){ var na=(a.baseName||""), nb=(b.baseName||""); return na < nb ? -1 : na > nb ? 1 : 0; });
+  }
   var grid1 = document.createElement("div"); grid1.className = "pc-grid";
   var g1h = document.createElement("h4"); g1h.innerHTML = "📋 隊伍 (Party)"; grid1.appendChild(g1h);
   var partyIds = globalData.partyIds || [];
@@ -4598,6 +4635,26 @@ function openPkmnDetail(pokemonId) {
   var inParty = (globalData.partyIds || []).indexOf(pkmn.id) !== -1;
   function heldStatBonus(heldId) { if (heldId === "eviolite") return "DEF x1.5, SPDEF x1.5"; if (heldId === "assaultVest") return "SPDEF x1.5"; return ""; }
   var heldBonus = heldStatBonus(pkmn.heldItem);
+  var movesList = getPokemonMoveset(pkmn.baseName, pkmn.currentLevel);
+  var catIcons = {"物理":"⚔️","特殊":"🔮","變化":"🔄"};
+  var catColors = {"物理":"#e74c3c","特殊":"#3498db","變化":"#95a5a6"};
+  var movesHtml = "<div style='background:#f5f5f5;border-radius:8px;padding:10px;margin-bottom:8px;'>" +
+    "<div style='font-size:12px;font-weight:700;color:#555;margin-bottom:4px;'>⚡ 招式</div>" +
+    "<div style='display:grid;grid-template-columns:1fr 1fr;gap:4px;'>";
+  for (var mi = 0; mi < movesList.length; mi++) {
+    var md = getMoveDetails(movesList[mi]);
+    var mtCol = typeColors[md.type] || "#999";
+    movesHtml += "<div style='background:white;border-radius:6px;padding:6px;border:1px solid #e0e0e0;font-size:11px;'>" +
+      "<div style='font-weight:700;font-size:12px;margin-bottom:2px;'>" + movesList[mi] + "</div>" +
+      "<div style='display:flex;gap:3px;align-items:center;margin-bottom:2px;'>" +
+      "<span style='background:" + mtCol + ";color:white;padding:0 5px;border-radius:3px;font-size:10px;'>" + md.type + "</span>" +
+      "<span style='color:" + (catColors[md.category]||"#999") + ";font-size:10px;'>" + (catIcons[md.category]||"") + " " + md.category + "</span>" +
+      (md.power > 0 ? "<span style='color:#555;font-size:10px;'>威力:" + md.power + "</span>" : "") +
+      "</div>" +
+      "<div style='color:#888;font-size:10px;'>" + md.desc + "</div>" +
+    "</div>";
+  }
+  movesHtml += "</div></div>";
   body.innerHTML =
     "<div style='display:flex;align-items:center;gap:8px;margin-bottom:8px;'>" +
       "<span style='font-size:20px;font-weight:700;'>" + pkmn.baseName + "</span>" +
@@ -4623,8 +4680,129 @@ function openPkmnDetail(pokemonId) {
       (abil ? "特性: " + abil : "") +
       (heldName ? " | " + heldIcon + " 持有: " + heldName : "") +
     "</div>" +
-    "<div style='font-size:11px;color:#999;'>捕獲日期: " + (pkmn.catchDate || "未知") + " | 好感度: " + Math.min(pkmn.happiness || 0, 120) + "/120</div>";
+    "<div style='font-size:11px;color:#999;'>捕獲日期: " + (pkmn.catchDate || "未知") + " | 好感度: " + Math.min(pkmn.happiness || 0, 120) + "/120</div>" +
+    movesHtml;
   $("pkmnDetailModal").style.display = "flex";
+}
+
+function openCompareModal() {
+  if (!globalData || !globalData.roster || globalData.roster.length === 0) return;
+  var selBar = $("compareSelectionBar");
+  var body = $("compareBody");
+  var partyIds = globalData.partyIds || [];
+  var selected = {};
+  for (var ci = 0; ci < partyIds.length; ci++) selected[partyIds[ci]] = true;
+  var typeColors = {"一般":"#a8a878","火":"#f08030","水":"#6890f0","草":"#78c850","電":"#f8d030","冰":"#98d8d8","格鬥":"#c03028","毒":"#a040a0","地面":"#e0c068","飛行":"#a890f0","超能力":"#f85888","蟲":"#a8b820","岩石":"#b8a038","幽靈":"#705898","龍":"#7038f8","惡":"#705848","鋼":"#b8b8d0","妖精":"#ee99ac"};
+  var allTypes = ["一般","火","水","草","電","冰","格鬥","毒","地面","飛行","超能力","蟲","岩石","幽靈","龍","鋼","妖精","惡"];
+  var barColors = { hp:"#e74c3c",atk:"#e67e22",def:"#27ae60",spatk:"#3498db",spdef:"#9b59b6",speed:"#1abc9c" };
+  var statKeys = ["hp","atk","def","spatk","spdef","speed"];
+  var statLabels = ["❤️ HP","⚔️ ATK","🛡️ DEF","🔮 SPA","🌐 SPD","💨 SPE"];
+  function renderCompare() {
+    var selectedIds = [];
+    for (var k in selected) { if (selected[k]) selectedIds.push(k); }
+    if (selectedIds.length < 1) { body.innerHTML = "<div style='text-align:center;padding:40px;color:#999;'>請至少選擇 1 隻寶可夢進行比較</div>"; return; }
+    var pkmnList = [];
+    for (var si = 0; si < selectedIds.length; si++) { var f = globalData.roster.find(function(p){ return p.id === selectedIds[si]; }); if (f) pkmnList.push(f); }
+    var statsList = [];
+    for (var si2 = 0; si2 < pkmnList.length; si2++) { statsList.push({ p: pkmnList[si2], s: getPokemonStats(pkmnList[si2].baseName, pkmnList[si2].currentLevel) }); }
+    var maxVals = [1,1,1,1,1,1];
+    for (var mi = 0; mi < statsList.length; mi++) { var st = statsList[mi].s; for (var ki = 0; ki < statKeys.length; ki++) { var v = st[statKeys[ki]] || 0; if (v > maxVals[ki]) maxVals[ki] = v; } }
+    // ── Table: header (Pokémon columns) ──
+    var html = "<div style='overflow-x:auto;'>";
+    html += "<table style='width:100%;border-collapse:collapse;font-size:12px;'>";
+    // Header row: stat label | Pokémon 1 | Pokémon 2 | ...
+    html += "<tr style='background:#f0f4f8;'>";
+    html += "<th style='padding:6px 8px;text-align:left;font-weight:700;color:#555;border:1px solid #ddd;'>能力</th>";
+    for (var hi = 0; hi < statsList.length; hi++) {
+      var hp = statsList[hi].p;
+      var hTypes = getPokemonType(hp.baseName);
+      var hChips = "";
+      for (var ht = 0; ht < hTypes.length; ht++) { hChips += "<span style='display:inline-block;background:"+(typeColors[hTypes[ht]]||"#999")+";color:white;padding:0 5px;border-radius:3px;font-size:9px;margin:0 1px;'>"+hTypes[ht]+"</span>"; }
+      html += "<th style='padding:6px 8px;text-align:center;border:1px solid #ddd;min-width:140px;'>" +
+        "<div style='font-weight:700;font-size:13px;'>"+hp.baseName+"</div>" +
+        "<div style='color:#555;font-weight:400;font-size:11px;'>Lv."+hp.currentLevel+"</div>" +
+        "<div style='margin-top:2px;'>"+hChips+"</div>" +
+      "</th>";
+    }
+    html += "</tr>";
+    // Stat rows: each row = one stat across all Pokémon
+    for (var ri = 0; ri < statKeys.length; ri++) {
+      var sk = statKeys[ri];
+      html += "<tr><td style='padding:6px 8px;font-weight:700;color:#555;border:1px solid #ddd;white-space:nowrap;'>"+statLabels[ri]+"</td>";
+      for (var ci = 0; ci < statsList.length; ci++) {
+        var sv = statsList[ci].s;
+        var val = sv[sk] || 0;
+        var pct = Math.round(val / Math.max(maxVals[ri], 1) * 100);
+        html += "<td style='padding:6px 8px;border:1px solid #ddd;text-align:center;'>" +
+          "<div style='display:flex;align-items:center;gap:6px;'>" +
+          "<div style='flex:1;background:#e0e0e0;border-radius:4px;height:12px;position:relative;'>" +
+          "<div style='width:"+pct+"%;background:"+barColors[sk]+";height:12px;border-radius:4px;transition:width 0.3s;'></div>" +
+          "</div>" +
+          "<span style='font-weight:700;min-width:30px;'>"+val+"</span>" +
+          "</div>" +
+        "</td>";
+      }
+      html += "</tr>";
+    }
+    // ── Type matchup rows (18 types, 敵方|我方 sub-columns) ──
+    function _effCell(eff) {
+      if (eff >= 4) return ["#c0392b","white","×4"];
+      if (eff === 2) return ["#e74c3c","white","×2"];
+      if (eff === 0.5) return ["#27ae60","white","½"];
+      if (eff === 0.25) return ["#1abc9c","white","¼"];
+      if (eff === 0) return ["#2c3e50","white","×0"];
+      return ["#ecf0f1","#888","—"];
+    }
+    function _effOff(atkTypes, defType) {
+      var e = 1;
+      for (var i=0;i<atkTypes.length;i++) { e *= (TYPE_CHART[atkTypes[i]] && TYPE_CHART[atkTypes[i]][defType]) || 1; }
+      return e;
+    }
+    function _effDef(atkType, defTypes) {
+      var e = 1;
+      for (var i=0;i<defTypes.length;i++) { e *= (TYPE_CHART[atkType] && TYPE_CHART[atkType][defTypes[i]]) || 1; }
+      return e;
+    }
+    html += "<tr style='background:#f0f4f8;'>";
+    html += "<td style='padding:4px 8px;font-weight:700;color:#555;border:1px solid #ddd;font-size:11px;'>屬性相剋</td>";
+    for (var tci = 0; tci < statsList.length; tci++) {
+      html += "<td style='padding:2px 4px;border:1px solid #ddd;text-align:center;font-size:9px;color:#888;'>敵方</td>";
+      html += "<td style='padding:2px 4px;border:1px solid #ddd;text-align:center;font-size:9px;color:#888;'>我方</td>";
+    }
+    html += "</tr>";
+    for (var at = 0; at < allTypes.length; at++) {
+      html += "<tr><td style='padding:2px 6px;font-size:10px;color:#555;border:1px solid #ddd;white-space:nowrap;'>"+allTypes[at]+"</td>";
+      for (var ti = 0; ti < statsList.length; ti++) {
+        var tp = statsList[ti].p;
+        var tTypes = getPokemonType(tp.baseName);
+        // 敵方: this type attacks the Pokémon
+        var effD = _effDef(allTypes[at], tTypes);
+        var cD = _effCell(effD);
+        // 我方: the Pokémon attacks this type
+        var effO = _effOff(tTypes, allTypes[at]);
+        var cO = _effCell(effO);
+        html += "<td style='padding:2px;border:1px solid #ddd;text-align:center;font-size:9px;background:"+cD[0]+";color:"+cD[1]+";font-weight:"+(effD!==1?"700":"400")+";'>"+cD[2]+"</td>";
+        html += "<td style='padding:2px;border:1px solid #ddd;text-align:center;font-size:9px;background:"+cO[0]+";color:"+cO[1]+";font-weight:"+(effO!==1?"700":"400")+";'>"+cO[2]+"</td>";
+      }
+      html += "</tr>";
+    }
+    html += "</table></div>";
+    body.innerHTML = html;
+  }
+  // Build selection bar
+  selBar.innerHTML = "<div style='font-size:12px;color:#555;margin-bottom:4px;'>點擊切換選擇（選取 1-6 隻）：</div>";
+  var sortedRoster = globalData.roster.slice().sort(function(a,b){ return (b.currentLevel||0)-(a.currentLevel||0); });
+  for (var ri = 0; ri < sortedRoster.length; ri++) {
+    var pkm = sortedRoster[ri];
+    var tog = document.createElement("span");
+    tog.style.cssText = "padding:3px 10px;border-radius:12px;font-size:11px;cursor:pointer;border:1px solid #bdc3c7;user-select:none;display:inline-block;margin:2px;";
+    tog.textContent = pkm.baseName + " Lv." + pkm.currentLevel;
+    if (selected[pkm.id]) { tog.style.background = "#3498db"; tog.style.color = "white"; tog.style.borderColor = "#2980b9"; }
+    tog.onclick = (function(id, el) { return function() { selected[id] = !selected[id]; if (selected[id]) { el.style.background="#3498db"; el.style.color="white"; el.style.borderColor="#2980b9"; } else { el.style.background=""; el.style.color=""; el.style.borderColor="#bdc3c7"; } renderCompare(); }; })(pkm.id, tog);
+    selBar.appendChild(tog);
+  }
+  renderCompare();
+  $("compareModal").style.display = "flex";
 }
 
 var swapSelection = null;
@@ -6731,7 +6909,7 @@ function openQuickEquip(itemId) {
     card.style.cssText = "display:flex;align-items:center;gap:8px;padding:8px;border-radius:8px;margin:4px 0;cursor:pointer;background:#f9f9f9;border-left:4px solid " + typeColor + ";transition:background 0.15s;";
     card.onmouseover = function(){ this.style.background = "#e8f8f5"; };
     card.onmouseout = function(){ this.style.background = "#f9f9f9"; };
-    card.onclick = (function(pid){ return function(){ closeModal('equipModal'); equipHeldItem(pid, itemId); }; })(p.id);
+    card.onclick = function(){ closeModal('equipModal'); equipHeldItem(p.id, itemId); };
     var curHold = p.heldItem ? " <span style='font-size:10px;color:#8e44ad;'>[目前:" + (HELD_ITEM_ICONS[p.heldItem] || "") + (HELD_ITEMS[p.heldItem] ? HELD_ITEMS[p.heldItem].name : p.heldItem) + "]</span>" : " <span style='font-size:10px;color:#999;'>[無裝備]</span>";
     var heldBonus = "";
     if (itemId === "eviolite") heldBonus = " <span style='font-size:10px;color:#27ae60;'>DEF/SPDEF x1.5</span>";
@@ -6753,8 +6931,7 @@ async function equipHeldItem(pokemonId, itemId) {
   await executeSave({ studentId: globalData.studentId, score: 0, action: "道具裝備", expGained: 0, coinsGained: 0, badgeChange: 0, note: note, extraNote: note, totalScore: 0, user: globalData.studentId }, function() {
     var target = globalData.roster.find(function(p){ return p.id === pokemonId; });
     if (target) { target.heldItem = itemId; }
-    updateDashboard();
-    if ($("pcBoxModal") && $("pcBoxModal").style.display === "flex") { renderPCBoxContent(); } else { openCollection(); }
+    openCollection(); updateDashboard();
   }, false);
   toast("✅ 裝備" + itemName + "成功！");
 }
@@ -6765,14 +6942,15 @@ async function unequipHeldItem(pokemonId, itemId) {
   await executeSave({ studentId: globalData.studentId, score: 0, action: "道具裝備", expGained: 0, coinsGained: 0, badgeChange: 0, note: note, extraNote: note, totalScore: 0, user: globalData.studentId }, function() {
     var target = globalData.roster.find(function(p){ return p.id === pokemonId; });
     if (target) { target.heldItem = ""; }
-    updateDashboard();
-    if ($("pcBoxModal") && $("pcBoxModal").style.display === "flex") { renderPCBoxContent(); } else { openCollection(); }
+    openCollection(); updateDashboard();
   }, false);
   toast("✅ 已卸下" + itemName + "！");
 }
 
 function unequipFromPCBox(pokemonId, itemId) {
-  unequipHeldItem(pokemonId, itemId);
+  unequipHeldItem(pokemonId, itemId).then(function() {
+    setTimeout(function(){ openPCBoxModal(); }, 300);
+  });
 }
 
 function generateCapturePokemon(tier, targetType, level) {
