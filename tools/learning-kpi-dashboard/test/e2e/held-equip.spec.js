@@ -9,16 +9,25 @@ test.describe('Held Item Equip Flow', () => {
     await page.locator('#kpiLevel').waitFor({ state: 'visible', timeout: 15000 });
   }
 
-  test('成就圖鑑 nav button exists', async ({ page }) => {
+  test('寶可夢管理 nav button exists', async ({ page }) => {
     await loginNeil(page);
-    const collectionBtn = page.locator('.nav-btn').filter({ hasText: /成就圖鑑/ });
-    await expect(collectionBtn).toBeVisible();
+    const mgmtBtn = page.locator('.nav-btn').filter({ hasText: /寶可夢管理/ });
+    await expect(mgmtBtn).toBeVisible();
   });
 
-  test('成就圖鑑 modal opens from nav button', async ({ page }) => {
+  test('裝備/招式學習 modal opens from inside 寶可夢管理', async ({ page }) => {
     await loginNeil(page);
-    const collectionBtn = page.locator('.nav-btn').filter({ hasText: /成就圖鑑/ });
-    await collectionBtn.click();
+
+    // Open 寶可夢管理 (renamed from 電腦)
+    const mgmtBtn = page.locator('.nav-btn').filter({ hasText: /寶可夢管理/ });
+    await mgmtBtn.click();
+    await page.waitForTimeout(1500);
+    await expect(page.locator('#pcBoxModal')).toBeVisible({ timeout: 5000 });
+
+    // Click the 裝備/招式學習 button inside the modal
+    const equipLearnBtn = page.locator('#pcBoxModal button').filter({ hasText: /裝備\/招式學習/ });
+    await expect(equipLearnBtn).toBeVisible();
+    await equipLearnBtn.click();
     await page.waitForTimeout(1500);
     await expect(page.locator('#collectionModal')).toBeVisible({ timeout: 8000 });
   });
@@ -26,8 +35,9 @@ test.describe('Held Item Equip Flow', () => {
   test('PC box equip flow: item equips to correct Pokémon', async ({ page }) => {
     await loginNeil(page);
 
+    var pcBtnText = /寶可夢管理/;
     // Open PC box
-    const pcBtn = page.locator('.nav-btn').filter({ hasText: /電腦/ });
+    const pcBtn = page.locator('.nav-btn').filter({ hasText: pcBtnText });
     await pcBtn.click();
     await page.waitForTimeout(1500);
     await expect(page.locator('#pcBoxModal')).toBeVisible({ timeout: 5000 });
@@ -37,7 +47,6 @@ test.describe('Held Item Equip Flow', () => {
     const equipCount = await equipBtns.count();
 
     if (equipCount === 0) {
-      // No unequipped items — buy the cheapest held item (shellBell) via shop
       test.info().annotations.push({ type: 'info', description: 'No unequipped held items found, purchasing shellBell' });
 
       // Close PC, open shop
@@ -50,10 +59,8 @@ test.describe('Held Item Equip Flow', () => {
       await expect(page.locator('#shopModal')).toBeVisible({ timeout: 5000 });
 
       // Find and buy 貝殼之鈴 (shellBell) in shop
-      const shellBought = await page.evaluate(async () => {
-        // Check if already purchased
+      await page.evaluate(async () => {
         if (globalData && globalData.hasShellBell) return 'already_owned';
-        // Find the buy button for shellBell
         var shopItems = document.querySelectorAll('.shop-card');
         for (var i = 0; i < shopItems.length; i++) {
           if (shopItems[i].textContent.includes('貝殼之鈴') || shopItems[i].textContent.includes('shellBell') || shopItems[i].textContent.includes('Shell Bell')) {
@@ -68,8 +75,8 @@ test.describe('Held Item Equip Flow', () => {
       await page.locator('#shopModal .close-btn').click();
       await page.waitForTimeout(500);
 
-      // Reopen PC
-      await page.locator('.nav-btn').filter({ hasText: /電腦/ }).click();
+      // Reopen PC (renamed button)
+      await page.locator('.nav-btn').filter({ hasText: pcBtnText }).click();
       await page.waitForTimeout(1500);
     }
 
@@ -93,9 +100,6 @@ test.describe('Held Item Equip Flow', () => {
     const cardCount = await pokemonCards.count();
     expect(cardCount).toBeGreaterThan(0);
 
-    // Read the first Pokémon's name before clicking
-    const firstPokemonName = await pokemonCards.first().innerText();
-
     // Click the first Pokémon to equip
     await pokemonCards.first().click();
     await page.waitForTimeout(2000);
@@ -106,12 +110,11 @@ test.describe('Held Item Equip Flow', () => {
     // PC box should still be visible (not collection modal)
     await expect(page.locator('#pcBoxModal')).toBeVisible({ timeout: 5000 });
 
-    // The item should now appear as equipped (show holder name instead of 裝備 button)
+    // Count changes
     const equipBtnsAfter = page.locator('#pcBoxBody button:has-text("裝備")');
     const equipCountAfter = await equipBtnsAfter.count();
     const equipBtnCount = await page.locator('#pcBoxBody button:has-text("卸下")').count();
 
-    // Count should have changed (one less 裝備, one more 卸下)
     test.info().annotations.push({
       type: 'result',
       description: '裝備 buttons: ' + equipCount + ' -> ' + equipCountAfter + ', 卸下 buttons: ' + equipBtnCount
@@ -121,8 +124,9 @@ test.describe('Held Item Equip Flow', () => {
   test('unequip from PC box works correctly', async ({ page }) => {
     await loginNeil(page);
 
+    var pcBtnText = /寶可夢管理/;
     // Open PC box
-    await page.locator('.nav-btn').filter({ hasText: /電腦/ }).click();
+    await page.locator('.nav-btn').filter({ hasText: pcBtnText }).click();
     await page.waitForTimeout(1500);
     await expect(page.locator('#pcBoxModal')).toBeVisible({ timeout: 5000 });
 
@@ -145,7 +149,7 @@ test.describe('Held Item Equip Flow', () => {
     // PC box should still be visible
     await expect(page.locator('#pcBoxModal')).toBeVisible({ timeout: 5000 });
 
-    // 裝備 buttons count should have increased (one more unequipped item)
+    // 裝備 buttons count should have increased
     const equipAfter = await page.locator('#pcBoxBody button:has-text("裝備")').count();
     expect(equipAfter).toBeGreaterThanOrEqual(equipBefore);
 
@@ -155,11 +159,16 @@ test.describe('Held Item Equip Flow', () => {
     });
   });
 
-  test('equip from collection nav button works correctly', async ({ page }) => {
+  test('裝備/招式學習 modal shows equip/unequip buttons', async ({ page }) => {
     await loginNeil(page);
 
-    // Open collection via nav button
-    await page.locator('.nav-btn').filter({ hasText: /成就圖鑑/ }).click();
+    // Open 寶可夢管理
+    await page.locator('.nav-btn').filter({ hasText: /寶可夢管理/ }).click();
+    await page.waitForTimeout(1500);
+    await expect(page.locator('#pcBoxModal')).toBeVisible({ timeout: 5000 });
+
+    // Click 裝備/招式學習 button inside modal
+    await page.locator('#pcBoxModal button').filter({ hasText: /裝備\/招式學習/ }).click();
     await page.waitForTimeout(1500);
     await expect(page.locator('#collectionModal')).toBeVisible({ timeout: 5000 });
 
@@ -172,7 +181,7 @@ test.describe('Held Item Equip Flow', () => {
 
     test.info().annotations.push({
       type: 'info',
-      description: 'Collection: ' + equipColCount + ' equip buttons, ' + unequipColCount + ' unequip buttons'
+      description: '裝備/招式學習: ' + equipColCount + ' equip buttons, ' + unequipColCount + ' unequip buttons'
     });
 
     // At least one action button should exist

@@ -79,7 +79,7 @@ test.describe('KPI Dashboard Smoke Tests', () => {
     await page.selectOption('#studentSelect', 'Neil');
     await expect(page.locator('#kpiLevel')).not.toBeEmpty({ timeout: 15000 });
 
-    const boxBtn = page.locator('.nav-btn').filter({ hasText: /電腦/ });
+    const boxBtn = page.locator('.nav-btn').filter({ hasText: /寶可夢管理/ });
     await expect(boxBtn).toBeVisible();
   });
 
