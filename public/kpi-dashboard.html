@@ -501,7 +501,7 @@
   <h3 style="color:var(--kpi-green);">⚡ 裝備/招式學習</h3>
   <div id="collectionInventory" style="background:#e8f8f5;border:2px dashed var(--kpi-green);border-radius:8px;padding:8px;margin-bottom:10px;font-size:13px;font-weight:700;"></div>
   <div id="collectionList" class="collection-grid"></div>
-  <button class="close-btn" onclick="closeModal('collectionModal')">關閉</button>
+  <button class="close-btn" onclick="closeModal('collectionModal');sfx.click();openPCBoxModal()">關閉</button>
 </div></div>
 
 <div id="trophyModal" class="modal"><div class="modal-content" style="border-color:#f39c12;">
@@ -4567,7 +4567,7 @@ function renderPCBoxContent() {
     invRow.appendChild(badge);
   }
   invDiv.appendChild(invRow);
-  // held items with equip buttons
+  // held items display only (equip/unequip managed via ⚡ 裝備/招式學習)
   var heldSection = document.createElement("div");
   heldSection.style.cssText = "font-size:12px;margin-bottom:6px;";
   var heldLabels = [];
@@ -4580,9 +4580,9 @@ function renderPCBoxContent() {
       var hItem = heldLabels[hl];
       var holder = gd.roster.find(function(p){ return p.heldItem === hItem.id; });
       if (holder) {
-        heldSection.innerHTML += "<span style='background:#f3e5f5;padding:2px 6px;border-radius:4px;margin:2px;display:inline-block;font-size:11px;'>" + hItem.icon + " " + hItem.name + " → " + holder.baseName + " <button style='padding:0 4px;font-size:10px;cursor:pointer;' onclick='unequipFromPCBox(\"" + holder.id + "\",\"" + hItem.id + "\")'>卸下</button></span> ";
+        heldSection.innerHTML += "<span style='background:#f3e5f5;padding:2px 6px;border-radius:4px;margin:2px;display:inline-block;font-size:11px;'>" + hItem.icon + " " + hItem.name + " → " + holder.baseName + "</span> ";
       } else if (hItem.id !== "tmUniversal") {
-        heldSection.innerHTML += "<span style='background:#e0e0e0;padding:2px 6px;border-radius:4px;margin:2px;display:inline-block;font-size:11px;'>" + hItem.icon + " " + hItem.name + " <button style='padding:0 4px;font-size:10px;cursor:pointer;' onclick='openQuickEquip(\"" + hItem.id + "\")'>裝備</button></span> ";
+        heldSection.innerHTML += "<span style='background:#e0e0e0;padding:2px 6px;border-radius:4px;margin:2px;display:inline-block;font-size:11px;'>" + hItem.icon + " " + hItem.name + "</span> ";
       } else {
         heldSection.innerHTML += "<span style='background:#e0e0e0;padding:2px 6px;border-radius:4px;margin:2px;display:inline-block;font-size:11px;'>" + hItem.icon + " " + hItem.name + "</span> ";
       }
