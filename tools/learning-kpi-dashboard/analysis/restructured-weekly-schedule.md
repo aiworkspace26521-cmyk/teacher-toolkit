@@ -71,7 +71,7 @@ getWeekType():
 ## 資料結構
 
 無需新增 Firestore 欄位。週次由 `new Date().getDate()` 即時計算：
-- `getWeekType()` → `"normal" | "gym" | "train" | "boss"`
+- `getWeekType()` → `"W1" | "W2" | "W3" | "W4"`
 - `isBossWeek()` → `boolean`
 
 管理員強制設定儲存於 `devWeek` select 元素（僅前端、不持久化）。

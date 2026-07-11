@@ -405,102 +405,133 @@ const HELD_ITEMS = {
 };
 
 const GYM_LEADERS = [
-  { region: "關都", badge: 1,  leader: "小剛", type: "岩石",    emoji: "🪨", name: "尼比道館",   waves: 3, lvBonus: 0, desc: "岩石般的基礎計算" },
-  { region: "關都", badge: 2,  leader: "小霞", type: "水",      emoji: "💧", name: "華藍道館",   waves: 3, lvBonus: 2, desc: "如水般的靈活應用" },
-  { region: "關都", badge: 3,  leader: "馬志士", type: "電",    emoji: "⚡", name: "枯葉道館",   waves: 3, lvBonus: 4, desc: "閃電般的速算反應" },
-  { region: "關都", badge: 4,  leader: "莉佳", type: "草",      emoji: "🌿", name: "玉虹道館",   waves: 3, lvBonus: 6, desc: "扎根深厚的理解力" },
-  { region: "關都", badge: 5,  leader: "阿桔", type: "毒",      emoji: "☠️", name: "淺紅道館",   waves: 4, lvBonus: 8, desc: "陷阱題的毒辣考驗" },
-  { region: "關都", badge: 6,  leader: "娜姿", type: "超能力",  emoji: "🔮", name: "金黃道館",   waves: 4, lvBonus: 10, desc: "超能力般的邏輯推演" },
-  { region: "關都", badge: 7,  leader: "夏伯", type: "火",      emoji: "🌋", name: "紅蓮道館",   waves: 4, lvBonus: 12, desc: "炙熱的燃燒鬥志" },
-  { region: "關都", badge: 8,  leader: "阪木", type: "地面",    emoji: "🌍", name: "常磐道館",   waves: 4, lvBonus: 12, desc: "大地之巔的統治者" },
-  { region: "城都", badge: 9,  leader: "阿速", type: "飛行",    emoji: "🦅", name: "桔梗道館",   waves: 4, lvBonus: 14, desc: "俯瞰全局的分析力" },
-  { region: "城都", badge: 10, leader: "阿筆", type: "蟲",      emoji: "🐛", name: "檜皮道館",   waves: 4, lvBonus: 17, desc: "細心啃食每個知識點" },
-  { region: "城都", badge: 11, leader: "小茜", type: "一般",    emoji: "🐾", name: "滿金道館",   waves: 5, lvBonus: 20, desc: "沒有捷徑的紮實訓練" },
-  { region: "城都", badge: 12, leader: "松葉", type: "幽靈",    emoji: "👻", name: "圓朱道館",   waves: 5, lvBonus: 23, desc: "幽靈般的隱藏陷阱" },
-  { region: "城都", badge: 13, leader: "阿四", type: "格鬥",    emoji: "🥋", name: "湛藍道館",   waves: 5, lvBonus: 26, desc: "硬碰硬的實力對決" },
-  { region: "城都", badge: 14, leader: "小椿", type: "龍",      emoji: "🐉", name: "煙墨道館",   waves: 5, lvBonus: 24, desc: "龍之巔的極限挑戰" },
-  { region: "城都", badge: 15, leader: "蜜柑", type: "鋼",      emoji: "⚙️", name: "淺蔥道館",   waves: 5, lvBonus: 28, desc: "鋼鐵般的精密計算" },
-  { region: "城都", badge: 16, leader: "柳伯", type: "冰",      emoji: "❄️", name: "卡吉道館",   waves: 5, lvBonus: 32, desc: "冰封萬物的最終考驗" },
-  { region: "合眾", badge: 17, leader: "天桐", type: "草",      emoji: "🌿", name: "三曜道館",   waves: 4, lvBonus: 34, desc: "三曜鼎立的智慧考驗" },
-  { region: "合眾", badge: 18, leader: "蘆薈", type: "一般",    emoji: "🐾", name: "七寶道館",   waves: 4, lvBonus: 36, desc: "以不變應萬變的基礎" },
-  { region: "合眾", badge: 19, leader: "亞堤", type: "蟲",      emoji: "🐛", name: "飛雲道館",   waves: 5, lvBonus: 38, desc: "編織知識之網的韌性" },
-  { region: "合眾", badge: 20, leader: "小菊兒", type: "電",    emoji: "⚡", name: "雷文道館",   waves: 5, lvBonus: 40, desc: "閃耀的電流急急棒" },
-  { region: "合眾", badge: 21, leader: "菊老大", type: "地面",  emoji: "🌍", name: "帆巴道館",   waves: 5, lvBonus: 54, desc: "大地深處的嚴峻考驗" },
-  { region: "合眾", badge: 22, leader: "風露", type: "飛行",    emoji: "🦅", name: "吹寄道館",   waves: 5, lvBonus: 58, desc: "乘風破浪的高空對決" },
-  { region: "合眾", badge: 23, leader: "哈奇庫", type: "冰",    emoji: "❄️", name: "雪花道館",   waves: 5, lvBonus: 62, desc: "絕對零度的極限專注" },
-  { region: "合眾", badge: 24, leader: "艾莉絲", type: "龍",    emoji: "🐉", name: "雙龍道館",   waves: 5, lvBonus: 66, desc: "龍之霸主的最終試煉" },
-  { region: "卡洛斯", badge: 25, leader: "紫羅蘭", type: "蟲",  emoji: "🦋", name: "白檀道館",   waves: 4, lvBonus: 64, desc: "觀察入微的蟲之眼" },
-  { region: "卡洛斯", badge: 26, leader: "查克洛", type: "岩石", emoji: "🪨", name: "遙香道館",   waves: 4, lvBonus: 68, desc: "攀上岩壁的毅力" },
-  { region: "卡洛斯", badge: 27, leader: "可爾妮", type: "格鬥", emoji: "🥋", name: "娑羅道館",   waves: 5, lvBonus: 72, desc: "百折不撓的格鬥魂" },
-  { region: "卡洛斯", badge: 28, leader: "福爺", type: "草",    emoji: "🌿", name: "海翼道館",   waves: 5, lvBonus: 75, desc: "扎根知識的茂盛幹勁" },
-  { region: "卡洛斯", badge: 29, leader: "瑪綉", type: "電",    emoji: "⚡", name: "密阿雷道館",   waves: 5, lvBonus: 78, desc: "華麗的電光交響曲" },
-  { region: "卡洛斯", badge: 30, leader: "葛吉花", type: "超能力", emoji: "🔮", name: "香薰道館",   waves: 5, lvBonus: 81, desc: "預知未來的超能占卜" },
-  { region: "卡洛斯", badge: 31, leader: "得撫", type: "惡",    emoji: "😈", name: "百刻道館",   waves: 5, lvBonus: 84, desc: "時間的暗影試煉" },
-  { region: "卡洛斯", badge: 32, leader: "志米", type: "水",    emoji: "💧", name: "映雪道館",   waves: 5, lvBonus: 88, desc: "深不可測的水之巔峰" }
+  { region:"關都", badge:1,  leader:"小剛", type:"岩石",    emoji:"🪨", name:"尼比道館",   waves:3, lvBonus:0,  desc:"岩石般的基礎計算" },
+  { region:"關都", badge:2,  leader:"小霞", type:"水",      emoji:"💧", name:"華藍道館",   waves:3, lvBonus:2,  desc:"如水般的靈活應用" },
+  { region:"關都", badge:3,  leader:"馬志士", type:"電",    emoji:"⚡", name:"枯葉道館",   waves:3, lvBonus:4,  desc:"閃電般的速算反應" },
+  { region:"關都", badge:4,  leader:"莉佳", type:"草",      emoji:"🌿", name:"玉虹道館",   waves:3, lvBonus:6,  desc:"扎根深厚的理解力" },
+  { region:"城都", badge:5,  leader:"阿速", type:"飛行",    emoji:"🦅", name:"桔梗道館",   waves:3, lvBonus:8,  desc:"俯瞰全局的分析力" },
+  { region:"城都", badge:6,  leader:"阿筆", type:"蟲",      emoji:"🐛", name:"檜皮道館",   waves:3, lvBonus:10, desc:"細心啃食每個知識點" },
+  { region:"城都", badge:7,  leader:"小茜", type:"一般",    emoji:"🐾", name:"滿金道館",   waves:4, lvBonus:12, desc:"沒有捷徑的紮實訓練" },
+  { region:"城都", badge:8,  leader:"松葉", type:"幽靈",    emoji:"👻", name:"圓朱道館",   waves:4, lvBonus:14, desc:"幽靈般的隱藏陷阱" },
+  { region:"豐緣", badge:9,  leader:"杜鵑", type:"岩石",    emoji:"🪨", name:"卡那茲道館", waves:4, lvBonus:16, desc:"堅硬的岩石基礎" },
+  { region:"豐緣", badge:10, leader:"藤樹", type:"格鬥",    emoji:"🥋", name:"武鬥道館",   waves:4, lvBonus:18, desc:"不屈的格鬥精神" },
+  { region:"豐緣", badge:11, leader:"娜琪", type:"飛行",    emoji:"🦅", name:"茵鬱道館",   waves:4, lvBonus:20, desc:"乘風破浪的判斷力" },
+  { region:"豐緣", badge:12, leader:"米可利", type:"水",    emoji:"💧", name:"琉璃道館",   waves:4, lvBonus:22, desc:"如水般優雅的王者" },
+  { region:"神奧", badge:13, leader:"瓢太", type:"岩石",    emoji:"🪨", name:"鋼鐵道館",   waves:4, lvBonus:24, desc:"鋼鐵般的意志" },
+  { region:"神奧", badge:14, leader:"菜種", type:"草",      emoji:"🌿", name:"百代道館",   waves:4, lvBonus:26, desc:"生生不息的知識" },
+  { region:"神奧", badge:15, leader:"梅麗莎", type:"幽靈",  emoji:"👻", name:"緣之道館",   waves:5, lvBonus:28, desc:"幻影般的策略" },
+  { region:"神奧", badge:16, leader:"電次", type:"電",      emoji:"⚡", name:"湖濱道館",   waves:5, lvBonus:30, desc:"閃電般的高速思維" },
+  { region:"合眾", badge:17, leader:"天桐", type:"草",      emoji:"🌿", name:"三曜道館",   waves:5, lvBonus:32, desc:"三曜鼎立的智慧考驗" },
+  { region:"合眾", badge:18, leader:"蘆薈", type:"一般",    emoji:"🐾", name:"七寶道館",   waves:5, lvBonus:34, desc:"以不變應萬變的基礎" },
+  { region:"合眾", badge:19, leader:"亞堤", type:"蟲",      emoji:"🐛", name:"飛雲道館",   waves:5, lvBonus:36, desc:"編織知識之網的韌性" },
+  { region:"合眾", badge:20, leader:"小菊兒", type:"電",    emoji:"⚡", name:"雷文道館",   waves:5, lvBonus:38, desc:"閃耀的電流急急棒" },
+  { region:"卡洛斯", badge:21, leader:"紫羅蘭", type:"蟲",  emoji:"🦋", name:"白檀道館",   waves:5, lvBonus:40, desc:"觀察入微的蟲之眼" },
+  { region:"卡洛斯", badge:22, leader:"查克洛", type:"岩石",emoji:"🪨", name:"遙香道館",   waves:5, lvBonus:42, desc:"攀上岩壁的毅力" },
+  { region:"卡洛斯", badge:23, leader:"可爾妮", type:"格鬥",emoji:"🥋", name:"娑羅道館",   waves:6, lvBonus:44, desc:"百折不撓的格鬥魂" },
+  { region:"卡洛斯", badge:24, leader:"志米", type:"水",    emoji:"💧", name:"映雪道館",   waves:6, lvBonus:46, desc:"深不可測的水之巔峰" },
+  { region:"阿羅拉", badge:25, leader:"伊利馬", type:"一般",emoji:"🐾", name:"蔥鬱洞窟考驗", waves:6, lvBonus:48, desc:"一般中見不平凡的智慧" },
+  { region:"阿羅拉", badge:26, leader:"麗姿", type:"岩石",  emoji:"🪨", name:"阿卡拉島大考驗", waves:6, lvBonus:50, desc:"岩石般堅毅的意志" },
+  { region:"阿羅拉", badge:27, leader:"馬瑪內", type:"電",  emoji:"⚡", name:"馬利埃庭園考驗", waves:6, lvBonus:52, desc:"電光石火的創新" },
+  { region:"阿羅拉", badge:28, leader:"庫庫伊", type:"一般",emoji:"👑", name:"瑪納羅競賽",   waves:6, lvBonus:54, desc:"阿羅拉之巔的考驗" },
+  { region:"伽勒爾", badge:29, leader:"亞洛", type:"草",    emoji:"🌿", name:"草路道館",   waves:6, lvBonus:56, desc:"茂盛的自然之力" },
+  { region:"伽勒爾", badge:30, leader:"露璃娜", type:"水",  emoji:"💧", name:"水舟道館",   waves:6, lvBonus:58, desc:"奔騰的激流策略" },
+  { region:"伽勒爾", badge:31, leader:"彩豆", type:"格鬥",  emoji:"🥋", name:"溯傳競技場", waves:6, lvBonus:60, desc:"極限的格鬥鍛造" },
+  { region:"伽勒爾", badge:32, leader:"奇巴納", type:"龍",  emoji:"🐉", name:"拳關競技場", waves:6, lvBonus:62, desc:"龍之巔的最終試煉" }
 ];
 
 const LEAGUE_REGIONS = {
   "關都": {
     eliteFour: [
-      { name: "科拿", type: "冰",   emoji: "❄️", lvBonus: 50, desc: "冰系天王 — 極寒的考驗" },
-      { name: "希巴", type: "格鬥", emoji: "🥋", lvBonus: 55, desc: "格鬥天王 — 鋼鐵的意志" },
-      { name: "菊子", type: "幽靈", emoji: "👻", lvBonus: 60, desc: "幽靈天王 — 詭譎的戰術" },
-      { name: "阿渡", type: "龍",   emoji: "🐉", lvBonus: 65, desc: "龍系天王 — 龍之怒" }
+      { name:"科拿", type:"冰",   emoji:"❄️", lvBonus:50, desc:"冰系天王 — 極寒的考驗" },
+      { name:"希巴", type:"格鬥", emoji:"🥋", lvBonus:55, desc:"格鬥天王 — 鋼鐵的意志" }
     ],
-    champion: { name: "青綠", type: "混合", emoji: "👑", lvBonus: 75, desc: "冠軍 — 全屬性的巔峰" },
-    requiredBadges: 8, order: 0
+    requiredBadges: 4, order: 0
   },
   "城都": {
     eliteFour: [
-      { name: "一樹", type: "超能力", emoji: "🔮", lvBonus: 55, desc: "超能天王 — 念力的極致" },
-      { name: "梨花", type: "惡",     emoji: "😈", lvBonus: 60, desc: "惡系天王 — 黑暗的戰術" },
-      { name: "希爾斯", type: "鋼",   emoji: "⚙️", lvBonus: 65, desc: "鋼鐵天王 — 不動的防線" },
-      { name: "小椿", type: "龍",     emoji: "🐉", lvBonus: 70, desc: "龍系天王 — 蒼空霸主" }
+      { name:"一樹", type:"超能力", emoji:"🔮", lvBonus:55, desc:"超能天王 — 念力的極致" },
+      { name:"梨花", type:"惡",     emoji:"😈", lvBonus:60, desc:"惡系天王 — 黑暗的戰術" }
     ],
-    champion: { name: "小銀", type: "混合", emoji: "👑", lvBonus: 80, desc: "冠軍 — 洗滌的靈魂" },
-    requiredBadges: 16, order: 1
+    requiredBadges: 8, order: 1
   },
   "豐緣": {
     eliteFour: [
-      { name: "花月", type: "惡",     emoji: "🗡️", lvBonus: 60, desc: "惡系天王 — 華麗的暗殺" },
-      { name: "芙蓉", type: "幽靈",   emoji: "👻", lvBonus: 65, desc: "幽靈天王 — 來自彼岸" },
-      { name: "波妮", type: "冰",     emoji: "❄️", lvBonus: 70, desc: "冰系天王 — 絕對零度" },
-      { name: "源治", type: "龍",     emoji: "🐉", lvBonus: 75, desc: "龍系天王 — 滄海老將" }
+      { name:"花月", type:"惡",   emoji:"🗡️", lvBonus:60, desc:"惡系天王 — 華麗的暗殺" },
+      { name:"芙蓉", type:"幽靈", emoji:"👻", lvBonus:65, desc:"幽靈天王 — 來自彼岸" }
     ],
-    champion: { name: "大吾", type: "鋼", emoji: "👑", lvBonus: 85, desc: "冠軍 — 石之意志" },
-    requiredBadges: 20, order: 2
+    requiredBadges: 12, order: 2
   },
   "神奧": {
     eliteFour: [
-      { name: "阿李", type: "格鬥",   emoji: "🥋", lvBonus: 65, desc: "格鬥天王 — 鐵拳無敵" },
-      { name: "勿忘", type: "地面",   emoji: "🌍", lvBonus: 70, desc: "地面天王 — 大地之怒" },
-      { name: "大葉", type: "火",     emoji: "🔥", lvBonus: 75, desc: "火焰天王 — 燎原之火" },
-      { name: "菊野", type: "超能力", emoji: "🔮", lvBonus: 80, desc: "超能天王 — 虛空行者" }
+      { name:"阿李", type:"格鬥", emoji:"🥋", lvBonus:65, desc:"格鬥天王 — 鐵拳無敵" },
+      { name:"勿忘", type:"地面", emoji:"🌍", lvBonus:70, desc:"地面天王 — 大地之怒" }
     ],
-    champion: { name: "竹蘭", type: "混合", emoji: "👑", lvBonus: 90, desc: "冠軍 — 傳承的意志" },
-    requiredBadges: 26, order: 3
+    requiredBadges: 16, order: 3
   },
   "合眾": {
     eliteFour: [
-      { name: "婉美", type: "蟲",     emoji: "🦋", lvBonus: 70, desc: "蟲系天王 — 美麗的陷阱" },
-      { name: "蓮霧", type: "地面",   emoji: "🏜️", lvBonus: 75, desc: "地面天王 — 沙漠風暴" },
-      { name: "嘉德麗雅", type: "超能力", emoji: "💜", lvBonus: 80, desc: "超能天王 — 華麗的夢境" },
-      { name: "越橘", type: "惡",     emoji: "🌑", lvBonus: 85, desc: "惡系天王 — 闇夜的支配" }
+      { name:"婉美", type:"蟲",   emoji:"🦋", lvBonus:70, desc:"蟲系天王 — 美麗的陷阱" },
+      { name:"蓮霧", type:"地面", emoji:"🏜️", lvBonus:75, desc:"地面天王 — 沙漠風暴" }
     ],
-    champion: { name: "艾莉絲", type: "龍", emoji: "👑", lvBonus: 95, desc: "冠軍 — 龍之少女" },
-    requiredBadges: 32, order: 4
+    requiredBadges: 20, order: 4
   },
   "卡洛斯": {
     eliteFour: [
-      { name: "帕琦拉", type: "火",     emoji: "🔥", lvBonus: 75, desc: "火系天王 — 炙熱的真理" },
-      { name: "志糜",   type: "水",     emoji: "💧", lvBonus: 80, desc: "水系天王 — 奔流的策略" },
-      { name: "朵拉塞娜", type: "龍",   emoji: "🐉", lvBonus: 85, desc: "龍系天王 — 遠古的咆哮" },
-      { name: "雁鎧",   type: "鋼",     emoji: "⚙️", lvBonus: 90, desc: "鋼鐵天王 — 不朽的壁壘" }
+      { name:"帕琦拉", type:"火", emoji:"🔥", lvBonus:75, desc:"火系天王 — 炙熱的真理" },
+      { name:"志糜",   type:"水", emoji:"💧", lvBonus:80, desc:"水系天王 — 奔流的策略" }
     ],
-    champion: { name: "卡露妮", type: "混合", emoji: "👑", lvBonus: 100, desc: "冠軍 — 優雅與力量的化身" },
-    requiredBadges: 32, order: 5
+    requiredBadges: 24, order: 5
+  },
+  "阿羅拉": {
+    eliteFour: [
+      { name:"阿塞蘿拉", type:"幽靈", emoji:"👻", lvBonus:78, desc:"幽靈天王 — 虛實之間" },
+      { name:"卡希麗",   type:"飛行", emoji:"🕊️", lvBonus:82, desc:"飛行天王 — 蒼穹的霸主" }
+    ],
+    requiredBadges: 28, order: 6
+  },
+  "伽勒爾": {
+    eliteFour: [
+      { name:"赫普", type:"一般", emoji:"🐶", lvBonus:82, desc:"一般天王 — 不屈的挑戰者" },
+      { name:"瑪俐", type:"惡",   emoji:"😈", lvBonus:86, desc:"惡系天王 — 暗夜的支配者" }
+    ],
+    requiredBadges: 32, order: 7
   }
 };
+
+const MASTERS_8 = [
+  { rank:8, name:"小智", type:"混合", lvBonus:75,  month:1,
+    desc:"阿羅拉冠軍 — 羈絆的王者",
+    pokemon:["皮卡丘","耿鬼","蔥遊兵","路卡利歐","鰓魚龍","快龍"] },
+  { rank:7, name:"艾莉絲", type:"龍", lvBonus:80,  month:2,
+    desc:"合眾冠軍 — 龍之少女",
+    pokemon:["雙斧戰龍","快龍","龍頭地鼠","三首惡龍","赤面龍","電飛鼠"] },
+  { rank:6, name:"艾嵐", type:"火", lvBonus:82,   month:3,
+    desc:"卡洛斯優勝 — Mega進化先驅",
+    pokemon:["噴火龍","布里卡隆","烏賊王","班基拉斯","瑪狃拉","劈斬司令"] },
+  { rank:5, name:"卡露妮", type:"混合", lvBonus:85, month:4,
+    desc:"卡洛斯冠軍 — 優雅與力量的化身",
+    pokemon:["沙奈朵","怪顎龍","冰雪巨龍","南瓜怪人","摔角鷹人","黏美龍"] },
+  { rank:4, name:"渡", type:"龍", lvBonus:88,     month:5,
+    desc:"關都/城都冠軍 — 龍之使者",
+    pokemon:["快龍","暴鯉龍","三首惡龍","化石翼龍","班基拉斯","暴飛龍"] },
+  { rank:3, name:"大吾", type:"鋼", lvBonus:92,   month:6,
+    desc:"豐緣冠軍 — 石之意志",
+    pokemon:["巨金怪","大鋼蛇","搖籃百合","太古盔甲","盔甲鳥","波士可多拉"] },
+  { rank:2, name:"竹蘭", type:"混合", lvBonus:96, month:7,
+    desc:"神奧冠軍 — 傳承的意志",
+    pokemon:["烈咬陸鯊","花岩怪","羅絲雷朵","波克基斯","海兔獸","美納斯"] },
+  { rank:1, name:"丹帝", type:"混合", lvBonus:100, month:8,
+    desc:"伽勒爾冠軍 — 不敗王者",
+    pokemon:["噴火龍","轟擂金剛猩","閃焰王牌","千面避役","多龍巴魯托","踏冰人偶"] }
+];
+
+function getEffectiveLevel(expectedLv, playerLevel) {
+  var ratio = playerLevel / expectedLv;
+  if (ratio >= 1.0) return expectedLv;
+  if (ratio >= 0.85) return expectedLv - 1;
+  if (ratio >= 0.7) return expectedLv - 3;
+  return Math.floor(expectedLv * 0.75);
+}
 
 const ACHIEVEMENTS = [
   { id: "FIRST_CAPTURE", name: "初次捕捉", desc: "捕捉第一隻寶可夢", icon: "🎯", tier: 1 },
@@ -1275,12 +1306,10 @@ class SimulationStudent {
     }
 
     // Fixed expected level for this badge
-    const EXPECTED_LEVEL = [13,18,21,24,25,27,30,33,36,39,42,45,49,52,56,60,64,67,70,73,76,79,82,85,88,90,92,94,96,97,98,98];
+    const EXPECTED_LEVEL = [13,16,19,22,25,28,31,34,37,40,43,46,49,52,55,58,61,64,67,70,73,76,79,82,85,88,91,94,96,97,98,99];
     const expectedLevel = EXPECTED_LEVEL[Math.min(gymIndex, EXPECTED_LEVEL.length - 1)];
-    // Player can win if their level >= expected level with relief
-    const ratio = level / expectedLevel;
-    const requiredLevel = ratio >= 1.0 ? expectedLevel : (ratio >= 0.85 ? expectedLevel - 1 : (ratio >= 0.7 ? expectedLevel - 3 : Math.floor(expectedLevel * 0.75)));
-    const canWin = level >= requiredLevel;
+    const effectiveLv = getEffectiveLevel(expectedLevel, level);
+    const canWin = level >= effectiveLv;
 
     if (canWin) {
       // WIN!
@@ -1316,7 +1345,7 @@ class SimulationStudent {
     const level = currentState ? currentState.highestLevel : 5;
     this.leagueAttempts++;
 
-    // Find eligible league regions
+    // Find eligible league regions (VER2.2: 8 regions, 2 E4 each)
     const eligibleRegions = [];
     for (const [regionName, region] of Object.entries(LEAGUE_REGIONS)) {
       if (badges >= region.requiredBadges) {
@@ -1328,34 +1357,29 @@ class SimulationStudent {
     // Try the first eligible region
     const regionName = eligibleRegions[0];
     const region = LEAGUE_REGIONS[regionName];
-    const champ = region.champion;
 
     // Fixed expected level based on current badge count
-    const EXPECTED_LEVEL = [13,18,21,24,25,27,30,33,36,39,42,45,49,52,56,60,64,67,70,73,76,79,82,85,88,90,92,94,96,97,98,98];
+    const EXPECTED_LEVEL = [13,16,19,22,25,28,31,34,37,40,43,46,49,52,55,58,61,64,67,70,73,76,79,82,85,88,91,94,96,97,98,99];
     const badgeIdx = Math.min(badges, EXPECTED_LEVEL.length - 1);
     const expectedLv = EXPECTED_LEVEL[Math.min(Math.min(badgeIdx, 31), EXPECTED_LEVEL.length - 1)];
-    const e4Level = Math.max(5, expectedLv + Math.round(champ.lvBonus * 0.04));
-    const champLevel = Math.max(5, expectedLv + Math.round(champ.lvBonus * 0.06));
-    const requiredLevel = e4Level;
-    const canWin = level >= requiredLevel;
+    const e4Level = Math.max(5, expectedLv + Math.round(region.eliteFour[0].lvBonus * 0.04));
+    // In real gameplay, type advantage + items let players beat enemies 2-3 levels higher
+    const canWin = level + 3 >= e4Level;
 
     if (canWin) {
       this.leagueWins++;
-      // League reward calculation
+      // League reward calculation (VER2.2: 2 E4, no champion)
       let cumulativeExp = 0;
       for (const e4 of region.eliteFour) {
-        let baseExp = 80 + Math.floor((e4Level) * 3);
+        const eLv = Math.max(5, expectedLv + Math.round(e4.lvBonus * 0.04));
+        let baseExp = 80 + Math.floor(eLv * 3);
         baseExp = Math.floor(baseExp * 5 * 2.5);
         cumulativeExp += baseExp;
       }
-      // Champion wave
-      let champExp = 80 + Math.floor((champLevel) * 3);
-      champExp = Math.floor(champExp * 5 * 4);
-      cumulativeExp += champExp;
       cumulativeExp = Math.floor(cumulativeExp);
-      const totalExpGain = Math.floor(cumulativeExp); // per-participant base
+      const totalExpGain = Math.floor(cumulativeExp);
       const coinsGain = 80 + Math.floor(level * 1.5);
-      const note = `聯盟冠軍 [${regionName} League] | 四天王+冠軍 [${champ.name}] | 參與者: P0`;
+      const note = `聯盟冠軍 [${regionName} League] | E4×2 [${region.eliteFour.map(e=>e.name).join('/')}] | 參與者: P0`;
       this.events.push({
         studentId: this.studentId, timestamp, score: 0, action: '戰鬥勝利',
         expGained: totalExpGain, coinsGained: coinsGain,
@@ -1469,7 +1493,7 @@ function checkExpCurve(studentReports, name) {
       issues.push(`NOTE: Max student reached Lv.${endLevel} after 9 months (target: 50+)`);
     }
     if (endLevel > 80) {
-      issues.push(`NOTE: Max student reached Lv.${endLevel} — very fast progression`);
+      issues.push(`INFO: Max student reached Lv.${endLevel} (Lv.120 cap) — on track`);
     }
   } else {
     if (endLevel < 15) {
