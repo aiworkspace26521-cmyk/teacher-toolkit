@@ -2023,6 +2023,10 @@ var MASTERS_8 = [
     pokemon:["雙斧戰龍","快龍","龍頭地鼠","三首惡龍","赤面龍","電飛鼠"] },
   { rank:6, name:"艾嵐", type:"火", lvBonus:82,   month:3,
     desc:"卡洛斯優勝 — Mega進化先驅",
+    // 註：艾嵐的招牌寶可夢為 Mega 噴火龍 X（火/龍），
+    // 與 POKEMON_SPECIES_TYPES 中一般噴火龍（火/飛行）不同。
+    // 戰鬥中系統使用 POKEMON_SPECIES_TYPES 的「噴火龍」→火/飛行，
+    // 若需反映 Mega 化型態需另建 Mega 噴火龍 X 資料條目。
     pokemon:["噴火龍","布里卡隆","烏賊王","班基拉斯","瑪狃拉","劈斬司令"] },
   { rank:5, name:"卡露妮", type:"混合", lvBonus:85, month:4,
     desc:"卡洛斯冠軍 — 優雅與力量的化身",
@@ -4198,6 +4202,9 @@ function updateBattleButtons() {
   arena.style.display = battlesToday >= 5 ? "none" : "inline-block";
   arena.innerHTML = "⚔️ 路人戰 (" + (5 - battlesToday) + "/5)";
   // 八大師按鈕 — W4 或緩衝期 + 聯盟已通關
+  // 設計選擇：非可用狀態使用 display:none 隱藏（而非 opacity 灰顯），
+  // 以保持 UI 乾淨；若日後需改為灰顯（disabled + opacity），
+  // 改 btn.disabled = true + btn.style.opacity = "0.4" 即可。
   var m8Btn = $("btnMasters8Battle");
   if (m8Btn) {
     var weekType = getWeekType();
