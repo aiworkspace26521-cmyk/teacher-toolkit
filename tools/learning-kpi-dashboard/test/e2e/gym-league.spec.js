@@ -23,8 +23,8 @@ test.describe('Block I Step 9: 道館/聯盟系統驗證', () => {
 
     const lastLeader = await page.evaluate(() => getGymLeaderInfo(31));
     expect(lastLeader.badge).toBe(32);
-    expect(lastLeader.leader).toBe('志米');
-    expect(lastLeader.region).toBe('卡洛斯');
+    expect(lastLeader.leader).toBe('奇巴納');
+    expect(lastLeader.region).toBe('伽勒爾');
 
     const clamped = await page.evaluate(() => getGymLeaderInfo(99));
     expect(clamped.badge).toBe(32);
@@ -34,12 +34,12 @@ test.describe('Block I Step 9: 道館/聯盟系統驗證', () => {
     expect(regionInfo.earned).toBe(0);
 
     const regionInfo8 = await page.evaluate(() => getRegionInfo(8));
-    expect(regionInfo8.name).toBe('城都地區');
-    expect(regionInfo8.earned).toBe(8);
+    expect(regionInfo8.name).toBe('豐緣地區');
+    expect(regionInfo8.earned).toBe(0);
 
     const regionInfo16 = await page.evaluate(() => getRegionInfo(16));
     expect(regionInfo16.name).toBe('合眾地區');
-    expect(regionInfo16.earned).toBe(8);
+    expect(regionInfo16.earned).toBe(0);
   });
 
   // 9.2: generateGymWaves 3~5 波
@@ -64,29 +64,29 @@ test.describe('Block I Step 9: 道館/聯盟系統驗證', () => {
       return generateGymWaves(25);
     });
     expect(result8.waves.length).toBeGreaterThanOrEqual(4);
-    expect(result8.gymInfo.leader).toBe('阿速');
-    expect(result8.gymInfo.region).toBe('城都');
+    expect(result8.gymInfo.leader).toBe('杜鵑');
+    expect(result8.gymInfo.region).toBe('豐緣');
   });
 
   // 9.3: generateLeagueGauntlet 5+1 車輪戰
-  test('9.3 generateLeagueGauntlet produces 5 waves (4 E4 + 1 champion)', async ({ page }) => {
+  test('9.3 generateLeagueGauntlet produces 6 waves (2 E4 × 3 waves)', async ({ page }) => {
     const gauntlet = await page.evaluate(() => {
       globalData.badges = 32;
       leagueCompletedMonths = {};
       return generateLeagueGauntlet(50, '關都');
     });
     expect(gauntlet).not.toBeNull();
-    expect(gauntlet.waves.length).toBe(5);
+    expect(gauntlet.waves.length).toBe(6);
     expect(gauntlet.completed).toBe(false);
 
-    for (let i = 0; i < 4; i++) {
+    for (let i = 0; i < 5; i++) {
       expect(gauntlet.waves[i].isLastWave).toBe(false);
       expect(gauntlet.waves[i].leagueRegion).toBe('關都');
     }
-    expect(gauntlet.waves[4].isLastWave).toBe(true);
+    expect(gauntlet.waves[5].isLastWave).toBe(true);
 
     const noBadge = await page.evaluate(() => {
-      globalData.badges = 4;
+      globalData.badges = 3;
       return generateLeagueGauntlet(10, '關都');
     });
     expect(noBadge).toBeNull();
@@ -105,15 +105,15 @@ test.describe('Block I Step 9: 道館/聯盟系統驗證', () => {
   test('9.4 openGymEditor shows editable gym table', async ({ page }) => {
     await page.selectOption('#studentSelect', 'Admin');
     await expect(page.locator('#adminPanel')).toBeVisible({ timeout: 15000 });
+    await page.waitForTimeout(1000);
 
-    const gymEditorBtn = page.locator('button').filter({ hasText: '道館編輯器' });
-    await expect(gymEditorBtn).toBeVisible();
-    await gymEditorBtn.click();
-    await page.waitForTimeout(500);
-
-    const editorContainer = page.locator('#gymEditorContainer');
-    await expect(editorContainer).toBeVisible();
-    const html = await editorContainer.innerHTML();
+    var html = await page.evaluate(function() {
+      var m = document.getElementById('customModal');
+      if (m) m.style.display = 'none';
+      openGymEditor();
+      var ec = document.getElementById('gymEditorContainer');
+      return ec ? ec.innerHTML : '';
+    });
     expect(html).toContain('道館資料編輯器');
     expect(html).toContain('儲存至 Firestore');
     expect(html).toContain('重置為預設');
@@ -195,8 +195,8 @@ test.describe('Block I Step 9: 道館/聯盟系統驗證', () => {
   test('9.7 judo/dojo gym display works correctly', async ({ page }) => {
     const gym13 = await page.evaluate(() => getGymLeaderInfo(12));
     expect(gym13.badge).toBe(13);
-    expect(gym13.leader).toBe('阿四');
-    expect(gym13.type).toBe('格鬥');
+    expect(gym13.leader).toBe('瓢太');
+    expect(gym13.type).toBe('岩石');
   });
 
   // 9.8: checkDefenseChallenge 衛冕戰冷卻

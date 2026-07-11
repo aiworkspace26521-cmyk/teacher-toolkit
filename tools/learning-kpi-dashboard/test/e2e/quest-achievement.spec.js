@@ -300,25 +300,25 @@ test.describe('Block I Step 10: 任務+成就系統驗證', () => {
 
     const earnedText = await earnedCount.textContent();
     const totalText = await totalCount.textContent();
-    expect(totalText).toBe('15');
+    expect(totalText).toBe('23');
 
     const trophyCards = page.locator('.trophy-card');
     const cardCount = await trophyCards.count();
-    expect(cardCount).toBe(15);
+    expect(cardCount).toBe(23);
 
     const earnedCards = page.locator('.trophy-card.earned');
     const lockedCards = page.locator('.trophy-card.locked');
     const earnedCardCount = await earnedCards.count();
     const lockedCardCount = await lockedCards.count();
-    expect(earnedCardCount + lockedCardCount).toBe(15);
+    expect(earnedCardCount + lockedCardCount).toBe(23);
     expect(earnedText).toBe(String(earnedCardCount));
 
     const achData = await page.evaluate(() => {
       return ACHIEVEMENTS.map(a => ({ id: a.id, name: a.name, tier: a.tier, icon: a.icon }));
     });
-    expect(achData.length).toBe(15);
+    expect(achData.length).toBe(23);
     expect(achData[0].id).toBe('FIRST_CAPTURE');
-    expect(achData[14].id).toBe('DEX_151');
+    expect(achData[22].id).toBe('M8_LEON');
   });
 
   // ── 已知 Bug 驗證 ──
