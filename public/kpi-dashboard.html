@@ -4297,26 +4297,6 @@ function startBattle(isGym, isLeague) {
   }
 }
 
-function startBossBattle() {
-  if (!globalData || typeof globalData.highestLevel === "undefined") return;
-  if (globalData.todayCompleted) { toast("今日已完成！"); return; }
-  if ((globalData.weekBossWins || 0) >= 1) { toast("本週魔王已擊敗！"); return; }
-  var trainerLevel = globalData.highestLevel || 5;
-  if (globalData.simpleMode) trainerLevel = Math.max(5, Math.floor(trainerLevel * 0.75));
-  var badges = globalData.badges || 0;
-  var expectedLv = EXPECTED_LEVEL[Math.min(badges, EXPECTED_LEVEL.length - 1)];
-  var effectiveLv = getEffectiveLevel(expectedLv, trainerLevel);
-  var bossLevel = effectiveLv + 8;
-  var legPool = POKEMON_TIERS["傳說"] || [];
-  var legPick = legPool.length ? legPool[Math.floor(Math.random() * legPool.length)] : { name: "超夢" };
-  var legName = getEvolvedName(legPick, bossLevel);
-  var legTypes = POKEMON_SPECIES_TYPES[legName] || ["一般"];
-  var legDisp = "✨ " + legName + " (" + legTypes.join("/") + ")";
-  var enemy = createEnemyPokemon(legDisp, bossLevel, false, false);
-  enemy.isWeeklyBoss = true;
-  openArena(enemy);
-}
-
 // ===== P4-2a: 多地區聯盟賽系統 =====
 function getLeagueData(region) {
   return LEAGUE_REGIONS[region] || LEAGUE_REGIONS["關都"];
