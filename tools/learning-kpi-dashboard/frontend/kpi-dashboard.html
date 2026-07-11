@@ -4620,14 +4620,14 @@ function startLeagueBattle(region) {
   openArenaLeague(waveEnemies, result.leagueInfo);
 }
 function promptE4Challenge() {
-  if (!isBossWeek()) { toast("四天王挑戰僅在 Boss 週開放！"); return; }
+  if (!isBossWeek() && !isBufferPeriod()) { toast("四天王挑戰僅在 Boss 週或緩衝期開放！"); return; }
   if (!globalData || globalData.todayCompleted) { toast("今日已完成！"); return; }
   var badges = globalData.badges || 0;
   var challenge = getE4ChallengeForBadges(badges);
   if (!challenge) { toast("尚未達到四天王挑戰門檻（需 4 枚以上徽章）"); return; }
   var mKey = new Date().getFullYear() + "-" + (new Date().getMonth() + 1);
   if (leagueCompletedMonths[challenge.region] === mKey) { toast("本月已通關 " + challenge.region + " 聯盟！下個月再來！"); return; }
-  $("confirmModalText").innerHTML = "🏆 " + challenge.region + "聯盟挑戰<br><br>四天王在 Boss 週等待挑戰！<br>是否接受挑戰？<br><br><small style='color:#888;'>可選擇跳過，不影響徽章收集進度</small>";
+  $("confirmModalText").innerHTML = "🏆 " + challenge.region + "聯盟挑戰<br><br>四天王在 Boss 週（或緩衝期）等待挑戰！<br>是否接受挑戰？<br><br><small style='color:#888;'>可選擇跳過，不影響徽章收集進度</small>";
   $("confirmBtnYes").onclick = function() {
     $("confirmModal").style.display = "none";
     startLeagueBattle(challenge.region);

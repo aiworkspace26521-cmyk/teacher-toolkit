@@ -90,18 +90,6 @@
     .modal-content h3 { margin-top: 0; }
     .close-btn { background: #95a5a6; color: white; border: none; padding: 10px; width: 100%; border-radius: 8px; font-weight: 700; cursor: pointer; margin-top: 15px; }
     .close-btn:hover { background: #7f8c8d; }
-    .modal-close-x { position:absolute;right:12px;top:12px;cursor:pointer;font-size:22px;color:#999;line-height:1; } .modal-close-x:hover { color:#333; }
-    .pvp-leave-overlay { position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); z-index:9999; display:flex; align-items:center; justify-content:center; }
-    .pvp-leave-dialog { background:white; border-radius:16px; padding:28px; text-align:center; max-width:320px; width:90%; box-shadow:0 8px 30px rgba(0,0,0,0.3); }
-    .pvp-leave-dialog h3 { margin:0 0 6px; font-size:18px; color:#8e44ad; }
-    .pvp-leave-dialog p { margin:0 0 20px; font-size:13px; color:#888; }
-    .pvp-leave-dialog button { display:block; width:100%; padding:12px; margin-bottom:8px; border:none; border-radius:10px; font-weight:700; cursor:pointer; font-size:14px; }
-    .pvp-leave-dialog .btn-surrender { background:#e74c3c; color:white; }
-    .pvp-leave-dialog .btn-surrender:hover { background:#c0392b; }
-    .pvp-leave-dialog .btn-temp-leave { background:#95a5a6; color:white; }
-    .pvp-leave-dialog .btn-temp-leave:hover { background:#7f8c8d; }
-    .pvp-leave-dialog .btn-cancel { background:none; border:none; color:#999; font-size:12px; padding:6px; margin-top:4px; }
-    .pvp-leave-dialog .btn-cancel:hover { color:#666; }
     .shop-item { border: 2px solid #ddd; padding: 10px; margin-bottom: 10px; border-radius: 8px; display: flex; justify-content: space-between; align-items: center; text-align: left; position: relative; }
     .shop-item-info h4 { margin: 0 0 3px; color: var(--kpi-blue); font-size: 14px; }
     .shop-item-info p { margin: 0; font-size: 12px; color: #666; }
@@ -287,13 +275,11 @@
     .pvp-invite-card { border:1px solid #ddd; border-radius:8px; padding:10px; margin-bottom:6px; background:#fafafa; display:flex; align-items:center; justify-content:space-between; font-size:13px; }
     .pvp-invite-card .actions { display:flex; gap:5px; }
     .pvp-invite-card .actions button { padding:5px 12px; border-radius:5px; border:none; font-weight:700; cursor:pointer; font-size:12px; }
-    #pvpModal .modal-content { display:flex; flex-direction:column; }
-    #pvpBattle3v3, #pvpLobby, #pvpTeamSelection { flex:1 1 auto; overflow-y:auto; min-height:0; }
     .pvp-battle-3v3 { display:flex; flex-direction:column; gap:8px; }
     .pvp-side-panel { background:#fafafa; border-radius:8px; padding:10px; border:2px solid #ddd; text-align:left; }
     .pvp-side-panel.p1 { border-color:#3498db; background:#eaf2f8; }
     .pvp-side-panel.p2 { border-color:#e74c3c; background:#fdedec; }
-    .pvp-pkmn-mini { display:flex; align-items:center; gap:4px; padding:2px 6px; margin:1px 0; border-radius:4px; background:rgba(255,255,255,0.7); font-size:12px; }
+    .pvp-pkmn-mini { display:flex; align-items:center; gap:6px; padding:4px 8px; margin:2px 0; border-radius:5px; background:rgba(255,255,255,0.7); font-size:12px; }
     .pvp-pkmn-mini.active { font-weight:900; border:2px solid #f1c40f; }
     .pvp-pkmn-mini.fainted { opacity:0.4; text-decoration:line-through; }
     .pc-slot { border: 2px solid #ccc; border-radius: 8px; padding: 6px; text-align: center; cursor: pointer; background: white; transition: 0.2s; font-size: 12px; box-shadow: 1px 1px 4px rgba(0,0,0,0.1); }
@@ -418,7 +404,7 @@
       <button class="region-btn" data-region="卡洛斯" onclick="sfx.click();setRegion('卡洛斯')" style="flex:1;padding:6px;border-radius:6px;border:2px solid #3498db;background:#3498db;color:white;font-weight:900;font-size:12px;cursor:pointer;">卡洛斯</button>
     </div>
     <div class="button-row" style="grid-template-columns:repeat(3,1fr);" id="navButtonRow">
-      <button class="nav-btn btn-pcbox" onclick="sfx.click();openPCBoxModal()">🔧 寶可夢管理</button>
+      <button class="nav-btn btn-pcbox" onclick="sfx.click();openPCBoxModal()">💻 電腦</button>
       <button class="nav-btn btn-weakdex" onclick="sfx.click();openPokedex()">📖 全國圖鑑</button>
       <button class="nav-btn btn-weakdex" onclick="sfx.click();openWeaknessDex()">📖 弱勢圖鑑</button>
       <button class="nav-btn btn-collection" onclick="sfx.click();openTrophyCabinet()">🏆 獎盃櫃</button>
@@ -427,8 +413,8 @@
       <button class="nav-btn btn-trade" onclick="sfx.click();openTradeModal()">🤝 交換<span id="tradeBadge">0</span></button>
       <button class="nav-btn btn-daily" id="arenaBattleBtn" onclick="sfx.click();startBattle(false,false)">🚶 路人戰</button>
       <button class="nav-btn btn-gym" id="btnGymBattle" onclick="sfx.click();startBattle(true,false)">⚔️ 道館戰</button>
-      <button class="nav-btn btn-league" id="btnLeagueBattle" onclick="sfx.click();promptE4Challenge()" style="display:none;">🏟️ 聯盟賽</button>
-      <button class="nav-btn btn-boss" id="btnMasters8Battle" onclick="sfx.click();startMasters8Battle()" style="display:none;">👑 八大師戰</button>
+      <button class="nav-btn btn-boss" id="btnBossBattle" onclick="sfx.click();startBossBattle()" style="display:none;">👑 魔王戰</button>
+      <button class="nav-btn btn-league" id="btnLeagueBattle" onclick="sfx.click();promptE4Challenge()" style="display:none;">🏆 聯盟賽</button>
       <button class="nav-btn btn-pvp" id="btnLeagueRanking" onclick="sfx.click();openLeagueRanking()" style="background:#2c3e50;color:white;display:none;">📊 聯盟排名</button>
       <button class="nav-btn btn-pvp" onclick="sfx.click();openRankingModal()" style="background:#8e44ad;color:white;" id="btnPvPRanking">🏆 PvP天梯</button>
     </div>
@@ -498,12 +484,11 @@
   </div>
   <button class="close-btn" onclick="closeModal('defenseModal')" style="margin-top:8px;">關閉</button>
 </div></div>
-  <div id="collectionModal" class="modal"><div class="modal-content" style="position:relative;border-color:var(--kpi-green);">
-  <h3 style="color:var(--kpi-green);">⚡ 裝備/招式學習</h3>
-  <span class="modal-close-x" onclick="closeModal('collectionModal');sfx.click();openPCBoxModal()">&times;</span>
+  <div id="collectionModal" class="modal"><div class="modal-content" style="border-color:var(--kpi-green);">
+  <h3 style="color:var(--kpi-green);">📖 成就圖鑑</h3>
   <div id="collectionInventory" style="background:#e8f8f5;border:2px dashed var(--kpi-green);border-radius:8px;padding:8px;margin-bottom:10px;font-size:13px;font-weight:700;"></div>
   <div id="collectionList" class="collection-grid"></div>
-  <button class="close-btn" onclick="closeModal('collectionModal');sfx.click();openPCBoxModal()">關閉</button>
+  <button class="close-btn" onclick="closeModal('collectionModal')">關閉</button>
 </div></div>
 
 <div id="trophyModal" class="modal"><div class="modal-content" style="border-color:#f39c12;">
@@ -513,17 +498,15 @@
   <button class="close-btn" onclick="closeModal('trophyModal')">關閉</button>
 </div></div>
 
-<div id="weaknessDexModal" class="modal"><div class="modal-content" style="position:relative;border-color:#6c3483;max-height:80vh;overflow-y:auto;">
+<div id="weaknessDexModal" class="modal"><div class="modal-content" style="border-color:#6c3483;max-height:80vh;overflow-y:auto;">
   <h3 style="color:#6c3483;">📖 弱勢圖鑑 — 夢特性一覽</h3>
-  <span class="modal-close-x" onclick="closeModal('weaknessDexModal')">&times;</span>
   <p style="font-size:12px;color:#666;margin:4px 0 12px;">低種族值非傳說寶可夢可獲得夢特性強化，點擊可查看詳情</p>
   <div id="weaknessDexGrid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:8px;"></div>
   <button class="close-btn" onclick="closeModal('weaknessDexModal')">關閉</button>
 </div></div>
 
-<div id="pokedexModal" class="modal"><div class="modal-content" style="position:relative;border-color:#2c3e50;max-height:85vh;overflow-y:auto;">
+<div id="pokedexModal" class="modal"><div class="modal-content" style="border-color:#2c3e50;max-height:85vh;overflow-y:auto;">
   <h3 style="color:#2c3e50;">📖 全國圖鑑</h3>
-  <span class="modal-close-x" onclick="closeModal('pokedexModal')">&times;</span>
   <div style="margin-bottom:10px;">
     <input id="pokedexSearch" placeholder="🔍 搜尋寶可夢名稱..." style="padding:6px 10px;border:1px solid #ccc;border-radius:6px;width:200px;font-size:13px;" oninput="renderPokedex()">
     <select id="pokedexTypeFilter" style="padding:6px;border:1px solid #ccc;border-radius:6px;font-size:13px;margin-left:4px;" onchange="renderPokedex()">
@@ -587,30 +570,18 @@
 </div>
 
 <div id="pcBoxModal" class="modal">
-  <div class="modal-content" style="position:relative;border-color:#3498db;max-width:500px;width:95%;padding:15px;">
-    <h3 style="color:#2980b9;margin-top:0;">🔧 寶可夢管理</h3>
-    <span class="modal-close-x" onclick="closeModal('pcBoxModal')">&times;</span>
-    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">
-      <span style="font-size:12px;color:#666;">點擊兩張卡片即可交換位置。</span>
-      <button class="buy-btn" onclick="sfx.click();openCollection()" style="padding:3px 10px;font-size:12px;">⚡ 裝備/招式學習</button>
-    </div>
+  <div class="modal-content" style="border-color:#3498db;max-width:500px;width:95%;padding:15px;">
+    <h3 style="color:#2980b9;margin-top:0;">💻 戰術電腦系統</h3>
+    <p style="font-size:12px;color:#666;margin-bottom:10px;">點擊兩張卡片即可交換位置。</p>
     <div id="pcBoxBody"></div>
     <div id="pcSwapInfo" style="display:none;background:#fff3cd;padding:8px;border-radius:6px;margin-top:8px;font-weight:700;text-align:center;"></div>
     <button class="close-btn" onclick="closeModal('pcBoxModal')">關閉</button>
   </div>
 </div>
 
-<div id="pkmnDetailModal" class="modal"><div class="modal-content" style="border-color:#2980b9;max-width:420px;width:95%;padding:18px;border-radius:12px;">
+<div id="pkmnDetailModal" class="modal"><div class="modal-content" style="border-color:#2980b9;max-width:380px;width:95%;padding:18px;border-radius:12px;">
   <div id="pkmnDetailBody"></div>
   <button class="close-btn" onclick="closeModal('pkmnDetailModal')" style="margin-top:10px;">關閉</button>
-</div></div>
-
-<div id="compareModal" class="modal"><div class="modal-content" style="position:relative;border-color:#2980b9;max-width:800px;width:95%;padding:15px;max-height:90vh;overflow-y:auto;">
-  <h3 style="color:#2980b9;margin-top:0;">⚖️ 能力值對比</h3>
-  <span class="modal-close-x" onclick="closeModal('compareModal');openPCBoxModal()">&times;</span>
-  <div id="compareSelectionBar" style="margin-bottom:8px;display:flex;flex-wrap:wrap;gap:4px;"></div>
-  <div id="compareBody" style="min-height:200px;"></div>
-  <button class="close-btn" onclick="closeModal('compareModal');openPCBoxModal()">關閉</button>
 </div></div>
 
 <div id="equipModal" class="modal"><div class="modal-content" style="border-color:#27ae60;max-width:420px;width:95%;padding:15px;max-height:80vh;overflow-y:auto;">
@@ -631,7 +602,7 @@
   </div>
 </div>
 
-<div id="pvpModal" class="modal"><div class="modal-content" style="border-color:#8e44ad;width:95%;max-width:750px;max-height:98vh;padding:12px;display:flex;flex-direction:column;">
+<div id="pvpModal" class="modal"><div class="modal-content" style="border-color:#8e44ad;width:95%;max-width:520px;">
   <h3 style="color:#8e44ad;margin-top:0;">🆚 PvP對戰</h3>
   <div style="text-align:right;margin-bottom:6px;">
     <button onclick="closeModal('pvpModal');openRankingModal();" style="background:none;border:1px solid #8e44ad;color:#8e44ad;border-radius:4px;padding:4px 10px;font-size:12px;cursor:pointer;">🏆 天梯排名</button>
@@ -646,10 +617,8 @@
   <!-- Team Selection -->
   <div id="pvpTeamSelection" style="display:none;"></div>
   <!-- 3v3 Battle -->
-  <div id="pvpWeatherDisplay" style="display:none;text-align:center;padding:5px;margin-bottom:8px;border-radius:6px;font-weight:700;font-size:14px;"></div>
-  <div id="pvpLargeTextOverlay" class="large-text-overlay" style="display:none;"></div>
   <div id="pvpBattle3v3" style="display:none;"></div>
-  <button class="close-btn" onclick="confirmLeavePvP()">離開</button>
+  <button class="close-btn" onclick="closePvP()">離開</button>
 </div></div>
 
 <div id="tradeModal" class="modal"><div class="modal-content" style="border-color:#e67e22;">
@@ -786,20 +755,12 @@ function getMonthDiff() {
   return Math.max(1, (d.getFullYear() - 2026) * 12 + d.getMonth() - 3 + 1);
 }
 function getWeekType() {
-  if (isAdmin && $("devWeek") && $("devWeek").value !== "auto") return $("devWeek").value;
+  if (isAdmin) return $("devWeek").value;
   var d = new Date().getDate();
   if (d <= 7) return "W1";
   if (d <= 14) return "W2";
   if (d <= 21) return "W3";
   return "W4";
-}
-function getCurrentWeek() {
-  var monthVal = getCurrentMonth();
-  var regionIdx = Math.min(Math.max(0, (monthVal - 1) % 8), 7);
-  var regionOrder = ["關都","城都","豐緣","神奧","合眾","卡洛斯","阿羅拉","伽勒爾"];
-  var weekType = getWeekType();
-  var weekNum = parseInt(weekType.substring(1), 10);
-  return { region: regionOrder[regionIdx], month: ((monthVal - 1) % 8) + 1, week: weekType, weekNum: weekNum };
 }
 function isBossWeek() { return getWeekType() === "W4"; }
 function getWeekLabel() {
@@ -807,36 +768,18 @@ function getWeekLabel() {
   return map[getWeekType()] || "📌 一般訓練週";
 }
 function getWeekBonusDesc() {
-  var map = { W1: "無特殊加成", W2: "道館 EXP +50%、金幣 +10", W3: "路人戰 EXP +30%", W4: "聯盟賽 & 八大師戰開啟" };
+  var map = { W1: "無特殊加成", W2: "道館 EXP +50%、金幣 +10", W3: "路人戰 EXP +30%", W4: "魔王降臨！四天王等待挑戰" };
   return map[getWeekType()] || "";
 }
-function isBufferPeriod() {
-  if (!isAdmin && new Date().getDate() <= 7) {
-    if (globalData && (globalData.masters8Completed || []).length < MASTERS_8.length) {
-      var now = new Date();
-      var lastMonth = now.getMonth() === 0 ? 11 : now.getMonth();
-      var lastYear = now.getMonth() === 0 ? now.getFullYear() - 1 : now.getFullYear();
-      var lastKey = lastYear + "-" + (lastMonth + 1);
-      var regionOrder = ["關都","城都","豐緣","神奧","合眾","卡洛斯","阿羅拉","伽勒爾"];
-      for (var ri = 0; ri < regionOrder.length; ri++) {
-        if (leagueCompletedMonths[regionOrder[ri]] === lastKey) return true;
-      }
-    }
-  }
-  return false;
-}
-function getCurrentMonth() {
-  var now = new Date();
-  return (now.getFullYear() - 2026) * 12 + (now.getMonth() + 1);
-}
 function getE4ChallengeForBadges(badges) {
-  var thresholds = [4, 8, 12, 16, 20, 24, 28, 32];
-  var regionOrder = ["關都","城都","豐緣","神奧","合眾","卡洛斯","阿羅拉","伽勒爾"];
-  for (var i = thresholds.length - 1; i >= 0; i--) {
-    if (badges >= thresholds[i]) {
-      return { region: regionOrder[i], requiredBadges: thresholds[i], order: i };
-    }
-  }
+  if (badges >= 4 && badges < 8) return { region: "關都", half: "first", name: "關都聯盟前半", requiredBadges: 4 };
+  if (badges >= 8 && badges < 12) return { region: "關都", half: "second", name: "關都聯盟後半+冠軍", requiredBadges: 8 };
+  if (badges >= 12 && badges < 16) return { region: "城都", half: "first", name: "城都聯盟前半", requiredBadges: 12 };
+  if (badges >= 16 && badges < 20) return { region: "城都", half: "second", name: "城都聯盟後半+冠軍", requiredBadges: 16 };
+  if (badges >= 20 && badges < 24) return { region: "合眾", half: "first", name: "合眾聯盟前半", requiredBadges: 20 };
+  if (badges >= 24 && badges < 28) return { region: "合眾", half: "second", name: "合眾聯盟後半+冠軍", requiredBadges: 24 };
+  if (badges >= 28 && badges < 32) return { region: "卡洛斯", half: "first", name: "卡洛斯聯盟前半", requiredBadges: 28 };
+  if (badges >= 32) return { region: "卡洛斯", half: "second", name: "卡洛斯聯盟後半+冠軍", requiredBadges: 32 };
   return null;
 }
 function getSeededRandom(str) {
@@ -863,12 +806,7 @@ function calcLevelAndExp(totalExp, initialLevel) {
   if (lvl >= 120) { lvl = 120; cur = 0; expNeeded = 0; }
   return { level: lvl, expProgress: cur, expNeeded: expNeeded };
 }
-var EXPECTED_LEVEL = [
-  13, 16, 19, 22,  25, 28, 31, 34,
-  37, 40, 43, 46,  49, 52, 55, 58,
-  61, 64, 67, 70,  73, 76, 79, 82,
-  85, 88, 91, 94,  96, 97, 98, 99
-];
+var EXPECTED_LEVEL = [13,18,21,24,25,27,30,33,36,39,42,45,49,52,56,60,64,67,70,73,76,79,82,85,88,90,92,94,96,97,98,98];
 function getEffectiveLevel(expectedLv, playerLevel) {
   var ratio = playerLevel / expectedLv;
   if (ratio >= 1.0) return expectedLv;
@@ -917,7 +855,7 @@ async function recalculateStudentState(studentId, events) {
     todayCompleted: false, daysSinceLastBadge: 0, simpleMode: false,
     lastBadgeTime: null, firstLogTime: null,
     todayBattles: 0, weekGymWins: 0, weekBossWins: 0, monthLeagueWins: 0,
-    happiness: {}, leagueRegionsWon: {}, masters8Completed: [], masters8Progress: [],
+    happiness: {}, leagueRegionsWon: {},
     roster: { P0: { id: "P0", baseName: "\u{1F43E} \u4F0A\u5E03 (\u4E00\u822C\u7CFB)", totalExp: 0, initialLevel: 5, catchDate: "\u521D\u59CB\u5925\u4F34", heldItem: "" } }
   };
   var dNow = new Date(), todayStr = dNow.toDateString();
@@ -1057,7 +995,6 @@ async function recalculateStudentState(studentId, events) {
       if (rowDate.getTime() >= startOfWeek && (safeNote.indexOf("[Gym]") !== -1 || safeNote.indexOf("\u9053\u9928") !== -1)) state.weekGymWins++;
       if (rowDate.getTime() >= startOfWeek && safeNote.indexOf("[Boss]") !== -1) state.weekBossWins++;
       if (rowDate.getTime() >= startOfMonth && (safeNote.indexOf("[League]") !== -1 || safeNote.indexOf("\u5927\u6703") !== -1 || safeNote.indexOf("\u9B54\u738B") !== -1)) { state.monthLeagueWins++; var lr = safeNote.match(/\[(.+?)\s*League\]/); if (lr) state.leagueRegionsWon[lr[1]] = true; }
-      if (safeNote.indexOf("八大師") !== -1) { var m8match = safeNote.match(/\[(.+?)\s*\(#\d+\)\]/); if (m8match) { if (state.masters8Completed.indexOf(m8match[1]) === -1) state.masters8Completed.push(m8match[1]); } }
     } else if (rowAction === "E") {
       var nm = safeNote.match(/\u7372\u5F97:\s*([^|]+)/);
       if (nm && state.roster['P0']) state.roster['P0'].baseName = nm[1].trim();
@@ -1132,7 +1069,7 @@ async function recalculateStudentState(studentId, events) {
   var totalSubmitDays = Object.keys(submitDates).length;
   if (totalSubmitDays >= 60) state.badges += 5;
   else if (totalSubmitDays >= 30) state.badges += 2;
-  return { studentId: state.studentId, highestLevel: finalHighestLevel, lockedGymLevel: state.lockedGymLevel, coins: state.coins, badges: state.badges, potions: state.potions, revives: state.revives, candies: state.candies, maxPotions: state.maxPotions, maxRevives: state.maxRevives, expSharePurchased: state.expSharePurchased, hasExpertBelt: state.hasExpertBelt, hasEviolite: state.hasEviolite, hasChampionCloak: state.hasChampionCloak, hasAmuletCoin: state.hasAmuletCoin, hasQuickClaw: state.hasQuickClaw, hasFocusLens: state.hasFocusLens, hasShellBell: state.hasShellBell, hasLifeOrb: state.hasLifeOrb, hasAssaultVest: state.hasAssaultVest, oranBerries: state.oranBerries||0, cheriBerries: state.cheriBerries||0, lumBerries: state.lumBerries||0, chilanBerries: state.chilanBerries||0, hasFocusSash: state.hasFocusSash||false, hasEjectButton: state.hasEjectButton||false, hasRockyHelmet: state.hasRockyHelmet||false, hasWeaknessPolicy: state.hasWeaknessPolicy||false, tms: state.tms||{}, todayCompleted: state.todayCompleted, daysSinceLastBadge: state.daysSinceLastBadge, roster: rosterArray, todayBattles: state.todayBattles, weekGymWins: state.weekGymWins, weekBossWins: state.weekBossWins, monthLeagueWins: state.monthLeagueWins, submitStreak: submitStreak, simpleMode: state.simpleMode || false, leagueRegionsWon: state.leagueRegionsWon || {}, masters8Completed: state.masters8Completed || [], masters8Progress: state.masters8Progress || [] };
+  return { studentId: state.studentId, highestLevel: finalHighestLevel, lockedGymLevel: state.lockedGymLevel, coins: state.coins, badges: state.badges, potions: state.potions, revives: state.revives, candies: state.candies, maxPotions: state.maxPotions, maxRevives: state.maxRevives, expSharePurchased: state.expSharePurchased, hasExpertBelt: state.hasExpertBelt, hasEviolite: state.hasEviolite, hasChampionCloak: state.hasChampionCloak, hasAmuletCoin: state.hasAmuletCoin, hasQuickClaw: state.hasQuickClaw, hasFocusLens: state.hasFocusLens, hasShellBell: state.hasShellBell, hasLifeOrb: state.hasLifeOrb, hasAssaultVest: state.hasAssaultVest, oranBerries: state.oranBerries||0, cheriBerries: state.cheriBerries||0, lumBerries: state.lumBerries||0, chilanBerries: state.chilanBerries||0, hasFocusSash: state.hasFocusSash||false, hasEjectButton: state.hasEjectButton||false, hasRockyHelmet: state.hasRockyHelmet||false, hasWeaknessPolicy: state.hasWeaknessPolicy||false, tms: state.tms||{}, todayCompleted: state.todayCompleted, daysSinceLastBadge: state.daysSinceLastBadge, roster: rosterArray, todayBattles: state.todayBattles, weekGymWins: state.weekGymWins, weekBossWins: state.weekBossWins, monthLeagueWins: state.monthLeagueWins, submitStreak: submitStreak, simpleMode: state.simpleMode || false, leagueRegionsWon: state.leagueRegionsWon || {} };
 }
 
 function showSkeletonDashboard() {
@@ -1193,7 +1130,7 @@ async function fetchStudentData(studentId, pendingEvent) {
       delete refreshed.achievements;
       await db.collection("kpi_students").doc(studentId).set(refreshed, { merge: true });
     } else {
-      globalData = { studentId: studentId, roster: [], highestLevel: 5, lockedGymLevel: 5, coins: 0, badges: 0, potions: 0, revives: 0, candies: 0, maxPotions: 0, maxRevives: 0, expSharePurchased: false, hasExpertBelt: false, hasEviolite: false, hasChampionCloak: false, hasAmuletCoin: false, oranBerries: 0, cheriBerries: 0, lumBerries: 0, chilanBerries: 0, hasFocusSash: false, hasEjectButton: false, hasRockyHelmet: false, hasWeaknessPolicy: false, tms: {}, pokemonTMs: {}, todayCompleted: false, todayBattles: 0, weekGymWins: 0, weekBossWins: 0, monthLeagueWins: 0, leagueRegionsWon: {}, masters8Completed: [], masters8Progress: [], "\u96FB\u6483\u76D2": false, "\u5E95\u6F3E\u76D2": false, "\u9F8D\u4E4B\u9C5A\u7247": false, "\u8B77\u5177": false, "\u91D1\u5C6C\u819C": false, "\u738B\u8005\u4E4B\u8B49": false };
+      globalData = { studentId: studentId, roster: [], highestLevel: 5, lockedGymLevel: 5, coins: 0, badges: 0, potions: 0, revives: 0, candies: 0, maxPotions: 0, maxRevives: 0, expSharePurchased: false, hasExpertBelt: false, hasEviolite: false, hasChampionCloak: false, hasAmuletCoin: false, oranBerries: 0, cheriBerries: 0, lumBerries: 0, chilanBerries: 0, hasFocusSash: false, hasEjectButton: false, hasRockyHelmet: false, hasWeaknessPolicy: false, tms: {}, pokemonTMs: {}, todayCompleted: false, todayBattles: 0, weekGymWins: 0, weekBossWins: 0, monthLeagueWins: 0, leagueRegionsWon: {}, "\u96FB\u6483\u76D2": false, "\u5E95\u6F3E\u76D2": false, "\u9F8D\u4E4B\u9C5A\u7247": false, "\u8B77\u5177": false, "\u91D1\u5C6C\u819C": false, "\u738B\u8005\u4E4B\u8B49": false };
     }
     // Restore TM data from Firestore doc
     try {
@@ -1912,99 +1849,103 @@ var EVO_STAGE_MAP = (function(){
   m["羅絲雷朵"] = 2;
   return m;
 })();
-// GYM LEADERS — 8 地區 × 4 館主 = 32 道館 (VER2.2)
+// GYM LEADERS — 32 道館館主資料 (P5-1)
 var GYM_LEADERS = [
-  { region:"關都", badge:1,  leader:"小剛", type:"岩石",    emoji:"🪨", name:"尼比道館",   waves:3, lvBonus:0,  desc:"岩石般的基礎計算" },
-  { region:"關都", badge:2,  leader:"小霞", type:"水",      emoji:"💧", name:"華藍道館",   waves:3, lvBonus:2,  desc:"如水般的靈活應用" },
-  { region:"關都", badge:3,  leader:"馬志士", type:"電",    emoji:"⚡", name:"枯葉道館",   waves:3, lvBonus:4,  desc:"閃電般的速算反應" },
-  { region:"關都", badge:4,  leader:"莉佳", type:"草",      emoji:"🌿", name:"玉虹道館",   waves:3, lvBonus:6,  desc:"扎根深厚的理解力" },
-  { region:"城都", badge:5,  leader:"阿速", type:"飛行",    emoji:"🦅", name:"桔梗道館",   waves:3, lvBonus:8,  desc:"俯瞰全局的分析力" },
-  { region:"城都", badge:6,  leader:"阿筆", type:"蟲",      emoji:"🐛", name:"檜皮道館",   waves:3, lvBonus:10, desc:"細心啃食每個知識點" },
-  { region:"城都", badge:7,  leader:"小茜", type:"一般",    emoji:"🐾", name:"滿金道館",   waves:4, lvBonus:12, desc:"沒有捷徑的紮實訓練" },
-  { region:"城都", badge:8,  leader:"松葉", type:"幽靈",    emoji:"👻", name:"圓朱道館",   waves:4, lvBonus:14, desc:"幽靈般的隱藏陷阱" },
-  { region:"豐緣", badge:9,  leader:"杜鵑", type:"岩石",    emoji:"🪨", name:"卡那茲道館", waves:4, lvBonus:16, desc:"堅硬的岩石基礎" },
-  { region:"豐緣", badge:10, leader:"藤樹", type:"格鬥",    emoji:"🥋", name:"武鬥道館",   waves:4, lvBonus:18, desc:"不屈的格鬥精神" },
-  { region:"豐緣", badge:11, leader:"娜琪", type:"飛行",    emoji:"🦅", name:"茵鬱道館",   waves:4, lvBonus:20, desc:"乘風破浪的判斷力" },
-  { region:"豐緣", badge:12, leader:"米可利", type:"水",    emoji:"💧", name:"琉璃道館",   waves:4, lvBonus:22, desc:"如水般優雅的王者" },
-  { region:"神奧", badge:13, leader:"瓢太", type:"岩石",    emoji:"🪨", name:"鋼鐵道館",   waves:4, lvBonus:24, desc:"鋼鐵般的意志" },
-  { region:"神奧", badge:14, leader:"菜種", type:"草",      emoji:"🌿", name:"百代道館",   waves:4, lvBonus:26, desc:"生生不息的知識" },
-  { region:"神奧", badge:15, leader:"梅麗莎", type:"幽靈",  emoji:"👻", name:"緣之道館",   waves:5, lvBonus:28, desc:"幻影般的策略" },
-  { region:"神奧", badge:16, leader:"電次", type:"電",      emoji:"⚡", name:"湖濱道館",   waves:5, lvBonus:30, desc:"閃電般的高速思維" },
-  { region:"合眾", badge:17, leader:"天桐", type:"草",      emoji:"🌿", name:"三曜道館",   waves:5, lvBonus:32, desc:"三曜鼎立的智慧考驗" },
-  { region:"合眾", badge:18, leader:"蘆薈", type:"一般",    emoji:"🐾", name:"七寶道館",   waves:5, lvBonus:34, desc:"以不變應萬變的基礎" },
-  { region:"合眾", badge:19, leader:"亞堤", type:"蟲",      emoji:"🐛", name:"飛雲道館",   waves:5, lvBonus:36, desc:"編織知識之網的韌性" },
-  { region:"合眾", badge:20, leader:"小菊兒", type:"電",    emoji:"⚡", name:"雷文道館",   waves:5, lvBonus:38, desc:"閃耀的電流急急棒" },
-  { region:"卡洛斯", badge:21, leader:"紫羅蘭", type:"蟲",  emoji:"🦋", name:"白檀道館",   waves:5, lvBonus:40, desc:"觀察入微的蟲之眼" },
-  { region:"卡洛斯", badge:22, leader:"查克洛", type:"岩石",emoji:"🪨", name:"遙香道館",   waves:5, lvBonus:42, desc:"攀上岩壁的毅力" },
-  { region:"卡洛斯", badge:23, leader:"可爾妮", type:"格鬥",emoji:"🥋", name:"娑羅道館",   waves:6, lvBonus:44, desc:"百折不撓的格鬥魂" },
-  { region:"卡洛斯", badge:24, leader:"志米", type:"水",    emoji:"💧", name:"映雪道館",   waves:6, lvBonus:46, desc:"深不可測的水之巔峰" },
-  { region:"阿羅拉", badge:25, leader:"伊利馬", type:"一般",emoji:"🐾", name:"蔥鬱洞窟考驗", waves:6, lvBonus:48, desc:"一般中見不平凡的智慧" },
-  { region:"阿羅拉", badge:26, leader:"麗姿", type:"岩石",  emoji:"🪨", name:"阿卡拉島大考驗", waves:6, lvBonus:50, desc:"岩石般堅毅的意志" },
-  { region:"阿羅拉", badge:27, leader:"馬瑪內", type:"電",  emoji:"⚡", name:"馬利埃庭園考驗", waves:6, lvBonus:52, desc:"電光石火的創新" },
-  { region:"阿羅拉", badge:28, leader:"庫庫伊", type:"一般",emoji:"👑", name:"瑪納羅競賽",   waves:6, lvBonus:54, desc:"阿羅拉之巔的考驗" },
-  { region:"伽勒爾", badge:29, leader:"亞洛", type:"草",    emoji:"🌿", name:"草路道館",   waves:6, lvBonus:56, desc:"茂盛的自然之力" },
-  { region:"伽勒爾", badge:30, leader:"露璃娜", type:"水",  emoji:"💧", name:"水舟道館",   waves:6, lvBonus:58, desc:"奔騰的激流策略" },
-  { region:"伽勒爾", badge:31, leader:"彩豆", type:"格鬥",  emoji:"🥋", name:"溯傳競技場", waves:6, lvBonus:60, desc:"極限的格鬥鍛造" },
-  { region:"伽勒爾", badge:32, leader:"奇巴納", type:"龍",  emoji:"🐉", name:"拳關競技場", waves:6, lvBonus:62, desc:"龍之巔的最終試煉" }
+  { region: "關都", badge: 1,  leader: "小剛", type: "岩石",    emoji: "🪨", name: "尼比道館",   waves: 3, lvBonus: 0, desc: "岩石般的基礎計算" },
+  { region: "關都", badge: 2,  leader: "小霞", type: "水",      emoji: "💧", name: "華藍道館",   waves: 3, lvBonus: 2, desc: "如水般的靈活應用" },
+  { region: "關都", badge: 3,  leader: "馬志士", type: "電",    emoji: "⚡", name: "枯葉道館",   waves: 3, lvBonus: 4, desc: "閃電般的速算反應" },
+  { region: "關都", badge: 4,  leader: "莉佳", type: "草",      emoji: "🌿", name: "玉虹道館",   waves: 3, lvBonus: 6, desc: "扎根深厚的理解力" },
+  { region: "關都", badge: 5,  leader: "阿桔", type: "毒",      emoji: "☠️", name: "淺紅道館",   waves: 4, lvBonus: 8, desc: "陷阱題的毒辣考驗" },
+  { region: "關都", badge: 6,  leader: "娜姿", type: "超能力",  emoji: "🔮", name: "金黃道館",   waves: 4, lvBonus: 10, desc: "超能力般的邏輯推演" },
+  { region: "關都", badge: 7,  leader: "夏伯", type: "火",      emoji: "🌋", name: "紅蓮道館",   waves: 4, lvBonus: 12, desc: "炙熱的燃燒鬥志" },
+  { region: "關都", badge: 8,  leader: "阪木", type: "地面",    emoji: "🌍", name: "常磐道館",   waves: 4, lvBonus: 12, desc: "大地之巔的統治者" },
+  { region: "城都", badge: 9,  leader: "阿速", type: "飛行",    emoji: "🦅", name: "桔梗道館",   waves: 4, lvBonus: 14, desc: "俯瞰全局的分析力" },
+  { region: "城都", badge: 10, leader: "阿筆", type: "蟲",      emoji: "🐛", name: "檜皮道館",   waves: 4, lvBonus: 17, desc: "細心啃食每個知識點" },
+  { region: "城都", badge: 11, leader: "小茜", type: "一般",    emoji: "🐾", name: "滿金道館",   waves: 5, lvBonus: 20, desc: "沒有捷徑的紮實訓練" },
+  { region: "城都", badge: 12, leader: "松葉", type: "幽靈",    emoji: "👻", name: "圓朱道館",   waves: 5, lvBonus: 23, desc: "幽靈般的隱藏陷阱" },
+  { region: "城都", badge: 13, leader: "阿四", type: "格鬥",    emoji: "🥋", name: "湛藍道館",   waves: 5, lvBonus: 26, desc: "硬碰硬的實力對決" },
+  { region: "城都", badge: 14, leader: "小椿", type: "龍",      emoji: "🐉", name: "煙墨道館",   waves: 5, lvBonus: 24, desc: "龍之巔的極限挑戰" },
+  { region: "城都", badge: 15, leader: "蜜柑", type: "鋼",      emoji: "⚙️", name: "淺蔥道館",   waves: 5, lvBonus: 28, desc: "鋼鐵般的精密計算" },
+  { region: "城都", badge: 16, leader: "柳伯", type: "冰",      emoji: "❄️", name: "卡吉道館",   waves: 5, lvBonus: 32, desc: "冰封萬物的最終考驗" },
+  { region: "合眾", badge: 17, leader: "天桐", type: "草",      emoji: "🌿", name: "三曜道館",   waves: 4, lvBonus: 34, desc: "三曜鼎立的智慧考驗" },
+  { region: "合眾", badge: 18, leader: "蘆薈", type: "一般",    emoji: "🐾", name: "七寶道館",   waves: 4, lvBonus: 36, desc: "以不變應萬變的基礎" },
+  { region: "合眾", badge: 19, leader: "亞堤", type: "蟲",      emoji: "🐛", name: "飛雲道館",   waves: 5, lvBonus: 38, desc: "編織知識之網的韌性" },
+  { region: "合眾", badge: 20, leader: "小菊兒", type: "電",    emoji: "⚡", name: "雷文道館",   waves: 5, lvBonus: 40, desc: "閃耀的電流急急棒" },
+  { region: "合眾", badge: 21, leader: "菊老大", type: "地面",  emoji: "🌍", name: "帆巴道館",   waves: 5, lvBonus: 54, desc: "大地深處的嚴峻考驗" },
+  { region: "合眾", badge: 22, leader: "風露", type: "飛行",    emoji: "🦅", name: "吹寄道館",   waves: 5, lvBonus: 58, desc: "乘風破浪的高空對決" },
+  { region: "合眾", badge: 23, leader: "哈奇庫", type: "冰",    emoji: "❄️", name: "雪花道館",   waves: 5, lvBonus: 62, desc: "絕對零度的極限專注" },
+  { region: "合眾", badge: 24, leader: "艾莉絲", type: "龍",    emoji: "🐉", name: "雙龍道館",   waves: 5, lvBonus: 66, desc: "龍之霸主的最終試煉" },
+  { region: "卡洛斯", badge: 25, leader: "紫羅蘭", type: "蟲",  emoji: "🦋", name: "白檀道館",   waves: 4, lvBonus: 64, desc: "觀察入微的蟲之眼" },
+  { region: "卡洛斯", badge: 26, leader: "查克洛", type: "岩石", emoji: "🪨", name: "遙香道館",   waves: 4, lvBonus: 68, desc: "攀上岩壁的毅力" },
+  { region: "卡洛斯", badge: 27, leader: "可爾妮", type: "格鬥", emoji: "🥋", name: "娑羅道館",   waves: 5, lvBonus: 72, desc: "百折不撓的格鬥魂" },
+  { region: "卡洛斯", badge: 28, leader: "福爺", type: "草",    emoji: "🌿", name: "海翼道館",   waves: 5, lvBonus: 75, desc: "扎根知識的茂盛幹勁" },
+  { region: "卡洛斯", badge: 29, leader: "瑪綉", type: "電",    emoji: "⚡", name: "密阿雷道館",   waves: 5, lvBonus: 78, desc: "華麗的電光交響曲" },
+  { region: "卡洛斯", badge: 30, leader: "葛吉花", type: "超能力", emoji: "🔮", name: "香薰道館",   waves: 5, lvBonus: 81, desc: "預知未來的超能占卜" },
+  { region: "卡洛斯", badge: 31, leader: "得撫", type: "惡",    emoji: "😈", name: "百刻道館",   waves: 5, lvBonus: 84, desc: "時間的暗影試煉" },
+  { region: "卡洛斯", badge: 32, leader: "志米", type: "水",    emoji: "💧", name: "映雪道館",   waves: 5, lvBonus: 88, desc: "深不可測的水之巔峰" }
 ];
 
-// ===== P4-2: 多地區聯盟系統 (VER2.2 — 8 地區, 每區 2 E4) =====
+// ===== P4-2: 多地區聯盟系統 (P5-1 難度階梯化) =====
 var LEAGUE_REGIONS = {
   "關都": {
     eliteFour: [
-      { name:"科拿", type:"冰",   emoji:"❄️", lvBonus:50, desc:"冰系天王 — 極寒的考驗" },
-      { name:"希巴", type:"格鬥", emoji:"🥋", lvBonus:55, desc:"格鬥天王 — 鋼鐵的意志" }
+      { name: "科拿", type: "冰",   emoji: "❄️", lvBonus: 50, desc: "冰系天王 — 極寒的考驗" },
+      { name: "希巴", type: "格鬥", emoji: "🥋", lvBonus: 55, desc: "格鬥天王 — 鋼鐵的意志" },
+      { name: "菊子", type: "幽靈", emoji: "👻", lvBonus: 60, desc: "幽靈天王 — 詭譎的戰術" },
+      { name: "阿渡", type: "龍",   emoji: "🐉", lvBonus: 65, desc: "龍系天王 — 龍之怒" }
     ],
-    requiredBadges: 4, order: 0
+    champion: { name: "青綠", type: "混合", emoji: "👑", lvBonus: 75, desc: "冠軍 — 全屬性的巔峰" },
+    requiredBadges: 8, order: 0
   },
   "城都": {
     eliteFour: [
-      { name:"一樹", type:"超能力", emoji:"🔮", lvBonus:55, desc:"超能天王 — 念力的極致" },
-      { name:"梨花", type:"惡",     emoji:"😈", lvBonus:60, desc:"惡系天王 — 黑暗的戰術" }
+      { name: "一樹", type: "超能力", emoji: "🔮", lvBonus: 55, desc: "超能天王 — 念力的極致" },
+      { name: "梨花", type: "惡",     emoji: "😈", lvBonus: 60, desc: "惡系天王 — 黑暗的戰術" },
+      { name: "希爾斯", type: "鋼",   emoji: "⚙️", lvBonus: 65, desc: "鋼鐵天王 — 不動的防線" },
+      { name: "小椿", type: "龍",     emoji: "🐉", lvBonus: 70, desc: "龍系天王 — 蒼空霸主" }
     ],
-    requiredBadges: 8, order: 1
+    champion: { name: "小銀", type: "混合", emoji: "👑", lvBonus: 80, desc: "冠軍 — 洗滌的靈魂" },
+    requiredBadges: 16, order: 1
   },
   "豐緣": {
     eliteFour: [
-      { name:"花月", type:"惡",   emoji:"🗡️", lvBonus:60, desc:"惡系天王 — 華麗的暗殺" },
-      { name:"芙蓉", type:"幽靈", emoji:"👻", lvBonus:65, desc:"幽靈天王 — 來自彼岸" }
+      { name: "花月", type: "惡",     emoji: "🗡️", lvBonus: 60, desc: "惡系天王 — 華麗的暗殺" },
+      { name: "芙蓉", type: "幽靈",   emoji: "👻", lvBonus: 65, desc: "幽靈天王 — 來自彼岸" },
+      { name: "波妮", type: "冰",     emoji: "❄️", lvBonus: 70, desc: "冰系天王 — 絕對零度" },
+      { name: "源治", type: "龍",     emoji: "🐉", lvBonus: 75, desc: "龍系天王 — 滄海老將" }
     ],
-    requiredBadges: 12, order: 2
+    champion: { name: "大吾", type: "鋼", emoji: "👑", lvBonus: 85, desc: "冠軍 — 石之意志" },
+    requiredBadges: 20, order: 2
   },
   "神奧": {
     eliteFour: [
-      { name:"阿李", type:"格鬥", emoji:"🥋", lvBonus:65, desc:"格鬥天王 — 鐵拳無敵" },
-      { name:"勿忘", type:"地面", emoji:"🌍", lvBonus:70, desc:"地面天王 — 大地之怒" }
+      { name: "阿李", type: "格鬥",   emoji: "🥋", lvBonus: 65, desc: "格鬥天王 — 鐵拳無敵" },
+      { name: "勿忘", type: "地面",   emoji: "🌍", lvBonus: 70, desc: "地面天王 — 大地之怒" },
+      { name: "大葉", type: "火",     emoji: "🔥", lvBonus: 75, desc: "火焰天王 — 燎原之火" },
+      { name: "菊野", type: "超能力", emoji: "🔮", lvBonus: 80, desc: "超能天王 — 虛空行者" }
     ],
-    requiredBadges: 16, order: 3
+    champion: { name: "竹蘭", type: "混合", emoji: "👑", lvBonus: 90, desc: "冠軍 — 傳承的意志" },
+    requiredBadges: 26, order: 3
   },
   "合眾": {
     eliteFour: [
-      { name:"婉美", type:"蟲",   emoji:"🦋", lvBonus:70, desc:"蟲系天王 — 美麗的陷阱" },
-      { name:"蓮霧", type:"地面", emoji:"🏜️", lvBonus:75, desc:"地面天王 — 沙漠風暴" }
+      { name: "婉美", type: "蟲",     emoji: "🦋", lvBonus: 70, desc: "蟲系天王 — 美麗的陷阱" },
+      { name: "蓮霧", type: "地面",   emoji: "🏜️", lvBonus: 75, desc: "地面天王 — 沙漠風暴" },
+      { name: "嘉德麗雅", type: "超能力", emoji: "💜", lvBonus: 80, desc: "超能天王 — 華麗的夢境" },
+      { name: "越橘", type: "惡",     emoji: "🌑", lvBonus: 85, desc: "惡系天王 — 闇夜的支配" }
     ],
-    requiredBadges: 20, order: 4
+    champion: { name: "艾莉絲", type: "龍", emoji: "👑", lvBonus: 95, desc: "冠軍 — 龍之少女" },
+    requiredBadges: 32, order: 4
   },
   "卡洛斯": {
     eliteFour: [
-      { name:"帕琦拉", type:"火", emoji:"🔥", lvBonus:75, desc:"火系天王 — 炙熱的真理" },
-      { name:"志糜",   type:"水", emoji:"💧", lvBonus:80, desc:"水系天王 — 奔流的策略" }
+      { name: "帕琦拉", type: "火",     emoji: "🔥", lvBonus: 75, desc: "火系天王 — 炙熱的真理" },
+      { name: "志糜",   type: "水",     emoji: "💧", lvBonus: 80, desc: "水系天王 — 奔流的策略" },
+      { name: "朵拉塞娜", type: "龍",   emoji: "🐉", lvBonus: 85, desc: "龍系天王 — 遠古的咆哮" },
+      { name: "雁鎧",   type: "鋼",     emoji: "⚙️", lvBonus: 90, desc: "鋼鐵天王 — 不朽的壁壘" }
     ],
-    requiredBadges: 24, order: 5
-  },
-  "阿羅拉": {
-    eliteFour: [
-      { name:"阿塞蘿拉", type:"幽靈", emoji:"👻", lvBonus:78, desc:"幽靈天王 — 虛實之間" },
-      { name:"卡希麗",   type:"飛行", emoji:"🕊️", lvBonus:82, desc:"飛行天王 — 蒼穹的霸主" }
-    ],
-    requiredBadges: 28, order: 6
-  },
-  "伽勒爾": {
-    eliteFour: [
-      { name:"赫普", type:"一般", emoji:"🐶", lvBonus:82, desc:"一般天王 — 不屈的挑戰者" },
-      { name:"瑪俐", type:"惡",   emoji:"😈", lvBonus:86, desc:"惡系天王 — 暗夜的支配者" }
-    ],
-    requiredBadges: 32, order: 7
+    champion: { name: "卡露妮", type: "混合", emoji: "👑", lvBonus: 100, desc: "冠軍 — 優雅與力量的化身" },
+    requiredBadges: 32, order: 5
   }
 };
 var leagueCompletedMonths = {};
@@ -2013,49 +1954,13 @@ var leagueChampions = {};
 var leaguePoints = {};
 var DEFENSE_COOLDOWN_DAYS = 3;
 
-// ===== VER2.2: 八大師資料結構 (Masters 8) =====
-var MASTERS_8 = [
-  { rank:8, name:"小智", type:"混合", lvBonus:75,  month:1,
-    desc:"阿羅拉冠軍 — 羈絆的王者",
-    pokemon:["皮卡丘","耿鬼","蔥遊兵","路卡利歐","鰓魚龍","快龍"] },
-  { rank:7, name:"艾莉絲", type:"龍", lvBonus:80,  month:2,
-    desc:"合眾冠軍 — 龍之少女",
-    pokemon:["雙斧戰龍","快龍","龍頭地鼠","三首惡龍","赤面龍","電飛鼠"] },
-  { rank:6, name:"艾嵐", type:"火", lvBonus:82,   month:3,
-    desc:"卡洛斯優勝 — Mega進化先驅",
-    pokemon:["噴火龍","布里卡隆","烏賊王","班基拉斯","瑪狃拉","劈斬司令"] },
-  { rank:5, name:"卡露妮", type:"混合", lvBonus:85, month:4,
-    desc:"卡洛斯冠軍 — 優雅與力量的化身",
-    pokemon:["沙奈朵","怪顎龍","冰雪巨龍","南瓜怪人","摔角鷹人","黏美龍"] },
-  { rank:4, name:"渡", type:"龍", lvBonus:88,     month:5,
-    desc:"關都/城都冠軍 — 龍之使者",
-    pokemon:["快龍","暴鯉龍","三首惡龍","化石翼龍","班基拉斯","暴飛龍"] },
-  { rank:3, name:"大吾", type:"鋼", lvBonus:92,   month:6,
-    desc:"豐緣冠軍 — 石之意志",
-    pokemon:["巨金怪","大鋼蛇","搖籃百合","太古盔甲","盔甲鳥","波士可多拉"] },
-  { rank:2, name:"竹蘭", type:"混合", lvBonus:96, month:7,
-    desc:"神奧冠軍 — 傳承的意志",
-    pokemon:["烈咬陸鯊","花岩怪","羅絲雷朵","波克基斯","海兔獸","美納斯"] },
-  { rank:1, name:"丹帝", type:"混合", lvBonus:100, month:8,
-    desc:"伽勒爾冠軍 — 不敗王者",
-    pokemon:["噴火龍","轟擂金剛猩","閃焰王牌","千面避役","多龍巴魯托","踏冰人偶"] }
-];
-
-// 輔助: 依月份取得該月對應的八大師
-function getMasters8ForMonth(month) {
-  for (var mi = 0; mi < MASTERS_8.length; mi++) {
-    if (MASTERS_8[mi].month === month) return MASTERS_8[mi];
-  }
-  return null;
-}
-
 // ===== F3: ACHIEVEMENT / TROPHY SYSTEM =====
 var ACHIEVEMENTS = [
   { id: "FIRST_CAPTURE", name: "初次捕捉", desc: "捕捉第一隻寶可夢", icon: "🎯", tier: 1 },
   { id: "FIRST_GYM", name: "道館初戰", desc: "獲得第一枚道館徽章", icon: "🥇", tier: 1 },
   { id: "LV_10", name: "新星訓練家", desc: "達到 Lv.10", icon: "⭐", tier: 1 },
   { id: "COLLECTOR_10", name: "小小收藏家", desc: "收集 10 種寶可夢", icon: "📦", tier: 1 },
-  { id: "GYM_8", name: "道館初心者", desc: "收集 8 枚道館徽章", icon: "🏅", tier: 2 },
+  { id: "GYM_8", name: "關都冠軍", desc: "收集 8 枚道館徽章", icon: "🏅", tier: 2 },
   { id: "LV_25", name: "精英訓練家", desc: "達到 Lv.25", icon: "💫", tier: 2 },
   { id: "COLLECTOR_25", name: "熱衷收藏家", desc: "收集 25 種寶可夢", icon: "🗃️", tier: 2 },
   { id: "LEGENDARY", name: "傳說捕手", desc: "捕捉傳說寶可夢", icon: "✨", tier: 2 },
@@ -2063,17 +1968,9 @@ var ACHIEVEMENTS = [
   { id: "PVP_WIN", name: "宿敵剋星", desc: "PvP 對戰獲勝", icon: "🆚", tier: 2 },
   { id: "GYM_32", name: "徽章大師", desc: "收集全部 32 枚徽章", icon: "🏆", tier: 3 },
   { id: "LV_50", name: "大師訓練家", desc: "達到 Lv.50", icon: "👑", tier: 3 },
-  { id: "LEAGUE_CHAMP", name: "聯盟王者", desc: "擊敗四天王完成聯盟挑戰", icon: "🏆", tier: 3 },
+  { id: "LEAGUE_CHAMP", name: "聯盟王者", desc: "擊敗四天王與冠軍", icon: "🏆", tier: 3 },
   { id: "COLLECTOR_50", name: "大師收藏家", desc: "收集 50 種寶可夢", icon: "💎", tier: 3 },
-  { id: "DEX_151", name: "圖鑑達人", desc: "收集全部 151 種寶可夢", icon: "🌟", tier: 3 },
-  { id: "M8_SATOSHI", name: "羈絆的證明", desc: "擊敗八大師第8位：小智", icon: "⚡", tier: 3 },
-  { id: "M8_IRIS", name: "龍之試煉", desc: "擊敗八大師第7位：艾莉絲", icon: "🐉", tier: 3 },
-  { id: "M8_ALAIN", name: "Mega的頂點", desc: "擊敗八大師第6位：艾嵐", icon: "🔥", tier: 3 },
-  { id: "M8_DIANTHA", name: "優雅之戰", desc: "擊敗八大師第5位：卡露妮", icon: "💎", tier: 3 },
-  { id: "M8_LANCE", name: "龍之使者", desc: "擊敗八大師第4位：渡", icon: "🐲", tier: 3 },
-  { id: "M8_STEVEN", name: "鋼鐵意志", desc: "擊敗八大師第3位：大吾", icon: "⚙️", tier: 3 },
-  { id: "M8_CYNTHIA", name: "傳承的意志", desc: "擊敗八大師第2位：竹蘭", icon: "👑", tier: 3 },
-  { id: "M8_LEON", name: "不敗傳說", desc: "擊敗八大師第1位：丹帝", icon: "🌟", tier: 3 }
+  { id: "DEX_151", name: "圖鑑達人", desc: "收集全部 151 種寶可夢", icon: "🌟", tier: 3 }
 ];
 var ACHIEVEMENT_TIERS = { 1: "初階", 2: "進階", 3: "大師" };
 var globalAchievements = {};
@@ -2128,13 +2025,13 @@ function getGymLeaderInfo(badges) {
 function getRegionInfo(badges) {
   var list = gymsCache || GYM_LEADERS;
   var total = list.length;
-  var badgeSymbols = ["?","??","??","??","??","??","??","??"];
-  var regionNames = ["關都","城都","豐緣","神奧","合眾","卡洛斯","阿羅拉","伽勒爾"];
-  var regionColors = ["#d35400","#8e44ad","#27ae60","#2980b9","#f39c12","#3498db","#e91e63","#2c3e50"];
-  var regionIdx = Math.min(Math.floor(badges / 4), regionNames.length - 1);
-  var displayed = badges - regionIdx * 4;
+  var badgeSymbols = ["??","??","?","??","??","??","??","??"];
+  var regionNames = ["關都地區","城都地區","合眾地區","卡洛斯地區"];
+  var regionColors = ["#d35400","#8e44ad","#f39c12","#3498db"];
+  var regionIdx = Math.min(Math.floor(badges / 8), regionNames.length - 1);
+  var displayed = badges % 8 || (badges === 0 ? 0 : 8);
   return {
-    name: regionNames[regionIdx] + "地區",
+    name: regionNames[regionIdx],
     color: regionColors[regionIdx],
     symbols: badgeSymbols,
     earned: displayed,
@@ -2584,21 +2481,20 @@ function getEffectiveness(atkType, defTypes) {
   return total;
 }
 
-function calculateMovePower(move, attacker, defender, isPlayerAttacker, weather) {
+function calculateMovePower(move, attacker, defender, isPlayerAttacker) {
   var details = getMoveDetails(move);
   var power = details.power || 40;
   var eff = getEffectiveness(details.type, defender.type);
-  var activeWeather = weather || (battleState && battleState.weather);
   var legAtk = checkIsLegendary(attacker.name);
   var legDef = checkIsLegendary(defender.name);
-  var evioliteDef = (defender.heldItem === "eviolite") ? 1.5 : 1;
+  var evioliteDef = (!isPlayerAttacker && defender.heldItem === "eviolite") ? 1.5 : 1;
   if (details.category === "物理") {
     var atkStat = attacker.atk * Math.pow(1.1, attacker.statStages.atk);
     var defStat = defender.def * Math.pow(1.1, defender.statStages.def) * evioliteDef;
     var baseDamage = Math.floor((((attacker.level * 2 / 5 + 2) * power * atkStat / defStat) / 50) + 2);
   } else {
     var spatkStat = attacker.spatk * Math.pow(1.1, attacker.statStages.spatk);
-    var sandSpDef = (activeWeather && activeWeather.type === "sand" && defender.type.indexOf("岩石") !== -1) ? 1.5 : 1;
+    var sandSpDef = (battleState && battleState.weather && battleState.weather.type === "sand" && defender.type.indexOf("岩石") !== -1) ? 1.5 : 1;
     var spdefStat = defender.spdef * Math.pow(1.1, defender.statStages.spdef) * evioliteDef * sandSpDef;
     var baseDamage = Math.floor((((attacker.level * 2 / 5 + 2) * power * spatkStat / spdefStat) / 50) + 2);
   }
@@ -2606,8 +2502,8 @@ function calculateMovePower(move, attacker, defender, isPlayerAttacker, weather)
   if (eff > 1) baseDamage = Math.floor(baseDamage * eff);
   else if (eff < 1 && eff > 0 && details.type !== "一般") baseDamage = Math.floor(baseDamage * eff);
   else if (eff === 0) return { damage: 0, crit: false, effectiveness: 0, moveType: details.type, weather: "", hpBoosted: false };
-  if (activeWeather) {
-    var wt = activeWeather.type;
+  if (battleState && battleState.weather) {
+    var wt = battleState.weather.type;
     if (wt === "rain") {
       if (details.type === "水") baseDamage = Math.floor(baseDamage * 1.5);
       else if (details.type === "火") baseDamage = Math.floor(baseDamage * 2 / 3);
@@ -2654,7 +2550,8 @@ function calculateMovePower(move, attacker, defender, isPlayerAttacker, weather)
   if (defender.heldItem === "assaultVest" && details.category !== "物理") {
     finalDamage = Math.floor(finalDamage * 2 / 3);
   }
-  var weatherText = activeWeather ? activeWeather.type : "";
+  var weatherText = "";
+  if (battleState && battleState.weather) weatherText = battleState.weather.type;
   return { damage: Math.min(finalDamage, defender.currentHp), crit: crit, effectiveness: eff, moveType: details.type, weather: weatherText, hpBoosted: hpBoosted };
 }
 
@@ -2684,14 +2581,14 @@ function applyStatusEffect(move, defender) {
   if (eff === "debuff_def") { defender.statStages.def = Math.max(-6, defender.statStages.def - 1); return "⬇️ " + defender.name + " 防禦降低了！"; }
   if (eff === "protect") { defender.protect = true; return "🛡️ " + defender.name + " 使用了守住！"; }
   if (eff === "leech_seed") { defender.leechSeed = true; return "🌱 " + defender.name + " 被寄生種子了！"; }
-  if (eff === "weather_rain") { if (battleState) { battleState.weather = { type: "rain", duration: 5 }; spawnWeatherParticles(); } if (typeof pvp3 !== "undefined" && pvp3) { pvp3.weather = { type: "rain", duration: 5 }; } if (typeof sfx !== "undefined") sfx.weather(); showLargeText("🌧️ 開始下雨了！", "#3498db"); return "🌧️ 天氣變成下雨了！（持續5回合）"; }
-  if (eff === "weather_sun") { if (battleState) { battleState.weather = { type: "sun", duration: 5 }; spawnWeatherParticles(); } if (typeof pvp3 !== "undefined" && pvp3) { pvp3.weather = { type: "sun", duration: 5 }; } if (typeof sfx !== "undefined") sfx.weather(); showLargeText("☀️ 大晴天！", "#e67e22"); return "☀️ 天氣變成大晴天了！（持續5回合）"; }
-  if (eff === "weather_sand") { if (battleState) { battleState.weather = { type: "sand", duration: 5 }; spawnWeatherParticles(); } if (typeof pvp3 !== "undefined" && pvp3) { pvp3.weather = { type: "sand", duration: 5 }; } if (typeof sfx !== "undefined") sfx.weather(); showLargeText("🌪️ 沙暴來了！", "#d4a853"); return "🌪️ 天氣變成沙暴了！（持續5回合）"; }
-  if (eff === "weather_hail") { if (battleState) { battleState.weather = { type: "hail", duration: 5 }; spawnWeatherParticles(); } if (typeof pvp3 !== "undefined" && pvp3) { pvp3.weather = { type: "hail", duration: 5 }; } if (typeof sfx !== "undefined") sfx.weather(); showLargeText("❄️ 冰雹來了！", "#85c1e9"); return "❄️ 天氣變成冰雹了！（持續5回合）"; }
+  if (eff === "weather_rain") { battleState.weather = { type: "rain", duration: 5 }; if (typeof sfx !== "undefined") sfx.weather(); showLargeText("🌧️ 開始下雨了！", "#3498db"); setTimeout(function(){ spawnWeatherParticles(); }, 300); return "🌧️ 天氣變成下雨了！（持續5回合）"; }
+  if (eff === "weather_sun") { battleState.weather = { type: "sun", duration: 5 }; if (typeof sfx !== "undefined") sfx.weather(); showLargeText("☀️ 大晴天！", "#e67e22"); setTimeout(function(){ spawnWeatherParticles(); }, 300); return "☀️ 天氣變成大晴天了！（持續5回合）"; }
+  if (eff === "weather_sand") { battleState.weather = { type: "sand", duration: 5 }; if (typeof sfx !== "undefined") sfx.weather(); showLargeText("🌪️ 沙暴來了！", "#d4a853"); setTimeout(function(){ spawnWeatherParticles(); }, 300); return "🌪️ 天氣變成沙暴了！（持續5回合）"; }
+  if (eff === "weather_hail") { battleState.weather = { type: "hail", duration: 5 }; if (typeof sfx !== "undefined") sfx.weather(); showLargeText("❄️ 冰雹來了！", "#85c1e9"); setTimeout(function(){ spawnWeatherParticles(); }, 300); return "❄️ 天氣變成冰雹了！（持續5回合）"; }
   return "";
 }
 
-function executeTurn(playerAtk, playerDef, enemyAtk, enemyDef, moveName, isPlayer, log, weather) {
+function executeTurn(playerAtk, playerDef, enemyAtk, enemyDef, moveName, isPlayer, log) {
   var attacker = isPlayer ? playerAtk : enemyAtk;
   var defender = isPlayer ? playerDef : enemyDef;
   var result = { dmg:0, crit:false, effText:"", ko:false, moveName: moveName, isPlayer: isPlayer };
@@ -2725,7 +2622,7 @@ function executeTurn(playerAtk, playerDef, enemyAtk, enemyDef, moveName, isPlaye
     return result;
   }
 
-  var dmgInfo = calculateMovePower(moveName, attacker, defender, isPlayer, weather);
+  var dmgInfo = calculateMovePower(moveName, attacker, defender, isPlayer);
   result.dmg = dmgInfo.damage;
   result.crit = dmgInfo.crit;
   result.hpBoosted = dmgInfo.hpBoosted;
@@ -2745,7 +2642,8 @@ function executeTurn(playerAtk, playerDef, enemyAtk, enemyDef, moveName, isPlaye
       attacker.currentHp = Math.max(0, attacker.currentHp - cd);
       log.push("🌵 " + defender.name + " 的「" + defender.abilityName + "」讓攻擊者受到 " + cd + " 傷害！");
       showLargeText("🌵 " + defender.abilityName + "！", "#27ae60");
-      if (battleState) { var cdSide = (defender === battleState.enemy) ? "enemy" : "player"; spawnAbilityFlare(cdSide + "PkmnName", "#27ae60"); }
+      var cdSide = (defender === battleState.enemy) ? "enemy" : "player";
+      spawnAbilityFlare(cdSide + "PkmnName", "#27ae60");
       if (attacker.currentHp <= 0) { attacker.currentHp = 0; result.ko = true; log.push("💀 " + attacker.name + " 倒下了！"); }
     }
     // 夢特性：不屈之心 — 受到克制攻擊時攻擊提升1階
@@ -2764,19 +2662,22 @@ function executeTurn(playerAtk, playerDef, enemyAtk, enemyDef, moveName, isPlaye
       defender.currentHp = 1;
       log.push("🛡️ " + defender.name + " 的「" + defender.abilityName + "」讓他撐住了！");
       showLargeText("🛡️ " + defender.abilityName + " 撐住了！", "#f39c12");
-      if (battleState) { var sturdySide = (defender === battleState.enemy) ? "enemy" : "player"; spawnShieldFlash(sturdySide + "PkmnName", "#f39c12"); }
+      var sturdySide = (defender === battleState.enemy) ? "enemy" : "player";
+      spawnShieldFlash(sturdySide + "PkmnName", "#f39c12");
     } else if (defender.dreamAbility && defender.dreamAbility.trigger === "tenacity" && !defender._tenacityUsed && (defender.currentHp + dmgInfo.damage) >= defender.maxHp * 0.99) {
       defender.currentHp = 1;
       defender._tenacityUsed = true;
       log.push("💪 " + defender.name + " 的「" + defender.dreamAbilityName + "」讓它撐住了！");
       showLargeText("💪 頑強！", "#27ae60");
-      if (battleState) { var tenSide = (defender === battleState.enemy) ? "enemy" : "player"; spawnShieldFlash(tenSide + "PkmnName", "#27ae60"); }
+      var tenSide = (defender === battleState.enemy) ? "enemy" : "player";
+      spawnShieldFlash(tenSide + "PkmnName", "#27ae60");
     } else if (sashActive) {
       defender.currentHp = 1;
       defender.heldItem = "";
       log.push("🎗️ " + defender.name + " 的氣勢披帶讓它撐住了！（已消耗）");
       showLargeText("🎗️ 氣勢披帶！", "#e74c3c");
-      if (battleState) { var sashSide = (defender === battleState.enemy) ? "enemy" : "player"; spawnShieldFlash(sashSide + "PkmnName", "#e74c3c"); }
+      var sashSide = (defender === battleState.enemy) ? "enemy" : "player";
+      spawnShieldFlash(sashSide + "PkmnName", "#e74c3c");
     } else {
       defender.currentHp = 0;
       result.ko = true;
@@ -2788,7 +2689,7 @@ function executeTurn(playerAtk, playerDef, enemyAtk, enemyDef, moveName, isPlaye
 
 function showLargeText(text, color, duration) {
   duration = duration || 1200;
-  var el = (pvp3 && $("pvpModal") && $("pvpModal").style.display !== "none") ? $("pvpLargeTextOverlay") : $("largeTextOverlay");
+  var el = $("largeTextOverlay");
   if (!el) return;
   el.innerHTML = text;
   el.style.color = color || "#fff";
@@ -2820,40 +2721,6 @@ function animateHpBar(barId, textId, currentHp, maxHp, callback) {
     bar.style.transition = "width 0.15s ease";
     if (callback) callback();
   }, delay);
-}
-function animateHpBarJS(barId, currentHp, maxHp, callback) {
-  var bar = $(barId);
-  if (!bar) { if (callback) callback(); return; }
-  var targetPct = Math.round(currentHp / maxHp * 100);
-  if (BATTLE_SPEED === 0) {
-    bar.style.width = targetPct + "%";
-    bar.className = "hp-bar-fill " + (targetPct > 50 ? "hp-green" : targetPct > 25 ? "hp-yellow" : "hp-red");
-    if (callback) callback();
-    return;
-  }
-  var startPct = parseFloat(bar.style.width);
-  if (isNaN(startPct)) startPct = targetPct;
-  if (startPct === targetPct) {
-    bar.className = "hp-bar-fill " + (targetPct > 50 ? "hp-green" : targetPct > 25 ? "hp-yellow" : "hp-red");
-    if (callback) callback();
-    return;
-  }
-  var duration = getAnimDelay(1250);
-  var startTime = performance.now();
-  function tick(now) {
-    var elapsed = now - startTime;
-    var progress = Math.min(elapsed / duration, 1);
-    var eased = 1 - Math.pow(1 - progress, 2);
-    var current = startPct + (targetPct - startPct) * eased;
-    bar.style.width = Math.round(current) + "%";
-    bar.className = "hp-bar-fill " + (targetPct > 50 ? "hp-green" : targetPct > 25 ? "hp-yellow" : "hp-red");
-    if (progress < 1) {
-      requestAnimationFrame(tick);
-    } else {
-      if (callback) callback();
-    }
-  }
-  requestAnimationFrame(tick);
 }
 
 function shakeElement(id) {
@@ -2930,37 +2797,36 @@ function spawnParticles(x, y, count, color, type) {
   }
 }
 
-function spawnHitRing(x, y, color, parentEl) {
+function spawnHitRing(x, y, color) {
   var ring = document.createElement("div");
   ring.className = "hit-ring";
-  var battleContent = parentEl || document.querySelector("#battleModal .modal-content");
+  ring.style.setProperty("--ring-x", x + "px");
+  ring.style.setProperty("--ring-y", y + "px");
+  ring.style.setProperty("--ring-color", color || "#fff");
+  var battleContent = document.querySelector("#battleModal .modal-content");
   if (battleContent) {
-    var rect = battleContent.getBoundingClientRect();
-    ring.style.setProperty("--ring-x", (x - rect.left) + "px");
-    ring.style.setProperty("--ring-y", (y - rect.top) + "px");
-    ring.style.setProperty("--ring-color", color || "#fff");
     battleContent.style.position = "relative";
     battleContent.appendChild(ring);
   }
   setTimeout(function(){ ring.remove(); }, 600);
 }
 
-function spawnCategoryParticles(x, y, color, category, parentEl) {
-  var targetEl = parentEl || document.querySelector("#battleModal .modal-content");
+function spawnCategoryParticles(x, y, color, category) {
   if (category === "物理") {
     for (var i = 0; i < 6; i++) {
       var line = document.createElement("div");
       line.className = "slash-line";
       var angle = (i / 6) * Math.PI;
       var dist = 40 + Math.random() * 30;
-      var rect = targetEl ? targetEl.getBoundingClientRect() : { left:0, top:0 };
+      var cx = $("battleModal .modal-content") || document.querySelector("#battleModal .modal-content");
+      var rect = cx ? cx.getBoundingClientRect() : { left:0, top:0 };
       line.style.left = (x - rect.left + Math.cos(angle) * dist) + "px";
       line.style.top = (y - rect.top + Math.sin(angle) * dist) + "px";
       line.style.width = (20 + Math.random() * 20) + "px";
       line.style.background = color;
       line.style.transform = "rotate(" + (angle * 180 / Math.PI) + "deg)";
       line.style.transformOrigin = "left center";
-      if (targetEl) targetEl.appendChild(line);
+      if (cx) cx.appendChild(line);
       setTimeout(function(el){ el.remove(); }, 500, line);
     }
   } else if (category === "特殊") {
@@ -2968,12 +2834,13 @@ function spawnCategoryParticles(x, y, color, category, parentEl) {
       var swirl = document.createElement("div");
       swirl.className = "energy-swirl";
       swirl.style.setProperty("--swirl-color", color);
-      if (!targetEl) continue;
-      var rect2 = targetEl.getBoundingClientRect();
+      var cx2 = document.querySelector("#battleModal .modal-content");
+      if (!cx2) continue;
+      var rect2 = cx2.getBoundingClientRect();
       swirl.style.left = (x - rect2.left - 30 + (Math.random() - 0.5) * 40) + "px";
       swirl.style.top = (y - rect2.top - 30 + (Math.random() - 0.5) * 40) + "px";
       swirl.style.animationDelay = (i * 0.08) + "s";
-      targetEl.appendChild(swirl);
+      cx2.appendChild(swirl);
       setTimeout(function(el){ el.remove(); }, 700, swirl);
     }
   } else {
@@ -2981,12 +2848,13 @@ function spawnCategoryParticles(x, y, color, category, parentEl) {
       var sp = document.createElement("div");
       sp.className = "sparkle";
       sp.style.background = color;
-      if (!targetEl) continue;
-      var rect3 = targetEl.getBoundingClientRect();
+      var cx3 = document.querySelector("#battleModal .modal-content");
+      if (!cx3) continue;
+      var rect3 = cx3.getBoundingClientRect();
       sp.style.left = (x - rect3.left + (Math.random() - 0.5) * 50) + "px";
       sp.style.top = (y - rect3.top + (Math.random() - 0.5) * 50) + "px";
       sp.style.animationDelay = (Math.random() * 0.2) + "s";
-      targetEl.appendChild(sp);
+      cx3.appendChild(sp);
       setTimeout(function(el){ el.remove(); }, 800, sp);
     }
   }
@@ -3021,18 +2889,16 @@ function animateWeatherUpdate() {
   }
 }
 
-function spawnWeatherParticles(container, weather) {
-  var c = container || document.querySelector("#pvpModal .modal-content") || document.querySelector("#battleModal .modal-content");
-  var w = weather || (battleState && battleState.weather);
-  if (!c || !w) return;
-  var wt = w.type;
+function spawnWeatherParticles(container) {
+  var c = container || document.querySelector("#battleModal .modal-content");
+  if (!c || !battleState || !battleState.weather) return;
+  var wt = battleState.weather.type;
   var typeClass = "weather-" + wt + "-particle";
   var count = wt === "sun" ? 3 : (wt === "sand" ? 10 : (wt === "rain" ? 12 : 6));
   for (var wi = 0; wi < count; wi++) {
     (function(idx) {
       setTimeout(function() {
-        var currentW = (battleState && battleState.weather) || w;
-        if (!currentW || currentW.type !== wt) return;
+        if (!battleState || !battleState.weather || battleState.weather.type !== wt) return;
         var p = document.createElement("div");
         p.className = typeClass;
         p.style.left = (10 + Math.random() * 80) + "%";
@@ -3091,11 +2957,11 @@ function spawnEffectivenessEffect(effectiveness, center, typeColor) {
   }
 }
 
-function spawnAbilityFlare(elementId, color, containerEl) {
+function spawnAbilityFlare(elementId, color) {
   var el = $(elementId);
   if (!el) return;
   var rect = el.getBoundingClientRect();
-  var modal = containerEl || document.querySelector("#battleModal .modal-content");
+  var modal = document.querySelector("#battleModal .modal-content");
   if (!modal) return;
   var modalRect = modal.getBoundingClientRect();
   var flare = document.createElement("div");
@@ -3107,11 +2973,11 @@ function spawnAbilityFlare(elementId, color, containerEl) {
   setTimeout(function(){ if (flare.parentNode) flare.remove(); }, 800);
 }
 
-function spawnItemGlow(elementId, color, containerEl) {
+function spawnItemGlow(elementId, color) {
   var el = $(elementId);
   if (!el) return;
   var rect = el.getBoundingClientRect();
-  var modal = containerEl || document.querySelector("#battleModal .modal-content");
+  var modal = document.querySelector("#battleModal .modal-content");
   if (!modal) return;
   var modalRect = modal.getBoundingClientRect();
   var glow = document.createElement("div");
@@ -3123,11 +2989,11 @@ function spawnItemGlow(elementId, color, containerEl) {
   setTimeout(function(){ if (glow.parentNode) glow.remove(); }, 700);
 }
 
-function spawnShieldFlash(elementId, color, containerEl) {
+function spawnShieldFlash(elementId, color) {
   var el = $(elementId);
   if (!el) return;
   var rect = el.getBoundingClientRect();
-  var modal = containerEl || document.querySelector("#battleModal .modal-content");
+  var modal = document.querySelector("#battleModal .modal-content");
   if (!modal) return;
   var modalRect = modal.getBoundingClientRect();
   var shield = document.createElement("div");
@@ -3146,60 +3012,6 @@ function screenShake() {
   void el.offsetWidth;
   el.classList.add("screen-shake");
   setTimeout(function(){ el.classList.remove("screen-shake"); }, 350);
-}
-
-/* ── Shared held item effect functions (used by PvE performAttack + PvP executePvPTurn) ── */
-// 先制之爪: 回傳 true 表示畏縮
-function processQuickClawEffect(attacker, defender, log) {
-  if (attacker.heldItem !== "quickClaw" || Math.random() >= 0.2 || defender.currentHp <= 0) return false;
-  log.push("🔪 先制之爪讓 " + defender.name + " 畏縮了！");
-  return true;
-}
-// 貝殼之鈴: 回傳回復量（0 表示無效果）
-function processShellBellEffect(attacker, damageDealt, log) {
-  if (attacker.heldItem !== "shellBell" || damageDealt <= 0) return 0;
-  var heal = Math.max(1, Math.floor(damageDealt * 0.125));
-  attacker.currentHp = Math.min(attacker.maxHp, attacker.currentHp + heal);
-  log.push("🔔 貝殼之鈴回復了 " + heal + " HP！");
-  return heal;
-}
-// 生命寶珠反噬: 回傳反噬傷害（0 表示無效果）
-function processLifeOrbRecoilEffect(attacker, log) {
-  if (attacker.heldItem !== "lifeOrb") return 0;
-  var dmg = Math.max(1, Math.floor(attacker.maxHp * 0.1));
-  attacker.currentHp = Math.max(0, attacker.currentHp - dmg);
-  log.push("🔴 生命寶珠反噬 " + dmg + " HP！");
-  return dmg;
-}
-// 凸凸頭盔: 回傳是否將攻擊者反傷至瀕死
-function processRockyHelmetEffect(defenderHeldItem, attacker, moveCategory, log) {
-  if (defenderHeldItem !== "rockyHelmet" || moveCategory !== "物理" || attacker.currentHp <= 0) return false;
-  var dmg = Math.max(1, Math.floor(attacker.maxHp / 6));
-  attacker.currentHp = Math.max(0, attacker.currentHp - dmg);
-  log.push("⛑️ 凸凸頭盔反傷 " + dmg + " HP！");
-  return attacker.currentHp <= 0;
-}
-// 弱點保險: 回傳 true 表示已消耗
-function processWeaknessPolicyEffect(defender, effectiveness, log) {
-  if (defender.heldItem !== "weaknessPolicy" || effectiveness <= 1 || defender.currentHp <= 0) return false;
-  defender.heldItem = "";
-  defender.statStages.atk = Math.min(6, (defender.statStages.atk || 0) + 2);
-  defender.statStages.spatk = Math.min(6, (defender.statStages.spatk || 0) + 2);
-  log.push("📋 弱點保險發動！" + defender.name + " 雙攻大幅提升！（已消耗）");
-  return true;
-}
-// 逃脱按鈕: 回傳下一隻寶可夢（null 表示不觸發）
-function processEjectButtonEffect(defender, party, log) {
-  if (defender.heldItem !== "ejectButton" || defender.currentHp <= 0) return null;
-  var next = null;
-  for (var i = 0; i < party.length; i++) {
-    if (party[i].id !== defender.id && party[i].currentHp > 0) { next = party[i]; break; }
-  }
-  if (!next) return null;
-  defender.heldItem = "";
-  log.push("🔘 逃脱按鈕啟動！" + defender.name + " 強制退場！");
-  log.push("🔄 換上 " + next.name + "！");
-  return next;
 }
 
 function getElementCenter(id) {
@@ -3226,8 +3038,9 @@ function performAttack(moveName, isPlayer) {
 
   // 先制之爪檢查（20%機率讓敵人畏縮，跳過攻擊）
   var quickClawFlinch = false;
-  if (isPlayer && processQuickClawEffect(pAtk, battleState.enemy, log)) {
+  if (isPlayer && pAtk.heldItem === "quickClaw" && Math.random() < 0.2 && battleState.enemy.currentHp > 0) {
     quickClawFlinch = true;
+    log.push("🔪 先制之爪讓 " + battleState.enemy.name + " 畏縮了！");
     renderBattleLog(log);
     spawnItemGlow("playerPkmnName", "#f39c12");
   }
@@ -3279,16 +3092,27 @@ function performAttack(moveName, isPlayer) {
         spawnAbilityFlare(isPlayerAtk ? "playerPkmnName" : "enemyPkmnName", "#e74c3c");
       }
       // 貝殼之鈴（玩家專用）
-      if (isPlayerAtk && processShellBellEffect(atk, tResult.dmg, log)) {
+      if (isPlayerAtk && atk.heldItem === "shellBell") {
+        var shellHeal = Math.max(1, Math.floor(tResult.dmg * 0.125));
+        atk.currentHp = Math.min(atk.maxHp, atk.currentHp + shellHeal);
+        log.push("🔔 貝殼之鈴回復了 " + shellHeal + " HP！");
         renderBattleLog(log);
         animateHpBar("playerHpBar", "playerHpText", atk.currentHp, atk.maxHp);
         spawnItemGlow("playerPkmnName", "#2ecc71");
       }
       // 生命寶珠（玩家專用）
-      if (isPlayerAtk && processLifeOrbRecoilEffect(atk, log)) {
+      if (isPlayerAtk && atk.heldItem === "lifeOrb") {
+        var orbDmg = Math.max(1, Math.floor(atk.maxHp * 0.1));
+        atk.currentHp = Math.max(0, atk.currentHp - orbDmg);
+        log.push("🔴 生命寶珠反噬 " + orbDmg + " HP！");
         renderBattleLog(log);
         animateHpBar("playerHpBar", "playerHpText", atk.currentHp, atk.maxHp);
         spawnItemGlow("playerPkmnName", "#e74c3c");
+        if (atk.currentHp <= 0) {
+          atk.currentHp = 0;
+          log.push("💀 " + atk.name + " 被生命寶珠反噬倒下了！");
+          renderBattleLog(log);
+        }
       }
     }
     return { result: tResult, moveDetails: mDetails, typeColor: tColor };
@@ -3302,34 +3126,47 @@ function performAttack(moveName, isPlayer) {
   var enemyHitDefense = function(eResult, eMoveDetails) {
     if (eResult.dmg > 0) {
       // 凸凸頭盔: 物理攻擊反傷
-      var hadHelmet = battleState.playerPokemon.heldItem === "rockyHelmet" && eMoveDetails.category === "物理";
-      var prevEnemyHp = battleState.enemy.currentHp;
-      if (hadHelmet && processRockyHelmetEffect(battleState.playerPokemon.heldItem, battleState.enemy, eMoveDetails.category, log)) {
+      if (battleState.playerPokemon.heldItem === "rockyHelmet" && eMoveDetails.category === "物理" && battleState.enemy.currentHp > 0) {
+        var helmetDmg = Math.max(1, Math.floor(battleState.enemy.maxHp / 6));
+        battleState.enemy.currentHp = Math.max(0, battleState.enemy.currentHp - helmetDmg);
+        log.push("⛑️ 凸凸頭盔反傷 " + helmetDmg + " HP！");
         renderBattleLog(log);
         spawnShieldFlash("enemyPkmnName", "#95a5a6");
-        battleState.enemy.currentHp = 0;
-        log.push("💀 " + battleState.enemy.name + " 被反傷倒下了！");
-        renderBattleLog(log);
-        sfx.faint();
-        setTimeout(function(){ faintAnimation("enemyPkmnName"); setTimeout(function(){ battleState.playerWon = true; battleState.turnLock = false; endBattle(true); }, 650); }, 300);
-        return true;
-      } else if (hadHelmet && battleState.enemy.currentHp < prevEnemyHp) {
-        renderBattleLog(log);
-        spawnShieldFlash("enemyPkmnName", "#95a5a6");
+        if (battleState.enemy.currentHp <= 0) {
+          battleState.enemy.currentHp = 0;
+          log.push("💀 " + battleState.enemy.name + " 被反傷倒下了！");
+          renderBattleLog(log);
+          sfx.faint();
+          setTimeout(function(){ faintAnimation("enemyPkmnName"); setTimeout(function(){ battleState.playerWon = true; battleState.turnLock = false; endBattle(true); }, 650); }, 300);
+          return true;
+        }
       }
       // 弱點保險: 被剋時雙攻+2階
-      if (processWeaknessPolicyEffect(battleState.playerPokemon, eResult.effectiveness, log)) {
+      if (battleState.playerPokemon.heldItem === "weaknessPolicy" && eResult.effectiveness > 1 && battleState.playerPokemon.currentHp > 0) {
+        battleState.playerPokemon.heldItem = "";
+        battleState.playerPokemon.statStages.atk = Math.min(6, (battleState.playerPokemon.statStages.atk||0) + 2);
+        battleState.playerPokemon.statStages.spatk = Math.min(6, (battleState.playerPokemon.statStages.spatk||0) + 2);
+        log.push("📋 弱點保險發動！" + battleState.playerPokemon.name + " 雙攻大幅提升！（已消耗）");
         showLargeText("📋 弱點保險！", "#e74c3c");
         spawnItemGlow("playerPkmnName", "#f1c40f");
         renderBattleLog(log);
       }
       // 逃脱按鈕: 受到攻擊後強制換怪
-      var ejectNext = processEjectButtonEffect(battleState.playerPokemon, battleState.playerParty, log);
-      if (ejectNext) {
-        battleState.playerPokemon = ejectNext;
-        showLargeText("🔘 逃脱按鈕！", "#3498db");
-        spawnItemGlow("playerPkmnName", "#3498db");
-        renderBattleLog(log);
+      if (battleState.playerPokemon.heldItem === "ejectButton" && battleState.playerPokemon.currentHp > 0) {
+        var nextAlly3 = null;
+        for (var ej = 0; ej < battleState.playerParty.length; ej++) {
+          var ejPk = battleState.playerParty[ej];
+          if (ejPk.id !== battleState.playerPokemon.id && ejPk.currentHp > 0) { nextAlly3 = ejPk; break; }
+        }
+        if (nextAlly3) {
+          battleState.playerPokemon.heldItem = "";
+          log.push("🔘 逃脱按鈕啟動！" + battleState.playerPokemon.name + " 強制退場！");
+          battleState.playerPokemon = nextAlly3;
+          log.push("🔄 換上 " + nextAlly3.name + "！");
+          showLargeText("🔘 逃脱按鈕！", "#3498db");
+          spawnItemGlow("playerPkmnName", "#3498db");
+          renderBattleLog(log);
+        }
       }
     }
     return false;
@@ -3648,7 +3485,6 @@ function startNextWave() {
   if (!battleState || !battleState.gymWaves) return;
   var nextIdx = battleState.currentWave + 1;
   if (nextIdx >= battleState.totalWaves) {
-    if (battleState.isMasters8) { finishMasters8Victory(); return; }
     if (battleState.isLeague) { finishLeagueVictory(); return; }
     finishGymVictory();
     return;
@@ -3761,7 +3597,6 @@ function endBattle(playerWon) {
     return;
   }
   if (playerWon && battleState.gymWaves && battleState.enemy.isLastWave) {
-    if (battleState.isMasters8) { finishMasters8Victory(); return; }
     if (battleState.isLeague) { finishLeagueVictory(); return; }
     finishGymVictory();
     return;
@@ -4174,7 +4009,7 @@ function updateEventBanner() {
   if (!banner) return;
   var wt = getWeekType();
   var labels = {
-    W1: { text: "📌 一般訓練週", color: "#795548", bg: "#fff3e0", border: "#e74c3c" },
+    W1: { text: "📌 一般訓練週", color: "#ffebee", bg: "#fff3e0", border: "#e74c3c" },
     W2: { text: "⚡ 道館加成週 — 道館挑戰 EXP +50%、金幣 +10", color: "#e67e22", bg: "#fff8e1", border: "#f39c12" },
     W3: { text: "📚 訓練強化週 — 路人戰 EXP +30%", color: "#2e7d32", bg: "#e8f5e9", border: "#4caf50" },
     W4: { text: "👑 Boss 週 — 魔王降臨！四天王等待挑戰！", color: "#c0392b", bg: "#ffebee", border: "#e74c3c" }
@@ -4197,30 +4032,14 @@ function updateBattleButtons() {
   var battlesToday = globalData.todayBattles || 0;
   arena.style.display = battlesToday >= 5 ? "none" : "inline-block";
   arena.innerHTML = "⚔️ 路人戰 (" + (5 - battlesToday) + "/5)";
-  // 八大師按鈕 — W4 或緩衝期 + 聯盟已通關
-  var m8Btn = $("btnMasters8Battle");
-  if (m8Btn) {
-    var weekType = getWeekType();
-    var isW4 = weekType === "W4";
-    var isBuffer = isBufferPeriod();
-    var todayOk = !globalData.todayCompleted;
-    if ((isW4 || isBuffer) && todayOk) {
-      var challenge = getE4ChallengeForBadges(globalData.badges || 0);
-      if (challenge) {
-        var mKey = new Date().getFullYear() + "-" + (new Date().getMonth() + 1);
-        var leagueCleared = leagueCompletedMonths[challenge.region] === mKey;
-        var m8Done = (globalData.masters8Completed || []).length >= MASTERS_8.length;
-        if (leagueCleared && !m8Done) {
-          m8Btn.style.display = "inline-block";
-          m8Btn.innerHTML = "👑 八大師戰";
-        } else {
-          m8Btn.style.display = "none";
-        }
-      } else {
-        m8Btn.style.display = "none";
-      }
+  var boss = $("btnBossBattle");
+  if (boss) {
+    if (isBossWeek() && !globalData.todayCompleted) {
+      var bossW = globalData.weekBossWins || 0;
+      boss.style.display = bossW >= 1 ? "none" : "inline-block";
+      boss.innerHTML = "👑 魔王戰 (" + (1 - bossW) + "/1)";
     } else {
-      m8Btn.style.display = "none";
+      boss.style.display = "none";
     }
   }
 }
@@ -4322,21 +4141,26 @@ function getLeagueData(region) {
   return LEAGUE_REGIONS[region] || LEAGUE_REGIONS["關都"];
 }
 
-function generateLeagueGauntlet(trainerLevel, region) {
+function generateLeagueGauntlet(trainerLevel, region, half) {
   var badges = globalData.badges || 0;
   var leagueData = getLeagueData(region);
   if (badges < leagueData.requiredBadges) return null;
   var monthKey = new Date().getFullYear() + "-" + (new Date().getMonth() + 1);
-  if (leagueCompletedMonths[region] === monthKey) return { waves: [], leagueInfo: null, completed: true };
+  var e4Key = half ? region + "_" + half : region;
+  if (e4Completed[e4Key] === monthKey) return { waves: [], leagueInfo: null, completed: true };
+  if (!half && leagueCompletedMonths[region] === monthKey) return { waves: [], leagueInfo: null, completed: true };
   var e4 = leagueData.eliteFour;
-  var expectedLv = EXPECTED_LEVEL[Math.min(badges, EXPECTED_LEVEL.length - 1)];
+  var champ = leagueData.champion;
+  var expectedLv = EXPECTED_LEVEL[Math.min(Math.min(badges, 31), EXPECTED_LEVEL.length - 1)];
   var effectiveLv = getEffectiveLevel(expectedLv, trainerLevel);
   var waves = [];
-  var leagueInfo = { name: region + "聯盟", emoji: "🏆", leader: "四天王", region: region };
-  // 每場 E4 = 3 波, 2 位 E4 = 6 波
-  for (var li = 0; li < e4.length; li++) {
+  var leaderLabel = half === "first" ? "四天王前半" : (half === "second" ? "四天王後半+冠軍" : "四天王+冠軍");
+  var leagueInfo = { name: region + "聯盟", emoji: "🏆", leader: leaderLabel, region: region, half: half || "full" };
+  var startIdx = half === "first" ? 0 : (half === "second" ? 2 : 0);
+  var endIdx = half === "first" ? 2 : (half === "second" ? 4 : 4);
+  for (var li = startIdx; li < endIdx; li++) {
     var e4m = e4[li];
-    var tier = "稀有";
+    var tier = li < 2 ? "稀有" : "傳說";
     var pool = POKEMON_TIERS[tier].slice();
     var candidates = [];
     var e4Level = Math.max(5, expectedLv + Math.round(e4m.lvBonus * 0.04));
@@ -4353,182 +4177,48 @@ function generateLeagueGauntlet(trainerLevel, region) {
         candidates.push({ name: en2, types: POKEMON_SPECIES_TYPES[en2] || ["一般"], legendary: s2.legendary });
       }
     }
-    // 每人 3 波
-    for (var wi = 0; wi < 3; wi++) {
-      var chosen = candidates[Math.floor(Math.random() * candidates.length)];
-      var baseLevel = Math.max(5, e4Level + Math.floor(Math.random() * 3));
-      var pt = chosen.types.join("/");
-      var prefix = chosen.legendary ? "✨ " : "👑 ";
-      var displayName = prefix + chosen.name + " (" + pt + ")";
-      var isLast = (li === e4.length - 1 && wi === 2);
-      waves.push({
-        name: displayName, level: baseLevel, isGym: false, isLeague: true,
-        isLastWave: isLast, isWeeklyBoss: false,
-        waveIndex: li * 3 + wi,
-        bossName: e4m.name, bossType: e4m.type, bossEmoji: e4m.emoji, leagueRegion: region
-      });
-    }
+    var chosen = candidates[Math.floor(Math.random() * candidates.length)];
+    var baseLevel = Math.max(5, e4Level + Math.floor(Math.random() * 3));
+    var pt = chosen.types.join("/");
+    var prefix = chosen.legendary ? "✨ " : "👑 ";
+    var displayName = prefix + chosen.name + " (" + pt + ")";
+    waves.push({
+      name: displayName, level: baseLevel, isGym: false, isLeague: true,
+      isLastWave: false, isWeeklyBoss: false, waveIndex: li,
+      bossName: e4m.name, bossType: e4m.type, bossEmoji: e4m.emoji, leagueRegion: region
+    });
+  }
+  if (half !== "first") {
+    var champPool = POKEMON_TIERS["傳說"].slice();
+    var champPkmn = champPool[Math.floor(Math.random() * champPool.length)];
+    var champEvo = champPkmn.name;
+    var champTypes = POKEMON_SPECIES_TYPES[champEvo] || ["一般"];
+    var champLevel = Math.max(5, expectedLv + Math.round(champ.lvBonus * 0.06) + Math.floor(Math.random() * 3));
+    var champPt = champTypes.join("/");
+    var champDisplay = "✨ 冠軍 " + champEvo + " (" + champPt + ")";
+    waves.push({
+      name: champDisplay, level: champLevel, isGym: false, isLeague: true,
+      isLastWave: waves.length === 0, isWeeklyBoss: false, waveIndex: endIdx,
+      bossName: champ.name, bossType: champ.type, bossEmoji: champ.emoji, leagueRegion: region
+    });
   }
   if (waves.length > 0) waves[waves.length - 1].isLastWave = true;
   return { waves: waves, leagueInfo: leagueInfo, completed: false };
-}
-
-// ===== VER2.2: 八大師戰鬥系統 =====
-function createMasters8Enemy(pokemonName, level) {
-  var types = POKEMON_SPECIES_TYPES[pokemonName] || ["一般"];
-  var pt = types.join("/");
-  var displayName = "👑 " + pokemonName + " (" + pt + ")";
-  var enemy = createEnemyPokemon(displayName, level, false, false);
-  return enemy;
-}
-
-function generateMasters8Battle(trainerLevel, mastersMember) {
-  var badges = globalData.badges || 0;
-  var expectedLv = EXPECTED_LEVEL[Math.min(badges, EXPECTED_LEVEL.length - 1)];
-  var effectiveLv = getEffectiveLevel(expectedLv, trainerLevel);
-  var waves = [];
-  var baseLv = Math.max(5, expectedLv + Math.round(mastersMember.lvBonus * 0.06));
-  for (var mi = 0; mi < mastersMember.pokemon.length; mi++) {
-    var pkName = mastersMember.pokemon[mi];
-    var lv = baseLv + Math.floor(Math.random() * 3);
-    var isLast = (mi === mastersMember.pokemon.length - 1);
-    var enemy = createMasters8Enemy(pkName, lv);
-    enemy.isLastWave = isLast;
-    enemy.isWeeklyBoss = true;
-    enemy.waveIndex = mi;
-    enemy.bossName = mastersMember.name;
-    enemy.bossType = mastersMember.type;
-    enemy.bossEmoji = "👑";
-    waves.push(enemy);
-  }
-  if (waves.length > 0) waves[waves.length - 1].isLastWave = true;
-  var m8Info = { name: "八大師戰", emoji: "👑", leader: mastersMember.name + " (" + mastersMember.desc + ")" };
-  return { waves: waves, m8Info: m8Info };
-}
-
-function startMasters8Battle() {
-  if (!globalData || typeof globalData.highestLevel === "undefined") return;
-  if (globalData.todayCompleted) { toast("今日已完成！"); return; }
-  var month = getCurrentMonth();
-  var mastersMember = getMasters8ForMonth(month);
-  if (!mastersMember) { toast("本月沒有對應的八大師！"); return; }
-  // 確認依序挑戰 (小智→艾莉絲→...→丹帝)
-  var m8Completed = globalData.masters8Completed || [];
-  var m8Progress = globalData.masters8Progress || [];
-  if (m8Completed.indexOf(mastersMember.name) !== -1) { toast("本月八大師已擊敗！"); return; }
-  // 檢查是否可以挑戰（必須先擊敗排名較低的八大師）
-  for (var mi = MASTERS_8.length - 1; mi >= 0; mi--) {
-    var m = MASTERS_8[mi];
-    if (m.rank > mastersMember.rank && m.month < month) {
-      if (m8Completed.indexOf(m.name) === -1) {
-        toast("必須先擊敗 " + m.name + " 才能挑戰 " + mastersMember.name + "！");
-        return;
-      }
-    }
-  }
-  var trainerLevel = globalData.highestLevel || 5;
-  if (globalData.simpleMode) trainerLevel = Math.max(5, Math.floor(trainerLevel * 0.75));
-  var result = generateMasters8Battle(trainerLevel, mastersMember);
-  if (!result || !result.waves.length) { toast("八大師戰產生失敗！"); return; }
-  // 記錄進度
-  if (m8Progress.indexOf(mastersMember.name) === -1) {
-    m8Progress.push(mastersMember.name);
-    globalData.masters8Progress = m8Progress;
-  }
-  // 開啟戰鬥
-  openArenaMasters8(result.waves, result.m8Info);
-}
-
-function openArenaMasters8(waveEnemies, m8Info) {
-  if (!globalData || !globalData.roster || globalData.roster.length === 0) { toast("你還沒有寶可夢！"); return; }
-  var party = [];
-  var partyIds = globalData.partyIds || [];
-  for (var i = 0; i < partyIds.length; i++) {
-    var match = globalData.roster.find(function(p){ return p.id === partyIds[i]; });
-    if (match) party.push(createPlayerPokemon(match));
-  }
-  if (party.length === 0) {
-    var sorted = globalData.roster.slice().sort(function(a,b){ return b.currentLevel - a.currentLevel; });
-    party = [createPlayerPokemon(sorted[0])];
-  }
-  var firstPkmn = party[0];
-  battleState = {
-    playerPokemon: firstPkmn, playerParty: party, enemy: waveEnemies[0],
-    isGym: false, isLeague: true, isMasters8: true, turnLock: false,
-    battleOver: false, playerWon: false,
-    gymWaves: waveEnemies, currentWave: 0, totalWaves: waveEnemies.length,
-    gymInfo: { name: m8Info.name, emoji: "👑", leader: m8Info.leader },
-    weather: null
-  };
-  var abilityLog = [];
-  applyEntryAbility(battleState.enemy, firstPkmn, battleState, abilityLog);
-  $("battleLog").innerHTML = "<p style='color:#c0392b;'>👑 八大師戰 — " + m8Info.leader + "</p>" + (abilityLog.length ? "<p>" + abilityLog.join(" ") + "</p>" : "");
-  $("battleModal").style.display = "flex";
-  $("arenaBattlePhase").style.display = "block";
-  $("arenaResultPhase").style.display = "none";
-  $("arenaItemPanel").style.display = "none";
-  $("resultMessage").style.display = "none";
-  $("battleTitle").innerHTML = "👑 八大師戰 — " + m8Info.leader + " (1/" + waveEnemies.length + ")";
-  updateArenaUI();
-  var enemyBox = $("enemyPkmnName");
-  if (enemyBox) { enemyBox.classList.remove("entry-animation"); void enemyBox.offsetWidth; enemyBox.classList.add("entry-animation"); }
-}
-
-function finishMasters8Victory() {
-  battleState.battleOver = true;
-  battleState.playerWon = true;
-  var month = getCurrentMonth();
-  var mastersMember = getMasters8ForMonth(month);
-  if (!mastersMember) { toast("錯誤：找不到本月八大師"); return; }
-  var m8Completed = globalData.masters8Completed || [];
-  var m8Progress = globalData.masters8Progress || [];
-  if (m8Completed.indexOf(mastersMember.name) === -1) m8Completed.push(mastersMember.name);
-  globalData.masters8Completed = m8Completed;
-  globalData.masters8Progress = m8Progress.filter(function(n){ return n !== mastersMember.name; });
-  leaguePoints["M8_" + mastersMember.name] = (leaguePoints["M8_" + mastersMember.name] || 0) + 20;
-  // 經驗值獎勵
-  var totalExpGain = 0, partyUsed = [];
-  for (var i = 0; i < battleState.playerParty.length; i++) {
-    var pk = battleState.playerParty[i];
-    if (pk.currentHp > 0 && partyUsed.length < 6) partyUsed.push(pk);
-  }
-  var cumulativeExp = 0;
-  for (var wi = 0; wi < battleState.totalWaves; wi++) {
-    var we = battleState.gymWaves[wi];
-    var baseExp = ARENA_EXP_BASE + Math.floor(we.level * 3);
-    var waveMult = we.isLastWave ? 4 : 2.5;
-    baseExp = Math.floor(baseExp * 8 * waveMult);
-    cumulativeExp += baseExp;
-  }
-  totalExpGain = Math.floor(cumulativeExp);
-  var coinsGain = Math.floor((120 + Math.floor(battleState.enemy.level * 2)) * (globalData.hasAmuletCoin ? 1.5 : 1));
-  var msg = "👑 八大師擊敗！戰勝了 " + mastersMember.name + "！各隊員獲得 " + totalExpGain + " 經驗值, " + coinsGain + " 金幣 +20聯盟積分";
-  $("arenaBattlePhase").style.display = "none";
-  $("arenaResultPhase").style.display = "block";
-  $("resultMessage").innerHTML = msg;
-  $("resultMessage").style.display = "block";
-  var rewardsHtml = "<div style='font-size:13px;color:#555;margin-bottom:6px;'>";
-  var expParts = [];
-  for (var j = 0; j < partyUsed.length; j++) {
-    var share = j === 0 ? Math.floor(totalExpGain * 1.2) : Math.floor(totalExpGain * 0.5);
-    expParts.push((j === 0 ? "🛡️" : "⚔️") + partyUsed[j].name.replace(/^[^\s]*\s*/,"") + ": +" + share + (j === 0 ? "(先鋒×1.2)" : "(參與×0.5)"));
-  }
-  rewardsHtml += expParts.join(" | ") + "</div>";
-  $("resultRewards").innerHTML = rewardsHtml;
-  var participantStr = partyUsed.map(function(p){ return p.id; }).join(",");
-  var noteContent = "👑 八大師擊敗 [" + mastersMember.name + " (#" + mastersMember.rank + ")] | 參與者: " + participantStr;
-  executeSave({ studentId: globalData.studentId, score: 0, action: "戰鬥勝利", expGained: totalExpGain, coinsGained: coinsGain, badgeChange: 0, note: noteContent, extraNote: noteContent, totalScore: 0, user: globalData.studentId }, null, false);
-  battleState = null;
-  $("resultConfirmBtn").style.display = "block";
 }
 
 function finishLeagueVictory() {
   battleState.battleOver = true;
   battleState.playerWon = true;
   var region = battleState.leagueRegion || "關都";
+  var leagueHalf = battleState.leagueHalf;
   var leagueData = getLeagueData(region);
+  var champ = leagueData.champion;
   var monthKey = new Date().getFullYear() + "-" + (new Date().getMonth() + 1);
-  leagueCompletedMonths[region] = monthKey;
+  if (leagueHalf) {
+    e4Completed[region + "_" + leagueHalf] = monthKey;
+  } else {
+    leagueCompletedMonths[region] = monthKey;
+  }
   leagueChampions[region] = globalData.studentId;
   leaguePoints[region] = (leaguePoints[region] || 0) + 10;
   var totalExpGain = 0, partyUsed = [];
@@ -4554,13 +4244,13 @@ function finishLeagueVictory() {
   var alreadyCaptured = globalData.monthLeagueWins > 0;
   var canCapture = !alreadyCaptured || Math.random() < 0.4;
   if (canCapture) { captureText = " | 🏆 捕獲: " + battleState.enemy.name; }
-  var e4Names = leagueData.eliteFour.map(function(e){ return e.name; }).join(" & ");
-  var msg = "🏆 " + region + "聯盟冠軍！擊敗了 " + e4Names + "！各隊員獲得 " + totalExpGain + " 經驗值, " + coinsGain + " 金幣 +10聯盟積分" + captureText;
+  var msg = "🏆 " + region + "聯盟冠軍！擊敗了四天王 & " + champ.name + "！各隊員獲得 " + totalExpGain + " 經驗值, " + coinsGain + " 金幣 +10聯盟積分" + captureText;
   if (!alreadyCaptured) msg += " | 🌟 傳說捕獲！";
   $("arenaBattlePhase").style.display = "none";
   $("arenaResultPhase").style.display = "block";
   $("resultMessage").innerHTML = msg;
   $("resultMessage").style.display = "block";
+  // Build rewards display
   var rewardsHtml = "<div style='font-size:13px;color:#555;margin-bottom:6px;'>";
   var expParts = [];
   for (var j = 0; j < partyUsed.length; j++) {
@@ -4587,13 +4277,13 @@ function finishLeagueVictory() {
   }
   $("resultRewards").innerHTML = rewardsHtml;
   var participantStr = partyUsed.map(function(p){ return p.id; }).join(",");
-  var noteContent = "⚔️ 聯盟冠軍 [" + region + " League] | E4 [" + e4Names + "] | 參與者: " + participantStr + captureText;
+  var noteContent = "⚔️ 聯盟冠軍 [" + region + " League] | 四天王+冠軍 [" + champ.name + "] | 參與者: " + participantStr + captureText;
   executeSave({ studentId: globalData.studentId, score: 0, action: "戰鬥勝利", expGained: totalExpGain, coinsGained: coinsGain, badgeChange: 0, note: noteContent, extraNote: noteContent, totalScore: 0, user: globalData.studentId }, null, false);
   battleState = null;
   $("resultConfirmBtn").style.display = "block";
 }
 
-function startLeagueBattle(region) {
+function startLeagueBattle(region, half) {
   if (!globalData || typeof globalData.highestLevel === "undefined") return;
   if (globalData.todayCompleted) { toast("今日已完成！"); return; }
   region = region || currentRegion;
@@ -4601,10 +4291,11 @@ function startLeagueBattle(region) {
   var badges = globalData.badges || 0;
   if (badges < leagueData.requiredBadges) { toast("需要 " + leagueData.requiredBadges + " 枚徽章才能挑戰" + region + "聯盟！"); return; }
   var monthKey = new Date().getFullYear() + "-" + (new Date().getMonth() + 1);
-  if (leagueCompletedMonths[region] === monthKey) { toast(region + "本月聯盟已通關！"); return; }
+  var e4Key = half ? region + "_" + half : region;
+  if (e4Completed[e4Key] === monthKey) { toast(region + "本階段本月已通關，下個月再來！"); return; }
   var trainerLevel = globalData.highestLevel || 5;
   if (globalData.simpleMode) trainerLevel = Math.max(5, Math.floor(trainerLevel * 0.75));
-  var result = generateLeagueGauntlet(trainerLevel, region);
+  var result = generateLeagueGauntlet(trainerLevel, region, half);
   if (!result || result.completed) { toast("本月聯盟已完成！"); return; }
   var waveEnemies = [];
   for (var wi = 0; wi < result.waves.length; wi++) {
@@ -4620,17 +4311,17 @@ function startLeagueBattle(region) {
   openArenaLeague(waveEnemies, result.leagueInfo);
 }
 function promptE4Challenge() {
-  if (!isBossWeek() && !isBufferPeriod()) { toast("四天王挑戰僅在 Boss 週或緩衝期開放！"); return; }
+  if (!isBossWeek()) { toast("四天王挑戰僅在 Boss 週開放！"); return; }
   if (!globalData || globalData.todayCompleted) { toast("今日已完成！"); return; }
   var badges = globalData.badges || 0;
   var challenge = getE4ChallengeForBadges(badges);
   if (!challenge) { toast("尚未達到四天王挑戰門檻（需 4 枚以上徽章）"); return; }
   var mKey = new Date().getFullYear() + "-" + (new Date().getMonth() + 1);
-  if (leagueCompletedMonths[challenge.region] === mKey) { toast("本月已通關 " + challenge.region + " 聯盟！下個月再來！"); return; }
-  $("confirmModalText").innerHTML = "🏆 " + challenge.region + "聯盟挑戰<br><br>四天王在 Boss 週（或緩衝期）等待挑戰！<br>是否接受挑戰？<br><br><small style='color:#888;'>可選擇跳過，不影響徽章收集進度</small>";
+  if (e4Completed[challenge.region + "_" + challenge.half] === mKey) { toast("本月四天王挑戰已完成！下個月再來！"); return; }
+  $("confirmModalText").innerHTML = "🏆 " + challenge.name + "<br><br>四天王在 Boss 週等待挑戰！<br>是否接受挑戰？<br><br><small style='color:#888;'>可選擇跳過，不影響徽章收集進度</small>";
   $("confirmBtnYes").onclick = function() {
     $("confirmModal").style.display = "none";
-    startLeagueBattle(challenge.region);
+    startLeagueBattle(challenge.region, challenge.half);
   };
   $("confirmModal").style.display = "flex";
 }
@@ -4653,8 +4344,8 @@ function openArenaLeague(waveEnemies, leagueInfo) {
     playerPokemon: firstPkmn, playerParty: party, enemy: waveEnemies[0],
     isGym: false, isLeague: true, turnLock: false, battleOver: false, playerWon: false,
     gymWaves: waveEnemies, currentWave: 0, totalWaves: waveEnemies.length,
-    gymInfo: { name: region + "聯盟", emoji: "🏆", leader: leagueInfo.leader || "四天王" },
-    weather: null, leagueRegion: region
+    gymInfo: { name: region + "聯盟", emoji: "🏆", leader: leagueInfo.leader || "四天王+冠軍" },
+    weather: null, leagueRegion: region, leagueHalf: leagueInfo.half
   };
   var abilityLog3 = [];
   applyEntryAbility(battleState.enemy, firstPkmn, battleState, abilityLog3);
@@ -4688,23 +4379,6 @@ function openPCBoxModal() {
   for (var ti = 0; ti < allTypes.length; ti++) { var o = document.createElement("option"); o.value = allTypes[ti]; o.textContent = allTypes[ti]; typeFilter.appendChild(o); }
   typeFilter.onchange = function() { renderPCBoxContent(); };
   searchBar.appendChild(typeFilter);
-  var sortSelect = document.createElement("select"); sortSelect.id = "pcBoxSort";
-  sortSelect.style.cssText = "padding:6px;border:1px solid #ccc;border-radius:6px;font-size:13px;";
-  var sortOptions = [
-    { value: "default", label: "預設排序" },
-    { value: "level", label: "⬇ 等級" },
-    { value: "statTotal", label: "⬇ 能力值總和" },
-    { value: "name", label: "⬆ 名稱" }
-  ];
-  for (var si = 0; si < sortOptions.length; si++) { var so = document.createElement("option"); so.value = sortOptions[si].value; so.textContent = sortOptions[si].label; sortSelect.appendChild(so); }
-  sortSelect.onchange = function() { renderPCBoxContent(); };
-  searchBar.appendChild(sortSelect);
-  // 比較按鈕
-  var cmpBtn = document.createElement("button");
-  cmpBtn.textContent = "⚖️ 比較";
-  cmpBtn.style.cssText = "padding:4px 10px;border:1px solid #2980b9;background:#3498db;color:white;border-radius:6px;cursor:pointer;font-size:12px;";
-  cmpBtn.onclick = function() { closeModal('pcBoxModal'); openCompareModal(); };
-  searchBar.appendChild(cmpBtn);
   box.appendChild(searchBar);
   renderPCBoxContent();
 }
@@ -4729,20 +4403,6 @@ function renderPCBoxContent() {
     }
     return true;
   });
-  var sortMode = ($("pcBoxSort") ? $("pcBoxSort").value : "default");
-  if (sortMode === "level") {
-    filtered.sort(function(a,b){ return (b.currentLevel||0) - (a.currentLevel||0); });
-  } else if (sortMode === "statTotal") {
-    filtered.sort(function(a,b){
-      var sa = getPokemonStats(a.baseName, a.currentLevel);
-      var sb = getPokemonStats(b.baseName, b.currentLevel);
-      var ta = (sa.hp||0)+(sa.atk||0)+(sa.def||0)+(sa.spatk||0)+(sa.spdef||0)+(sa.speed||0);
-      var tb = (sb.hp||0)+(sb.atk||0)+(sb.def||0)+(sb.spatk||0)+(sb.spdef||0)+(sb.speed||0);
-      return tb - ta;
-    });
-  } else if (sortMode === "name") {
-    filtered.sort(function(a,b){ var na=(a.baseName||""), nb=(b.baseName||""); return na < nb ? -1 : na > nb ? 1 : 0; });
-  }
   var grid1 = document.createElement("div"); grid1.className = "pc-grid";
   var g1h = document.createElement("h4"); g1h.innerHTML = "📋 隊伍 (Party)"; grid1.appendChild(g1h);
   var partyIds = globalData.partyIds || [];
@@ -4791,7 +4451,7 @@ function renderPCBoxContent() {
     invRow.appendChild(badge);
   }
   invDiv.appendChild(invRow);
-  // held items display only (equip/unequip managed via ⚡ 裝備/招式學習)
+  // held items with equip buttons
   var heldSection = document.createElement("div");
   heldSection.style.cssText = "font-size:12px;margin-bottom:6px;";
   var heldLabels = [];
@@ -4804,9 +4464,9 @@ function renderPCBoxContent() {
       var hItem = heldLabels[hl];
       var holder = gd.roster.find(function(p){ return p.heldItem === hItem.id; });
       if (holder) {
-        heldSection.innerHTML += "<span style='background:#f3e5f5;padding:2px 6px;border-radius:4px;margin:2px;display:inline-block;font-size:11px;'>" + hItem.icon + " " + hItem.name + " → " + holder.baseName + "</span> ";
+        heldSection.innerHTML += "<span style='background:#f3e5f5;padding:2px 6px;border-radius:4px;margin:2px;display:inline-block;font-size:11px;'>" + hItem.icon + " " + hItem.name + " → " + holder.baseName + " <button style='padding:0 4px;font-size:10px;cursor:pointer;' onclick='unequipFromPCBox(\"" + holder.id + "\",\"" + hItem.id + "\")'>卸下</button></span> ";
       } else if (hItem.id !== "tmUniversal") {
-        heldSection.innerHTML += "<span style='background:#e0e0e0;padding:2px 6px;border-radius:4px;margin:2px;display:inline-block;font-size:11px;'>" + hItem.icon + " " + hItem.name + "</span> ";
+        heldSection.innerHTML += "<span style='background:#e0e0e0;padding:2px 6px;border-radius:4px;margin:2px;display:inline-block;font-size:11px;'>" + hItem.icon + " " + hItem.name + " <button style='padding:0 4px;font-size:10px;cursor:pointer;' onclick='openQuickEquip(\"" + hItem.id + "\")'>裝備</button></span> ";
       } else {
         heldSection.innerHTML += "<span style='background:#e0e0e0;padding:2px 6px;border-radius:4px;margin:2px;display:inline-block;font-size:11px;'>" + hItem.icon + " " + hItem.name + "</span> ";
       }
@@ -4862,26 +4522,6 @@ function openPkmnDetail(pokemonId) {
   var inParty = (globalData.partyIds || []).indexOf(pkmn.id) !== -1;
   function heldStatBonus(heldId) { if (heldId === "eviolite") return "DEF x1.5, SPDEF x1.5"; if (heldId === "assaultVest") return "SPDEF x1.5"; return ""; }
   var heldBonus = heldStatBonus(pkmn.heldItem);
-  var movesList = getPokemonMoveset(pkmn.baseName, pkmn.currentLevel);
-  var catIcons = {"物理":"⚔️","特殊":"🔮","變化":"🔄"};
-  var catColors = {"物理":"#e74c3c","特殊":"#3498db","變化":"#95a5a6"};
-  var movesHtml = "<div style='background:#f5f5f5;border-radius:8px;padding:10px;margin-bottom:8px;'>" +
-    "<div style='font-size:12px;font-weight:700;color:#555;margin-bottom:4px;'>⚡ 招式</div>" +
-    "<div style='display:grid;grid-template-columns:1fr 1fr;gap:4px;'>";
-  for (var mi = 0; mi < movesList.length; mi++) {
-    var md = getMoveDetails(movesList[mi]);
-    var mtCol = typeColors[md.type] || "#999";
-    movesHtml += "<div style='background:white;border-radius:6px;padding:6px;border:1px solid #e0e0e0;font-size:11px;'>" +
-      "<div style='font-weight:700;font-size:12px;margin-bottom:2px;'>" + movesList[mi] + "</div>" +
-      "<div style='display:flex;gap:3px;align-items:center;margin-bottom:2px;'>" +
-      "<span style='background:" + mtCol + ";color:white;padding:0 5px;border-radius:3px;font-size:10px;'>" + md.type + "</span>" +
-      "<span style='color:" + (catColors[md.category]||"#999") + ";font-size:10px;'>" + (catIcons[md.category]||"") + " " + md.category + "</span>" +
-      (md.power > 0 ? "<span style='color:#555;font-size:10px;'>威力:" + md.power + "</span>" : "") +
-      "</div>" +
-      "<div style='color:#888;font-size:10px;'>" + md.desc + "</div>" +
-    "</div>";
-  }
-  movesHtml += "</div></div>";
   body.innerHTML =
     "<div style='display:flex;align-items:center;gap:8px;margin-bottom:8px;'>" +
       "<span style='font-size:20px;font-weight:700;'>" + pkmn.baseName + "</span>" +
@@ -4907,138 +4547,14 @@ function openPkmnDetail(pokemonId) {
       (abil ? "特性: " + abil : "") +
       (heldName ? " | " + heldIcon + " 持有: " + heldName : "") +
     "</div>" +
-    "<div style='font-size:11px;color:#999;'>捕獲日期: " + (pkmn.catchDate || "未知") + " | 好感度: " + Math.min(pkmn.happiness || 0, 120) + "/120</div>" +
-    movesHtml;
+    "<div style='font-size:11px;color:#999;'>捕獲日期: " + (pkmn.catchDate || "未知") + " | 好感度: " + Math.min(pkmn.happiness || 0, 120) + "/120</div>";
   $("pkmnDetailModal").style.display = "flex";
-}
-
-function openCompareModal() {
-  if (!globalData || !globalData.roster || globalData.roster.length === 0) return;
-  var selBar = $("compareSelectionBar");
-  var body = $("compareBody");
-  var partyIds = globalData.partyIds || [];
-  var selected = {};
-  for (var ci = 0; ci < partyIds.length; ci++) selected[partyIds[ci]] = true;
-  var typeColors = {"一般":"#a8a878","火":"#f08030","水":"#6890f0","草":"#78c850","電":"#f8d030","冰":"#98d8d8","格鬥":"#c03028","毒":"#a040a0","地面":"#e0c068","飛行":"#a890f0","超能力":"#f85888","蟲":"#a8b820","岩石":"#b8a038","幽靈":"#705898","龍":"#7038f8","惡":"#705848","鋼":"#b8b8d0","妖精":"#ee99ac"};
-  var allTypes = ["一般","火","水","草","電","冰","格鬥","毒","地面","飛行","超能力","蟲","岩石","幽靈","龍","鋼","妖精","惡"];
-  var barColors = { hp:"#e74c3c",atk:"#e67e22",def:"#27ae60",spatk:"#3498db",spdef:"#9b59b6",speed:"#1abc9c" };
-  var statKeys = ["hp","atk","def","spatk","spdef","speed"];
-  var statLabels = ["❤️ HP","⚔️ ATK","🛡️ DEF","🔮 SPA","🌐 SPD","💨 SPE"];
-  function renderCompare() {
-    var selectedIds = [];
-    for (var k in selected) { if (selected[k]) selectedIds.push(k); }
-    if (selectedIds.length < 1) { body.innerHTML = "<div style='text-align:center;padding:40px;color:#999;'>請至少選擇 1 隻寶可夢進行比較</div>"; return; }
-    var pkmnList = [];
-    for (var si = 0; si < selectedIds.length; si++) { var f = globalData.roster.find(function(p){ return p.id === selectedIds[si]; }); if (f) pkmnList.push(f); }
-    var statsList = [];
-    for (var si2 = 0; si2 < pkmnList.length; si2++) { statsList.push({ p: pkmnList[si2], s: getPokemonStats(pkmnList[si2].baseName, pkmnList[si2].currentLevel) }); }
-    var maxVals = [1,1,1,1,1,1];
-    for (var mi = 0; mi < statsList.length; mi++) { var st = statsList[mi].s; for (var ki = 0; ki < statKeys.length; ki++) { var v = st[statKeys[ki]] || 0; if (v > maxVals[ki]) maxVals[ki] = v; } }
-    // ── Table: header (Pokémon columns) ──
-    var html = "<div style='overflow-x:auto;'>";
-    html += "<table style='width:100%;border-collapse:collapse;font-size:12px;'>";
-    // Header row: stat label | Pokémon 1 | Pokémon 2 | ...
-    html += "<tr style='background:#f0f4f8;'>";
-    html += "<th style='padding:6px 8px;text-align:left;font-weight:700;color:#555;border:1px solid #ddd;'>能力</th>";
-    for (var hi = 0; hi < statsList.length; hi++) {
-      var hp = statsList[hi].p;
-      var hTypes = getPokemonType(hp.baseName);
-      var hChips = "";
-      for (var ht = 0; ht < hTypes.length; ht++) { hChips += "<span style='display:inline-block;background:"+(typeColors[hTypes[ht]]||"#999")+";color:white;padding:0 5px;border-radius:3px;font-size:9px;margin:0 1px;'>"+hTypes[ht]+"</span>"; }
-      html += "<th colspan='2' style='padding:6px 8px;text-align:center;border:1px solid #ddd;min-width:140px;'>" +
-        "<div style='font-weight:700;font-size:13px;'>"+hp.baseName+"</div>" +
-        "<div style='color:#555;font-weight:400;font-size:11px;'>Lv."+hp.currentLevel+"</div>" +
-        "<div style='margin-top:2px;'>"+hChips+"</div>" +
-      "</th>";
-    }
-    html += "</tr>";
-    // Stat rows: each row = one stat across all Pokémon
-    for (var ri = 0; ri < statKeys.length; ri++) {
-      var sk = statKeys[ri];
-      html += "<tr><td style='padding:6px 8px;font-weight:700;color:#555;border:1px solid #ddd;white-space:nowrap;'>"+statLabels[ri]+"</td>";
-      for (var ci = 0; ci < statsList.length; ci++) {
-        var sv = statsList[ci].s;
-        var val = sv[sk] || 0;
-        var pct = Math.round(val / Math.max(maxVals[ri], 1) * 100);
-        html += "<td colspan='2' style='padding:6px 8px;border:1px solid #ddd;text-align:center;'>" +
-          "<div style='display:flex;align-items:center;gap:6px;'>" +
-          "<div style='flex:1;background:#e0e0e0;border-radius:4px;height:12px;position:relative;'>" +
-          "<div style='width:"+pct+"%;background:"+barColors[sk]+";height:12px;border-radius:4px;transition:width 0.3s;'></div>" +
-          "</div>" +
-          "<span style='font-weight:700;min-width:30px;'>"+val+"</span>" +
-          "</div>" +
-        "</td>";
-      }
-      html += "</tr>";
-    }
-    // Separator between stat and type sections
-    html += "<tr><td colspan='" + (1 + statsList.length * 2) + "' style='padding:0;border:1px solid #ddd;background:#f0f4f8;height:4px;'></td></tr>";
-    // Row 2: 敵方|我方 子欄 (type section header)
-    html += "<tr style='background:#f0f4f8;'>";
-    html += "<th style='padding:2px 8px;border:1px solid #ddd;'></th>";
-    for (var hi = 0; hi < statsList.length; hi++) {
-      html += "<th style='padding:2px 4px;border:1px solid #ddd;text-align:center;font-size:10px;color:#888;font-weight:400;'>敵方</th>";
-      html += "<th style='padding:2px 4px;border:1px solid #ddd;text-align:center;font-size:10px;color:#888;font-weight:400;'>我方</th>";
-    }
-    html += "</tr>";
-    // ── Type matchup rows (18 types, 敵方|我方 sub-columns) ──
-    function _effCell(eff) {
-      if (eff >= 4) return ["#c0392b","white","×4"];
-      if (eff === 2) return ["#e74c3c","white","×2"];
-      if (eff === 0.5) return ["#27ae60","white","½"];
-      if (eff === 0.25) return ["#1abc9c","white","¼"];
-      if (eff === 0) return ["#2c3e50","white","×0"];
-      return ["#ecf0f1","#888","—"];
-    }
-    function _effOff(atkTypes, defType) {
-      var e = 1;
-      for (var i=0;i<atkTypes.length;i++) { e *= (TYPE_CHART[atkTypes[i]] && TYPE_CHART[atkTypes[i]][defType]) || 1; }
-      return e;
-    }
-    function _effDef(atkType, defTypes) {
-      var e = 1;
-      for (var i=0;i<defTypes.length;i++) { e *= (TYPE_CHART[atkType] && TYPE_CHART[atkType][defTypes[i]]) || 1; }
-      return e;
-    }
-    for (var at = 0; at < allTypes.length; at++) {
-      html += "<tr><td style='padding:2px 6px;font-size:10px;color:#555;border:1px solid #ddd;white-space:nowrap;'>"+allTypes[at]+"</td>";
-      for (var ti = 0; ti < statsList.length; ti++) {
-        var tp = statsList[ti].p;
-        var tTypes = getPokemonType(tp.baseName);
-        // 敵方: this type attacks the Pokémon
-        var effD = _effDef(allTypes[at], tTypes);
-        var cD = _effCell(effD);
-        // 我方: the Pokémon attacks this type
-        var effO = _effOff(tTypes, allTypes[at]);
-        var cO = _effCell(effO);
-        html += "<td style='padding:2px;border:1px solid #ddd;text-align:center;font-size:9px;background:"+cD[0]+";color:"+cD[1]+";font-weight:"+(effD!==1?"700":"400")+";'>"+cD[2]+"</td>";
-        html += "<td style='padding:2px;border:1px solid #ddd;text-align:center;font-size:9px;background:"+cO[0]+";color:"+cO[1]+";font-weight:"+(effO!==1?"700":"400")+";'>"+cO[2]+"</td>";
-      }
-      html += "</tr>";
-    }
-    html += "</table></div>";
-    body.innerHTML = html;
-  }
-  // Build selection bar
-  selBar.innerHTML = "<div style='font-size:12px;color:#555;margin-bottom:4px;'>點擊切換選擇（選取 1-6 隻）：</div>";
-  var sortedRoster = globalData.roster.slice().sort(function(a,b){ return (b.currentLevel||0)-(a.currentLevel||0); });
-  for (var ri = 0; ri < sortedRoster.length; ri++) {
-    var pkm = sortedRoster[ri];
-    var tog = document.createElement("span");
-    tog.style.cssText = "padding:3px 10px;border-radius:12px;font-size:11px;cursor:pointer;border:1px solid #bdc3c7;user-select:none;display:inline-block;margin:2px;";
-    tog.textContent = pkm.baseName + " Lv." + pkm.currentLevel;
-    if (selected[pkm.id]) { tog.style.background = "#3498db"; tog.style.color = "white"; tog.style.borderColor = "#2980b9"; }
-    tog.onclick = (function(id, el) { return function() { selected[id] = !selected[id]; if (selected[id]) { el.style.background="#3498db"; el.style.color="white"; el.style.borderColor="#2980b9"; } else { el.style.background=""; el.style.color=""; el.style.borderColor="#bdc3c7"; } renderCompare(); }; })(pkm.id, tog);
-    selBar.appendChild(tog);
-  }
-  renderCompare();
-  $("compareModal").style.display = "flex";
 }
 
 var swapSelection = null;
 
 function handleSwapClick(el) {
-  if (el.classList.contains("pc-empty") && !swapSelection) return;
+  if (el.classList.contains("pc-empty")) return;
   if (!swapSelection) {
     swapSelection = { element: el, pokemonId: el.dataset.pokemonId, type: el.dataset.type };
     el.style.outline = "3px solid #ffd700";
@@ -5108,50 +4624,9 @@ function closePvP() {
   pvpUnsub = [];
   if (pvpBattleUnsub) { pvpBattleUnsub(); pvpBattleUnsub = null; }
   pvp3 = null; pvpBattleDocId = null; pvpPickList = [];
-  window._pvpResolving = false; _pvpInitDone = false;
+  window._pvpResolving = false;
   $("pvpModal").style.display = "none";
 }
-
-function confirmLeavePvP() {
-  if (!pvp3 || !pvpBattleDocId || !pvp3.doc || pvp3.doc.status === "completed") { closePvP(); return; }
-  var overlay = document.createElement("div");
-  overlay.id = "pvpLeaveOverlay";
-  overlay.className = "pvp-leave-overlay";
-  overlay.innerHTML = '<div class="pvp-leave-dialog">' +
-    '<h3>確定離開對戰？</h3>' +
-    '<p>選擇離開方式：</p>' +
-    '<button class="btn-surrender" onclick="surrenderPvP()">投降退出（對手獲勝）</button>' +
-    '<button class="btn-temp-leave" onclick="tempLeavePvP()">暫離開（可繼續對戰）</button>' +
-    '<button class="btn-cancel" onclick="hidePvpLeaveConfirm()">取消</button>' +
-    '</div>';
-  document.body.appendChild(overlay);
-}
-function hidePvpLeaveConfirm() {
-  var el = document.getElementById("pvpLeaveOverlay");
-  if (el) el.remove();
-}
-function tempLeavePvP() {
-  hidePvpLeaveConfirm();
-  closePvP();
-}
-async function surrenderPvP() {
-  if (!pvp3 || !pvpBattleDocId) { closePvP(); return; }
-  hidePvpLeaveConfirm();
-  var isChallenger = pvp3.isChallenger;
-  var resultStr = isChallenger ? "defender_win" : "challenger_win";
-  var log = pvp3.log || [];
-  log.push(globalData.studentId + " 投降了");
-  try {
-    await db.collection("pvp_battles").doc(pvpBattleDocId).update({
-      status: "completed",
-      result: resultStr,
-      log: log,
-      updatedAt: firebase.firestore.FieldValue.serverTimestamp()
-    });
-    savePvPResult3v3(false);
-  } catch(e) {}
-}
-
 function checkPvpDoneToday() {
   if (!window.__pvpEvents) return false;
   var todayKey = new Date().toDateString();
@@ -5282,11 +4757,6 @@ async function invitePvP(opponentId) {
   if (!db || !firebase || !firebase.firestore) { toast("資料庫尚未連線"); return; }
   if (checkPvpDoneToday()) { toast("今日 PvP 已結束！每天限1次"); return; }
   var myId = globalData.studentId;
-  var pvpWeather = null;
-  if (Math.random() < 0.3) {
-    var wTypes = ["rain","sun","sand","hail"];
-    pvpWeather = { type: wTypes[Math.floor(Math.random()*4)], duration: 5 };
-  }
   var inviteDoc = {
     challengerId: myId,
     defenderId: opponentId,
@@ -5301,7 +4771,6 @@ async function invitePvP(opponentId) {
     result: null,
     challengerReady: false,
     defenderReady: false,
-    weather: pvpWeather,
     createdAt: firebase.firestore.FieldValue.serverTimestamp(),
     updatedAt: firebase.firestore.FieldValue.serverTimestamp()
   };
@@ -5350,41 +4819,38 @@ function openPvPTeamSelection(battleId, isChallenger) {
 
 function renderPvPTeamSelection() {
   var div = $("pvpTeamSelection");
-  var partyPkmn = (globalData.partyIds || []).map(function(id){ return globalData.roster.find(function(p){ return p.id === id; }); }).filter(function(p){ return p; });
-  var maxPick = partyPkmn.length;
-  var html = "<h4 style='margin:0 0 8px;color:#8e44ad;'>選擇 1~" + maxPick + " 隻出戰寶可夢</h4>";
-  html += "<div style='font-size:12px;color:#666;margin-bottom:8px;'>已選 " + pvpPickList.length + " 隻（可選 1~" + maxPick + " 隻）</div><div style='text-align:center;'>";
+  var partyPkmn = globalData.roster.filter(function(p){ return (globalData.partyIds || []).indexOf(p.id) !== -1; });
+  var html = "<h4 style='margin:0 0 8px;color:#8e44ad;'>選擇 1~3 隻出戰寶可夢</h4>";
+  html += "<div style='font-size:12px;color:#666;margin-bottom:8px;'>已選 " + pvpPickList.length + " 隻</div><div style='text-align:center;'>";
   for (var i = 0; i < partyPkmn.length; i++) {
     var p = partyPkmn[i];
     var isPicked = pvpPickList.indexOf(p.id) !== -1;
     var cls = "pvp-team-slot";
     if (isPicked) cls += " selected";
-    if (pvpPickList.length >= maxPick && !isPicked) cls += " disabled";
+    if (pvpPickList.length >= 3 && !isPicked) cls += " disabled";
     html += "<div class='" + cls + "' onclick='togglePvPPick(\"" + p.id + "\")'>" +
       "<strong>" + p.baseName + "</strong><br>Lv." + p.currentLevel + "<br>❤️ " + (p.happiness||0) + "/120" +
       (isPicked ? "<br>✅ 已選" : "") + "</div>";
   }
   html += "</div>";
   var canStart = pvpPickList.length >= 1;
-  html += "<button class='btn-pvp-start' style='margin-top:10px;' onclick='confirmPvPTeam()' " + (canStart ? "" : "disabled style='opacity:0.4;'") + ">✅ 確認隊伍" + (canStart ? "" : "（需選1~" + maxPick + "隻）") + "</button>";
+  html += "<button class='btn-pvp-start' style='margin-top:10px;' onclick='confirmPvPTeam()' " + (canStart ? "" : "disabled style='opacity:0.4;'") + ">✅ 確認隊伍" + (canStart ? "" : "（需選1~3隻）") + "</button>";
   html += "<button class='close-btn' style='margin-top:6px;' onclick='backToPvPLobby()'>返回</button>";
   div.innerHTML = html;
 }
 
 function togglePvPPick(pkmnId) {
-  var partyPkmn = globalData.roster.filter(function(p){ return (globalData.partyIds || []).indexOf(p.id) !== -1; });
-  var maxPick = partyPkmn.length;
   var idx = pvpPickList.indexOf(pkmnId);
   if (idx !== -1) { pvpPickList.splice(idx, 1); }
-  else if (pvpPickList.length < maxPick) { pvpPickList.push(pkmnId); }
-  else { toast("最多選 " + maxPick + " 隻！"); }
+  else if (pvpPickList.length < 3) { pvpPickList.push(pkmnId); }
+  else { toast("最多選 3 隻！"); }
   renderPvPTeamSelection();
 }
 
 async function confirmPvPTeam() {
   if (pvpPickList.length < 1) { toast("請選擇至少 1 隻寶可夢！"); return; }
   if (!db) { toast("資料庫尚未連線"); return; }
-  var partyPkmn = (globalData.partyIds || []).map(function(id){ return globalData.roster.find(function(p){ return p.id === id; }); }).filter(function(p){ return p && pvpPickList.indexOf(p.id) !== -1; });
+  var partyPkmn = globalData.roster.filter(function(p){ return pvpPickList.indexOf(p.id) !== -1; });
   var prepared = partyPkmn.map(function(p){ return createPlayerPokemon(p); });
   var updateField = pvp3.isChallenger ? "partyChallenger" : "partyDefender";
   var readyField = pvp3.isChallenger ? "challengerReady" : "defenderReady";
@@ -5423,16 +4889,8 @@ function checkBothReady() {
 }
 
 // ── 3v3 Battle ──
-var _pvpInitDone = false;
-var _pvpLocalAnim = false;
-var _pvpPrevMyActive = -1;
-var _pvpPrevEnemyActive = -1;
-var _pvpSlotCache = {};
-
 function startPvPBattle3v3(battleId) {
   if (!db) return;
-  _pvpInitDone = false;
-  _pvpSlotCache = {};
   pvpBattleDocId = battleId;
   $("pvpLobby").style.display = "none";
   $("pvpTeamSelection").style.display = "none";
@@ -5443,7 +4901,6 @@ function startPvPBattle3v3(battleId) {
     if (!snap.exists) return;
     var d = snap.data();
     if (d.status === "completed") {
-      if (pvp3) pvp3.doc = d;
       renderPvPResult3v3(d);
       return;
     }
@@ -5465,30 +4922,8 @@ function startPvPBattle3v3(battleId) {
       currentTurn: d.currentTurn || "challenger",
       turn: d.turn || 1,
       log: d.log || [],
-      result: d.result,
-      weather: d.weather || null
+      result: d.result
     };
-    // ── 初始天氣：特性觸發（PvP）──
-    if (!pvp3.weather) {
-      var myLead = myParty[pvp3.myActive];
-      var enemyLead = enemyParty[pvp3.enemyActive];
-      var wNames = {sun:"☀️ 大晴天",rain:"🌧️ 下雨",sand:"🌪️ 沙暴",hail:"❄️ 冰雹"};
-      if (enemyLead && enemyLead.ability && enemyLead.ability.trigger === "weatherEntry") {
-        pvp3.weather = { type: enemyLead.ability.weather, duration: 5 };
-        log.push(wNames[enemyLead.ability.weather] + " 籠罩了戰場！（持續5回合）");
-        if (typeof sfx !== "undefined") sfx.weather();
-      } else if (myLead && myLead.ability && myLead.ability.trigger === "weatherEntry") {
-        pvp3.weather = { type: myLead.ability.weather, duration: 5 };
-        log.push(wNames[myLead.ability.weather] + " 籠罩了戰場！（持續5回合）");
-        if (typeof sfx !== "undefined") sfx.weather();
-      }
-    }
-    if (pvp3.weather) {
-      setTimeout(function(){
-        var pvpContainer = document.querySelector("#pvpModal .modal-content");
-        if (pvpContainer) spawnWeatherParticles(pvpContainer, pvp3.weather);
-      }, 500);
-    }
     // 安全網：任一方全滅則自動結束戰鬥
     var allMyFainted = true;
     var allEnemyFainted = true;
@@ -5512,46 +4947,11 @@ function startPvPBattle3v3(battleId) {
     $("pvpBattle3v3").innerHTML = "<p style='color:#e74c3c;'>載入戰鬥失敗</p>";
   });
 
-  // Entry animation + sound
-  setTimeout(function(){
-    sfx.entry();
-    var battleEl = $("pvpBattle3v3");
-    if (battleEl) battleEl.classList.add("entry-animation");
-  }, 100);
-
-  // Mark battle as in_progress (sync initial weather if set by abilities)
-  var initUpdate = {
+  // Mark battle as in_progress
+  db.collection("pvp_battles").doc(battleId).update({
     status: "in_progress",
     updatedAt: firebase.firestore.FieldValue.serverTimestamp()
-  };
-  if (pvp3 && pvp3.weather && !d.weather) { initUpdate.weather = pvp3.weather; }
-  db.collection("pvp_battles").doc(battleId).update(initUpdate).catch(function(){});
-}
-
-function updatePvPWeatherUI() {
-  var wd = $("pvpWeatherDisplay");
-  if (!wd) return;
-  if (pvp3 && pvp3.weather) {
-    var wIcons = { rain: "🌧️", sun: "☀️", sand: "🌪️", hail: "❄️" };
-    var wNames = { rain: "下雨", sun: "大晴天", sand: "沙暴", hail: "冰雹" };
-    var wColors = { rain: "#3498db", sun: "#e67e22", sand: "#d4a853", hail: "#85c1e9" };
-    wd.style.display = "block";
-    wd.style.background = wColors[pvp3.weather.type] + "22";
-    wd.style.border = "2px solid " + (wColors[pvp3.weather.type] || "#999");
-    wd.innerHTML = wIcons[pvp3.weather.type] + " " + wNames[pvp3.weather.type]
-      + "（剩餘 " + pvp3.weather.duration + " 回合）"
-      + (pvp3.weather.duration <= 2 ? " ⏳" : "");
-    wd.classList.remove("weather-pulse", "weather-end");
-    void wd.offsetWidth;
-    if (pvp3.weather.duration <= 2) {
-      wd.classList.add("weather-end");
-      setTimeout(function(){ var el = $("pvpWeatherDisplay"); if (el) el.classList.remove("weather-end"); }, 800);
-    } else {
-      wd.classList.add("weather-pulse");
-    }
-  } else {
-    wd.style.display = "none";
-  }
+  }).catch(function(){});
 }
 
 function renderBattle3v3() {
@@ -5562,135 +4962,84 @@ function renderBattle3v3() {
   var myActive = pvp3.myParty[pvp3.myActive];
   var enemyActive = pvp3.enemyParty[pvp3.enemyActive];
   var isMyTurn = (isChallenger && d.currentTurn === "challenger") || (!isChallenger && d.currentTurn === "defender");
+  var isEnemyTurn = !isMyTurn;
 
-  // ── Initial render: build DOM skeleton once (HP bars persist for smooth transition) ──
-  if (!_pvpInitDone) {
-    var sk = "";
-    sk += "<div id='pvpTitle' style='text-align:center;font-weight:900;font-size:15px;color:#8e44ad;margin-bottom:6px;'></div>";
-    sk += "<div class='pvp-side-panel p2'><h4 style='margin:0 0 4px;font-size:13px;' id='pvpEnemyHeader'>👹 </h4>";
-    for (var si = 0; si < 6; si++) sk += "<div class='pvp-pkmn-mini' id='pvpEnemySlot" + si + "' style='display:none'><span id='pvpEnemyHp" + si + "'></span></div>";
-    sk += "<div class='hp-bar-bg'><div id='pvpEnemyBar' class='hp-bar-fill' style='width:100%'></div></div></div>";
-    sk += "<div style='text-align:center;font-size:24px;margin:4px 0;'>⚡</div>";
-    sk += "<div class='pvp-side-panel p1'><h4 style='margin:0 0 4px;font-size:13px;' id='pvpMyHeader'>👤 </h4>";
-    for (var si = 0; si < 6; si++) sk += "<div class='pvp-pkmn-mini' id='pvpMySlot" + si + "' style='display:none'><span id='pvpMyHp" + si + "'></span></div>";
-    sk += "<div class='hp-bar-bg'><div id='pvpMyBar' class='hp-bar-fill' style='width:100%'></div></div></div>";
-    sk += "<div id='pvpLog'></div>";
-    sk += "<div id='pvpActionArea'></div>";
-    div.innerHTML = sk;
-    // Set initial HP bar widths directly (element not yet painted — no transition possible)
-    if (enemyActive && enemyActive.currentHp > 0) {
-      $("pvpEnemyBar").style.width = Math.round(enemyActive.currentHp / enemyActive.maxHp * 100) + "%";
-    }
-    if (myActive && myActive.currentHp > 0) {
-      $("pvpMyBar").style.width = Math.round(myActive.currentHp / myActive.maxHp * 100) + "%";
-    }
-    _pvpInitDone = true;
+  var html = "<div style='text-align:center;font-weight:900;font-size:15px;color:#8e44ad;margin-bottom:6px;'>⚔️ 第 " + (d.turn||1) + " 回合</div>";
+
+  // Enemy panel
+  html += "<div class='pvp-side-panel p2'><h4 style='margin:0 0 4px;font-size:13px;'>👹 " + pvp3.enemyId + "</h4>";
+  // Enemy party bar
+  for (var ei = 0; ei < pvp3.enemyParty.length; ei++) {
+    var ep = pvp3.enemyParty[ei];
+    var eCls = "pvp-pkmn-mini";
+    if (ei === pvp3.enemyActive) eCls += " active";
+    if (ep.currentHp <= 0) eCls += " fainted";
+    html += "<div class='" + eCls + "'>" + ep.name + " Lv." + ep.level + " HP: " + Math.max(0,ep.currentHp) + "/" + ep.maxHp + "</div>";
   }
-
-  // ── Update existing DOM elements ──
-  // Title
-  $("pvpTitle").innerHTML = "⚔️ " + pvp3.enemyId + " vs " + globalData.studentId + " — 第 " + (d.turn||1) + " 回合";
-
-  // Weather display bar
-  updatePvPWeatherUI();
-
-  // Weather particles
-  if (pvp3.weather) {
-    var pvpModalContent2 = document.querySelector("#pvpModal .modal-content");
-    if (pvpModalContent2) spawnWeatherParticles(pvpModalContent2, pvp3.weather);
+  // Enemy active HP bar
+  if (enemyActive && enemyActive.currentHp > 0) {
+    var eHpPct = Math.max(0, Math.round(enemyActive.currentHp / enemyActive.maxHp * 100));
+    html += "<div class='hp-bar-bg'><div class='hp-bar-fill' style='width:" + eHpPct + "%;" + (eHpPct > 50 ? "background:#e74c3c" : eHpPct > 25 ? "background:#f39c12" : "background:#e74c3c") + "'></div></div>";
   }
+  html += "</div>";
 
-  // Enemy party slots (diff-based to avoid forced layout)
-  for (var i = 0; i < 6; i++) {
-    var slot = $("pvpEnemySlot" + i);
-    if (!slot) continue;
-    if (i < pvp3.enemyParty.length) {
-      var ep = pvp3.enemyParty[i];
-      slot.style.display = "";
-      var eCls = "pvp-pkmn-mini";
-      if (i === pvp3.enemyActive) eCls += " active";
-      if (ep.currentHp <= 0) eCls += " fainted";
-      slot.className = eCls;
-      var eContent = ep.name + " Lv." + ep.level + " HP: <span id='pvpEnemyHp" + i + "'>" + Math.max(0,ep.currentHp) + "/" + ep.maxHp + "</span>";
-      if (_pvpSlotCache["enemy" + i] !== eContent) {
-        _pvpSlotCache["enemy" + i] = eContent;
-        slot.innerHTML = eContent;
-      }
-    } else {
-      slot.style.display = "none";
-    }
-  }
+  // VS divider
+  html += "<div style='text-align:center;font-size:24px;margin:4px 0;'>⚡</div>";
 
-  // My party slots (diff-based)
-  for (var i = 0; i < 6; i++) {
-    var slot = $("pvpMySlot" + i);
-    if (!slot) continue;
-    if (i < pvp3.myParty.length) {
-      var mp = pvp3.myParty[i];
-      slot.style.display = "";
-      var mCls = "pvp-pkmn-mini";
-      if (i === pvp3.myActive) mCls += " active";
-      if (mp.currentHp <= 0) mCls += " fainted";
-      slot.className = mCls;
-      var mContent = mp.name + " Lv." + mp.level + " HP: <span id='pvpMyHp" + i + "'>" + Math.max(0,mp.currentHp) + "/" + mp.maxHp + "</span>";
-      if (_pvpSlotCache["my" + i] !== mContent) {
-        _pvpSlotCache["my" + i] = mContent;
-        slot.innerHTML = mContent;
-      }
-    } else {
-      slot.style.display = "none";
-    }
+  // My panel
+  html += "<div class='pvp-side-panel p1'><h4 style='margin:0 0 4px;font-size:13px;'>👤 " + globalData.studentId + "</h4>";
+  // My party bar
+  for (var mi = 0; mi < pvp3.myParty.length; mi++) {
+    var mp = pvp3.myParty[mi];
+    var mCls = "pvp-pkmn-mini";
+    if (mi === pvp3.myActive) mCls += " active";
+    if (mp.currentHp <= 0) mCls += " fainted";
+    html += "<div class='" + mCls + "'>" + mp.name + " Lv." + mp.level + " HP: " + Math.max(0,mp.currentHp) + "/" + mp.maxHp + "</div>";
   }
-
-  // ── Animate HP bars (skip if local animation from executePvPTurn is still playing) ──
-  var myActiveChanged = (pvp3.myActive !== _pvpPrevMyActive);
-  var enemyActiveChanged = (pvp3.enemyActive !== _pvpPrevEnemyActive);
-  _pvpPrevMyActive = pvp3.myActive;
-  _pvpPrevEnemyActive = pvp3.enemyActive;
-  if (myActiveChanged || enemyActiveChanged) {
-    _pvpLocalAnim = false;
+  // My active HP bar
+  if (myActive && myActive.currentHp > 0) {
+    var mHpPct = Math.max(0, Math.round(myActive.currentHp / myActive.maxHp * 100));
+    html += "<div class='hp-bar-bg'><div class='hp-bar-fill' style='width:" + mHpPct + "%;" + (mHpPct > 50 ? "background:#27ae60" : mHpPct > 25 ? "background:#f39c12" : "background:#e74c3c") + "'></div></div>";
   }
-  if (!_pvpLocalAnim) {
-    if (enemyActive && enemyActive.currentHp > 0) {
-      animateHpBarJS("pvpEnemyBar", enemyActive.currentHp, enemyActive.maxHp, null);
-    }
-    if (myActive && myActive.currentHp > 0) {
-      animateHpBarJS("pvpMyBar", myActive.currentHp, myActive.maxHp, null);
-    }
-  }
+  html += "</div>";
 
   // Log
-  $("pvpLog").innerHTML = (d.log || []).slice(-5).join("<br>");
+  var logArr = d.log || [];
+  var recentLog = logArr.slice(-5).join("<br>");
+  html += "<div id='pvpLog'>" + recentLog + "</div>";
 
-  // ── Action area (innerHTML on isolated container — no effect on HP bar elements) ──
-  var act = "";
+  // Action area
   if (d.status === "completed") {
     var won = (isChallenger && d.result === "challenger_win") || (!isChallenger && d.result === "defender_win");
-    act = "<div style='text-align:center;padding:15px;font-size:18px;font-weight:900;color:" + (won ? "#27ae60" : "#e74c3c") + ";'>" + (won ? "🎉 你贏了！" : "💀 你輸了...") + "</div>";
-    act += "<button class='close-btn' onclick='closePvP()'>離開</button>";
+    html += "<div style='text-align:center;padding:15px;font-size:18px;font-weight:900;color:" + (won ? "#27ae60" : "#e74c3c") + ";'>" + (won ? "🎉 你贏了！" : "💀 你輸了...") + "</div>";
+    html += "<button class='close-btn' onclick='closePvP()'>離開</button>";
   } else if (isMyTurn) {
     if (myActive && myActive.currentHp <= 0) {
-      act = renderPvPSwitchUI();
+      // Need to switch
+      html += renderPvPSwitchUI();
     } else if (myActive) {
-      act = "<div style='font-weight:900;font-size:13px;color:#27ae60;text-align:center;margin:6px 0;'>🎯 輪到你了！選擇招式</div>";
-      act += "<div class='moveset-grid'>";
+      // Show move buttons
+      html += "<div style='font-weight:900;font-size:13px;color:#27ae60;text-align:center;margin:6px 0;'>🎯 輪到你了！選擇招式</div>";
+      html += "<div class='moveset-grid'>";
       for (var mvi = 0; mvi < myActive.moves.length; mvi++) {
         var mv = myActive.moves[mvi];
         var mvDetail = getMoveDetails(mv);
         var mvType = mvDetail ? mvDetail.type : "一般";
-        act += "<button class='move-btn type-" + mvType + "' onclick='executePvPTurn(\"" + mv + "\")'>" + mv + "</button>";
+        html += "<button class='move-btn type-" + mvType + "' onclick='executePvPTurn(\"" + mv + "\")'>" + mv + "</button>";
       }
-      act += "</div>";
-      var alive = 0;
-      for (var ai = 0; ai < pvp3.myParty.length; ai++) { if (pvp3.myParty[ai].currentHp > 0 && ai !== pvp3.myActive) alive++; }
-      if (alive > 0) {
-        act += "<button class='btn-pvp-select' style='text-align:center;' onclick='showPvPSwitch()'>🔄 更換寶可夢</button>";
+      html += "</div>";
+      // Switch button
+      var aliveCount = 0;
+      for (var si = 0; si < pvp3.myParty.length; si++) { if (pvp3.myParty[si].currentHp > 0 && si !== pvp3.myActive) aliveCount++; }
+      if (aliveCount > 0) {
+        html += "<button class='btn-pvp-select' style='text-align:center;' onclick='showPvPSwitch()'>🔄 更換寶可夢</button>";
       }
     }
   } else {
-    act = "<div style='text-align:center;padding:10px;font-size:14px;color:#666;'>⏳ 等待 " + pvp3.enemyId + " 行動...</div>";
+    html += "<div style='text-align:center;padding:10px;font-size:14px;color:#666;'>⏳ 等待 " + pvp3.enemyId + " 行動...</div>";
   }
-  $("pvpActionArea").innerHTML = act;
+
+  div.innerHTML = html;
 }
 
 function renderPvPSwitchUI() {
@@ -5712,12 +5061,13 @@ function renderPvPSwitchUI() {
 }
 
 function showPvPSwitch() {
+  var div = $("pvpBattle3v3");
   var hasTarget = false;
   for (var si = 0; si < pvp3.myParty.length; si++) {
     if (si !== pvp3.myActive && pvp3.myParty[si].currentHp > 0) { hasTarget = true; break; }
   }
   if (!hasTarget) {
-    $("pvpActionArea").innerHTML = "<div style='text-align:center;padding:10px;font-size:13px;color:#e74c3c;'>⚠️ 沒有可上場的寶可夢</div><button class='close-btn' onclick='renderBattle3v3()'>返回</button>";
+    div.innerHTML = "<div style='text-align:center;padding:10px;font-size:13px;color:#e74c3c;'>⚠️ 沒有可上場的寶可夢</div><button class='close-btn' onclick='renderBattle3v3()'>返回</button>";
     return;
   }
   var html = "<div style='font-weight:900;font-size:13px;color:#3498db;text-align:center;margin:6px 0;'>🔄 選擇上場的寶可夢</div>";
@@ -5727,12 +5077,11 @@ function showPvPSwitch() {
     html += "<button class='btn-pvp-select' style='text-align:left;' onclick='doPvPSwitch(" + i + ")'>" + p.name + " Lv." + p.level + " HP: " + p.currentHp + "/" + p.maxHp + "</button>";
   }
   html += "<button class='close-btn' style='margin-top:6px;' onclick='renderBattle3v3()'>取消</button>";
-  $("pvpActionArea").innerHTML = html;
+  div.innerHTML = html;
 }
 
 // ── Turn execution ──
 async function executePvPTurn(moveName) {
-  try {
   if (!pvp3 || !pvpBattleDocId || !db) return;
   var d = pvp3.doc;
   var isChallenger = pvp3.isChallenger;
@@ -5742,210 +5091,17 @@ async function executePvPTurn(moveName) {
   // Clone current state for calculation
   var myActive = JSON.parse(JSON.stringify(pvp3.myParty[pvp3.myActive]));
   var enemyActive = JSON.parse(JSON.stringify(pvp3.enemyParty[pvp3.enemyActive]));
-  if (!myActive || !enemyActive) { toast("戰鬥資料錯誤！"); return; }
   var log = (d.log || []).slice();
   var myIsPlayer = isChallenger;
 
-  // ── Status damage processing (burn / leech seed) ──
-  var statusNeedsUpdate = false;
-  if (myActive.status === "burn" && myActive.currentHp > 0) {
-    var bDmg = Math.floor(myActive.maxHp * 0.0625);
-    myActive.currentHp = Math.max(0, myActive.currentHp - bDmg);
-    log.push("🔥 " + myActive.name + " 因燒傷損失 " + bDmg + " HP！");
-    statusNeedsUpdate = true;
-    if (myActive.currentHp <= 0) { myActive.currentHp = 0; log.push("💀 " + myActive.name + " 倒下了！"); }
-  }
-  if (enemyActive.status === "burn" && enemyActive.currentHp > 0) {
-    var bDmg2 = Math.floor(enemyActive.maxHp * 0.0625);
-    enemyActive.currentHp = Math.max(0, enemyActive.currentHp - bDmg2);
-    log.push("🔥 " + enemyActive.name + " 因燒傷損失 " + bDmg2 + " HP！");
-    statusNeedsUpdate = true;
-    if (enemyActive.currentHp <= 0) { enemyActive.currentHp = 0; log.push("💀 " + enemyActive.name + " 倒下了！"); }
-  }
-  if (myActive.leechSeed && enemyActive.currentHp > 0 && myActive.currentHp > 0) {
-    var sd = Math.floor(enemyActive.maxHp * 0.0833);
-    enemyActive.currentHp = Math.max(0, enemyActive.currentHp - sd);
-    myActive.currentHp = Math.min(myActive.maxHp, myActive.currentHp + sd);
-    log.push("🌱 寄生種子吸取了 " + sd + " HP！");
-    statusNeedsUpdate = true;
-  }
-  if (enemyActive.leechSeed && myActive.currentHp > 0 && enemyActive.currentHp > 0) {
-    var sd2 = Math.floor(myActive.maxHp * 0.0833);
-    myActive.currentHp = Math.max(0, myActive.currentHp - sd2);
-    enemyActive.currentHp = Math.min(enemyActive.maxHp, enemyActive.currentHp + sd2);
-    log.push("🌱 寄生種子吸取了 " + sd2 + " HP！");
-    statusNeedsUpdate = true;
-  }
-  // ── Weather damage (sand / hail) ──
-  if (pvp3.weather && (pvp3.weather.type === "sand" || pvp3.weather.type === "hail")) {
-    [myActive, enemyActive].forEach(function(p) {
-      if (p.currentHp <= 0) return;
-      var immune = false;
-      if (pvp3.weather.type === "sand" && (p.type.indexOf("岩石") !== -1 || p.type.indexOf("地面") !== -1 || p.type.indexOf("鋼") !== -1)) immune = true;
-      if (pvp3.weather.type === "hail" && p.type.indexOf("冰") !== -1) immune = true;
-      if (!immune) {
-        var wDmg = Math.floor(p.maxHp * 0.0625);
-        p.currentHp = Math.max(0, p.currentHp - wDmg);
-        log.push((pvp3.weather.type === "sand" ? "🌪️ " : "❄️ ") + p.name + " 受到天氣傷害 " + wDmg + " HP！");
-        statusNeedsUpdate = true;
-        if (p.currentHp <= 0) { p.currentHp = 0; log.push("💀 " + p.name + " 倒下了！"); }
-      }
-    });
-  }
-  if (statusNeedsUpdate) {
-    animateHpBarJS("pvpMyBar", myActive.currentHp, myActive.maxHp, null);
-    animateHpBarJS("pvpEnemyBar", enemyActive.currentHp, enemyActive.maxHp, null);
-  }
-
   // Resolve the attack
-  var result = executeTurn(myActive, enemyActive, enemyActive, myActive, moveName, true, log, pvp3.weather);
+  var result = executeTurn(myActive, enemyActive, enemyActive, myActive, moveName, true, log);
 
   // Swap attacker/defender references back
   var updatedMyParty = JSON.parse(JSON.stringify(pvp3.myParty));
   var updatedEnemyParty = JSON.parse(JSON.stringify(pvp3.enemyParty));
   updatedMyParty[pvp3.myActive] = myActive;
   updatedEnemyParty[pvp3.enemyActive] = enemyActive;
-
-  // Determine move category
-  var mDet2 = getMoveDetails(moveName);
-  var tCol = getTypeColor(mDet2 ? mDet2.type : "一般");
-  var isStatusMove = mDet2 && mDet2.category === "変化";
-
-  // Move particle container to PvP modal so particles are visible (shared setup)
-  var pvpContent = document.querySelector("#pvpModal .modal-content");
-  var pContainer = $("particleContainer");
-  if (pContainer && pvpContent) {
-    if (!pvpContent.contains(pContainer)) {
-      pvpContent.style.position = "relative";
-      pvpContent.appendChild(pContainer);
-    }
-  } else if (!pContainer && pvpContent) {
-    pContainer = document.createElement("div");
-    pContainer.id = "particleContainer";
-    pContainer.className = "particle-container";
-    pvpContent.style.position = "relative";
-    pvpContent.appendChild(pContainer);
-  }
-
-  if (isStatusMove) {
-    // Status moves: only sparkle particles, no hit/shake/hp animation
-    var sec = getElementCenter("pvpEnemyBar");
-    if (sec) spawnCategoryParticles(sec.x, sec.y, tCol, "変化", pvpContent);
-  } else {
-    // Attack moves: full hit effects
-    sfx.hit();
-    shakeElement("pvpEnemySlot" + pvp3.enemyActive);
-    flashElement("pvpEnemySlot" + pvp3.enemyActive);
-  }
-
-  if (result.crit) {
-    sfx.crit();
-    screenShake();
-    if ($("pvpEnemySlot" + pvp3.enemyActive)) {
-      showLargeText("💢 會心一擊！", "#ffd700");
-    }
-  } else if (result.effectiveness > 1) {
-    showLargeText("💥 效果絕佳！", tCol);
-  } else if (result.effectiveness > 0 && result.effectiveness < 1) {
-    showLargeText("⚠️ 效果不好...", "#999");
-  } else if (result.effectiveness === 0) {
-    showLargeText("🚫 沒有效果！", "#666");
-  }
-
-  // Contact Damage visual (Rough Skin / Iron Barbs)
-  if (result.contactDmg && result.contactDmg > 0) {
-    spawnAbilityFlare("pvpMySlot" + pvp3.myActive, "#e74c3c", pvpContent);
-    showLargeText(" Rough Skin! ", "#e74c3c");
-    animateHpBarJS("pvpMyBar", myActive.currentHp, myActive.maxHp, null);
-  }
-
-  // Sturdy / Focus Sash survive visual
-  if (result.hpBoosted) {
-    spawnShieldFlash("pvpEnemySlot" + pvp3.enemyActive, "#2ecc71", pvpContent);
-    showLargeText(" 挺住了！", "#2ecc71");
-  }
-
-    // Local HP animation + particles (immediate, not waiting for Firestore round-trip)
-    if (result.dmg > 0) {
-      // Impact flash on enemy panel (PvP equivalent of spawnImpactFlash for .arena-hp-section)
-      var pvpEnemyPanel = document.querySelector("#pvpBattle3v3 .pvp-side-panel.p2");
-      if (pvpEnemyPanel) {
-        var flash = document.createElement("div");
-        flash.className = "impact-flash";
-        flash.style.background = "radial-gradient(circle, " + tCol + "66 0%, transparent 70%)";
-        pvpEnemyPanel.style.position = "relative";
-        pvpEnemyPanel.appendChild(flash);
-        setTimeout(function(){ flash.remove(); }, 600);
-      }
-      animateHpBarJS("pvpEnemyBar", enemyActive.currentHp, enemyActive.maxHp, null);
-      var ec = getElementCenter("pvpEnemyBar");
-      if (ec) {
-        spawnParticles(ec.x, ec.y, 8, tCol);
-        spawnHitRing(ec.x, ec.y, tCol, pvpContent);
-        if (mDet2 && mDet2.category !== "變化") spawnCategoryParticles(ec.x, ec.y, tCol, mDet2.category, pvpContent);
-      }
-      _pvpLocalAnim = true;
-      setTimeout(function(){ _pvpLocalAnim = false; }, Math.max(getAnimDelay(1500), 200));
-  }
-
-  // ── Held item effects (PvP) ──
-  var ejectSwitchTo = -1;
-  var preItemMyHp = myActive.currentHp;
-  if (result.dmg > 0) {
-    // 貝殼之鈴（攻擊方）
-    if (processShellBellEffect(myActive, result.dmg, log)) {
-      animateHpBarJS("pvpMyBar", myActive.currentHp, myActive.maxHp, null);
-      spawnItemGlow("pvpMySlot" + pvp3.myActive, "#2ecc71", pvpContent);
-    }
-    // 生命寶珠反噬（攻擊方）
-    if (processLifeOrbRecoilEffect(myActive, log)) {
-      animateHpBarJS("pvpMyBar", myActive.currentHp, myActive.maxHp, null);
-      spawnItemGlow("pvpMySlot" + pvp3.myActive, "#e74c3c", pvpContent);
-    }
-    // 凸凸頭盔（防守方道具，反傷攻擊方）
-    var hadHelmet = enemyActive.heldItem === "rockyHelmet" && mDet2 && mDet2.category === "物理";
-    var prevMyHp = myActive.currentHp;
-    if (hadHelmet && processRockyHelmetEffect(enemyActive.heldItem, myActive, mDet2.category, log)) {
-      animateHpBarJS("pvpMyBar", myActive.currentHp, myActive.maxHp, null);
-      spawnShieldFlash("pvpEnemySlot" + pvp3.enemyActive, "#95a5a6", pvpContent);
-    } else if (hadHelmet && myActive.currentHp < prevMyHp) {
-      spawnShieldFlash("pvpEnemySlot" + pvp3.enemyActive, "#95a5a6", pvpContent);
-    }
-    // 弱點保險（防守方道具，提升防守方雙攻）
-    if (processWeaknessPolicyEffect(enemyActive, result.effectiveness, log)) {
-      showLargeText("📋 弱點保險！", "#e74c3c");
-      spawnItemGlow("pvpEnemySlot" + pvp3.enemyActive, "#f1c40f", pvpContent);
-    }
-    // 逃脱按鈕（防守方道具，強制換怪）
-    if (enemyActive.heldItem === "ejectButton" && enemyActive.currentHp > 0) {
-      for (var ej = 0; ej < updatedEnemyParty.length; ej++) {
-        if (updatedEnemyParty[ej].id !== enemyActive.id && updatedEnemyParty[ej].currentHp > 0) {
-          ejectSwitchTo = ej; break;
-        }
-      }
-      if (ejectSwitchTo >= 0) {
-        enemyActive.heldItem = "";
-        log.push("🔘 逃脱按鈕啟動！" + enemyActive.name + " 強制退場！");
-        log.push("🔄 換上 " + updatedEnemyParty[ejectSwitchTo].name + "！");
-        showLargeText("🔘 逃脱按鈕！", "#3498db");
-        spawnItemGlow("pvpEnemySlot" + pvp3.enemyActive, "#3498db", pvpContent);
-      }
-    }
-  }
-
-  // ── Track attacker HP change from held items ──
-  var attackerHpChanged = (myActive.currentHp !== preItemMyHp);
-
-  // ── Weather duration decay (PvP) ──
-  if (pvp3.weather) {
-    pvp3.weather.duration--;
-    if (pvp3.weather.duration <= 0) {
-      var wNames2 = { rain: "🌧️ 下雨", sun: "☀️ 大晴天", sand: "🌪️ 沙暴", hail: "❄️ 冰雹" };
-      log.push((wNames2[pvp3.weather.type] || "天氣") + " 結束了！");
-      pvp3.weather = null;
-    }
-    updatePvPWeatherUI();
-  }
 
   // Check KO
   var ko = (enemyActive.currentHp <= 0);
@@ -5954,9 +5110,6 @@ async function executePvPTurn(moveName) {
 
   if (ko) {
     log.push("💀 " + enemyActive.name + " 倒下了！");
-    sfx.faint();
-    var koSlot = $("pvpEnemySlot" + pvp3.enemyActive);
-    if (koSlot) { faintAnimation(koSlot); }
   }
 
   // Check if enemy team is wiped
@@ -6000,12 +5153,9 @@ async function executePvPTurn(moveName) {
     return;
   }
 
-  // If enemy active fainted or ejectButton triggered, enemy auto-switches to first alive
+  // If enemy active fainted but team has alive mons, enemy auto-switches to first alive
   var enemyActiveIdx = isChallenger ? (d.activeDefender||0) : (d.activeChallenger||0);
-  if (ejectSwitchTo >= 0) {
-    enemyActiveIdx = ejectSwitchTo;
-    log.push("🔄 對手因逃脱按鈕換上了 " + updatedEnemyParty[enemyActiveIdx].name);
-  } else if (updatedEnemyParty[enemyActiveIdx].currentHp <= 0) {
+  if (updatedEnemyParty[enemyActiveIdx].currentHp <= 0) {
     for (var swi = 0; swi < updatedEnemyParty.length; swi++) {
       if (updatedEnemyParty[swi].currentHp > 0) {
         enemyActiveIdx = swi;
@@ -6015,38 +5165,22 @@ async function executePvPTurn(moveName) {
     }
   }
 
-  // Switch turn — only write the defender's party (the one that took damage)
-  // to prevent stale data from overwriting the opponent's HP changes
+  // Switch turn
   var nextTurn = isChallenger ? "defender" : "challenger";
   var update = {
     log: log,
+    partyChallenger: isChallenger ? updatedMyParty : updatedEnemyParty,
+    partyDefender: isChallenger ? updatedEnemyParty : updatedMyParty,
+    activeChallenger: isChallenger ? pvp3.myActive : enemyActiveIdx,
+    activeDefender: isChallenger ? enemyActiveIdx : pvp3.myActive,
     turn: (d.turn||1) + 1,
     currentTurn: nextTurn,
     updatedAt: firebase.firestore.FieldValue.serverTimestamp()
   };
-  update.weather = pvp3.weather || null;
-  // Write the defender's party
-  if (isChallenger) {
-    update.partyDefender = updatedEnemyParty;
-  } else {
-    update.partyChallenger = updatedEnemyParty;
-  }
-  // Also write attacker's party if held items changed HP (凸凸頭盔/貝殼之鈴/生命寶珠)
-  if (attackerHpChanged) {
-    if (isChallenger) {
-      update.partyChallenger = updatedMyParty;
-    } else {
-      update.partyDefender = updatedMyParty;
-    }
-  }
-  // Update active indices
-  update.activeChallenger = isChallenger ? pvp3.myActive : enemyActiveIdx;
-  update.activeDefender = isChallenger ? enemyActiveIdx : pvp3.myActive;
 
   try {
     await db.collection("pvp_battles").doc(pvpBattleDocId).update(update);
   } catch(e) { console.warn("PvP turn error", e); }
-  } catch(e) { console.error("executePvPTurn crashed:", e); toast("戰鬥發生錯誤，請重試"); }
 }
 
 async function doPvPSwitch(index) {
@@ -6062,13 +5196,6 @@ async function doPvPSwitch(index) {
   var log = (d.log || []).slice();
   log.push("🔄 " + globalData.studentId + " 換上了 " + pvp3.myParty[index].name);
   update.log = log;
-  sfx.entry();
-  var newSlot = $("pvpMySlot" + index);
-  if (newSlot) {
-    newSlot.classList.remove("entry-animation");
-    void newSlot.offsetWidth;
-    newSlot.classList.add("entry-animation");
-  }
   try {
     await db.collection("pvp_battles").doc(pvpBattleDocId).update(update);
   } catch(e) { console.warn("PvP switch error", e); }
@@ -6076,17 +5203,8 @@ async function doPvPSwitch(index) {
 
 // ── Save result ──
 async function savePvPResult3v3(won) {
-  var myAvgLv = 0; var enemyAvgLv = 0;
-  if (pvp3) {
-    var myTotal = 0, enemyTotal = 0;
-    for (var mi = 0; mi < pvp3.myParty.length; mi++) { myTotal += pvp3.myParty[mi].level || pvp3.myParty[mi].currentLevel || 1; }
-    for (var ei = 0; ei < pvp3.enemyParty.length; ei++) { enemyTotal += pvp3.enemyParty[ei].level || pvp3.enemyParty[ei].currentLevel || 1; }
-    myAvgLv = Math.round(myTotal / pvp3.myParty.length);
-    enemyAvgLv = Math.round(enemyTotal / pvp3.enemyParty.length);
-  }
-  var avgLv = Math.round((myAvgLv + enemyAvgLv) / 2);
-  var exp = won ? (30 + avgLv * 2) : (5 + avgLv);
-  var coins = won ? (5 + Math.floor(avgLv / 5)) : 1;
+  var exp = won ? 50 : 10;
+  var coins = won ? 10 : 2;
   var vsId = pvp3 ? pvp3.enemyId : "未知";
   var note = "⚔️ PvP對戰 " + (won ? "勝利" : "敗北") + " | vs " + vsId;
   await executeSave({ studentId: globalData.studentId, score: 0, action: "PvP", expGained: exp, coinsGained: coins, badgeChange: 0, note: note, extraNote: note, totalScore: 0, user: globalData.studentId }, null, false);
@@ -6104,21 +5222,9 @@ function renderPvPResult3v3(d) {
   var isChallenger = pvp3.isChallenger;
   var won = (isChallenger && d.result === "challenger_win") || (!isChallenger && d.result === "defender_win");
   var logHtml = (d.log || []).join("<br>");
-  var myAvgLv = 0, enemyAvgLv = 0;
-  if (pvp3.myParty && pvp3.enemyParty) {
-    var mt = 0, et = 0;
-    for (var mi = 0; mi < pvp3.myParty.length; mi++) { mt += pvp3.myParty[mi].level || pvp3.myParty[mi].currentLevel || 1; }
-    for (var ei = 0; ei < pvp3.enemyParty.length; ei++) { et += pvp3.enemyParty[ei].level || pvp3.enemyParty[ei].currentLevel || 1; }
-    myAvgLv = Math.round(mt / pvp3.myParty.length);
-    enemyAvgLv = Math.round(et / pvp3.enemyParty.length);
-  }
-  var avgLv = Math.round((myAvgLv + enemyAvgLv) / 2);
-  var expGained = won ? (30 + avgLv * 2) : (5 + avgLv);
-  var coinsGained = won ? (5 + Math.floor(avgLv / 5)) : 1;
   div.innerHTML = "<div style='text-align:center;padding:20px;'>" +
     "<div style='font-size:48px;margin-bottom:10px;'>" + (won ? "🎉" : "💀") + "</div>" +
     "<div style='font-size:22px;font-weight:900;color:" + (won ? "#27ae60" : "#e74c3c") + ";margin-bottom:15px;'>" + (won ? "勝利！" : "敗北...") + "</div>" +
-    "<div style='font-size:13px;color:#555;margin-bottom:10px;'>EXP +" + expGained + " 金幣 +" + coinsGained + "</div>" +
     "<div id='pvpLog'>" + logHtml + "</div>" +
     "<button class='close-btn' style='margin-top:15px;' onclick='closePvP()'>離開</button></div>";
 }
@@ -6412,19 +5518,18 @@ function updateDashboard() {
     }
   }
   
-  // League button visibility — W4 + buffer, badge-dynamic
+  // League button visibility — W4 only, badge-dynamic
   var leagueBtn = $("btnLeagueBattle");
   var rankBtn = $("btnLeagueRanking");
   if (leagueBtn) {
     var badges = gd.badges || 0;
     var mKey = new Date().getFullYear() + "-" + (new Date().getMonth() + 1);
     var challenge = getE4ChallengeForBadges(badges);
-    var weekType = getWeekType();
-    var isW4orBuffer = weekType === "W4" || isBufferPeriod();
-    var canE4 = challenge && isW4orBuffer && !gd.todayCompleted && leagueCompletedMonths[challenge.region] !== mKey;
-    leagueBtn.innerHTML = challenge ? "🏟️ " + challenge.region + "聯盟" : "🏟️ 聯盟賽";
+    var canE4 = challenge && isBossWeek() && !gd.todayCompleted && e4Completed[challenge.region + "_" + challenge.half] !== mKey;
+    leagueBtn.innerHTML = challenge ? "🏆 " + challenge.name : "🏆 聯盟賽";
     leagueBtn.style.display = canE4 ? "inline-block" : "none";
     leagueBtn._e4Region = challenge ? challenge.region : null;
+    leagueBtn._e4Half = challenge ? challenge.half : null;
   }
   if (rankBtn) {
     rankBtn.style.display = (gd.badges || 0) >= 4 ? "inline-block" : "none";
@@ -6815,7 +5920,7 @@ async function openClassAnalysis() {
     content.innerHTML = html + "<div style='text-align:center;margin-top:12px;'><button class='close-btn' onclick=\"document.getElementById('classAnalysisModal').style.display='none';\">關閉</button></div>";
     modal.appendChild(content);
     document.body.appendChild(modal);
-  modal.style.display = "flex";
+    modal.style.display = "flex";
   } catch(e) { toast("❌ 載入失敗: " + e.message); console.warn(e); }
 }
 
@@ -6900,7 +6005,6 @@ function openCollection() {
       (tmBtn || forgetBtn ? "<div>" + tmBtn + forgetBtn + "</div>" : "");
     body.appendChild(card);
   }
-  modal.style.zIndex = "1001";
   modal.style.display = "flex";
 }
 
@@ -7658,14 +6762,6 @@ function checkAchievement(ach, gd, events) {
     case "LEAGUE_CHAMP": return (gd.monthLeagueWins || 0) >= 1;
     case "COLLECTOR_50": return species >= 50;
     case "DEX_151": return species >= 151;
-    case "M8_SATOSHI": return (gd.masters8Completed || []).indexOf("小智") !== -1;
-    case "M8_IRIS": return (gd.masters8Completed || []).indexOf("艾莉絲") !== -1;
-    case "M8_ALAIN": return (gd.masters8Completed || []).indexOf("艾嵐") !== -1;
-    case "M8_DIANTHA": return (gd.masters8Completed || []).indexOf("卡露妮") !== -1;
-    case "M8_LANCE": return (gd.masters8Completed || []).indexOf("渡") !== -1;
-    case "M8_STEVEN": return (gd.masters8Completed || []).indexOf("大吾") !== -1;
-    case "M8_CYNTHIA": return (gd.masters8Completed || []).indexOf("竹蘭") !== -1;
-    case "M8_LEON": return (gd.masters8Completed || []).indexOf("丹帝") !== -1;
     default: return false;
   }
 }
@@ -8369,13 +7465,10 @@ function startDefenseChallenge(region) {
   if (globalData.simpleMode) trainerLevel = Math.max(5, Math.floor(trainerLevel * 0.75));
   var badges = globalData.badges || 0;
   var expectedLv = EXPECTED_LEVEL[Math.min(badges, EXPECTED_LEVEL.length - 1)];
-  // 衛冕戰使用該月對應的八大師
-  var now = new Date();
-  var month = (now.getFullYear() - 2026) * 12 + (now.getMonth() + 1);
-  var mastersIdx = Math.min(Math.max(0, month - 1), MASTERS_8.length - 1);
-  var champ = MASTERS_8[mastersIdx];
+  var leagueData = getLeagueData(region);
+  var champ = leagueData.champion;
   var bossLevel = Math.max(5, expectedLv + Math.round(champ.lvBonus * 0.06) + Math.floor(Math.random() * 6));
-  var enemy = createEnemyPokemon("✨ 衛冕者 (" + champ.name + ")", bossLevel, false, false);
+  var enemy = createEnemyPokemon("✨ 衛冕者 (" + champ.type + ")", bossLevel, false, false);
   enemy.isWeeklyBoss = true;
   enemy.defenseRegion = region;
   var defenseBody = $("defenseBody");
@@ -8411,18 +7504,6 @@ function openLeagueRanking() {
       "<div style='font-size:13px;color:#666;'>" + (isCompleted ? "✅ 本月已通關" : "⏳ 尚未挑戰") + "</div>" +
       (isChampion ? "<div style='font-size:13px;color:#e67e22;font-weight:900;'>👑 衛冕冠軍</div>" : "") +
       "<div style='font-size:13px;color:#8e44ad;'>🏅 積分: " + pts + "</div>" +
-      "</div>";
-  }
-  // 八大師進度
-  var m8Completed = globalData.masters8Completed || [];
-  var m8Progress = globalData.masters8Progress || [];
-  body.innerHTML += "<div style='margin:12px 0 4px;padding:6px 0;border-top:2px solid #eee;font-weight:900;font-size:15px;color:#c0392b;'>👑 八大師進度</div>";
-  for (var mi = 0; mi < MASTERS_8.length; mi++) {
-    var m = MASTERS_8[mi];
-    var defeated = m8Completed.indexOf(m.name) !== -1;
-    var inProgress = !defeated && m8Progress.indexOf(m.name) !== -1;
-    body.innerHTML += "<div style='padding:8px;margin:4px 0;background:" + (defeated ? "#eafaf1" : "#fdf2e9") + ";border-radius:6px;border-left:4px solid " + (defeated ? "#27ae60" : (inProgress ? "#f39c12" : "#bdc3c7")) + ";'>" +
-      "<div style='font-weight:700;font-size:14px;'>" + (defeated ? "✅" : (inProgress ? "⚔️" : "🔒")) + " #" + m.rank + " " + m.name + " <span style='color:#888;font-size:12px;'>" + m.desc + "</span></div>" +
       "</div>";
   }
   body.innerHTML += "<div style='padding:10px;margin:8px 0;background:#fef9e7;border-radius:8px;text-align:center;font-weight:900;font-size:16px;'>🏆 總聯盟積分: " + totalPoints + "</div>";
