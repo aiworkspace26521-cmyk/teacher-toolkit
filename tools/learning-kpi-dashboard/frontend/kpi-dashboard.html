@@ -427,8 +427,8 @@
       <button class="nav-btn btn-trade" onclick="sfx.click();openTradeModal()">🤝 交換<span id="tradeBadge">0</span></button>
       <button class="nav-btn btn-daily" id="arenaBattleBtn" onclick="sfx.click();startBattle(false,false)">🚶 路人戰</button>
       <button class="nav-btn btn-gym" id="btnGymBattle" onclick="sfx.click();startBattle(true,false)">⚔️ 道館戰</button>
-      <button class="nav-btn btn-boss" id="btnBossBattle" onclick="sfx.click();startBossBattle()" style="display:none;">👑 魔王戰</button>
-      <button class="nav-btn btn-league" id="btnLeagueBattle" onclick="sfx.click();promptE4Challenge()" style="display:none;">🏆 聯盟賽</button>
+      <button class="nav-btn btn-league" id="btnLeagueBattle" onclick="sfx.click();promptE4Challenge()" style="display:none;">🏟️ 聯盟賽</button>
+      <button class="nav-btn btn-boss" id="btnMasters8Battle" onclick="sfx.click();startMasters8Battle()" style="display:none;">👑 八大師戰</button>
       <button class="nav-btn btn-pvp" id="btnLeagueRanking" onclick="sfx.click();openLeagueRanking()" style="background:#2c3e50;color:white;display:none;">📊 聯盟排名</button>
       <button class="nav-btn btn-pvp" onclick="sfx.click();openRankingModal()" style="background:#8e44ad;color:white;" id="btnPvPRanking">🏆 PvP天梯</button>
     </div>
@@ -786,12 +786,20 @@ function getMonthDiff() {
   return Math.max(1, (d.getFullYear() - 2026) * 12 + d.getMonth() - 3 + 1);
 }
 function getWeekType() {
-  if (isAdmin) return $("devWeek").value;
+  if (isAdmin && $("devWeek") && $("devWeek").value !== "auto") return $("devWeek").value;
   var d = new Date().getDate();
   if (d <= 7) return "W1";
   if (d <= 14) return "W2";
   if (d <= 21) return "W3";
   return "W4";
+}
+function getCurrentWeek() {
+  var monthVal = getCurrentMonth();
+  var regionIdx = Math.min(Math.max(0, (monthVal - 1) % 8), 7);
+  var regionOrder = ["關都","城都","豐緣","神奧","合眾","卡洛斯","阿羅拉","伽勒爾"];
+  var weekType = getWeekType();
+  var weekNum = parseInt(weekType.substring(1), 10);
+  return { region: regionOrder[regionIdx], month: ((monthVal - 1) % 8) + 1, week: weekType, weekNum: weekNum };
 }
 function isBossWeek() { return getWeekType() === "W4"; }
 function getWeekLabel() {
@@ -799,18 +807,36 @@ function getWeekLabel() {
   return map[getWeekType()] || "📌 一般訓練週";
 }
 function getWeekBonusDesc() {
-  var map = { W1: "無特殊加成", W2: "道館 EXP +50%、金幣 +10", W3: "路人戰 EXP +30%", W4: "魔王降臨！四天王等待挑戰" };
+  var map = { W1: "無特殊加成", W2: "道館 EXP +50%、金幣 +10", W3: "路人戰 EXP +30%", W4: "聯盟賽 & 八大師戰開啟" };
   return map[getWeekType()] || "";
 }
+function isBufferPeriod() {
+  if (!isAdmin && new Date().getDate() <= 7) {
+    if (globalData && (globalData.masters8Completed || []).length < MASTERS_8.length) {
+      var now = new Date();
+      var lastMonth = now.getMonth() === 0 ? 11 : now.getMonth();
+      var lastYear = now.getMonth() === 0 ? now.getFullYear() - 1 : now.getFullYear();
+      var lastKey = lastYear + "-" + (lastMonth + 1);
+      var regionOrder = ["關都","城都","豐緣","神奧","合眾","卡洛斯","阿羅拉","伽勒爾"];
+      for (var ri = 0; ri < regionOrder.length; ri++) {
+        if (leagueCompletedMonths[regionOrder[ri]] === lastKey) return true;
+      }
+    }
+  }
+  return false;
+}
+function getCurrentMonth() {
+  var now = new Date();
+  return (now.getFullYear() - 2026) * 12 + (now.getMonth() + 1);
+}
 function getE4ChallengeForBadges(badges) {
-  if (badges >= 4 && badges < 8) return { region: "關都", half: "first", name: "關都聯盟前半", requiredBadges: 4 };
-  if (badges >= 8 && badges < 12) return { region: "關都", half: "second", name: "關都聯盟後半+冠軍", requiredBadges: 8 };
-  if (badges >= 12 && badges < 16) return { region: "城都", half: "first", name: "城都聯盟前半", requiredBadges: 12 };
-  if (badges >= 16 && badges < 20) return { region: "城都", half: "second", name: "城都聯盟後半+冠軍", requiredBadges: 16 };
-  if (badges >= 20 && badges < 24) return { region: "合眾", half: "first", name: "合眾聯盟前半", requiredBadges: 20 };
-  if (badges >= 24 && badges < 28) return { region: "合眾", half: "second", name: "合眾聯盟後半+冠軍", requiredBadges: 24 };
-  if (badges >= 28 && badges < 32) return { region: "卡洛斯", half: "first", name: "卡洛斯聯盟前半", requiredBadges: 28 };
-  if (badges >= 32) return { region: "卡洛斯", half: "second", name: "卡洛斯聯盟後半+冠軍", requiredBadges: 32 };
+  var thresholds = [4, 8, 12, 16, 20, 24, 28, 32];
+  var regionOrder = ["關都","城都","豐緣","神奧","合眾","卡洛斯","阿羅拉","伽勒爾"];
+  for (var i = thresholds.length - 1; i >= 0; i--) {
+    if (badges >= thresholds[i]) {
+      return { region: regionOrder[i], requiredBadges: thresholds[i], order: i };
+    }
+  }
   return null;
 }
 function getSeededRandom(str) {
@@ -837,7 +863,12 @@ function calcLevelAndExp(totalExp, initialLevel) {
   if (lvl >= 120) { lvl = 120; cur = 0; expNeeded = 0; }
   return { level: lvl, expProgress: cur, expNeeded: expNeeded };
 }
-var EXPECTED_LEVEL = [13,18,21,24,25,27,30,33,36,39,42,45,49,52,56,60,64,67,70,73,76,79,82,85,88,90,92,94,96,97,98,98];
+var EXPECTED_LEVEL = [
+  13, 16, 19, 22,  25, 28, 31, 34,
+  37, 40, 43, 46,  49, 52, 55, 58,
+  61, 64, 67, 70,  73, 76, 79, 82,
+  85, 88, 91, 94,  96, 97, 98, 99
+];
 function getEffectiveLevel(expectedLv, playerLevel) {
   var ratio = playerLevel / expectedLv;
   if (ratio >= 1.0) return expectedLv;
@@ -886,7 +917,7 @@ async function recalculateStudentState(studentId, events) {
     todayCompleted: false, daysSinceLastBadge: 0, simpleMode: false,
     lastBadgeTime: null, firstLogTime: null,
     todayBattles: 0, weekGymWins: 0, weekBossWins: 0, monthLeagueWins: 0,
-    happiness: {}, leagueRegionsWon: {},
+    happiness: {}, leagueRegionsWon: {}, masters8Completed: [], masters8Progress: [],
     roster: { P0: { id: "P0", baseName: "\u{1F43E} \u4F0A\u5E03 (\u4E00\u822C\u7CFB)", totalExp: 0, initialLevel: 5, catchDate: "\u521D\u59CB\u5925\u4F34", heldItem: "" } }
   };
   var dNow = new Date(), todayStr = dNow.toDateString();
@@ -1026,6 +1057,7 @@ async function recalculateStudentState(studentId, events) {
       if (rowDate.getTime() >= startOfWeek && (safeNote.indexOf("[Gym]") !== -1 || safeNote.indexOf("\u9053\u9928") !== -1)) state.weekGymWins++;
       if (rowDate.getTime() >= startOfWeek && safeNote.indexOf("[Boss]") !== -1) state.weekBossWins++;
       if (rowDate.getTime() >= startOfMonth && (safeNote.indexOf("[League]") !== -1 || safeNote.indexOf("\u5927\u6703") !== -1 || safeNote.indexOf("\u9B54\u738B") !== -1)) { state.monthLeagueWins++; var lr = safeNote.match(/\[(.+?)\s*League\]/); if (lr) state.leagueRegionsWon[lr[1]] = true; }
+      if (safeNote.indexOf("八大師") !== -1) { var m8match = safeNote.match(/\[(.+?)\s*\(#\d+\)\]/); if (m8match) { if (state.masters8Completed.indexOf(m8match[1]) === -1) state.masters8Completed.push(m8match[1]); } }
     } else if (rowAction === "E") {
       var nm = safeNote.match(/\u7372\u5F97:\s*([^|]+)/);
       if (nm && state.roster['P0']) state.roster['P0'].baseName = nm[1].trim();
@@ -1100,7 +1132,7 @@ async function recalculateStudentState(studentId, events) {
   var totalSubmitDays = Object.keys(submitDates).length;
   if (totalSubmitDays >= 60) state.badges += 5;
   else if (totalSubmitDays >= 30) state.badges += 2;
-  return { studentId: state.studentId, highestLevel: finalHighestLevel, lockedGymLevel: state.lockedGymLevel, coins: state.coins, badges: state.badges, potions: state.potions, revives: state.revives, candies: state.candies, maxPotions: state.maxPotions, maxRevives: state.maxRevives, expSharePurchased: state.expSharePurchased, hasExpertBelt: state.hasExpertBelt, hasEviolite: state.hasEviolite, hasChampionCloak: state.hasChampionCloak, hasAmuletCoin: state.hasAmuletCoin, hasQuickClaw: state.hasQuickClaw, hasFocusLens: state.hasFocusLens, hasShellBell: state.hasShellBell, hasLifeOrb: state.hasLifeOrb, hasAssaultVest: state.hasAssaultVest, oranBerries: state.oranBerries||0, cheriBerries: state.cheriBerries||0, lumBerries: state.lumBerries||0, chilanBerries: state.chilanBerries||0, hasFocusSash: state.hasFocusSash||false, hasEjectButton: state.hasEjectButton||false, hasRockyHelmet: state.hasRockyHelmet||false, hasWeaknessPolicy: state.hasWeaknessPolicy||false, tms: state.tms||{}, todayCompleted: state.todayCompleted, daysSinceLastBadge: state.daysSinceLastBadge, roster: rosterArray, todayBattles: state.todayBattles, weekGymWins: state.weekGymWins, weekBossWins: state.weekBossWins, monthLeagueWins: state.monthLeagueWins, submitStreak: submitStreak, simpleMode: state.simpleMode || false, leagueRegionsWon: state.leagueRegionsWon || {} };
+  return { studentId: state.studentId, highestLevel: finalHighestLevel, lockedGymLevel: state.lockedGymLevel, coins: state.coins, badges: state.badges, potions: state.potions, revives: state.revives, candies: state.candies, maxPotions: state.maxPotions, maxRevives: state.maxRevives, expSharePurchased: state.expSharePurchased, hasExpertBelt: state.hasExpertBelt, hasEviolite: state.hasEviolite, hasChampionCloak: state.hasChampionCloak, hasAmuletCoin: state.hasAmuletCoin, hasQuickClaw: state.hasQuickClaw, hasFocusLens: state.hasFocusLens, hasShellBell: state.hasShellBell, hasLifeOrb: state.hasLifeOrb, hasAssaultVest: state.hasAssaultVest, oranBerries: state.oranBerries||0, cheriBerries: state.cheriBerries||0, lumBerries: state.lumBerries||0, chilanBerries: state.chilanBerries||0, hasFocusSash: state.hasFocusSash||false, hasEjectButton: state.hasEjectButton||false, hasRockyHelmet: state.hasRockyHelmet||false, hasWeaknessPolicy: state.hasWeaknessPolicy||false, tms: state.tms||{}, todayCompleted: state.todayCompleted, daysSinceLastBadge: state.daysSinceLastBadge, roster: rosterArray, todayBattles: state.todayBattles, weekGymWins: state.weekGymWins, weekBossWins: state.weekBossWins, monthLeagueWins: state.monthLeagueWins, submitStreak: submitStreak, simpleMode: state.simpleMode || false, leagueRegionsWon: state.leagueRegionsWon || {}, masters8Completed: state.masters8Completed || [], masters8Progress: state.masters8Progress || [] };
 }
 
 function showSkeletonDashboard() {
@@ -1161,7 +1193,7 @@ async function fetchStudentData(studentId, pendingEvent) {
       delete refreshed.achievements;
       await db.collection("kpi_students").doc(studentId).set(refreshed, { merge: true });
     } else {
-      globalData = { studentId: studentId, roster: [], highestLevel: 5, lockedGymLevel: 5, coins: 0, badges: 0, potions: 0, revives: 0, candies: 0, maxPotions: 0, maxRevives: 0, expSharePurchased: false, hasExpertBelt: false, hasEviolite: false, hasChampionCloak: false, hasAmuletCoin: false, oranBerries: 0, cheriBerries: 0, lumBerries: 0, chilanBerries: 0, hasFocusSash: false, hasEjectButton: false, hasRockyHelmet: false, hasWeaknessPolicy: false, tms: {}, pokemonTMs: {}, todayCompleted: false, todayBattles: 0, weekGymWins: 0, weekBossWins: 0, monthLeagueWins: 0, leagueRegionsWon: {}, "\u96FB\u6483\u76D2": false, "\u5E95\u6F3E\u76D2": false, "\u9F8D\u4E4B\u9C5A\u7247": false, "\u8B77\u5177": false, "\u91D1\u5C6C\u819C": false, "\u738B\u8005\u4E4B\u8B49": false };
+      globalData = { studentId: studentId, roster: [], highestLevel: 5, lockedGymLevel: 5, coins: 0, badges: 0, potions: 0, revives: 0, candies: 0, maxPotions: 0, maxRevives: 0, expSharePurchased: false, hasExpertBelt: false, hasEviolite: false, hasChampionCloak: false, hasAmuletCoin: false, oranBerries: 0, cheriBerries: 0, lumBerries: 0, chilanBerries: 0, hasFocusSash: false, hasEjectButton: false, hasRockyHelmet: false, hasWeaknessPolicy: false, tms: {}, pokemonTMs: {}, todayCompleted: false, todayBattles: 0, weekGymWins: 0, weekBossWins: 0, monthLeagueWins: 0, leagueRegionsWon: {}, masters8Completed: [], masters8Progress: [], "\u96FB\u6483\u76D2": false, "\u5E95\u6F3E\u76D2": false, "\u9F8D\u4E4B\u9C5A\u7247": false, "\u8B77\u5177": false, "\u91D1\u5C6C\u819C": false, "\u738B\u8005\u4E4B\u8B49": false };
     }
     // Restore TM data from Firestore doc
     try {
@@ -1880,103 +1912,99 @@ var EVO_STAGE_MAP = (function(){
   m["羅絲雷朵"] = 2;
   return m;
 })();
-// GYM LEADERS — 32 道館館主資料 (P5-1)
+// GYM LEADERS — 8 地區 × 4 館主 = 32 道館 (VER2.2)
 var GYM_LEADERS = [
-  { region: "關都", badge: 1,  leader: "小剛", type: "岩石",    emoji: "🪨", name: "尼比道館",   waves: 3, lvBonus: 0, desc: "岩石般的基礎計算" },
-  { region: "關都", badge: 2,  leader: "小霞", type: "水",      emoji: "💧", name: "華藍道館",   waves: 3, lvBonus: 2, desc: "如水般的靈活應用" },
-  { region: "關都", badge: 3,  leader: "馬志士", type: "電",    emoji: "⚡", name: "枯葉道館",   waves: 3, lvBonus: 4, desc: "閃電般的速算反應" },
-  { region: "關都", badge: 4,  leader: "莉佳", type: "草",      emoji: "🌿", name: "玉虹道館",   waves: 3, lvBonus: 6, desc: "扎根深厚的理解力" },
-  { region: "關都", badge: 5,  leader: "阿桔", type: "毒",      emoji: "☠️", name: "淺紅道館",   waves: 4, lvBonus: 8, desc: "陷阱題的毒辣考驗" },
-  { region: "關都", badge: 6,  leader: "娜姿", type: "超能力",  emoji: "🔮", name: "金黃道館",   waves: 4, lvBonus: 10, desc: "超能力般的邏輯推演" },
-  { region: "關都", badge: 7,  leader: "夏伯", type: "火",      emoji: "🌋", name: "紅蓮道館",   waves: 4, lvBonus: 12, desc: "炙熱的燃燒鬥志" },
-  { region: "關都", badge: 8,  leader: "阪木", type: "地面",    emoji: "🌍", name: "常磐道館",   waves: 4, lvBonus: 12, desc: "大地之巔的統治者" },
-  { region: "城都", badge: 9,  leader: "阿速", type: "飛行",    emoji: "🦅", name: "桔梗道館",   waves: 4, lvBonus: 14, desc: "俯瞰全局的分析力" },
-  { region: "城都", badge: 10, leader: "阿筆", type: "蟲",      emoji: "🐛", name: "檜皮道館",   waves: 4, lvBonus: 17, desc: "細心啃食每個知識點" },
-  { region: "城都", badge: 11, leader: "小茜", type: "一般",    emoji: "🐾", name: "滿金道館",   waves: 5, lvBonus: 20, desc: "沒有捷徑的紮實訓練" },
-  { region: "城都", badge: 12, leader: "松葉", type: "幽靈",    emoji: "👻", name: "圓朱道館",   waves: 5, lvBonus: 23, desc: "幽靈般的隱藏陷阱" },
-  { region: "城都", badge: 13, leader: "阿四", type: "格鬥",    emoji: "🥋", name: "湛藍道館",   waves: 5, lvBonus: 26, desc: "硬碰硬的實力對決" },
-  { region: "城都", badge: 14, leader: "小椿", type: "龍",      emoji: "🐉", name: "煙墨道館",   waves: 5, lvBonus: 24, desc: "龍之巔的極限挑戰" },
-  { region: "城都", badge: 15, leader: "蜜柑", type: "鋼",      emoji: "⚙️", name: "淺蔥道館",   waves: 5, lvBonus: 28, desc: "鋼鐵般的精密計算" },
-  { region: "城都", badge: 16, leader: "柳伯", type: "冰",      emoji: "❄️", name: "卡吉道館",   waves: 5, lvBonus: 32, desc: "冰封萬物的最終考驗" },
-  { region: "合眾", badge: 17, leader: "天桐", type: "草",      emoji: "🌿", name: "三曜道館",   waves: 4, lvBonus: 34, desc: "三曜鼎立的智慧考驗" },
-  { region: "合眾", badge: 18, leader: "蘆薈", type: "一般",    emoji: "🐾", name: "七寶道館",   waves: 4, lvBonus: 36, desc: "以不變應萬變的基礎" },
-  { region: "合眾", badge: 19, leader: "亞堤", type: "蟲",      emoji: "🐛", name: "飛雲道館",   waves: 5, lvBonus: 38, desc: "編織知識之網的韌性" },
-  { region: "合眾", badge: 20, leader: "小菊兒", type: "電",    emoji: "⚡", name: "雷文道館",   waves: 5, lvBonus: 40, desc: "閃耀的電流急急棒" },
-  { region: "合眾", badge: 21, leader: "菊老大", type: "地面",  emoji: "🌍", name: "帆巴道館",   waves: 5, lvBonus: 54, desc: "大地深處的嚴峻考驗" },
-  { region: "合眾", badge: 22, leader: "風露", type: "飛行",    emoji: "🦅", name: "吹寄道館",   waves: 5, lvBonus: 58, desc: "乘風破浪的高空對決" },
-  { region: "合眾", badge: 23, leader: "哈奇庫", type: "冰",    emoji: "❄️", name: "雪花道館",   waves: 5, lvBonus: 62, desc: "絕對零度的極限專注" },
-  { region: "合眾", badge: 24, leader: "艾莉絲", type: "龍",    emoji: "🐉", name: "雙龍道館",   waves: 5, lvBonus: 66, desc: "龍之霸主的最終試煉" },
-  { region: "卡洛斯", badge: 25, leader: "紫羅蘭", type: "蟲",  emoji: "🦋", name: "白檀道館",   waves: 4, lvBonus: 64, desc: "觀察入微的蟲之眼" },
-  { region: "卡洛斯", badge: 26, leader: "查克洛", type: "岩石", emoji: "🪨", name: "遙香道館",   waves: 4, lvBonus: 68, desc: "攀上岩壁的毅力" },
-  { region: "卡洛斯", badge: 27, leader: "可爾妮", type: "格鬥", emoji: "🥋", name: "娑羅道館",   waves: 5, lvBonus: 72, desc: "百折不撓的格鬥魂" },
-  { region: "卡洛斯", badge: 28, leader: "福爺", type: "草",    emoji: "🌿", name: "海翼道館",   waves: 5, lvBonus: 75, desc: "扎根知識的茂盛幹勁" },
-  { region: "卡洛斯", badge: 29, leader: "瑪綉", type: "電",    emoji: "⚡", name: "密阿雷道館",   waves: 5, lvBonus: 78, desc: "華麗的電光交響曲" },
-  { region: "卡洛斯", badge: 30, leader: "葛吉花", type: "超能力", emoji: "🔮", name: "香薰道館",   waves: 5, lvBonus: 81, desc: "預知未來的超能占卜" },
-  { region: "卡洛斯", badge: 31, leader: "得撫", type: "惡",    emoji: "😈", name: "百刻道館",   waves: 5, lvBonus: 84, desc: "時間的暗影試煉" },
-  { region: "卡洛斯", badge: 32, leader: "志米", type: "水",    emoji: "💧", name: "映雪道館",   waves: 5, lvBonus: 88, desc: "深不可測的水之巔峰" }
+  { region:"關都", badge:1,  leader:"小剛", type:"岩石",    emoji:"🪨", name:"尼比道館",   waves:3, lvBonus:0,  desc:"岩石般的基礎計算" },
+  { region:"關都", badge:2,  leader:"小霞", type:"水",      emoji:"💧", name:"華藍道館",   waves:3, lvBonus:2,  desc:"如水般的靈活應用" },
+  { region:"關都", badge:3,  leader:"馬志士", type:"電",    emoji:"⚡", name:"枯葉道館",   waves:3, lvBonus:4,  desc:"閃電般的速算反應" },
+  { region:"關都", badge:4,  leader:"莉佳", type:"草",      emoji:"🌿", name:"玉虹道館",   waves:3, lvBonus:6,  desc:"扎根深厚的理解力" },
+  { region:"城都", badge:5,  leader:"阿速", type:"飛行",    emoji:"🦅", name:"桔梗道館",   waves:3, lvBonus:8,  desc:"俯瞰全局的分析力" },
+  { region:"城都", badge:6,  leader:"阿筆", type:"蟲",      emoji:"🐛", name:"檜皮道館",   waves:3, lvBonus:10, desc:"細心啃食每個知識點" },
+  { region:"城都", badge:7,  leader:"小茜", type:"一般",    emoji:"🐾", name:"滿金道館",   waves:4, lvBonus:12, desc:"沒有捷徑的紮實訓練" },
+  { region:"城都", badge:8,  leader:"松葉", type:"幽靈",    emoji:"👻", name:"圓朱道館",   waves:4, lvBonus:14, desc:"幽靈般的隱藏陷阱" },
+  { region:"豐緣", badge:9,  leader:"杜鵑", type:"岩石",    emoji:"🪨", name:"卡那茲道館", waves:4, lvBonus:16, desc:"堅硬的岩石基礎" },
+  { region:"豐緣", badge:10, leader:"藤樹", type:"格鬥",    emoji:"🥋", name:"武鬥道館",   waves:4, lvBonus:18, desc:"不屈的格鬥精神" },
+  { region:"豐緣", badge:11, leader:"娜琪", type:"飛行",    emoji:"🦅", name:"茵鬱道館",   waves:4, lvBonus:20, desc:"乘風破浪的判斷力" },
+  { region:"豐緣", badge:12, leader:"米可利", type:"水",    emoji:"💧", name:"琉璃道館",   waves:4, lvBonus:22, desc:"如水般優雅的王者" },
+  { region:"神奧", badge:13, leader:"瓢太", type:"岩石",    emoji:"🪨", name:"鋼鐵道館",   waves:4, lvBonus:24, desc:"鋼鐵般的意志" },
+  { region:"神奧", badge:14, leader:"菜種", type:"草",      emoji:"🌿", name:"百代道館",   waves:4, lvBonus:26, desc:"生生不息的知識" },
+  { region:"神奧", badge:15, leader:"梅麗莎", type:"幽靈",  emoji:"👻", name:"緣之道館",   waves:5, lvBonus:28, desc:"幻影般的策略" },
+  { region:"神奧", badge:16, leader:"電次", type:"電",      emoji:"⚡", name:"湖濱道館",   waves:5, lvBonus:30, desc:"閃電般的高速思維" },
+  { region:"合眾", badge:17, leader:"天桐", type:"草",      emoji:"🌿", name:"三曜道館",   waves:5, lvBonus:32, desc:"三曜鼎立的智慧考驗" },
+  { region:"合眾", badge:18, leader:"蘆薈", type:"一般",    emoji:"🐾", name:"七寶道館",   waves:5, lvBonus:34, desc:"以不變應萬變的基礎" },
+  { region:"合眾", badge:19, leader:"亞堤", type:"蟲",      emoji:"🐛", name:"飛雲道館",   waves:5, lvBonus:36, desc:"編織知識之網的韌性" },
+  { region:"合眾", badge:20, leader:"小菊兒", type:"電",    emoji:"⚡", name:"雷文道館",   waves:5, lvBonus:38, desc:"閃耀的電流急急棒" },
+  { region:"卡洛斯", badge:21, leader:"紫羅蘭", type:"蟲",  emoji:"🦋", name:"白檀道館",   waves:5, lvBonus:40, desc:"觀察入微的蟲之眼" },
+  { region:"卡洛斯", badge:22, leader:"查克洛", type:"岩石",emoji:"🪨", name:"遙香道館",   waves:5, lvBonus:42, desc:"攀上岩壁的毅力" },
+  { region:"卡洛斯", badge:23, leader:"可爾妮", type:"格鬥",emoji:"🥋", name:"娑羅道館",   waves:6, lvBonus:44, desc:"百折不撓的格鬥魂" },
+  { region:"卡洛斯", badge:24, leader:"志米", type:"水",    emoji:"💧", name:"映雪道館",   waves:6, lvBonus:46, desc:"深不可測的水之巔峰" },
+  { region:"阿羅拉", badge:25, leader:"伊利馬", type:"一般",emoji:"🐾", name:"蔥鬱洞窟考驗", waves:6, lvBonus:48, desc:"一般中見不平凡的智慧" },
+  { region:"阿羅拉", badge:26, leader:"麗姿", type:"岩石",  emoji:"🪨", name:"阿卡拉島大考驗", waves:6, lvBonus:50, desc:"岩石般堅毅的意志" },
+  { region:"阿羅拉", badge:27, leader:"馬瑪內", type:"電",  emoji:"⚡", name:"馬利埃庭園考驗", waves:6, lvBonus:52, desc:"電光石火的創新" },
+  { region:"阿羅拉", badge:28, leader:"庫庫伊", type:"一般",emoji:"👑", name:"瑪納羅競賽",   waves:6, lvBonus:54, desc:"阿羅拉之巔的考驗" },
+  { region:"伽勒爾", badge:29, leader:"亞洛", type:"草",    emoji:"🌿", name:"草路道館",   waves:6, lvBonus:56, desc:"茂盛的自然之力" },
+  { region:"伽勒爾", badge:30, leader:"露璃娜", type:"水",  emoji:"💧", name:"水舟道館",   waves:6, lvBonus:58, desc:"奔騰的激流策略" },
+  { region:"伽勒爾", badge:31, leader:"彩豆", type:"格鬥",  emoji:"🥋", name:"溯傳競技場", waves:6, lvBonus:60, desc:"極限的格鬥鍛造" },
+  { region:"伽勒爾", badge:32, leader:"奇巴納", type:"龍",  emoji:"🐉", name:"拳關競技場", waves:6, lvBonus:62, desc:"龍之巔的最終試煉" }
 ];
 
-// ===== P4-2: 多地區聯盟系統 (P5-1 難度階梯化) =====
+// ===== P4-2: 多地區聯盟系統 (VER2.2 — 8 地區, 每區 2 E4) =====
 var LEAGUE_REGIONS = {
   "關都": {
     eliteFour: [
-      { name: "科拿", type: "冰",   emoji: "❄️", lvBonus: 50, desc: "冰系天王 — 極寒的考驗" },
-      { name: "希巴", type: "格鬥", emoji: "🥋", lvBonus: 55, desc: "格鬥天王 — 鋼鐵的意志" },
-      { name: "菊子", type: "幽靈", emoji: "👻", lvBonus: 60, desc: "幽靈天王 — 詭譎的戰術" },
-      { name: "阿渡", type: "龍",   emoji: "🐉", lvBonus: 65, desc: "龍系天王 — 龍之怒" }
+      { name:"科拿", type:"冰",   emoji:"❄️", lvBonus:50, desc:"冰系天王 — 極寒的考驗" },
+      { name:"希巴", type:"格鬥", emoji:"🥋", lvBonus:55, desc:"格鬥天王 — 鋼鐵的意志" }
     ],
-    champion: { name: "青綠", type: "混合", emoji: "👑", lvBonus: 75, desc: "冠軍 — 全屬性的巔峰" },
-    requiredBadges: 8, order: 0
+    requiredBadges: 4, order: 0
   },
   "城都": {
     eliteFour: [
-      { name: "一樹", type: "超能力", emoji: "🔮", lvBonus: 55, desc: "超能天王 — 念力的極致" },
-      { name: "梨花", type: "惡",     emoji: "😈", lvBonus: 60, desc: "惡系天王 — 黑暗的戰術" },
-      { name: "希爾斯", type: "鋼",   emoji: "⚙️", lvBonus: 65, desc: "鋼鐵天王 — 不動的防線" },
-      { name: "小椿", type: "龍",     emoji: "🐉", lvBonus: 70, desc: "龍系天王 — 蒼空霸主" }
+      { name:"一樹", type:"超能力", emoji:"🔮", lvBonus:55, desc:"超能天王 — 念力的極致" },
+      { name:"梨花", type:"惡",     emoji:"😈", lvBonus:60, desc:"惡系天王 — 黑暗的戰術" }
     ],
-    champion: { name: "小銀", type: "混合", emoji: "👑", lvBonus: 80, desc: "冠軍 — 洗滌的靈魂" },
-    requiredBadges: 16, order: 1
+    requiredBadges: 8, order: 1
   },
   "豐緣": {
     eliteFour: [
-      { name: "花月", type: "惡",     emoji: "🗡️", lvBonus: 60, desc: "惡系天王 — 華麗的暗殺" },
-      { name: "芙蓉", type: "幽靈",   emoji: "👻", lvBonus: 65, desc: "幽靈天王 — 來自彼岸" },
-      { name: "波妮", type: "冰",     emoji: "❄️", lvBonus: 70, desc: "冰系天王 — 絕對零度" },
-      { name: "源治", type: "龍",     emoji: "🐉", lvBonus: 75, desc: "龍系天王 — 滄海老將" }
+      { name:"花月", type:"惡",   emoji:"🗡️", lvBonus:60, desc:"惡系天王 — 華麗的暗殺" },
+      { name:"芙蓉", type:"幽靈", emoji:"👻", lvBonus:65, desc:"幽靈天王 — 來自彼岸" }
     ],
-    champion: { name: "大吾", type: "鋼", emoji: "👑", lvBonus: 85, desc: "冠軍 — 石之意志" },
-    requiredBadges: 20, order: 2
+    requiredBadges: 12, order: 2
   },
   "神奧": {
     eliteFour: [
-      { name: "阿李", type: "格鬥",   emoji: "🥋", lvBonus: 65, desc: "格鬥天王 — 鐵拳無敵" },
-      { name: "勿忘", type: "地面",   emoji: "🌍", lvBonus: 70, desc: "地面天王 — 大地之怒" },
-      { name: "大葉", type: "火",     emoji: "🔥", lvBonus: 75, desc: "火焰天王 — 燎原之火" },
-      { name: "菊野", type: "超能力", emoji: "🔮", lvBonus: 80, desc: "超能天王 — 虛空行者" }
+      { name:"阿李", type:"格鬥", emoji:"🥋", lvBonus:65, desc:"格鬥天王 — 鐵拳無敵" },
+      { name:"勿忘", type:"地面", emoji:"🌍", lvBonus:70, desc:"地面天王 — 大地之怒" }
     ],
-    champion: { name: "竹蘭", type: "混合", emoji: "👑", lvBonus: 90, desc: "冠軍 — 傳承的意志" },
-    requiredBadges: 26, order: 3
+    requiredBadges: 16, order: 3
   },
   "合眾": {
     eliteFour: [
-      { name: "婉美", type: "蟲",     emoji: "🦋", lvBonus: 70, desc: "蟲系天王 — 美麗的陷阱" },
-      { name: "蓮霧", type: "地面",   emoji: "🏜️", lvBonus: 75, desc: "地面天王 — 沙漠風暴" },
-      { name: "嘉德麗雅", type: "超能力", emoji: "💜", lvBonus: 80, desc: "超能天王 — 華麗的夢境" },
-      { name: "越橘", type: "惡",     emoji: "🌑", lvBonus: 85, desc: "惡系天王 — 闇夜的支配" }
+      { name:"婉美", type:"蟲",   emoji:"🦋", lvBonus:70, desc:"蟲系天王 — 美麗的陷阱" },
+      { name:"蓮霧", type:"地面", emoji:"🏜️", lvBonus:75, desc:"地面天王 — 沙漠風暴" }
     ],
-    champion: { name: "艾莉絲", type: "龍", emoji: "👑", lvBonus: 95, desc: "冠軍 — 龍之少女" },
-    requiredBadges: 32, order: 4
+    requiredBadges: 20, order: 4
   },
   "卡洛斯": {
     eliteFour: [
-      { name: "帕琦拉", type: "火",     emoji: "🔥", lvBonus: 75, desc: "火系天王 — 炙熱的真理" },
-      { name: "志糜",   type: "水",     emoji: "💧", lvBonus: 80, desc: "水系天王 — 奔流的策略" },
-      { name: "朵拉塞娜", type: "龍",   emoji: "🐉", lvBonus: 85, desc: "龍系天王 — 遠古的咆哮" },
-      { name: "雁鎧",   type: "鋼",     emoji: "⚙️", lvBonus: 90, desc: "鋼鐵天王 — 不朽的壁壘" }
+      { name:"帕琦拉", type:"火", emoji:"🔥", lvBonus:75, desc:"火系天王 — 炙熱的真理" },
+      { name:"志糜",   type:"水", emoji:"💧", lvBonus:80, desc:"水系天王 — 奔流的策略" }
     ],
-    champion: { name: "卡露妮", type: "混合", emoji: "👑", lvBonus: 100, desc: "冠軍 — 優雅與力量的化身" },
-    requiredBadges: 32, order: 5
+    requiredBadges: 24, order: 5
+  },
+  "阿羅拉": {
+    eliteFour: [
+      { name:"阿塞蘿拉", type:"幽靈", emoji:"👻", lvBonus:78, desc:"幽靈天王 — 虛實之間" },
+      { name:"卡希麗",   type:"飛行", emoji:"🕊️", lvBonus:82, desc:"飛行天王 — 蒼穹的霸主" }
+    ],
+    requiredBadges: 28, order: 6
+  },
+  "伽勒爾": {
+    eliteFour: [
+      { name:"赫普", type:"一般", emoji:"🐶", lvBonus:82, desc:"一般天王 — 不屈的挑戰者" },
+      { name:"瑪俐", type:"惡",   emoji:"😈", lvBonus:86, desc:"惡系天王 — 暗夜的支配者" }
+    ],
+    requiredBadges: 32, order: 7
   }
 };
 var leagueCompletedMonths = {};
@@ -1985,13 +2013,49 @@ var leagueChampions = {};
 var leaguePoints = {};
 var DEFENSE_COOLDOWN_DAYS = 3;
 
+// ===== VER2.2: 八大師資料結構 (Masters 8) =====
+var MASTERS_8 = [
+  { rank:8, name:"小智", type:"混合", lvBonus:75,  month:1,
+    desc:"阿羅拉冠軍 — 羈絆的王者",
+    pokemon:["皮卡丘","耿鬼","蔥遊兵","路卡利歐","鰓魚龍","快龍"] },
+  { rank:7, name:"艾莉絲", type:"龍", lvBonus:80,  month:2,
+    desc:"合眾冠軍 — 龍之少女",
+    pokemon:["雙斧戰龍","快龍","龍頭地鼠","三首惡龍","赤面龍","電飛鼠"] },
+  { rank:6, name:"艾嵐", type:"火", lvBonus:82,   month:3,
+    desc:"卡洛斯優勝 — Mega進化先驅",
+    pokemon:["噴火龍","布里卡隆","烏賊王","班基拉斯","瑪狃拉","劈斬司令"] },
+  { rank:5, name:"卡露妮", type:"混合", lvBonus:85, month:4,
+    desc:"卡洛斯冠軍 — 優雅與力量的化身",
+    pokemon:["沙奈朵","怪顎龍","冰雪巨龍","南瓜怪人","摔角鷹人","黏美龍"] },
+  { rank:4, name:"渡", type:"龍", lvBonus:88,     month:5,
+    desc:"關都/城都冠軍 — 龍之使者",
+    pokemon:["快龍","暴鯉龍","三首惡龍","化石翼龍","班基拉斯","暴飛龍"] },
+  { rank:3, name:"大吾", type:"鋼", lvBonus:92,   month:6,
+    desc:"豐緣冠軍 — 石之意志",
+    pokemon:["巨金怪","大鋼蛇","搖籃百合","太古盔甲","盔甲鳥","波士可多拉"] },
+  { rank:2, name:"竹蘭", type:"混合", lvBonus:96, month:7,
+    desc:"神奧冠軍 — 傳承的意志",
+    pokemon:["烈咬陸鯊","花岩怪","羅絲雷朵","波克基斯","海兔獸","美納斯"] },
+  { rank:1, name:"丹帝", type:"混合", lvBonus:100, month:8,
+    desc:"伽勒爾冠軍 — 不敗王者",
+    pokemon:["噴火龍","轟擂金剛猩","閃焰王牌","千面避役","多龍巴魯托","踏冰人偶"] }
+];
+
+// 輔助: 依月份取得該月對應的八大師
+function getMasters8ForMonth(month) {
+  for (var mi = 0; mi < MASTERS_8.length; mi++) {
+    if (MASTERS_8[mi].month === month) return MASTERS_8[mi];
+  }
+  return null;
+}
+
 // ===== F3: ACHIEVEMENT / TROPHY SYSTEM =====
 var ACHIEVEMENTS = [
   { id: "FIRST_CAPTURE", name: "初次捕捉", desc: "捕捉第一隻寶可夢", icon: "🎯", tier: 1 },
   { id: "FIRST_GYM", name: "道館初戰", desc: "獲得第一枚道館徽章", icon: "🥇", tier: 1 },
   { id: "LV_10", name: "新星訓練家", desc: "達到 Lv.10", icon: "⭐", tier: 1 },
   { id: "COLLECTOR_10", name: "小小收藏家", desc: "收集 10 種寶可夢", icon: "📦", tier: 1 },
-  { id: "GYM_8", name: "關都冠軍", desc: "收集 8 枚道館徽章", icon: "🏅", tier: 2 },
+  { id: "GYM_8", name: "道館初心者", desc: "收集 8 枚道館徽章", icon: "🏅", tier: 2 },
   { id: "LV_25", name: "精英訓練家", desc: "達到 Lv.25", icon: "💫", tier: 2 },
   { id: "COLLECTOR_25", name: "熱衷收藏家", desc: "收集 25 種寶可夢", icon: "🗃️", tier: 2 },
   { id: "LEGENDARY", name: "傳說捕手", desc: "捕捉傳說寶可夢", icon: "✨", tier: 2 },
@@ -1999,9 +2063,17 @@ var ACHIEVEMENTS = [
   { id: "PVP_WIN", name: "宿敵剋星", desc: "PvP 對戰獲勝", icon: "🆚", tier: 2 },
   { id: "GYM_32", name: "徽章大師", desc: "收集全部 32 枚徽章", icon: "🏆", tier: 3 },
   { id: "LV_50", name: "大師訓練家", desc: "達到 Lv.50", icon: "👑", tier: 3 },
-  { id: "LEAGUE_CHAMP", name: "聯盟王者", desc: "擊敗四天王與冠軍", icon: "🏆", tier: 3 },
+  { id: "LEAGUE_CHAMP", name: "聯盟王者", desc: "擊敗四天王完成聯盟挑戰", icon: "🏆", tier: 3 },
   { id: "COLLECTOR_50", name: "大師收藏家", desc: "收集 50 種寶可夢", icon: "💎", tier: 3 },
-  { id: "DEX_151", name: "圖鑑達人", desc: "收集全部 151 種寶可夢", icon: "🌟", tier: 3 }
+  { id: "DEX_151", name: "圖鑑達人", desc: "收集全部 151 種寶可夢", icon: "🌟", tier: 3 },
+  { id: "M8_SATOSHI", name: "羈絆的證明", desc: "擊敗八大師第8位：小智", icon: "⚡", tier: 3 },
+  { id: "M8_IRIS", name: "龍之試煉", desc: "擊敗八大師第7位：艾莉絲", icon: "🐉", tier: 3 },
+  { id: "M8_ALAIN", name: "Mega的頂點", desc: "擊敗八大師第6位：艾嵐", icon: "🔥", tier: 3 },
+  { id: "M8_DIANTHA", name: "優雅之戰", desc: "擊敗八大師第5位：卡露妮", icon: "💎", tier: 3 },
+  { id: "M8_LANCE", name: "龍之使者", desc: "擊敗八大師第4位：渡", icon: "🐲", tier: 3 },
+  { id: "M8_STEVEN", name: "鋼鐵意志", desc: "擊敗八大師第3位：大吾", icon: "⚙️", tier: 3 },
+  { id: "M8_CYNTHIA", name: "傳承的意志", desc: "擊敗八大師第2位：竹蘭", icon: "👑", tier: 3 },
+  { id: "M8_LEON", name: "不敗傳說", desc: "擊敗八大師第1位：丹帝", icon: "🌟", tier: 3 }
 ];
 var ACHIEVEMENT_TIERS = { 1: "初階", 2: "進階", 3: "大師" };
 var globalAchievements = {};
@@ -2056,13 +2128,13 @@ function getGymLeaderInfo(badges) {
 function getRegionInfo(badges) {
   var list = gymsCache || GYM_LEADERS;
   var total = list.length;
-  var badgeSymbols = ["??","??","?","??","??","??","??","??"];
-  var regionNames = ["關都地區","城都地區","合眾地區","卡洛斯地區"];
-  var regionColors = ["#d35400","#8e44ad","#f39c12","#3498db"];
-  var regionIdx = Math.min(Math.floor(badges / 8), regionNames.length - 1);
-  var displayed = badges % 8 || (badges === 0 ? 0 : 8);
+  var badgeSymbols = ["?","??","??","??","??","??","??","??"];
+  var regionNames = ["關都","城都","豐緣","神奧","合眾","卡洛斯","阿羅拉","伽勒爾"];
+  var regionColors = ["#d35400","#8e44ad","#27ae60","#2980b9","#f39c12","#3498db","#e91e63","#2c3e50"];
+  var regionIdx = Math.min(Math.floor(badges / 4), regionNames.length - 1);
+  var displayed = badges - regionIdx * 4;
   return {
-    name: regionNames[regionIdx],
+    name: regionNames[regionIdx] + "地區",
     color: regionColors[regionIdx],
     symbols: badgeSymbols,
     earned: displayed,
@@ -3576,6 +3648,7 @@ function startNextWave() {
   if (!battleState || !battleState.gymWaves) return;
   var nextIdx = battleState.currentWave + 1;
   if (nextIdx >= battleState.totalWaves) {
+    if (battleState.isMasters8) { finishMasters8Victory(); return; }
     if (battleState.isLeague) { finishLeagueVictory(); return; }
     finishGymVictory();
     return;
@@ -3688,6 +3761,7 @@ function endBattle(playerWon) {
     return;
   }
   if (playerWon && battleState.gymWaves && battleState.enemy.isLastWave) {
+    if (battleState.isMasters8) { finishMasters8Victory(); return; }
     if (battleState.isLeague) { finishLeagueVictory(); return; }
     finishGymVictory();
     return;
@@ -4123,14 +4197,30 @@ function updateBattleButtons() {
   var battlesToday = globalData.todayBattles || 0;
   arena.style.display = battlesToday >= 5 ? "none" : "inline-block";
   arena.innerHTML = "⚔️ 路人戰 (" + (5 - battlesToday) + "/5)";
-  var boss = $("btnBossBattle");
-  if (boss) {
-    if (isBossWeek() && !globalData.todayCompleted) {
-      var bossW = globalData.weekBossWins || 0;
-      boss.style.display = bossW >= 1 ? "none" : "inline-block";
-      boss.innerHTML = "👑 魔王戰 (" + (1 - bossW) + "/1)";
+  // 八大師按鈕 — W4 或緩衝期 + 聯盟已通關
+  var m8Btn = $("btnMasters8Battle");
+  if (m8Btn) {
+    var weekType = getWeekType();
+    var isW4 = weekType === "W4";
+    var isBuffer = isBufferPeriod();
+    var todayOk = !globalData.todayCompleted;
+    if ((isW4 || isBuffer) && todayOk) {
+      var challenge = getE4ChallengeForBadges(globalData.badges || 0);
+      if (challenge) {
+        var mKey = new Date().getFullYear() + "-" + (new Date().getMonth() + 1);
+        var leagueCleared = leagueCompletedMonths[challenge.region] === mKey;
+        var m8Done = (globalData.masters8Completed || []).length >= MASTERS_8.length;
+        if (leagueCleared && !m8Done) {
+          m8Btn.style.display = "inline-block";
+          m8Btn.innerHTML = "👑 八大師戰";
+        } else {
+          m8Btn.style.display = "none";
+        }
+      } else {
+        m8Btn.style.display = "none";
+      }
     } else {
-      boss.style.display = "none";
+      m8Btn.style.display = "none";
     }
   }
 }
@@ -4232,26 +4322,21 @@ function getLeagueData(region) {
   return LEAGUE_REGIONS[region] || LEAGUE_REGIONS["關都"];
 }
 
-function generateLeagueGauntlet(trainerLevel, region, half) {
+function generateLeagueGauntlet(trainerLevel, region) {
   var badges = globalData.badges || 0;
   var leagueData = getLeagueData(region);
   if (badges < leagueData.requiredBadges) return null;
   var monthKey = new Date().getFullYear() + "-" + (new Date().getMonth() + 1);
-  var e4Key = half ? region + "_" + half : region;
-  if (e4Completed[e4Key] === monthKey) return { waves: [], leagueInfo: null, completed: true };
-  if (!half && leagueCompletedMonths[region] === monthKey) return { waves: [], leagueInfo: null, completed: true };
+  if (leagueCompletedMonths[region] === monthKey) return { waves: [], leagueInfo: null, completed: true };
   var e4 = leagueData.eliteFour;
-  var champ = leagueData.champion;
-  var expectedLv = EXPECTED_LEVEL[Math.min(Math.min(badges, 31), EXPECTED_LEVEL.length - 1)];
+  var expectedLv = EXPECTED_LEVEL[Math.min(badges, EXPECTED_LEVEL.length - 1)];
   var effectiveLv = getEffectiveLevel(expectedLv, trainerLevel);
   var waves = [];
-  var leaderLabel = half === "first" ? "四天王前半" : (half === "second" ? "四天王後半+冠軍" : "四天王+冠軍");
-  var leagueInfo = { name: region + "聯盟", emoji: "🏆", leader: leaderLabel, region: region, half: half || "full" };
-  var startIdx = half === "first" ? 0 : (half === "second" ? 2 : 0);
-  var endIdx = half === "first" ? 2 : (half === "second" ? 4 : 4);
-  for (var li = startIdx; li < endIdx; li++) {
+  var leagueInfo = { name: region + "聯盟", emoji: "🏆", leader: "四天王", region: region };
+  // 每場 E4 = 3 波, 2 位 E4 = 6 波
+  for (var li = 0; li < e4.length; li++) {
     var e4m = e4[li];
-    var tier = li < 2 ? "稀有" : "傳說";
+    var tier = "稀有";
     var pool = POKEMON_TIERS[tier].slice();
     var candidates = [];
     var e4Level = Math.max(5, expectedLv + Math.round(e4m.lvBonus * 0.04));
@@ -4268,48 +4353,182 @@ function generateLeagueGauntlet(trainerLevel, region, half) {
         candidates.push({ name: en2, types: POKEMON_SPECIES_TYPES[en2] || ["一般"], legendary: s2.legendary });
       }
     }
-    var chosen = candidates[Math.floor(Math.random() * candidates.length)];
-    var baseLevel = Math.max(5, e4Level + Math.floor(Math.random() * 3));
-    var pt = chosen.types.join("/");
-    var prefix = chosen.legendary ? "✨ " : "👑 ";
-    var displayName = prefix + chosen.name + " (" + pt + ")";
-    waves.push({
-      name: displayName, level: baseLevel, isGym: false, isLeague: true,
-      isLastWave: false, isWeeklyBoss: false, waveIndex: li,
-      bossName: e4m.name, bossType: e4m.type, bossEmoji: e4m.emoji, leagueRegion: region
-    });
-  }
-  if (half !== "first") {
-    var champPool = POKEMON_TIERS["傳說"].slice();
-    var champPkmn = champPool[Math.floor(Math.random() * champPool.length)];
-    var champEvo = champPkmn.name;
-    var champTypes = POKEMON_SPECIES_TYPES[champEvo] || ["一般"];
-    var champLevel = Math.max(5, expectedLv + Math.round(champ.lvBonus * 0.06) + Math.floor(Math.random() * 3));
-    var champPt = champTypes.join("/");
-    var champDisplay = "✨ 冠軍 " + champEvo + " (" + champPt + ")";
-    waves.push({
-      name: champDisplay, level: champLevel, isGym: false, isLeague: true,
-      isLastWave: waves.length === 0, isWeeklyBoss: false, waveIndex: endIdx,
-      bossName: champ.name, bossType: champ.type, bossEmoji: champ.emoji, leagueRegion: region
-    });
+    // 每人 3 波
+    for (var wi = 0; wi < 3; wi++) {
+      var chosen = candidates[Math.floor(Math.random() * candidates.length)];
+      var baseLevel = Math.max(5, e4Level + Math.floor(Math.random() * 3));
+      var pt = chosen.types.join("/");
+      var prefix = chosen.legendary ? "✨ " : "👑 ";
+      var displayName = prefix + chosen.name + " (" + pt + ")";
+      var isLast = (li === e4.length - 1 && wi === 2);
+      waves.push({
+        name: displayName, level: baseLevel, isGym: false, isLeague: true,
+        isLastWave: isLast, isWeeklyBoss: false,
+        waveIndex: li * 3 + wi,
+        bossName: e4m.name, bossType: e4m.type, bossEmoji: e4m.emoji, leagueRegion: region
+      });
+    }
   }
   if (waves.length > 0) waves[waves.length - 1].isLastWave = true;
   return { waves: waves, leagueInfo: leagueInfo, completed: false };
+}
+
+// ===== VER2.2: 八大師戰鬥系統 =====
+function createMasters8Enemy(pokemonName, level) {
+  var types = POKEMON_SPECIES_TYPES[pokemonName] || ["一般"];
+  var pt = types.join("/");
+  var displayName = "👑 " + pokemonName + " (" + pt + ")";
+  var enemy = createEnemyPokemon(displayName, level, false, false);
+  return enemy;
+}
+
+function generateMasters8Battle(trainerLevel, mastersMember) {
+  var badges = globalData.badges || 0;
+  var expectedLv = EXPECTED_LEVEL[Math.min(badges, EXPECTED_LEVEL.length - 1)];
+  var effectiveLv = getEffectiveLevel(expectedLv, trainerLevel);
+  var waves = [];
+  var baseLv = Math.max(5, expectedLv + Math.round(mastersMember.lvBonus * 0.06));
+  for (var mi = 0; mi < mastersMember.pokemon.length; mi++) {
+    var pkName = mastersMember.pokemon[mi];
+    var lv = baseLv + Math.floor(Math.random() * 3);
+    var isLast = (mi === mastersMember.pokemon.length - 1);
+    var enemy = createMasters8Enemy(pkName, lv);
+    enemy.isLastWave = isLast;
+    enemy.isWeeklyBoss = true;
+    enemy.waveIndex = mi;
+    enemy.bossName = mastersMember.name;
+    enemy.bossType = mastersMember.type;
+    enemy.bossEmoji = "👑";
+    waves.push(enemy);
+  }
+  if (waves.length > 0) waves[waves.length - 1].isLastWave = true;
+  var m8Info = { name: "八大師戰", emoji: "👑", leader: mastersMember.name + " (" + mastersMember.desc + ")" };
+  return { waves: waves, m8Info: m8Info };
+}
+
+function startMasters8Battle() {
+  if (!globalData || typeof globalData.highestLevel === "undefined") return;
+  if (globalData.todayCompleted) { toast("今日已完成！"); return; }
+  var month = getCurrentMonth();
+  var mastersMember = getMasters8ForMonth(month);
+  if (!mastersMember) { toast("本月沒有對應的八大師！"); return; }
+  // 確認依序挑戰 (小智→艾莉絲→...→丹帝)
+  var m8Completed = globalData.masters8Completed || [];
+  var m8Progress = globalData.masters8Progress || [];
+  if (m8Completed.indexOf(mastersMember.name) !== -1) { toast("本月八大師已擊敗！"); return; }
+  // 檢查是否可以挑戰（必須先擊敗排名較低的八大師）
+  for (var mi = MASTERS_8.length - 1; mi >= 0; mi--) {
+    var m = MASTERS_8[mi];
+    if (m.rank > mastersMember.rank && m.month < month) {
+      if (m8Completed.indexOf(m.name) === -1) {
+        toast("必須先擊敗 " + m.name + " 才能挑戰 " + mastersMember.name + "！");
+        return;
+      }
+    }
+  }
+  var trainerLevel = globalData.highestLevel || 5;
+  if (globalData.simpleMode) trainerLevel = Math.max(5, Math.floor(trainerLevel * 0.75));
+  var result = generateMasters8Battle(trainerLevel, mastersMember);
+  if (!result || !result.waves.length) { toast("八大師戰產生失敗！"); return; }
+  // 記錄進度
+  if (m8Progress.indexOf(mastersMember.name) === -1) {
+    m8Progress.push(mastersMember.name);
+    globalData.masters8Progress = m8Progress;
+  }
+  // 開啟戰鬥
+  openArenaMasters8(result.waves, result.m8Info);
+}
+
+function openArenaMasters8(waveEnemies, m8Info) {
+  if (!globalData || !globalData.roster || globalData.roster.length === 0) { toast("你還沒有寶可夢！"); return; }
+  var party = [];
+  var partyIds = globalData.partyIds || [];
+  for (var i = 0; i < partyIds.length; i++) {
+    var match = globalData.roster.find(function(p){ return p.id === partyIds[i]; });
+    if (match) party.push(createPlayerPokemon(match));
+  }
+  if (party.length === 0) {
+    var sorted = globalData.roster.slice().sort(function(a,b){ return b.currentLevel - a.currentLevel; });
+    party = [createPlayerPokemon(sorted[0])];
+  }
+  var firstPkmn = party[0];
+  battleState = {
+    playerPokemon: firstPkmn, playerParty: party, enemy: waveEnemies[0],
+    isGym: false, isLeague: true, isMasters8: true, turnLock: false,
+    battleOver: false, playerWon: false,
+    gymWaves: waveEnemies, currentWave: 0, totalWaves: waveEnemies.length,
+    gymInfo: { name: m8Info.name, emoji: "👑", leader: m8Info.leader },
+    weather: null
+  };
+  var abilityLog = [];
+  applyEntryAbility(battleState.enemy, firstPkmn, battleState, abilityLog);
+  $("battleLog").innerHTML = "<p style='color:#c0392b;'>👑 八大師戰 — " + m8Info.leader + "</p>" + (abilityLog.length ? "<p>" + abilityLog.join(" ") + "</p>" : "");
+  $("battleModal").style.display = "flex";
+  $("arenaBattlePhase").style.display = "block";
+  $("arenaResultPhase").style.display = "none";
+  $("arenaItemPanel").style.display = "none";
+  $("resultMessage").style.display = "none";
+  $("battleTitle").innerHTML = "👑 八大師戰 — " + m8Info.leader + " (1/" + waveEnemies.length + ")";
+  updateArenaUI();
+  var enemyBox = $("enemyPkmnName");
+  if (enemyBox) { enemyBox.classList.remove("entry-animation"); void enemyBox.offsetWidth; enemyBox.classList.add("entry-animation"); }
+}
+
+function finishMasters8Victory() {
+  battleState.battleOver = true;
+  battleState.playerWon = true;
+  var month = getCurrentMonth();
+  var mastersMember = getMasters8ForMonth(month);
+  if (!mastersMember) { toast("錯誤：找不到本月八大師"); return; }
+  var m8Completed = globalData.masters8Completed || [];
+  var m8Progress = globalData.masters8Progress || [];
+  if (m8Completed.indexOf(mastersMember.name) === -1) m8Completed.push(mastersMember.name);
+  globalData.masters8Completed = m8Completed;
+  globalData.masters8Progress = m8Progress.filter(function(n){ return n !== mastersMember.name; });
+  leaguePoints["M8_" + mastersMember.name] = (leaguePoints["M8_" + mastersMember.name] || 0) + 20;
+  // 經驗值獎勵
+  var totalExpGain = 0, partyUsed = [];
+  for (var i = 0; i < battleState.playerParty.length; i++) {
+    var pk = battleState.playerParty[i];
+    if (pk.currentHp > 0 && partyUsed.length < 6) partyUsed.push(pk);
+  }
+  var cumulativeExp = 0;
+  for (var wi = 0; wi < battleState.totalWaves; wi++) {
+    var we = battleState.gymWaves[wi];
+    var baseExp = ARENA_EXP_BASE + Math.floor(we.level * 3);
+    var waveMult = we.isLastWave ? 4 : 2.5;
+    baseExp = Math.floor(baseExp * 8 * waveMult);
+    cumulativeExp += baseExp;
+  }
+  totalExpGain = Math.floor(cumulativeExp);
+  var coinsGain = Math.floor((120 + Math.floor(battleState.enemy.level * 2)) * (globalData.hasAmuletCoin ? 1.5 : 1));
+  var msg = "👑 八大師擊敗！戰勝了 " + mastersMember.name + "！各隊員獲得 " + totalExpGain + " 經驗值, " + coinsGain + " 金幣 +20聯盟積分";
+  $("arenaBattlePhase").style.display = "none";
+  $("arenaResultPhase").style.display = "block";
+  $("resultMessage").innerHTML = msg;
+  $("resultMessage").style.display = "block";
+  var rewardsHtml = "<div style='font-size:13px;color:#555;margin-bottom:6px;'>";
+  var expParts = [];
+  for (var j = 0; j < partyUsed.length; j++) {
+    var share = j === 0 ? Math.floor(totalExpGain * 1.2) : Math.floor(totalExpGain * 0.5);
+    expParts.push((j === 0 ? "🛡️" : "⚔️") + partyUsed[j].name.replace(/^[^\s]*\s*/,"") + ": +" + share + (j === 0 ? "(先鋒×1.2)" : "(參與×0.5)"));
+  }
+  rewardsHtml += expParts.join(" | ") + "</div>";
+  $("resultRewards").innerHTML = rewardsHtml;
+  var participantStr = partyUsed.map(function(p){ return p.id; }).join(",");
+  var noteContent = "👑 八大師擊敗 [" + mastersMember.name + " (#" + mastersMember.rank + ")] | 參與者: " + participantStr;
+  executeSave({ studentId: globalData.studentId, score: 0, action: "戰鬥勝利", expGained: totalExpGain, coinsGained: coinsGain, badgeChange: 0, note: noteContent, extraNote: noteContent, totalScore: 0, user: globalData.studentId }, null, false);
+  battleState = null;
+  $("resultConfirmBtn").style.display = "block";
 }
 
 function finishLeagueVictory() {
   battleState.battleOver = true;
   battleState.playerWon = true;
   var region = battleState.leagueRegion || "關都";
-  var leagueHalf = battleState.leagueHalf;
   var leagueData = getLeagueData(region);
-  var champ = leagueData.champion;
   var monthKey = new Date().getFullYear() + "-" + (new Date().getMonth() + 1);
-  if (leagueHalf) {
-    e4Completed[region + "_" + leagueHalf] = monthKey;
-  } else {
-    leagueCompletedMonths[region] = monthKey;
-  }
+  leagueCompletedMonths[region] = monthKey;
   leagueChampions[region] = globalData.studentId;
   leaguePoints[region] = (leaguePoints[region] || 0) + 10;
   var totalExpGain = 0, partyUsed = [];
@@ -4335,13 +4554,13 @@ function finishLeagueVictory() {
   var alreadyCaptured = globalData.monthLeagueWins > 0;
   var canCapture = !alreadyCaptured || Math.random() < 0.4;
   if (canCapture) { captureText = " | 🏆 捕獲: " + battleState.enemy.name; }
-  var msg = "🏆 " + region + "聯盟冠軍！擊敗了四天王 & " + champ.name + "！各隊員獲得 " + totalExpGain + " 經驗值, " + coinsGain + " 金幣 +10聯盟積分" + captureText;
+  var e4Names = leagueData.eliteFour.map(function(e){ return e.name; }).join(" & ");
+  var msg = "🏆 " + region + "聯盟冠軍！擊敗了 " + e4Names + "！各隊員獲得 " + totalExpGain + " 經驗值, " + coinsGain + " 金幣 +10聯盟積分" + captureText;
   if (!alreadyCaptured) msg += " | 🌟 傳說捕獲！";
   $("arenaBattlePhase").style.display = "none";
   $("arenaResultPhase").style.display = "block";
   $("resultMessage").innerHTML = msg;
   $("resultMessage").style.display = "block";
-  // Build rewards display
   var rewardsHtml = "<div style='font-size:13px;color:#555;margin-bottom:6px;'>";
   var expParts = [];
   for (var j = 0; j < partyUsed.length; j++) {
@@ -4368,13 +4587,13 @@ function finishLeagueVictory() {
   }
   $("resultRewards").innerHTML = rewardsHtml;
   var participantStr = partyUsed.map(function(p){ return p.id; }).join(",");
-  var noteContent = "⚔️ 聯盟冠軍 [" + region + " League] | 四天王+冠軍 [" + champ.name + "] | 參與者: " + participantStr + captureText;
+  var noteContent = "⚔️ 聯盟冠軍 [" + region + " League] | E4 [" + e4Names + "] | 參與者: " + participantStr + captureText;
   executeSave({ studentId: globalData.studentId, score: 0, action: "戰鬥勝利", expGained: totalExpGain, coinsGained: coinsGain, badgeChange: 0, note: noteContent, extraNote: noteContent, totalScore: 0, user: globalData.studentId }, null, false);
   battleState = null;
   $("resultConfirmBtn").style.display = "block";
 }
 
-function startLeagueBattle(region, half) {
+function startLeagueBattle(region) {
   if (!globalData || typeof globalData.highestLevel === "undefined") return;
   if (globalData.todayCompleted) { toast("今日已完成！"); return; }
   region = region || currentRegion;
@@ -4382,11 +4601,10 @@ function startLeagueBattle(region, half) {
   var badges = globalData.badges || 0;
   if (badges < leagueData.requiredBadges) { toast("需要 " + leagueData.requiredBadges + " 枚徽章才能挑戰" + region + "聯盟！"); return; }
   var monthKey = new Date().getFullYear() + "-" + (new Date().getMonth() + 1);
-  var e4Key = half ? region + "_" + half : region;
-  if (e4Completed[e4Key] === monthKey) { toast(region + "本階段本月已通關，下個月再來！"); return; }
+  if (leagueCompletedMonths[region] === monthKey) { toast(region + "本月聯盟已通關！"); return; }
   var trainerLevel = globalData.highestLevel || 5;
   if (globalData.simpleMode) trainerLevel = Math.max(5, Math.floor(trainerLevel * 0.75));
-  var result = generateLeagueGauntlet(trainerLevel, region, half);
+  var result = generateLeagueGauntlet(trainerLevel, region);
   if (!result || result.completed) { toast("本月聯盟已完成！"); return; }
   var waveEnemies = [];
   for (var wi = 0; wi < result.waves.length; wi++) {
@@ -4408,11 +4626,11 @@ function promptE4Challenge() {
   var challenge = getE4ChallengeForBadges(badges);
   if (!challenge) { toast("尚未達到四天王挑戰門檻（需 4 枚以上徽章）"); return; }
   var mKey = new Date().getFullYear() + "-" + (new Date().getMonth() + 1);
-  if (e4Completed[challenge.region + "_" + challenge.half] === mKey) { toast("本月四天王挑戰已完成！下個月再來！"); return; }
-  $("confirmModalText").innerHTML = "🏆 " + challenge.name + "<br><br>四天王在 Boss 週等待挑戰！<br>是否接受挑戰？<br><br><small style='color:#888;'>可選擇跳過，不影響徽章收集進度</small>";
+  if (leagueCompletedMonths[challenge.region] === mKey) { toast("本月已通關 " + challenge.region + " 聯盟！下個月再來！"); return; }
+  $("confirmModalText").innerHTML = "🏆 " + challenge.region + "聯盟挑戰<br><br>四天王在 Boss 週等待挑戰！<br>是否接受挑戰？<br><br><small style='color:#888;'>可選擇跳過，不影響徽章收集進度</small>";
   $("confirmBtnYes").onclick = function() {
     $("confirmModal").style.display = "none";
-    startLeagueBattle(challenge.region, challenge.half);
+    startLeagueBattle(challenge.region);
   };
   $("confirmModal").style.display = "flex";
 }
@@ -4435,8 +4653,8 @@ function openArenaLeague(waveEnemies, leagueInfo) {
     playerPokemon: firstPkmn, playerParty: party, enemy: waveEnemies[0],
     isGym: false, isLeague: true, turnLock: false, battleOver: false, playerWon: false,
     gymWaves: waveEnemies, currentWave: 0, totalWaves: waveEnemies.length,
-    gymInfo: { name: region + "聯盟", emoji: "🏆", leader: leagueInfo.leader || "四天王+冠軍" },
-    weather: null, leagueRegion: region, leagueHalf: leagueInfo.half
+    gymInfo: { name: region + "聯盟", emoji: "🏆", leader: leagueInfo.leader || "四天王" },
+    weather: null, leagueRegion: region
   };
   var abilityLog3 = [];
   applyEntryAbility(battleState.enemy, firstPkmn, battleState, abilityLog3);
@@ -6194,18 +6412,19 @@ function updateDashboard() {
     }
   }
   
-  // League button visibility — W4 only, badge-dynamic
+  // League button visibility — W4 + buffer, badge-dynamic
   var leagueBtn = $("btnLeagueBattle");
   var rankBtn = $("btnLeagueRanking");
   if (leagueBtn) {
     var badges = gd.badges || 0;
     var mKey = new Date().getFullYear() + "-" + (new Date().getMonth() + 1);
     var challenge = getE4ChallengeForBadges(badges);
-    var canE4 = challenge && isBossWeek() && !gd.todayCompleted && e4Completed[challenge.region + "_" + challenge.half] !== mKey;
-    leagueBtn.innerHTML = challenge ? "🏆 " + challenge.name : "🏆 聯盟賽";
+    var weekType = getWeekType();
+    var isW4orBuffer = weekType === "W4" || isBufferPeriod();
+    var canE4 = challenge && isW4orBuffer && !gd.todayCompleted && leagueCompletedMonths[challenge.region] !== mKey;
+    leagueBtn.innerHTML = challenge ? "🏟️ " + challenge.region + "聯盟" : "🏟️ 聯盟賽";
     leagueBtn.style.display = canE4 ? "inline-block" : "none";
     leagueBtn._e4Region = challenge ? challenge.region : null;
-    leagueBtn._e4Half = challenge ? challenge.half : null;
   }
   if (rankBtn) {
     rankBtn.style.display = (gd.badges || 0) >= 4 ? "inline-block" : "none";
@@ -7439,6 +7658,14 @@ function checkAchievement(ach, gd, events) {
     case "LEAGUE_CHAMP": return (gd.monthLeagueWins || 0) >= 1;
     case "COLLECTOR_50": return species >= 50;
     case "DEX_151": return species >= 151;
+    case "M8_SATOSHI": return (gd.masters8Completed || []).indexOf("小智") !== -1;
+    case "M8_IRIS": return (gd.masters8Completed || []).indexOf("艾莉絲") !== -1;
+    case "M8_ALAIN": return (gd.masters8Completed || []).indexOf("艾嵐") !== -1;
+    case "M8_DIANTHA": return (gd.masters8Completed || []).indexOf("卡露妮") !== -1;
+    case "M8_LANCE": return (gd.masters8Completed || []).indexOf("渡") !== -1;
+    case "M8_STEVEN": return (gd.masters8Completed || []).indexOf("大吾") !== -1;
+    case "M8_CYNTHIA": return (gd.masters8Completed || []).indexOf("竹蘭") !== -1;
+    case "M8_LEON": return (gd.masters8Completed || []).indexOf("丹帝") !== -1;
     default: return false;
   }
 }
@@ -8142,10 +8369,13 @@ function startDefenseChallenge(region) {
   if (globalData.simpleMode) trainerLevel = Math.max(5, Math.floor(trainerLevel * 0.75));
   var badges = globalData.badges || 0;
   var expectedLv = EXPECTED_LEVEL[Math.min(badges, EXPECTED_LEVEL.length - 1)];
-  var leagueData = getLeagueData(region);
-  var champ = leagueData.champion;
+  // 衛冕戰使用該月對應的八大師
+  var now = new Date();
+  var month = (now.getFullYear() - 2026) * 12 + (now.getMonth() + 1);
+  var mastersIdx = Math.min(Math.max(0, month - 1), MASTERS_8.length - 1);
+  var champ = MASTERS_8[mastersIdx];
   var bossLevel = Math.max(5, expectedLv + Math.round(champ.lvBonus * 0.06) + Math.floor(Math.random() * 6));
-  var enemy = createEnemyPokemon("✨ 衛冕者 (" + champ.type + ")", bossLevel, false, false);
+  var enemy = createEnemyPokemon("✨ 衛冕者 (" + champ.name + ")", bossLevel, false, false);
   enemy.isWeeklyBoss = true;
   enemy.defenseRegion = region;
   var defenseBody = $("defenseBody");
@@ -8181,6 +8411,18 @@ function openLeagueRanking() {
       "<div style='font-size:13px;color:#666;'>" + (isCompleted ? "✅ 本月已通關" : "⏳ 尚未挑戰") + "</div>" +
       (isChampion ? "<div style='font-size:13px;color:#e67e22;font-weight:900;'>👑 衛冕冠軍</div>" : "") +
       "<div style='font-size:13px;color:#8e44ad;'>🏅 積分: " + pts + "</div>" +
+      "</div>";
+  }
+  // 八大師進度
+  var m8Completed = globalData.masters8Completed || [];
+  var m8Progress = globalData.masters8Progress || [];
+  body.innerHTML += "<div style='margin:12px 0 4px;padding:6px 0;border-top:2px solid #eee;font-weight:900;font-size:15px;color:#c0392b;'>👑 八大師進度</div>";
+  for (var mi = 0; mi < MASTERS_8.length; mi++) {
+    var m = MASTERS_8[mi];
+    var defeated = m8Completed.indexOf(m.name) !== -1;
+    var inProgress = !defeated && m8Progress.indexOf(m.name) !== -1;
+    body.innerHTML += "<div style='padding:8px;margin:4px 0;background:" + (defeated ? "#eafaf1" : "#fdf2e9") + ";border-radius:6px;border-left:4px solid " + (defeated ? "#27ae60" : (inProgress ? "#f39c12" : "#bdc3c7")) + ";'>" +
+      "<div style='font-weight:700;font-size:14px;'>" + (defeated ? "✅" : (inProgress ? "⚔️" : "🔒")) + " #" + m.rank + " " + m.name + " <span style='color:#888;font-size:12px;'>" + m.desc + "</span></div>" +
       "</div>";
   }
   body.innerHTML += "<div style='padding:10px;margin:8px 0;background:#fef9e7;border-radius:8px;text-align:center;font-weight:900;font-size:16px;'>🏆 總聯盟積分: " + totalPoints + "</div>";
