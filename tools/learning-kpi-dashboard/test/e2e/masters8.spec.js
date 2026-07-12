@@ -290,8 +290,15 @@ test.describe('Block I Step 11: 八大師系統驗證', () => {
 
   // 11.6: 跳 rank 阻擋 — startMasters8Battle 必須依序挑戰
   test('11.6 startMasters8Battle enforces sequential rank order (rank 8→1)', async ({ page }) => {
+    const setBossWeek = function() {
+      isAdmin = true;
+      var dw = $("devWeek");
+      if (dw) dw.value = "W4";
+    };
+
     const blocksWhenNoneCompleted = await page.evaluate(() => {
       globalData = { highestLevel: 50, todayCompleted: false, todayBattles: 0, masters8Completed: [], masters8Progress: [], roster: [{ id: "P1", baseName: "皮卡丘", currentLevel: 50, totalExp: 10000, initialLevel: 5 }], partyIds: ["P1"] };
+      isAdmin = true; var dw = $("devWeek"); if (dw) dw.value = "W4";
       var lastToast = null;
       var origToast = toast;
       toast = function(msg) { lastToast = msg; };
@@ -313,6 +320,7 @@ test.describe('Block I Step 11: 八大師系統驗證', () => {
         roster: [{ id: "P1", baseName: "皮卡丘", currentLevel: 50, totalExp: 10000, initialLevel: 5, name: "皮卡丘", happiness: 100, stats: { hp: 100, attack: 50, defense: 50, spAttack: 50, spDefense: 50, speed: 50 } }],
         partyIds: ["P1"]
       });
+      isAdmin = true; var dw = $("devWeek"); if (dw) dw.value = "W4";
       $("battleModal").style.display = "none";
       battleState = null;
       startMasters8Battle();
@@ -331,6 +339,7 @@ test.describe('Block I Step 11: 八大師系統驗證', () => {
         roster: [{ id: "P1", baseName: "皮卡丘", currentLevel: 50, totalExp: 10000, initialLevel: 5 }],
         partyIds: ["P1"]
       });
+      isAdmin = true; var dw = $("devWeek"); if (dw) dw.value = "W4";
       var lastToast = null;
       var origToast = toast;
       toast = function(msg) { lastToast = msg; };

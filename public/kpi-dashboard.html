@@ -803,6 +803,7 @@ function getWeekBonusDesc() {
   return map[getWeekType()] || "";
 }
 function isBufferPeriod() {
+  if (isAdmin) return false;
   if (new Date().getDate() > 7) return false;
   if (!globalData) return false;
   var lastKey = getLastMonthKey();
@@ -3877,7 +3878,7 @@ function endBattle(playerWon) {
     $("resultRewards").innerHTML = rewardsHtml;
 
     // Save to Firestore (async, no callback dependency)
-    var noteContent = "⚔️ 戰鬥勝利 | 對手: " + battleState.enemy.name + (defRegion ? " [Defense" + defRegion + "]" : battleState.isGym ? " [Gym]" : battleState.isLeague ? " [League]" : battleState.isWeeklyBoss ? " [Boss]" : " [路人]") + " | 參與者: " + partyUsed.map(function(p){return p.id;}).join(",") + captureText + defMsg;
+    var noteContent = "⚔️ 戰鬥勝利 | 對手: " + battleState.enemy.name + (defRegion ? " [Defense" + defRegion + "]" : battleState.isGym ? " [Gym]" : battleState.isWeeklyBoss ? " [Boss]" : " [路人]") + " | 參與者: " + partyUsed.map(function(p){return p.id;}).join(",") + captureText + defMsg;
     executeSave({ studentId: globalData.studentId, score: 0, action: "戰鬥勝利", expGained: totalExpGain, coinsGained: coinsGain, badgeChange: badgeGain, note: noteContent, extraNote: noteContent, totalScore: 0, user: globalData.studentId }, null, false);
   } else {
     $("resultMessage").innerHTML = "💀 全軍覆沒... 對戰失敗！";
@@ -4434,6 +4435,7 @@ function generateMasters8Battle(trainerLevel, mastersMember) {
 function startMasters8Battle() {
   if (!globalData || typeof globalData.highestLevel === "undefined") return;
   if (globalData.todayCompleted) { toast("今日已完成！"); return; }
+  if (!isBossWeek() && !isBufferPeriod()) { toast("八大師挑戰僅在 Boss 週或緩衝期開放！"); return; }
   var mastersMember = getUnlockedMasters8();
   if (!mastersMember) { toast("尚無可挑戰的八大師！需要先通關對應地區聯盟"); return; }
   var m8Completed = globalData.masters8Completed || [];
@@ -4499,6 +4501,7 @@ function finishMasters8Victory() {
   if (m8Completed.indexOf(mastersMember.name) === -1) m8Completed.push(mastersMember.name);
   globalData.masters8Completed = m8Completed;
   globalData.masters8Progress = m8Progress.filter(function(n){ return n !== mastersMember.name; });
+  scheduleStudentFieldUpdate({ masters8Completed: m8Completed, masters8Progress: globalData.masters8Progress });
   leaguePoints["M8_" + mastersMember.name] = (leaguePoints["M8_" + mastersMember.name] || 0) + 20;
   // 經驗值獎勵
   var totalExpGain = 0, partyUsed = [];
