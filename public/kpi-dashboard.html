@@ -376,6 +376,7 @@
       <option value="">👉 選擇訓練家登入</option>
       <option value="Neil">👦 Neil</option>
       <option value="Emma">👧 Emma</option>
+      <option value="Tester">🤖 Tester (自動)</option>
       <option value="Admin">👑 管理員</option>
     </select>
     <div id="adminPanel" class="admin-panel">
@@ -4302,7 +4303,7 @@ function startBattle(isGym, isLeague) {
   if (!globalData || typeof globalData.highestLevel === "undefined") return;
   var battlesToday = globalData.todayBattles || 0;
   if (battlesToday >= 5) { toast("今日路人戰次數已用盡！"); return; }
-  if (isGym && (globalData.weekGymWins || 0) >= 3) { toast("本週道館挑戰次數已用盡（上限3次）！"); return; }
+  if (isGym && (globalData.weekGymWins || 0) >= 1) { toast("本週道館已通關！每週限挑戰 1 次"); return; }
   var trainerLevel = globalData.highestLevel || 5;
   if (globalData.simpleMode) trainerLevel = Math.max(5, Math.floor(trainerLevel * 0.75));
   if (isGym) {
@@ -6298,7 +6299,7 @@ function renderBadgeCase() {
     if (dsb === undefined) dsb = 0;
     var canChallenge = dsb >= BADGE_COOLDOWN_DAYS;
     var gymW = globalData.weekGymWins || 0;
-    var gymLimitMsg = gymW >= 3 ? "<br><span style='color:#e74c3c;font-size:11px;'>❌ 本週道館次數已用完（" + gymW + "/3）</span>" : "<br><span style='color:#666;font-size:11px;'>📊 本週道館 " + gymW + "/3</span>";
+    var gymLimitMsg = gymW >= 1 ? "<br><span style='color:#e74c3c;font-size:11px;'>✅ 本週道館已通關（" + gymW + "/1）</span>" : "<br><span style='color:#666;font-size:11px;'>📊 本週道館 " + gymW + "/1</span>";
     preview.innerHTML = "⚔️ 下個道館挑戰<br>" +
       "<span style='font-size:15px;'>" + nextBadge.emoji + " " + nextBadge.name + "</span><br>" +
       "👤 館主 " + nextBadge.leader + " | 屬性 " + nextBadge.type +
