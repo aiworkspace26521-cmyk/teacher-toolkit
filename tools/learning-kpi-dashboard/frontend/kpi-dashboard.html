@@ -793,14 +793,6 @@ function getWeekType() {
   if (d <= 21) return "W3";
   return "W4";
 }
-function getCurrentWeek() {
-  var monthVal = getCurrentMonth();
-  var regionIdx = Math.min(Math.max(0, (monthVal - 1) % 8), 7);
-  var regionOrder = ["關都","城都","豐緣","神奧","合眾","卡洛斯","阿羅拉","伽勒爾"];
-  var weekType = getWeekType();
-  var weekNum = parseInt(weekType.substring(1), 10);
-  return { region: regionOrder[regionIdx], month: ((monthVal - 1) % 8) + 1, week: weekType, weekNum: weekNum };
-}
 function isBossWeek() { return getWeekType() === "W4"; }
 function getWeekLabel() {
   var map = { W1: "📌 一般訓練週", W2: "⚡ 道館加成週", W3: "📚 訓練強化週", W4: "👑 Boss 週" };
@@ -811,25 +803,45 @@ function getWeekBonusDesc() {
   return map[getWeekType()] || "";
 }
 function isBufferPeriod() {
-  if (!isAdmin && new Date().getDate() <= 7) {
-    if (globalData && (globalData.masters8Completed || []).length < MASTERS_8.length) {
-      var now = new Date();
-      var lastMonth = now.getMonth() === 0 ? 11 : now.getMonth();
-      var lastYear = now.getMonth() === 0 ? now.getFullYear() - 1 : now.getFullYear();
-      var lastKey = lastYear + "-" + (lastMonth + 1);
-      var regionOrder = ["關都","城都","豐緣","神奧","合眾","卡洛斯","阿羅拉","伽勒爾"];
-      for (var ri = 0; ri < regionOrder.length; ri++) {
-        if (leagueCompletedMonths[regionOrder[ri]] === lastKey) return true;
-      }
-    }
+  if (new Date().getDate() > 7) return false;
+  if (!globalData) return false;
+  var lastKey = getLastMonthKey();
+  for (var region in LEAGUE_REGIONS) {
+    if (leagueCompletedMonths[region] === lastKey) return true;
+  }
+  var nextChallenge = getNextE4Challenge(globalData.badges || 0);
+  if (nextChallenge && leagueCompletedMonths[nextChallenge.region] !== getCurrentMonthKey()) {
+    return true;
   }
   return false;
+}
+function getCurrentMonthKey() {
+  var d = new Date();
+  return d.getFullYear() + "-" + (d.getMonth() + 1);
+}
+function getLastMonthKey() {
+  var now = new Date();
+  var lastMonth = now.getMonth() === 0 ? 11 : now.getMonth();
+  var lastYear = now.getMonth() === 0 ? now.getFullYear() - 1 : now.getFullYear();
+  return lastYear + "-" + (lastMonth + 1);
+}
+function isRegionCompleted(region) {
+  return globalData && globalData.leagueRegionsWon && globalData.leagueRegionsWon[region] === true;
 }
 function getCurrentMonth() {
   var now = new Date();
   return (now.getFullYear() - 2026) * 12 + (now.getMonth() + 1);
 }
-function getE4ChallengeForBadges(badges) {
+function getNextE4Challenge(badges) {
+  var order = ["關都","城都","豐緣","神奧","合眾","卡洛斯","阿羅拉","伽勒爾"];
+  var thresholds = [4, 8, 12, 16, 20, 24, 28, 32];
+  for (var i = 0; i < order.length; i++) {
+    if (badges >= thresholds[i] && !isRegionCompleted(order[i])) {
+      return { region: order[i], requiredBadges: thresholds[i], order: i };
+    }
+  }
+  return null;
+}
   var thresholds = [4, 8, 12, 16, 20, 24, 28, 32];
   var regionOrder = ["關都","城都","豐緣","神奧","合眾","卡洛斯","阿羅拉","伽勒爾"];
   for (var i = thresholds.length - 1; i >= 0; i--) {
@@ -869,6 +881,7 @@ var EXPECTED_LEVEL = [
   61, 64, 67, 70,  73, 76, 79, 82,
   85, 88, 91, 94,  96, 97, 98, 99
 ];
+var BADGE_COOLDOWN_DAYS = 7;
 function getEffectiveLevel(expectedLv, playerLevel) {
   var ratio = playerLevel / expectedLv;
   if (ratio >= 1.0) return expectedLv;
@@ -1212,8 +1225,12 @@ async function fetchStudentData(studentId, pendingEvent) {
     } catch(e) { console.warn("Failed to restore TM data:", e); }
     await loadAchievementsFromFirestore(studentId);
     if (globalData.monthLeagueWins > 0 && globalData.leagueRegionsWon) {
-      var monthKey = new Date().getFullYear() + "-" + (new Date().getMonth() + 1);
-      for (var rn in globalData.leagueRegionsWon) { leagueCompletedMonths[rn] = monthKey; }
+      var monthKey = getCurrentMonthKey();
+      for (var rn in globalData.leagueRegionsWon) {
+        if (!leagueCompletedMonths[rn]) {
+          leagueCompletedMonths[rn] = monthKey;
+        }
+      }
     }
     if (!globalData.roster || !globalData.roster.length) globalData.roster = [{ id: "P0", baseName: "\u{1F43E} \u4F0A\u5E03 (\u4E00\u822C\u7CFB)", totalExp: 0, initialLevel: 5, currentLevel: 5, expProgress: 0, expNeeded: 500, catchDate: "\u521D\u59CB\u5925\u4F34" }];
     var savedParty = localStorage.getItem("kpi_party_" + studentId);
@@ -2015,40 +2032,57 @@ var DEFENSE_COOLDOWN_DAYS = 3;
 
 // ===== VER2.2: 八大師資料結構 (Masters 8) =====
 var MASTERS_8 = [
-  { rank:8, name:"小智", type:"混合", lvBonus:75,  month:1,
+  { rank:8, name:"小智", type:"混合", lvBonus:75,
     desc:"阿羅拉冠軍 — 羈絆的王者",
     pokemon:["皮卡丘","耿鬼","蔥遊兵","路卡利歐","鰓魚龍","快龍"] },
-  { rank:7, name:"艾莉絲", type:"龍", lvBonus:80,  month:2,
+  { rank:7, name:"艾莉絲", type:"龍", lvBonus:80,
     desc:"合眾冠軍 — 龍之少女",
     pokemon:["雙斧戰龍","快龍","龍頭地鼠","三首惡龍","赤面龍","電飛鼠"] },
-  { rank:6, name:"艾嵐", type:"火", lvBonus:82,   month:3,
+  { rank:6, name:"艾嵐", type:"火", lvBonus:82,
     desc:"卡洛斯優勝 — Mega進化先驅",
     // 註：艾嵐的招牌寶可夢為 Mega 噴火龍 X（火/龍），
     // 與 POKEMON_SPECIES_TYPES 中一般噴火龍（火/飛行）不同。
     // 戰鬥中系統使用 POKEMON_SPECIES_TYPES 的「噴火龍」→火/飛行，
     // 若需反映 Mega 化型態需另建 Mega 噴火龍 X 資料條目。
     pokemon:["噴火龍","布里卡隆","烏賊王","班基拉斯","瑪狃拉","劈斬司令"] },
-  { rank:5, name:"卡露妮", type:"混合", lvBonus:85, month:4,
+  { rank:5, name:"卡露妮", type:"混合", lvBonus:85,
     desc:"卡洛斯冠軍 — 優雅與力量的化身",
     pokemon:["沙奈朵","怪顎龍","冰雪巨龍","南瓜怪人","摔角鷹人","黏美龍"] },
-  { rank:4, name:"渡", type:"龍", lvBonus:88,     month:5,
+  { rank:4, name:"渡", type:"龍", lvBonus:88,
     desc:"關都/城都冠軍 — 龍之使者",
     pokemon:["快龍","暴鯉龍","三首惡龍","化石翼龍","班基拉斯","暴飛龍"] },
-  { rank:3, name:"大吾", type:"鋼", lvBonus:92,   month:6,
+  { rank:3, name:"大吾", type:"鋼", lvBonus:92,
     desc:"豐緣冠軍 — 石之意志",
     pokemon:["巨金怪","大鋼蛇","搖籃百合","太古盔甲","盔甲鳥","波士可多拉"] },
-  { rank:2, name:"竹蘭", type:"混合", lvBonus:96, month:7,
+  { rank:2, name:"竹蘭", type:"混合", lvBonus:96,
     desc:"神奧冠軍 — 傳承的意志",
     pokemon:["烈咬陸鯊","花岩怪","羅絲雷朵","波克基斯","海兔獸","美納斯"] },
-  { rank:1, name:"丹帝", type:"混合", lvBonus:100, month:8,
+  { rank:1, name:"丹帝", type:"混合", lvBonus:100,
     desc:"伽勒爾冠軍 — 不敗王者",
     pokemon:["噴火龍","轟擂金剛猩","閃焰王牌","千面避役","多龍巴魯托","踏冰人偶"] }
 ];
-
-// 輔助: 依月份取得該月對應的八大師
-function getMasters8ForMonth(month) {
-  for (var mi = 0; mi < MASTERS_8.length; mi++) {
-    if (MASTERS_8[mi].month === month) return MASTERS_8[mi];
+function getUnlockedMasters8() {
+  var regionToRank = {
+    "關都": 8, "城都": 7, "豐緣": 6, "神奧": 5,
+    "合眾": 4, "卡洛斯": 3, "阿羅拉": 2, "伽勒爾": 1
+  };
+  var completed = globalData.leagueRegionsWon || {};
+  for (var rank = 8; rank >= 1; rank--) {
+    var member = null;
+    for (var mi = 0; mi < MASTERS_8.length; mi++) {
+      if (MASTERS_8[mi].rank === rank) { member = MASTERS_8[mi]; break; }
+    }
+    if (!member) continue;
+    var region = Object.keys(regionToRank).find(function(r) { return regionToRank[r] === rank; });
+    if (!region) continue;
+    if (completed[region] && (globalData.masters8Completed || []).indexOf(member.name) === -1) {
+      var prevRank = rank + 1;
+      if (prevRank > 8) return member;
+      var prevBeaten = (globalData.masters8Completed || []).indexOf(
+        MASTERS_8.find(function(m) { return m.rank === prevRank; }).name
+      ) !== -1;
+      if (prevBeaten) return member;
+    }
   }
   return null;
 }
@@ -3714,7 +3748,7 @@ function finishGymVictory() {
   totalExpGain = cumulativeExp;
   var coinsGain = Math.floor((15 + Math.floor(battleState.enemy.level * 0.8)) * (globalData.hasAmuletCoin ? 1.5 : 1));
   var badgeGain = 0;
-  if (battleState.isGym && globalData.daysSinceLastBadge >= 1) { badgeGain = 1; }
+  if (battleState.isGym && globalData.daysSinceLastBadge >= BADGE_COOLDOWN_DAYS) { badgeGain = 1; }
   var gi = battleState.gymInfo;
   var captureText = "";
   if (Math.random() < 0.15) {
@@ -3816,7 +3850,7 @@ function endBattle(playerWon) {
     }
 
     var badgeGain = 0;
-    if (battleState.isGym && globalData.daysSinceLastBadge >= 1) { badgeGain = 1; }
+    if (battleState.isGym && globalData.daysSinceLastBadge >= BADGE_COOLDOWN_DAYS) { badgeGain = 1; }
 
     var captureText = "";
     var canCapture = battleState.isGym || battleState.isLeague || battleState.isWeeklyBoss;
@@ -4211,21 +4245,14 @@ function updateBattleButtons() {
     var isW4 = weekType === "W4";
     var isBuffer = isBufferPeriod();
     var todayOk = !globalData.todayCompleted;
-    if ((isW4 || isBuffer) && todayOk) {
-      var challenge = getE4ChallengeForBadges(globalData.badges || 0);
-      if (challenge) {
-        var mKey = new Date().getFullYear() + "-" + (new Date().getMonth() + 1);
-        var leagueCleared = leagueCompletedMonths[challenge.region] === mKey;
-        var m8Done = (globalData.masters8Completed || []).length >= MASTERS_8.length;
-        if (leagueCleared && !m8Done) {
-          m8Btn.style.display = "inline-block";
-          m8Btn.innerHTML = "👑 八大師戰";
-        } else {
-          m8Btn.style.display = "none";
-        }
-      } else {
-        m8Btn.style.display = "none";
-      }
+    var nextMasters8 = getUnlockedMasters8();
+    if (nextMasters8 && (isW4 || isBuffer) && todayOk) {
+      m8Btn.style.display = "inline-block";
+      m8Btn.innerHTML = "👑 " + nextMasters8.name + "戰";
+    } else if (nextMasters8 && !isW4 && !isBuffer) {
+      m8Btn.style.display = "inline-block";
+      m8Btn.style.opacity = "0.4";
+      m8Btn.title = "第 4 週開放八大師挑戰";
     } else {
       m8Btn.style.display = "none";
     }
@@ -4333,7 +4360,7 @@ function generateLeagueGauntlet(trainerLevel, region) {
   var badges = globalData.badges || 0;
   var leagueData = getLeagueData(region);
   if (badges < leagueData.requiredBadges) return null;
-  var monthKey = new Date().getFullYear() + "-" + (new Date().getMonth() + 1);
+  var monthKey = getCurrentMonthKey();
   if (leagueCompletedMonths[region] === monthKey) return { waves: [], leagueInfo: null, completed: true };
   var e4 = leagueData.eliteFour;
   var expectedLv = EXPECTED_LEVEL[Math.min(badges, EXPECTED_LEVEL.length - 1)];
@@ -4416,33 +4443,19 @@ function generateMasters8Battle(trainerLevel, mastersMember) {
 function startMasters8Battle() {
   if (!globalData || typeof globalData.highestLevel === "undefined") return;
   if (globalData.todayCompleted) { toast("今日已完成！"); return; }
-  var month = getCurrentMonth();
-  var mastersMember = getMasters8ForMonth(month);
-  if (!mastersMember) { toast("本月沒有對應的八大師！"); return; }
-  // 確認依序挑戰 (小智→艾莉絲→...→丹帝)
+  var mastersMember = getUnlockedMasters8();
+  if (!mastersMember) { toast("尚無可挑戰的八大師！需要先通關對應地區聯盟"); return; }
   var m8Completed = globalData.masters8Completed || [];
   var m8Progress = globalData.masters8Progress || [];
-  if (m8Completed.indexOf(mastersMember.name) !== -1) { toast("本月八大師已擊敗！"); return; }
-  // 檢查是否可以挑戰（必須先擊敗排名較低的八大師）
-  for (var mi = MASTERS_8.length - 1; mi >= 0; mi--) {
-    var m = MASTERS_8[mi];
-    if (m.rank > mastersMember.rank && m.month < month) {
-      if (m8Completed.indexOf(m.name) === -1) {
-        toast("必須先擊敗 " + m.name + " 才能挑戰 " + mastersMember.name + "！");
-        return;
-      }
-    }
-  }
+  if (m8Completed.indexOf(mastersMember.name) !== -1) { toast("該八大師已擊敗！"); return; }
   var trainerLevel = globalData.highestLevel || 5;
   if (globalData.simpleMode) trainerLevel = Math.max(5, Math.floor(trainerLevel * 0.75));
   var result = generateMasters8Battle(trainerLevel, mastersMember);
   if (!result || !result.waves.length) { toast("八大師戰產生失敗！"); return; }
-  // 記錄進度
   if (m8Progress.indexOf(mastersMember.name) === -1) {
     m8Progress.push(mastersMember.name);
     globalData.masters8Progress = m8Progress;
   }
-  // 開啟戰鬥
   openArenaMasters8(result.waves, result.m8Info);
 }
 
@@ -4484,9 +4497,12 @@ function openArenaMasters8(waveEnemies, m8Info) {
 function finishMasters8Victory() {
   battleState.battleOver = true;
   battleState.playerWon = true;
-  var month = getCurrentMonth();
-  var mastersMember = getMasters8ForMonth(month);
-  if (!mastersMember) { toast("錯誤：找不到本月八大師"); return; }
+  var leaderName = battleState.gymInfo ? battleState.gymInfo.leader.split(" (")[0] : "";
+  var mastersMember = null;
+  for (var mi = 0; mi < MASTERS_8.length; mi++) {
+    if (MASTERS_8[mi].name === leaderName) { mastersMember = MASTERS_8[mi]; break; }
+  }
+  if (!mastersMember) { toast("錯誤：找不到八大師資訊"); return; }
   var m8Completed = globalData.masters8Completed || [];
   var m8Progress = globalData.masters8Progress || [];
   if (m8Completed.indexOf(mastersMember.name) === -1) m8Completed.push(mastersMember.name);
@@ -4534,10 +4550,12 @@ function finishLeagueVictory() {
   battleState.playerWon = true;
   var region = battleState.leagueRegion || "關都";
   var leagueData = getLeagueData(region);
-  var monthKey = new Date().getFullYear() + "-" + (new Date().getMonth() + 1);
+  var monthKey = getCurrentMonthKey();
   leagueCompletedMonths[region] = monthKey;
   leagueChampions[region] = globalData.studentId;
   leaguePoints[region] = (leaguePoints[region] || 0) + 10;
+  if (!globalData.leagueRegionsWon) globalData.leagueRegionsWon = {};
+  globalData.leagueRegionsWon[region] = true;
   var totalExpGain = 0, partyUsed = [];
   for (var i = 0; i < battleState.playerParty.length; i++) {
     var pk = battleState.playerParty[i];
@@ -4607,7 +4625,7 @@ function startLeagueBattle(region) {
   var leagueData = getLeagueData(region);
   var badges = globalData.badges || 0;
   if (badges < leagueData.requiredBadges) { toast("需要 " + leagueData.requiredBadges + " 枚徽章才能挑戰" + region + "聯盟！"); return; }
-  var monthKey = new Date().getFullYear() + "-" + (new Date().getMonth() + 1);
+  var monthKey = getCurrentMonthKey();
   if (leagueCompletedMonths[region] === monthKey) { toast(region + "本月聯盟已通關！"); return; }
   var trainerLevel = globalData.highestLevel || 5;
   if (globalData.simpleMode) trainerLevel = Math.max(5, Math.floor(trainerLevel * 0.75));
@@ -4630,11 +4648,16 @@ function promptE4Challenge() {
   if (!isBossWeek() && !isBufferPeriod()) { toast("四天王挑戰僅在 Boss 週或緩衝期開放！"); return; }
   if (!globalData || globalData.todayCompleted) { toast("今日已完成！"); return; }
   var badges = globalData.badges || 0;
-  var challenge = getE4ChallengeForBadges(badges);
+  var challenge = getNextE4Challenge(badges);
   if (!challenge) { toast("尚未達到四天王挑戰門檻（需 4 枚以上徽章）"); return; }
-  var mKey = new Date().getFullYear() + "-" + (new Date().getMonth() + 1);
+  var mKey = getCurrentMonthKey();
   if (leagueCompletedMonths[challenge.region] === mKey) { toast("本月已通關 " + challenge.region + " 聯盟！下個月再來！"); return; }
-  $("confirmModalText").innerHTML = "🏆 " + challenge.region + "聯盟挑戰<br><br>四天王在 Boss 週（或緩衝期）等待挑戰！<br>是否接受挑戰？<br><br><small style='color:#888;'>可選擇跳過，不影響徽章收集進度</small>";
+  var confirmMsg = "🏆 " + challenge.region + "聯盟挑戰<br><br>四天王在 Boss 週（或緩衝期）等待挑戰！<br>是否接受挑戰？<br><br>";
+if (isBufferPeriod()) {
+  confirmMsg += "<small style='color:#e67e22;'>⚠️ 緩衝期最後機會！錯過需等下個 W4</small><br>";
+}
+confirmMsg += "<small style='color:#888;'>可選擇跳過，不影響徽章收集進度</small>";
+$("confirmModalText").innerHTML = confirmMsg;
   $("confirmBtnYes").onclick = function() {
     $("confirmModal").style.display = "none";
     startLeagueBattle(challenge.region);
@@ -6279,16 +6302,16 @@ function renderBadgeCase() {
   if (nextBadge) {
     var dsb = globalData.daysSinceLastBadge;
     if (dsb === undefined) dsb = 0;
-    var canChallenge = dsb >= 1;
+    var canChallenge = dsb >= BADGE_COOLDOWN_DAYS;
     var gymW = globalData.weekGymWins || 0;
     var gymLimitMsg = gymW >= 3 ? "<br><span style='color:#e74c3c;font-size:11px;'>❌ 本週道館次數已用完（" + gymW + "/3）</span>" : "<br><span style='color:#666;font-size:11px;'>📊 本週道館 " + gymW + "/3</span>";
     preview.innerHTML = "⚔️ 下個道館挑戰<br>" +
       "<span style='font-size:15px;'>" + nextBadge.emoji + " " + nextBadge.name + "</span><br>" +
       "👤 館主 " + nextBadge.leader + " | 屬性 " + nextBadge.type +
       " | 波次 " + nextBadge.waves + " 連戰" +
-      (canChallenge ? "" : "<br><span style='color:#999;font-size:11px;'>⏳ 冷卻中（剩 " + Math.max(0, Math.ceil(1 - dsb)) + " 天）</span>") + gymLimitMsg;
+      (canChallenge ? "" : "<br><span style='color:#999;font-size:11px;'>⏳ 冷卻中（剩 " + Math.max(0, Math.ceil(BADGE_COOLDOWN_DAYS - dsb)) + " 天）</span>") + gymLimitMsg;
   } else if (badges >= (gymsCache || GYM_LEADERS).length) {
-    var monthKey = new Date().getFullYear() + "-" + (new Date().getMonth() + 1);
+    var monthKey = getCurrentMonthKey();
     var completedRegions = [], availableRegions = [];
     for (var rn in LEAGUE_REGIONS) {
       if (LEAGUE_REGIONS[rn].requiredBadges <= badges) {
@@ -6419,19 +6442,24 @@ function updateDashboard() {
     }
   }
   
-  // League button visibility — W4 + buffer, badge-dynamic
+  // League button visibility — VER2.5: 依序通關 + 1/週上限
   var leagueBtn = $("btnLeagueBattle");
   var rankBtn = $("btnLeagueRanking");
   if (leagueBtn) {
     var badges = gd.badges || 0;
-    var mKey = new Date().getFullYear() + "-" + (new Date().getMonth() + 1);
-    var challenge = getE4ChallengeForBadges(badges);
+    var mKey = getCurrentMonthKey();
+    var challenge = getNextE4Challenge(badges);
     var weekType = getWeekType();
     var isW4orBuffer = weekType === "W4" || isBufferPeriod();
     var canE4 = challenge && isW4orBuffer && !gd.todayCompleted && leagueCompletedMonths[challenge.region] !== mKey;
     leagueBtn.innerHTML = challenge ? "🏟️ " + challenge.region + "聯盟" : "🏟️ 聯盟賽";
     leagueBtn.style.display = canE4 ? "inline-block" : "none";
     leagueBtn._e4Region = challenge ? challenge.region : null;
+    if (!isW4orBuffer && challenge && !gd.todayCompleted && leagueCompletedMonths[challenge.region] !== mKey) {
+      leagueBtn.style.display = "inline-block";
+      leagueBtn.style.opacity = "0.4";
+      leagueBtn.title = "第 4 週開放聯盟挑戰";
+    }
   }
   if (rankBtn) {
     rankBtn.style.display = (gd.badges || 0) >= 4 ? "inline-block" : "none";
@@ -8359,7 +8387,7 @@ async function updateTradeBadge() {
 // ===== P4-2b: 衛冕戰系統 =====
 function checkDefenseChallenge() {
   if (!globalData) return null;
-  var monthKey = new Date().getFullYear() + "-" + (new Date().getMonth() + 1);
+  var monthKey = getCurrentMonthKey();
   for (var rn in LEAGUE_REGIONS) {
     if (leagueCompletedMonths[rn] === monthKey) {
       var lastDefenseKey = "lastDefense_" + rn;
@@ -8406,7 +8434,7 @@ function acceptDefense() {
 function openLeagueRanking() {
   var body = $("leagueRankingBody");
   body.innerHTML = "";
-  var monthKey = new Date().getFullYear() + "-" + (new Date().getMonth() + 1);
+  var monthKey = getCurrentMonthKey();
   var totalPoints = 0;
   for (var rn in LEAGUE_REGIONS) {
     var isCompleted = leagueCompletedMonths[rn] === monthKey;
