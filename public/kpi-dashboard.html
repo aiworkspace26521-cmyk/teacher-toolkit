@@ -821,7 +821,7 @@ function getCurrentMonthKey() {
 }
 function getLastMonthKey() {
   var now = new Date();
-  var lastMonth = now.getMonth() === 0 ? 11 : now.getMonth();
+  var lastMonth = now.getMonth() === 0 ? 11 : now.getMonth() - 1;
   var lastYear = now.getMonth() === 0 ? now.getFullYear() - 1 : now.getFullYear();
   return lastYear + "-" + (lastMonth + 1);
 }
@@ -838,15 +838,6 @@ function getNextE4Challenge(badges) {
   for (var i = 0; i < order.length; i++) {
     if (badges >= thresholds[i] && !isRegionCompleted(order[i])) {
       return { region: order[i], requiredBadges: thresholds[i], order: i };
-    }
-  }
-  return null;
-}
-  var thresholds = [4, 8, 12, 16, 20, 24, 28, 32];
-  var regionOrder = ["關都","城都","豐緣","神奧","合眾","卡洛斯","阿羅拉","伽勒爾"];
-  for (var i = thresholds.length - 1; i >= 0; i--) {
-    if (badges >= thresholds[i]) {
-      return { region: regionOrder[i], requiredBadges: thresholds[i], order: i };
     }
   }
   return null;

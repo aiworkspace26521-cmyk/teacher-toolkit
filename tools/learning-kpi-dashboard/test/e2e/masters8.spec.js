@@ -14,9 +14,10 @@ test.describe('Block I Step 11: 八大師系統驗證', () => {
   test('11.1 finishMasters8Victory correctly records victory, clears progress, grants +20 league points', async ({ page }) => {
     const result = await page.evaluate(() => {
       try {
-        const month = new Date().getMonth() + 1;
-        const mastersMember = getMasters8ForMonth(month);
-        if (!mastersMember) return { error: 'no masters for current month' };
+        globalData.leagueRegionsWon = globalData.leagueRegionsWon || {};
+        globalData.leagueRegionsWon["關都"] = true;
+        const mastersMember = getUnlockedMasters8();
+        if (!mastersMember) return { error: 'no unlocked masters8' };
 
         globalData.roster = [
           { id: "P1", baseName: "皮卡丘", currentLevel: 50, totalExp: 10000, initialLevel: 5, name: "皮卡丘", happiness: 100, stats: { hp: 100, attack: 50, defense: 50, spAttack: 50, spDefense: 50, speed: 50 } },
@@ -181,9 +182,10 @@ test.describe('Block I Step 11: 八大師系統驗證', () => {
 
     const showsOnW4 = await page.evaluate(() => {
       $("devWeek").value = "W4";
-      globalData = { badges: 32, todayCompleted: false, todayBattles: 0, highestLevel: 50, masters8Completed: [], masters8Progress: [] };
+      globalData = { badges: 32, todayCompleted: false, todayBattles: 0, highestLevel: 50, masters8Completed: [], masters8Progress: [],
+        leagueRegionsWon: { "關都": true } };
       var mKey = new Date().getFullYear() + "-" + (new Date().getMonth() + 1);
-      leagueCompletedMonths["伽勒爾"] = mKey;
+      leagueCompletedMonths["關都"] = mKey;
       renderBadgeCase();
       updateBattleButtons();
       var btn = $("btnMasters8Battle");
@@ -204,7 +206,7 @@ test.describe('Block I Step 11: 八大師系統驗證', () => {
     const hiddenWhenLeagueNotCleared = await page.evaluate(() => {
       globalData.masters8Completed = [];
       globalData.masters8Progress = [];
-      delete leagueCompletedMonths["伽勒爾"];
+      globalData.leagueRegionsWon = {};
       renderBadgeCase();
       updateBattleButtons();
       var btn = $("btnMasters8Battle");
@@ -245,16 +247,14 @@ test.describe('Block I Step 11: 八大師系統驗證', () => {
 
     var trueWhenDateLtEq7WithLeague = await page.evaluate(() => {
       var saved = globalData;
-      globalData = { masters8Completed: [] };
+      globalData = { badges: 0 };
       var OrigDate = Date;
       Date = function() { return new OrigDate(2026, 5, 5); };
       Date.now = function() { return new OrigDate(2026, 5, 5).getTime(); };
       var cached = leagueCompletedMonths;
       leagueCompletedMonths = {};
-      var regionOrder = ["關都","城都","豐緣","神奧","合眾","卡洛斯","阿羅拉","伽勒爾"];
-      for (var ri = 0; ri < regionOrder.length; ri++) {
-        leagueCompletedMonths[regionOrder[ri]] = "2026-6";
-      }
+      // For June 5, getLastMonthKey() = "2026-5" (May)
+      leagueCompletedMonths["關都"] = "2026-5";
       try {
         return isBufferPeriod();
       } finally {
@@ -266,18 +266,16 @@ test.describe('Block I Step 11: 八大師系統驗證', () => {
     });
     expect(trueWhenDateLtEq7WithLeague).toBe(true);
 
-    var falseWhenAllMastersDone = await page.evaluate(() => {
+    var trueWhenE4Pending = await page.evaluate(() => {
       var saved = globalData;
-      globalData = { masters8Completed: MASTERS_8.map(function(m) { return m.name; }) };
+      globalData = { badges: 4, leagueRegionsWon: {} };
       var OrigDate = Date;
       Date = function() { return new OrigDate(2026, 5, 5); };
       Date.now = function() { return new OrigDate(2026, 5, 5).getTime(); };
       var cached = leagueCompletedMonths;
       leagueCompletedMonths = {};
-      var regionOrder = ["關都","城都","豐緣","神奧","合眾","卡洛斯","阿羅拉","伽勒爾"];
-      for (var ri = 0; ri < regionOrder.length; ri++) {
-        leagueCompletedMonths[regionOrder[ri]] = "2026-6";
-      }
+      // No last-month completions, but badges=4 and 關都 not completed → getNextE4Challenge(4) returns 關都
+      // leagueCompletedMonths has no entry for 關都 this month → buffer period for E4
       try {
         return isBufferPeriod();
       } finally {
@@ -287,7 +285,7 @@ test.describe('Block I Step 11: 八大師系統驗證', () => {
         globalData = saved;
       }
     });
-    expect(falseWhenAllMastersDone).toBe(false);
+    expect(trueWhenE4Pending).toBe(true);
   });
 
   // 11.6: 跳 rank 阻擋 — startMasters8Battle 必須依序挑戰
@@ -302,16 +300,19 @@ test.describe('Block I Step 11: 八大師系統驗證', () => {
       return lastToast;
     });
     expect(blocksWhenNoneCompleted).not.toBeNull();
-    expect(blocksWhenNoneCompleted).toContain("必須先擊敗");
+    expect(blocksWhenNoneCompleted).toContain("尚無可挑戰的八大師");
 
     const proceedsWithAllLowerRanks = await page.evaluate(() => {
-      globalData = {
+      globalData = globalData || {};
+      globalData.leagueRegionsWon = globalData.leagueRegionsWon || {};
+      globalData.leagueRegionsWon["關都"] = true;
+      Object.assign(globalData, {
         highestLevel: 50, todayCompleted: false, todayBattles: 0,
-        masters8Completed: MASTERS_8.filter(function(m) { return m.rank > 2 && m.month < 7; }).map(function(m) { return m.name; }),
+        masters8Completed: [],
         masters8Progress: [],
         roster: [{ id: "P1", baseName: "皮卡丘", currentLevel: 50, totalExp: 10000, initialLevel: 5, name: "皮卡丘", happiness: 100, stats: { hp: 100, attack: 50, defense: 50, spAttack: 50, spDefense: 50, speed: 50 } }],
         partyIds: ["P1"]
-      };
+      });
       $("battleModal").style.display = "none";
       battleState = null;
       startMasters8Battle();
@@ -321,17 +322,15 @@ test.describe('Block I Step 11: 八大師系統驗證', () => {
     expect(proceedsWithAllLowerRanks.memberInProgress).toBe(true);
 
     const blocksAlreadyCompleted = await page.evaluate(() => {
-      globalData = {
+      globalData.leagueRegionsWon = globalData.leagueRegionsWon || {};
+      globalData.leagueRegionsWon["關都"] = true;
+      globalData = Object.assign(globalData, {
         highestLevel: 50, todayCompleted: false, todayBattles: 0,
-        masters8Completed: MASTERS_8.filter(function(m) { return m.rank > 2 && m.month < 7; }).map(function(m) { return m.name; }),
+        masters8Completed: ["小智"],
         masters8Progress: [],
         roster: [{ id: "P1", baseName: "皮卡丘", currentLevel: 50, totalExp: 10000, initialLevel: 5 }],
         partyIds: ["P1"]
-      };
-      var m8Completed = globalData.masters8Completed;
-      var member = getMasters8ForMonth(getCurrentMonth());
-      if (member) m8Completed.push(member.name);
-      globalData.masters8Completed = m8Completed;
+      });
       var lastToast = null;
       var origToast = toast;
       toast = function(msg) { lastToast = msg; };
@@ -340,7 +339,7 @@ test.describe('Block I Step 11: 八大師系統驗證', () => {
       return lastToast;
     });
     expect(blocksAlreadyCompleted).not.toBeNull();
-    expect(blocksAlreadyCompleted).toContain("本月八大師已擊敗");
+    expect(blocksAlreadyCompleted).toContain("尚無可挑戰的八大師");
   });
 
   // 6.1: EXPECTED_LEVEL 曲線驗證（32 值，遞增，符合升學曲線）
@@ -378,35 +377,38 @@ test.describe('Block I Step 11: 八大師系統驗證', () => {
       for (var i = 0; i < regOrder.length; i++) delete leagueCompletedMonths[regOrder[i]];
     });
 
-    // W1 → hidden (league button only shows on W4/buffer)
-    var w1hidden = await page.evaluate(function() {
+    // W1 → gray (VER2.5: button shows with opacity 0.4 in non-W4)
+    var w1gray = await page.evaluate(function() {
       $("devWeek").value = "W1";
-      globalData = { badges: 32, todayCompleted: false, todayBattles: 0, highestLevel: 50, roster: [], partyIds: [], masters8Completed: [] };
+      globalData = { badges: 32, todayCompleted: false, todayBattles: 0, highestLevel: 50, roster: [], partyIds: [], masters8Completed: [], leagueRegionsWon: {} };
       updateDashboard();
       var btn = $("btnLeagueBattle");
-      return btn ? btn.style.display : 'no-btn';
+      return btn ? { display: btn.style.display, opacity: btn.style.opacity } : 'no-btn';
     });
-    expect(w1hidden).toBe('none');
+    expect(w1gray.display).toBe('inline-block');
+    expect(w1gray.opacity).toBe('0.4');
 
-    // W2 → hidden
-    var w2hidden = await page.evaluate(function() {
+    // W2 → gray
+    var w2gray = await page.evaluate(function() {
       $("devWeek").value = "W2";
       globalData.todayCompleted = false;
       updateDashboard();
       var btn = $("btnLeagueBattle");
-      return btn ? btn.style.display : 'no-btn';
+      return btn ? { display: btn.style.display, opacity: btn.style.opacity } : 'no-btn';
     });
-    expect(w2hidden).toBe('none');
+    expect(w2gray.display).toBe('inline-block');
+    expect(w2gray.opacity).toBe('0.4');
 
-    // W3 → hidden
-    var w3hidden = await page.evaluate(function() {
+    // W3 → gray
+    var w3gray = await page.evaluate(function() {
       $("devWeek").value = "W3";
       globalData.todayCompleted = false;
       updateDashboard();
       var btn = $("btnLeagueBattle");
-      return btn ? btn.style.display : 'no-btn';
+      return btn ? { display: btn.style.display, opacity: btn.style.opacity } : 'no-btn';
     });
-    expect(w3hidden).toBe('none');
+    expect(w3gray.display).toBe('inline-block');
+    expect(w3gray.opacity).toBe('0.4');
 
     // W4 + 0 badges → hidden (no region unlocked)
     var w4zeroBadges = await page.evaluate(function() {
@@ -418,16 +420,17 @@ test.describe('Block I Step 11: 八大師系統驗證', () => {
     });
     expect(w4zeroBadges).toBe('none');
 
-    // W4 + 32 badges + not completed → visible (highest region = 伽勒爾)
+    // W4 + 32 badges + not completed → visible (first eligible region = 關都, VER2.5)
     var w4visible = await page.evaluate(function() {
       $("devWeek").value = "W4";
-      globalData = { badges: 32, todayCompleted: false, todayBattles: 0, highestLevel: 50, roster: [], partyIds: [], masters8Completed: [] };
+      globalData = { badges: 32, todayCompleted: false, todayBattles: 0, highestLevel: 50, roster: [], partyIds: [], masters8Completed: [],
+        leagueRegionsWon: {} };
       updateDashboard();
       var btn = $("btnLeagueBattle");
       return { display: btn.style.display, region: btn._e4Region || 'none' };
     });
     expect(w4visible.display).toBe('inline-block');
-    expect(w4visible.region).toBe('伽勒爾');
+    expect(w4visible.region).toBe('關都');
 
     // W4 + 32 badges + todayCompleted → hidden
     var todayDoneHidden = await page.evaluate(function() {
@@ -441,8 +444,10 @@ test.describe('Block I Step 11: 八大師系統驗證', () => {
     // W4 + 32 badges + all regions completed this month → hidden
     var allCompletedHidden = await page.evaluate(function() {
       globalData.todayCompleted = false;
-      var mKey = new Date().getFullYear() + "-" + (new Date().getMonth() + 1);
+      globalData.leagueRegionsWon = globalData.leagueRegionsWon || {};
       var regOrder = ["關都","城都","豐緣","神奧","合眾","卡洛斯","阿羅拉","伽勒爾"];
+      for (var i = 0; i < regOrder.length; i++) globalData.leagueRegionsWon[regOrder[i]] = true;
+      var mKey = getCurrentMonthKey();
       for (var i = 0; i < regOrder.length; i++) leagueCompletedMonths[regOrder[i]] = mKey;
       updateDashboard();
       var btn = $("btnLeagueBattle");
@@ -466,7 +471,8 @@ test.describe('Block I Step 11: 八大師系統驗證', () => {
       for (var i = 0; i < regOrder.length; i++) delete leagueCompletedMonths[regOrder[i]];
       updateDashboard();
       var btn = $("btnLeagueBattle");
-      var challenge = getE4ChallengeForBadges(4);
+      globalData.leagueRegionsWon = {};
+      var challenge = getNextE4Challenge(4);
       return {
         btnDisplay: btn.style.display,
         btnRegion: btn._e4Region || 'none',
@@ -477,22 +483,23 @@ test.describe('Block I Step 11: 八大師系統驗證', () => {
     expect(month1.btnRegion).toBe('關都');
     expect(month1.challenge).toBe('關都');
 
-    // Simulate completing 關都 league this month → button hidden (already completed this month)
+    // Simulate completing 關都 league → button hidden (already completed)
     const afterCompletion = await page.evaluate(function() {
       var mKey = new Date().getFullYear() + "-" + (new Date().getMonth() + 1);
       leagueCompletedMonths["關都"] = mKey;
+      globalData.leagueRegionsWon["關都"] = true;
       updateDashboard();
       var btn = $("btnLeagueBattle");
       return { btnDisplay: btn.style.display };
     });
     expect(afterCompletion.btnDisplay).toBe('none');
 
-    // Simulate 8 badges (cross a badge threshold), W4, same month → 城都 available now
+    // Simulate 8 badges, only 關都 completed → 城都 available now
     const moreBadges = await page.evaluate(function() {
       globalData.badges = 8;
       updateDashboard();
       var btn = $("btnLeagueBattle");
-      var challenge = getE4ChallengeForBadges(8);
+      var challenge = getNextE4Challenge(8);
       return { btnDisplay: btn.style.display, btnRegion: btn._e4Region || 'none', challenge: challenge ? challenge.region : null };
     });
     expect(moreBadges.btnDisplay).toBe('inline-block');
@@ -500,49 +507,72 @@ test.describe('Block I Step 11: 八大師系統驗證', () => {
     expect(moreBadges.challenge).toBe('城都');
   });
 
-  // 6.4: 地區順序依序通關 — 關都→城都→⋯→伽勒爾，無法跳區
-  test('6.4 getE4ChallengeForBadges enforces sequential region order (關都→城都→豐緣→神奧→合眾→卡洛斯→阿羅拉→伽勒爾)', async ({ page }) => {
-    const regionsAtBadgeLevels = await page.evaluate(function() {
-      var thresholds = [0, 3, 4, 7, 8, 11, 12, 15, 16, 19, 20, 23, 24, 27, 28, 31, 32, 40];
+  // 6.4: 地區順序依序通關 — VER2.5: getNextE4Challenge 依序 + isRegionCompleted 判斷
+  test('6.4 getNextE4Challenge enforces sequential order via isRegionCompleted', async ({ page }) => {
+    const result = await page.evaluate(function() {
+      globalData = globalData || {};
+      globalData.leagueRegionsWon = {};
+      var regions = ["關都","城都","豐緣","神奧","合眾","卡洛斯","阿羅拉","伽勒爾"];
+      var thresholds = [4, 8, 12, 16, 20, 24, 28, 32];
       var results = {};
-      for (var i = 0; i < thresholds.length; i++) {
-        var c = getE4ChallengeForBadges(thresholds[i]);
-        results["badge_" + thresholds[i]] = c ? { region: c.region, requiredBadges: c.requiredBadges, order: c.order } : null;
-      }
+
+      // Test 1: 0 badges → null
+      results.badge_0 = getNextE4Challenge(0);
+
+      // Test 2: 3 badges → null (below 關都 threshold)
+      results.badge_3 = getNextE4Challenge(3);
+
+      // Test 3: 4 badges, no completions → 關都
+      var c4 = getNextE4Challenge(4);
+      results.badge_4 = c4 ? { region: c4.region, order: c4.order } : null;
+
+      // Test 4: 8 badges, no completions → 關都 (still first incomplete)
+      var c8 = getNextE4Challenge(8);
+      results.badge_8_none = c8 ? { region: c8.region } : null;
+
+      // Test 5: 關都 completed, badges=8 → 城都
+      globalData.leagueRegionsWon["關都"] = true;
+      var c8b = getNextE4Challenge(8);
+      results.badge_8_kantoDone = c8b ? { region: c8b.region, order: c8b.order } : null;
+
+      // Test 6: 關都+城都 completed, badges=12 → 豐緣
+      globalData.leagueRegionsWon["城都"] = true;
+      var c12 = getNextE4Challenge(12);
+      results.badge_12 = c12 ? { region: c12.region } : null;
+
+      // Test 7: all completed, badges=32 → null
+      for (var r = 0; r < regions.length; r++) globalData.leagueRegionsWon[regions[r]] = true;
+      results.all_done = getNextE4Challenge(32);
+
+      // Test 8: badges too low for next incomplete
+      globalData.leagueRegionsWon = {};
+      // complete 關都 only, badges=4 → 關都 (not completed yet)
+      var c4b = getNextE4Challenge(4);
+      results.badge_4_only = c4b ? { region: c4b.region } : null;
+
       return results;
     });
 
     // 0~3 badges → null
-    expect(regionsAtBadgeLevels.badge_0).toBeNull();
-    expect(regionsAtBadgeLevels.badge_3).toBeNull();
+    expect(result.badge_0).toBeNull();
+    expect(result.badge_3).toBeNull();
 
-    // 4~7 → 關都 (order 0)
-    expect(regionsAtBadgeLevels.badge_4.region).toBe('關都');
-    expect(regionsAtBadgeLevels.badge_4.order).toBe(0);
+    // 4 badges, no completions → 關都
+    expect(result.badge_4.region).toBe('關都');
+    expect(result.badge_4.order).toBe(0);
 
-    // 8~11 → 城都 (order 1)
-    expect(regionsAtBadgeLevels.badge_8.region).toBe('城都');
-    expect(regionsAtBadgeLevels.badge_8.order).toBe(1);
+    // 8 badges, no completions → 關都 (still first incomplete)
+    expect(result.badge_8_none.region).toBe('關都');
 
-    // 12~15 → 豐緣 (order 2)
-    expect(regionsAtBadgeLevels.badge_12.region).toBe('豐緣');
+    // 關都 completed, 8 badges → 城都
+    expect(result.badge_8_kantoDone.region).toBe('城都');
+    expect(result.badge_8_kantoDone.order).toBe(1);
 
-    // 16~19 → 神奧 (order 3)
-    expect(regionsAtBadgeLevels.badge_16.region).toBe('神奧');
+    // 關都+城都 completed, 12 badges → 豐緣
+    expect(result.badge_12.region).toBe('豐緣');
 
-    // 20~23 → 合眾 (order 4)
-    expect(regionsAtBadgeLevels.badge_20.region).toBe('合眾');
-
-    // 24~27 → 卡洛斯 (order 5)
-    expect(regionsAtBadgeLevels.badge_24.region).toBe('卡洛斯');
-
-    // 28~31 → 阿羅拉 (order 6)
-    expect(regionsAtBadgeLevels.badge_28.region).toBe('阿羅拉');
-
-    // 32+ → 伽勒爾 (order 7)
-    expect(regionsAtBadgeLevels.badge_32.region).toBe('伽勒爾');
-    expect(regionsAtBadgeLevels.badge_32.order).toBe(7);
-    expect(regionsAtBadgeLevels.badge_40.region).toBe('伽勒爾');
+    // All completed → null
+    expect(result.all_done).toBeNull();
 
     // Verify LEAGUE_REGIONS order field matches region order
     const regionOrderData = await page.evaluate(function() {
@@ -571,26 +601,23 @@ test.describe('Block I Step 11: 八大師系統驗證', () => {
     expect(regionOrderData.actual["伽勒爾"].requiredBadges).toBe(32);
   });
 
-  // 11.3: MASTERS_8 data structure validity (8 entries, descending rank, unique months)
-  test('11.3 MASTERS_8 data structure is valid (8 entries, descending rank, unique months)', async ({ page }) => {
+  // 11.3: MASTERS_8 data structure validity (8 entries, descending rank, no month field)
+  test('11.3 MASTERS_8 data structure is valid (8 entries, descending rank, no month field)', async ({ page }) => {
     const m8Data = await page.evaluate(() => {
       try {
         var m8 = MASTERS_8;
-        var months = {};
         var orderOk = true;
+        var hasMonthField = false;
         for (var i = 0; i < m8.length; i++) {
-          months[m8[i].month] = (months[m8[i].month] || 0) + 1;
+          if (m8[i].month !== undefined) hasMonthField = true;
           if (i < m8.length - 1 && m8[i].rank <= m8[i + 1].rank) orderOk = false;
         }
-        var allMonthsUnique = true;
-        for (var m in months) { if (months[m] !== 1) allMonthsUnique = false; }
 
         return {
           count: m8.length,
           ranks: m8.map(function(m) { return m.rank; }),
-          months: Object.keys(months).map(Number).sort(function(a,b) { return a - b; }),
           orderDescending: orderOk,
-          allMonthsUnique: allMonthsUnique
+          noMonthField: !hasMonthField
         };
       } catch (e) {
         return { error: e.message };
@@ -601,7 +628,6 @@ test.describe('Block I Step 11: 八大師系統驗證', () => {
     expect(m8Data.count).toBe(8);
     expect(m8Data.ranks).toEqual([8, 7, 6, 5, 4, 3, 2, 1]);
     expect(m8Data.orderDescending).toBe(true);
-    expect(m8Data.months).toEqual([1, 2, 3, 4, 5, 6, 7, 8]);
-    expect(m8Data.allMonthsUnique).toBe(true);
+    expect(m8Data.noMonthField).toBe(true);
   });
 });
