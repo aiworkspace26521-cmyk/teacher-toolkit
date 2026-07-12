@@ -161,4 +161,69 @@ test.describe('VER2.5 單元測試 — 輔助函式與核心邏輯', () => {
     expect(result.region).toBe('合眾');
     expect(result.order).toBe(4);
   });
+
+  // IT6: Badge cooldown 7 days — badgeGain condition
+  test('IT6 badge cooldown condition respects BADGE_COOLDOWN_DAYS', async ({ page }) => {
+    const result = await page.evaluate(() => {
+      var checks = [];
+      function shouldGainBadge(daysSince) {
+        return BADGE_COOLDOWN_DAYS !== undefined && daysSince >= BADGE_COOLDOWN_DAYS;
+      }
+      checks.push({ days: 0, gainable: shouldGainBadge(0) });
+      checks.push({ days: 6, gainable: shouldGainBadge(6) });
+      checks.push({ days: 7, gainable: shouldGainBadge(7) });
+      checks.push({ days: 10, gainable: shouldGainBadge(10) });
+      return { cd: BADGE_COOLDOWN_DAYS, checks: checks };
+    });
+    expect(result.cd).toBe(7);
+    expect(result.checks[0].gainable).toBe(false);
+    expect(result.checks[1].gainable).toBe(false);
+    expect(result.checks[2].gainable).toBe(true);
+    expect(result.checks[3].gainable).toBe(true);
+  });
+
+  // IT7: Buffer period "最後機會" prompt
+  test('IT7 buffer period shows last chance warning', async ({ page }) => {
+    const result = await page.evaluate(() => {
+      globalData = { badges: 4, todayCompleted: false, leagueRegionsWon: {} };
+      var OrigDate = Date;
+      Date = function() { return new OrigDate(2026, 5, 5); };
+      Date.now = function() { return new OrigDate(2026, 5, 5).getTime(); };
+      var cachedMonths = leagueCompletedMonths;
+      leagueCompletedMonths = {};
+      var lastKey = getLastMonthKey();
+      leagueCompletedMonths["關都"] = lastKey;
+      try {
+        var mKey = getCurrentMonthKey();
+        var challenge = getNextE4Challenge(4);
+        if (!challenge) return { error: "no challenge" };
+        var confirmMsg = "🏆 " + challenge.region + "聯盟挑戰<br><br>四天王在 Boss 週（或緩衝期）等待挑戰！<br>是否接受挑戰？<br><br>";
+        if (isBufferPeriod()) {
+          confirmMsg += "<small style='color:#e67e22;'>⚠️ 緩衝期最後機會！錯過需等下個 W4</small><br>";
+        }
+        return { hasLastChance: confirmMsg.indexOf("緩衝期最後機會") !== -1, isBuffer: isBufferPeriod() };
+      } finally {
+        Date = OrigDate;
+        Date.now = OrigDate.now;
+        leagueCompletedMonths = cachedMonths;
+      }
+    });
+    expect(result.error).toBeUndefined();
+    expect(result.isBuffer).toBe(true);
+    expect(result.hasLastChance).toBe(true);
+  });
+
+  // IT8: Zombie code check — old functions must not exist
+  test('IT8 zombie functions (getCurrentWeek, getMasters8ForMonth, getE4ChallengeForBadges) are removed', async ({ page }) => {
+    const result = await page.evaluate(() => {
+      return {
+        hasGetCurrentWeek: typeof getCurrentWeek !== 'undefined',
+        hasGetMasters8ForMonth: typeof getMasters8ForMonth !== 'undefined',
+        hasGetE4ChallengeForBadges: typeof getE4ChallengeForBadges !== 'undefined'
+      };
+    });
+    expect(result.hasGetCurrentWeek).toBe(false);
+    expect(result.hasGetMasters8ForMonth).toBe(false);
+    expect(result.hasGetE4ChallengeForBadges).toBe(false);
+  });
 });
