@@ -804,7 +804,7 @@ function getWeekBonusDesc() {
   return map[getWeekType()] || "";
 }
 function isBufferPeriod() {
-  if (new Date().getDate() > 7) return false;
+  if (getWeekType() !== "W1") return false;
   if (!globalData) return false;
   var lastKey = getLastMonthKey();
   for (var region in LEAGUE_REGIONS) {
@@ -8421,13 +8421,18 @@ function startDefenseChallenge(region) {
   var trainerLevel = globalData.highestLevel || 5;
   if (globalData.simpleMode) trainerLevel = Math.max(5, Math.floor(trainerLevel * 0.75));
   var badges = globalData.badges || 0;
-  var expectedLv = EXPECTED_LEVEL[Math.min(badges, EXPECTED_LEVEL.length - 1)];
-  // 衛冕戰使用該月對應的八大師
-  var now = new Date();
-  var month = (now.getFullYear() - 2026) * 12 + (now.getMonth() + 1);
-  var mastersIdx = Math.min(Math.max(0, month - 1), MASTERS_8.length - 1);
-  var champ = MASTERS_8[mastersIdx];
-  var bossLevel = Math.max(5, expectedLv + Math.round(champ.lvBonus * 0.06) + Math.floor(Math.random() * 6));
+  // 衛冕戰使用玩家已通關地區對應的八大師 (VER2.4 §9.3 #2-4)
+  var regionToRank = { "關都":8, "城都":7, "豐緣":6, "神奧":5, "合眾":4, "卡洛斯":3, "阿羅拉":2, "伽勒爾":1 };
+  var targetRank = regionToRank[region] || 8;
+  var champ = null;
+  for (var mi = 0; mi < MASTERS_8.length; mi++) {
+    if (MASTERS_8[mi].rank === targetRank) { champ = MASTERS_8[mi]; break; }
+  }
+  if (!champ) champ = MASTERS_8[7];
+  // 使用該冠軍的道館徽章閾值計算等級 (VER2.4 §5.4)
+  var thresholdBadge = (9 - champ.rank) * 4;
+  var expectedLv = EXPECTED_LEVEL[Math.min(Math.max(0, thresholdBadge - 1), EXPECTED_LEVEL.length - 1)];
+  var bossLevel = Math.max(5, expectedLv + Math.round(champ.lvBonus * 0.06) + Math.floor(Math.random() * 3));
   var enemy = createEnemyPokemon("✨ 衛冕者 (" + champ.name + ")", bossLevel, false, false);
   enemy.isWeeklyBoss = true;
   enemy.defenseRegion = region;
