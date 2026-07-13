@@ -4071,7 +4071,7 @@ function openArena(enemy) {
   $("resultMessage").style.display = "none";
   var simpleTag = globalData && globalData.simpleMode ? " 🌱" : "";
   var regionTag = (!enemy.isGym && !enemy.isLeague && enemy.region) ? " [" + enemy.region + "]" : "";
-  $("battleTitle").innerHTML = (enemy.isGym ? "🏛️ 道館挑戰" : enemy.isLeague ? "🏆 聯盟大會" : enemy.isWeeklyBoss ? "👑 魔王戰" : "⚔️ 路人戰") + regionTag + simpleTag + " vs " + enemy.name + " Lv." + enemy.level;
+  $("battleTitle").innerHTML = (enemy.isGym ? "🏛️ 道館挑戰" : enemy.isLeague ? "🏆 聯盟大會" : enemy.isWeeklyBoss ? (enemy.defenseRegion ? "🛡️ 衛冕戰" : "👑 魔王戰") : "⚔️ 路人戰") + regionTag + simpleTag + " vs " + enemy.name + " Lv." + enemy.level;
   updateArenaUI();
   var enemyBox = $("enemyPkmnName");
   if (enemyBox) { enemyBox.classList.remove("entry-animation"); void enemyBox.offsetWidth; enemyBox.classList.add("entry-animation"); }
