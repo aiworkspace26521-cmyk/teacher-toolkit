@@ -804,7 +804,6 @@ function getWeekBonusDesc() {
   return map[getWeekType()] || "";
 }
 function isBufferPeriod() {
-  if (isAdmin) return false;
   if (new Date().getDate() > 7) return false;
   if (!globalData) return false;
   var lastKey = getLastMonthKey();
@@ -890,7 +889,7 @@ function getStartOfMonth(date) {
   var d = new Date(date); d.setDate(1); d.setHours(0, 0, 0, 0); return d;
 }
 // Wrapper functions for HTML compatibility
-function forceAdminUpdate() { updatePreview(); if (typeof renderBadgeCase === "function") renderBadgeCase(); if (typeof updateBattleButtons === "function") updateBattleButtons(); if (typeof updateEventBanner === "function") updateEventBanner(); }
+function forceAdminUpdate() { updatePreview(); if (typeof renderBadgeCase === "function") renderBadgeCase(); if (typeof updateBattleButtons === "function") updateBattleButtons(); if (typeof updateEventBanner === "function") updateEventBanner(); if (typeof updateDashboard === "function") updateDashboard(); }
 async function devAdd(type, val) {
   var note = "管理員操作: ";
   if (type === 'COIN') { globalData.coins += val; note += "+" + val + " 金幣"; }
@@ -1045,6 +1044,10 @@ async function recalculateStudentState(studentId, events) {
       if (pid2) for (var k in state.roster) {
         var isHolder = state.roster[k].heldItem === 'expShare';
         state.roster[k].totalExp += (k === pid2) ? expGained : (isHolder ? Math.floor(expGained * 0.8) : Math.floor(expGained * 0.5));
+      }
+    } else if (rowAction === "\u7CFB\u7D71\u6E2C\u8A66") {
+      for (var k_sys in state.roster) {
+        state.roster[k_sys].totalExp += expGained;
       }
     } else if (rowAction === "\u6230\u9B25\u52DD\u5229") {
       var match = safeNote.match(/\u53C3\u8207(?:\u8005)?:\s*([^|]+)/);
@@ -6446,14 +6449,26 @@ function updateDashboard() {
     var challenge = getNextE4Challenge(badges);
     var weekType = getWeekType();
     var isW4orBuffer = weekType === "W4" || isBufferPeriod();
-    var canE4 = challenge && isW4orBuffer && !gd.todayCompleted && leagueCompletedMonths[challenge.region] !== mKey;
+    var completedThisMonth = challenge ? leagueCompletedMonths[challenge.region] === mKey : false;
     leagueBtn.innerHTML = challenge ? "🏟️ " + challenge.region + "聯盟" : "🏟️ 聯盟賽";
-    leagueBtn.style.display = canE4 ? "inline-block" : "none";
     leagueBtn._e4Region = challenge ? challenge.region : null;
-    if (!isW4orBuffer && challenge && !gd.todayCompleted && leagueCompletedMonths[challenge.region] !== mKey) {
+    if (challenge) {
       leagueBtn.style.display = "inline-block";
-      leagueBtn.style.opacity = "0.4";
-      leagueBtn.title = "第 4 週開放聯盟挑戰";
+      if (isW4orBuffer && !gd.todayCompleted && !completedThisMonth) {
+        leagueBtn.style.opacity = "1";
+        leagueBtn.title = "";
+      } else if (!isW4orBuffer) {
+        leagueBtn.style.opacity = "0.4";
+        leagueBtn.title = "第 4 週開放聯盟挑戰";
+      } else if (completedThisMonth) {
+        leagueBtn.style.opacity = "0.4";
+        leagueBtn.title = "本月已通關";
+      } else {
+        leagueBtn.style.opacity = "0.4";
+        leagueBtn.title = "今日已提交任務，明日再來挑戰";
+      }
+    } else {
+      leagueBtn.style.display = "none";
     }
   }
   if (rankBtn) {
@@ -6628,9 +6643,17 @@ function renderActions() {
   // Populate batch inject student dropdown
   var sel = $("batchInjectStudent");
   if (sel && globalData) {
+    var knownStudents = ["Neil", "Emma", "Tester"];
+    knownStudents.forEach(function(sid) {
+      if (sid === "Admin") return;
+      var opt = document.createElement("option");
+      opt.value = sid;
+      opt.textContent = sid;
+      sel.appendChild(opt);
+    });
     db.collection("kpi_students").get().then(function(snap) {
       snap.docs.forEach(function(d) {
-        if (d.id === "Admin") return;
+        if (d.id === "Admin" || knownStudents.indexOf(d.id) !== -1) return;
         var opt = document.createElement("option");
         opt.value = d.id;
         opt.textContent = d.id;
