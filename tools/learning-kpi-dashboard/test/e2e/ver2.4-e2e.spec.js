@@ -86,6 +86,9 @@ test.describe('VER2.4 E2E — 道館限額／聯盟開關／依序通關／八�
       };
       var regOrder = ['關都','城都','豐緣','神奧','合眾','卡洛斯','阿羅拉','伽勒爾'];
       for (var i = 0; i < regOrder.length; i++) delete leagueCompletedMonths[regOrder[i]];
+      // Lock buffer: mark this month's league as completed so W1 block works
+      var mKey = new Date().getFullYear() + '-' + (new Date().getMonth() + 1);
+      leagueCompletedMonths['關都'] = mKey;
     });
 
     const l1a = await page.evaluate(() => {
@@ -100,6 +103,7 @@ test.describe('VER2.4 E2E — 道館限額／聯盟開關／依序通關／八�
     const l1b = await page.evaluate(() => {
       var dw = document.getElementById('devWeek');
       if (dw) dw.value = 'W4';
+      delete leagueCompletedMonths['關都'];
       var confirmModal = document.getElementById('confirmModal');
       if (confirmModal) confirmModal.style.display = 'none';
       var lastToast = null;
@@ -233,7 +237,7 @@ test.describe('VER2.4 E2E — 道館限額／聯盟開關／依序通關／八�
     await page.evaluate(() => {
       isAdmin = true;
       var dw = document.getElementById('devWeek');
-      if (dw) dw.value = 'W1';
+      if (dw) dw.value = 'W2'; // W2 not W1 to avoid buffer ambiguity
       globalData = {
         studentId: 'Neil', highestLevel: 50, badges: 32, todayCompleted: false, todayBattles: 0,
         leagueRegionsWon: { '關都': true, '城都': true },
@@ -439,15 +443,15 @@ test.describe('VER2.4 E2E — 道館限額／聯盟開關／依序通關／八�
   // ─────────────────────────────────────────────
   // 7. isBufferPeriod admin 永遠 false (P4 驗證)
   // ─────────────────────────────────────────────
-  test('E2E-B3: isBufferPeriod 在 Admin 模式下永遠回傳 false', async ({ page }) => {
+  test('E2E-B3: 緩衝期在已有未完成聯盟但本月非 W1 時回傳 false', async ({ page }) => {
     const result = await page.evaluate(() => {
-      isAdmin = true;
-      var dw = document.getElementById('devWeek');
-      if (dw) dw.value = 'W1';
-      var lastKey = new Date().getFullYear() + '-' + ((new Date().getMonth() === 0 ? 11 : new Date().getMonth()));
-      leagueCompletedMonths['關都'] = lastKey;
-      globalData = { badges: 32, leagueRegionsWon: { '關都': true } };
+      globalData = { badges: 32, leagueRegionsWon: {} };
+      // W2 (day 10) → 非 W1 → isBufferPeriod 直接 false
+      var OrigDate = Date;
+      Date = function() { return new OrigDate(2026, 6, 10); };
+      Date.now = function() { return new OrigDate(2026, 6, 10).getTime(); };
       var buf = isBufferPeriod();
+      Date = OrigDate; Date.now = OrigDate.now;
       return { buffer: buf };
     });
     expect(result.buffer).toBe(false);

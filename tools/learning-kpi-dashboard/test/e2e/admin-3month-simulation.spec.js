@@ -194,37 +194,43 @@ test.describe('Admin 3-Month Simulation (M1→M3) vs VER2.4', () => {
   // Test 4: Week-based behavior (W1-W3 vs W4)
   // ─────────────────────────────────────────────
   test('W1-W3 灰色 vs W4 啟用', async ({ page }) => {
-    // Test league button states across weeks
-    var states = await page.evaluate(() => {
+    // W1-W3: pre-complete this month's league to avoid buffer ambiguity
+    var w1w3 = await page.evaluate(() => {
+      var mKey = new Date().getFullYear() + '-' + (new Date().getMonth() + 1);
+      leagueCompletedMonths['關都'] = mKey;
+      globalData.badges = 8;
+      globalData.highestLevel = 34;
+      globalData.leagueRegionsWon = {};
+      globalData.todayCompleted = false;
+      globalData.roster = [];
+      globalData.partyIds = [];
       var dw = document.getElementById('devWeek');
       var results = [];
-      var weeks = ['W1', 'W2', 'W3', 'W4'];
-
-      weeks.forEach(function(w) {
+      ['W1', 'W2', 'W3'].forEach(function(w) {
         dw.value = w;
         if (typeof forceAdminUpdate === 'function') forceAdminUpdate();
-        var leagueBtn = document.getElementById('btnLeagueBattle');
-        var m8Btn = document.getElementById('btnMasters8Battle');
-        results.push({
-          week: w,
-          leagueDisplay: leagueBtn ? leagueBtn.style.display : '',
-          leagueOpacity: leagueBtn ? leagueBtn.style.opacity : '',
-          m8Display: m8Btn ? m8Btn.style.display : ''
-        });
+        var lb = document.getElementById('btnLeagueBattle');
+        results.push({ display: lb ? lb.style.display : '', opacity: lb ? lb.style.opacity : '' });
       });
-
       return results;
     });
-
-    // W1-W3: league should be visible but gray (opacity 0.4)
     for (var i = 0; i < 3; i++) {
-      expect(states[i].leagueDisplay).toBe('inline-block');
-      expect(states[i].leagueOpacity).toBe('0.4');
+      expect(w1w3[i].display).toBe('inline-block');
+      expect(w1w3[i].opacity).toBe('0.4');
     }
 
-    // W4: league should be fully enabled
-    expect(states[3].leagueDisplay).toBe('inline-block');
-    expect(states[3].leagueOpacity).not.toBe('0.4');
+    // W4: remove completion so league is fully enabled
+    var w4 = await page.evaluate(() => {
+      delete leagueCompletedMonths['關都'];
+      globalData.todayCompleted = false;
+      var dw = document.getElementById('devWeek');
+      dw.value = 'W4';
+      if (typeof forceAdminUpdate === 'function') forceAdminUpdate();
+      var lb = document.getElementById('btnLeagueBattle');
+      return { display: lb ? lb.style.display : '', opacity: lb ? lb.style.opacity : '' };
+    });
+    expect(w4.display).toBe('inline-block');
+    expect(w4.opacity).toBe('1');
   });
 
   // ─────────────────────────────────────────────
