@@ -3743,6 +3743,7 @@ function finishGymVictory() {
     var legBonus = checkIsLegendary(we.name) ? 1.5 : 1;
     baseExp = Math.floor(baseExp * legBonus);
     baseExp = Math.floor(baseExp * (globalData.hasChampionCloak ? 1.5 : 1));
+    if (getWeekType() === "W2") baseExp = Math.floor(baseExp * 1.5);
     cumulativeExp += baseExp;
   }
   cumulativeExp = Math.floor(cumulativeExp);
@@ -4249,11 +4250,22 @@ function updateBattleButtons() {
     var nextMasters8 = getUnlockedMasters8();
     if (nextMasters8 && (isW4 || isBuffer) && todayOk) {
       m8Btn.style.display = "inline-block";
+      m8Btn.disabled = false;
+      m8Btn.style.opacity = "1";
+      m8Btn.title = "挑戰八大師！";
+      m8Btn.innerHTML = "👑 " + nextMasters8.name + "戰";
+    } else if (nextMasters8 && (isW4 || isBuffer) && !todayOk) {
+      m8Btn.style.display = "inline-block";
+      m8Btn.disabled = true;
+      m8Btn.style.opacity = "0.4";
+      m8Btn.title = "請先完成今日任務才能挑戰八大師";
       m8Btn.innerHTML = "👑 " + nextMasters8.name + "戰";
     } else if (nextMasters8 && !isW4 && !isBuffer) {
       m8Btn.style.display = "inline-block";
+      m8Btn.disabled = true;
       m8Btn.style.opacity = "0.4";
       m8Btn.title = "第 4 週開放八大師挑戰";
+      m8Btn.innerHTML = "👑 " + nextMasters8.name + "戰";
     } else {
       m8Btn.style.display = "none";
     }
@@ -4534,6 +4546,9 @@ function finishMasters8Victory() {
     var baseExp = ARENA_EXP_BASE + Math.floor(we.level * 3);
     var waveMult = we.isLastWave ? 4 : 2.5;
     baseExp = Math.floor(baseExp * 8 * waveMult);
+    var legBonus = checkIsLegendary(we.name) ? 1.5 : 1;
+    baseExp = Math.floor(baseExp * legBonus);
+    baseExp = Math.floor(baseExp * (globalData.hasChampionCloak ? 1.5 : 1));
     cumulativeExp += baseExp;
   }
   totalExpGain = Math.floor(cumulativeExp);
@@ -4567,6 +4582,7 @@ function finishLeagueVictory() {
   leagueCompletedMonths[region] = monthKey;
   leagueChampions[region] = globalData.studentId;
   leaguePoints[region] = (leaguePoints[region] || 0) + 10;
+  var regionAlreadyWon = globalData.leagueRegionsWon && globalData.leagueRegionsWon[region];
   if (!globalData.leagueRegionsWon) globalData.leagueRegionsWon = {};
   globalData.leagueRegionsWon[region] = true;
   var totalExpGain = 0, partyUsed = [];
@@ -4589,7 +4605,7 @@ function finishLeagueVictory() {
   totalExpGain = cumulativeExp;
   var coinsGain = Math.floor((80 + Math.floor(battleState.enemy.level * 1.5)) * (globalData.hasAmuletCoin ? 1.5 : 1));
   var captureText = "";
-  var alreadyCaptured = globalData.monthLeagueWins > 0;
+  var alreadyCaptured = regionAlreadyWon;
   var canCapture = !alreadyCaptured || Math.random() < 0.4;
   if (canCapture) { captureText = " | 🏆 捕獲: " + battleState.enemy.name; }
   var e4Names = leagueData.eliteFour.map(function(e){ return e.name; }).join(" & ");
