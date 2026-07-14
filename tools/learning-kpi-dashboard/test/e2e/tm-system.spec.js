@@ -150,8 +150,8 @@ test.describe('TM Learning System', () => {
       }
       var p = globalData.roster[0];
       var moveName = '噴射火焰';
-      if (!p.tmMoves) p.tmMoves = [];
-      if (p.tmMoves.indexOf(moveName) === -1) p.tmMoves.push(moveName);
+      // Clear any pre-existing tmMoves from Firestore so the test TM goes to slot 0
+      p.tmMoves = [moveName];
       if (!globalData.pokemonTMs) globalData.pokemonTMs = {};
       globalData.pokemonTMs[p.id] = p.tmMoves;
       var pp = createPlayerPokemon(p);
