@@ -41,6 +41,7 @@ test.describe('M1→M3 逐月模擬測試（真實驗證 EXP/等級/道館/聯�
         weekBossWins: 0,
         todayBattles: 0,
         todayCompleted: false,
+        todayTasksDone: false,
         daysSinceLastBadge: 99,
         lastBadgeTime: null,
         leagueRegionsWon: {},
@@ -125,20 +126,41 @@ test.describe('M1→M3 逐月模擬測試（真實驗證 EXP/等級/道館/聯�
       function setWeek(w) { dw.value = w; if (typeof forceAdminUpdate === 'function') forceAdminUpdate(); }
       function setMonth(m) { dm.value = String(m); if (typeof forceAdminUpdate === 'function') forceAdminUpdate(); }
 
+      // Simulate daily task submission: prerequisite for battles
+      function simulateDailySubmit(score) {
+        score = score || 80;
+        globalData.todayCompleted = true;
+        globalData.todayTasksDone = true;
+        var expGain = score * 10;
+        globalData.roster[0].totalExp += expGain;
+        var lvlInfo = calcLevelAndExp(globalData.roster[0].totalExp, globalData.roster[0].initialLevel);
+        globalData.roster[0].currentLevel = lvlInfo.level;
+        if (lvlInfo.level > globalData.highestLevel) globalData.highestLevel = lvlInfo.level;
+        if (lvlInfo.level > globalData.lockedGymLevel) globalData.lockedGymLevel = lvlInfo.level;
+      }
+
       // ============================================================
       // 2. Simulation log
       // ============================================================
       var log = [];
 
       // ============================================================
-      // 3. Execute M1→M3
+      // 3. Verify todayTasksDone gate
+      // ============================================================
+      log.push({ phase: 'gate_verify', todayTasksDone: globalData.todayTasksDone });
+      simulateDailySubmit(75);
+      log.push({ phase: 'gate_verify_after_submit', todayTasksDone: globalData.todayTasksDone, expAfterSubmit: globalData.roster[0].totalExp });
+
+      // ============================================================
+      // 4. Execute M1→M3
       // ============================================================
 
       // ---- Month 1 (M1) ----
       setMonth(1);
 
-      // M1 W1: Gym battle 1 → badge 1, expected level 13
+      // M1 W1: Daily submit → Gym battle 1 → badge 1
       setWeek('W1');
+      simulateDailySubmit();
       var g1 = simulateGymWin(globalData.highestLevel);
       if (g1) {
         var lv1 = applyExp(g1.leaderShare);
@@ -152,8 +174,9 @@ test.describe('M1→M3 逐月模擬測試（真實驗證 EXP/等級/道館/聯�
         });
       }
 
-      // M1 W2: Gym battle 2 → badge 2 (cooldown >= 7)
+      // M1 W2: Daily submit → Gym battle 2 → badge 2
       setWeek('W2');
+      simulateDailySubmit();
       globalData.daysSinceLastBadge = 8;
       globalData.weekGymWins = 0;
       var g2 = simulateGymWin(globalData.highestLevel);
@@ -169,8 +192,9 @@ test.describe('M1→M3 逐月模擬測試（真實驗證 EXP/等級/道館/聯�
         });
       }
 
-      // M1 W3: Gym battle 3 → badge 3
+      // M1 W3: Daily submit → Gym battle 3 → badge 3
       setWeek('W3');
+      simulateDailySubmit();
       globalData.daysSinceLastBadge = 8;
       globalData.weekGymWins = 0;
       var g3 = simulateGymWin(globalData.highestLevel);
@@ -186,8 +210,9 @@ test.describe('M1→M3 逐月模擬測試（真實驗證 EXP/等級/道館/聯�
         });
       }
 
-      // M1 W4: Gym battle 4 → badge 4 → league unlocked!
+      // M1 W4: Daily submit → Gym battle 4 → badge 4 → league unlocked!
       setWeek('W4');
+      simulateDailySubmit();
       globalData.daysSinceLastBadge = 8;
       globalData.weekGymWins = 0;
       var g4 = simulateGymWin(globalData.highestLevel);
@@ -240,8 +265,9 @@ test.describe('M1→M3 逐月模擬測試（真實驗證 EXP/等級/道館/聯�
       // ---- Month 2 (M2) ----
       setMonth(2);
 
-      // M2 W1: Gym badge 5
+      // M2 W1: Daily submit → Gym badge 5
       setWeek('W1');
+      simulateDailySubmit();
       globalData.daysSinceLastBadge = 8;
       globalData.weekGymWins = 0;
       var g5 = simulateGymWin(globalData.highestLevel);
@@ -257,8 +283,9 @@ test.describe('M1→M3 逐月模擬測試（真實驗證 EXP/等級/道館/聯�
         });
       }
 
-      // M2 W2: Gym badge 6
+      // M2 W2: Daily submit → Gym badge 6
       setWeek('W2');
+      simulateDailySubmit();
       globalData.daysSinceLastBadge = 8;
       globalData.weekGymWins = 0;
       var g6 = simulateGymWin(globalData.highestLevel);
@@ -274,8 +301,9 @@ test.describe('M1→M3 逐月模擬測試（真實驗證 EXP/等級/道館/聯�
         });
       }
 
-      // M2 W3: Gym badge 7
+      // M2 W3: Daily submit → Gym badge 7
       setWeek('W3');
+      simulateDailySubmit();
       globalData.daysSinceLastBadge = 8;
       globalData.weekGymWins = 0;
       var g7 = simulateGymWin(globalData.highestLevel);
@@ -291,8 +319,9 @@ test.describe('M1→M3 逐月模擬測試（真實驗證 EXP/等級/道館/聯�
         });
       }
 
-      // M2 W4: Gym badge 8 → 城都 league unlocked!
+      // M2 W4: Daily submit → Gym badge 8 → 城都 league unlocked!
       setWeek('W4');
+      simulateDailySubmit();
       globalData.daysSinceLastBadge = 8;
       globalData.weekGymWins = 0;
       var g8 = simulateGymWin(globalData.highestLevel);
@@ -345,8 +374,9 @@ test.describe('M1→M3 逐月模擬測試（真實驗證 EXP/等級/道館/聯�
       // ---- Month 3 (M3) ----
       setMonth(3);
 
-      // M3 W1: Gym badge 9
+      // M3 W1: Daily submit → Gym badge 9
       setWeek('W1');
+      simulateDailySubmit();
       globalData.daysSinceLastBadge = 8;
       globalData.weekGymWins = 0;
       var g9 = simulateGymWin(globalData.highestLevel);
@@ -363,8 +393,9 @@ test.describe('M1→M3 逐月模擬測試（真實驗證 EXP/等級/道館/聯�
         });
       }
 
-      // M3 W2: Gym badge 10
+      // M3 W2: Daily submit → Gym badge 10
       setWeek('W2');
+      simulateDailySubmit();
       globalData.daysSinceLastBadge = 8;
       globalData.weekGymWins = 0;
       var g10 = simulateGymWin(globalData.highestLevel);
@@ -381,8 +412,9 @@ test.describe('M1→M3 逐月模擬測試（真實驗證 EXP/等級/道館/聯�
         });
       }
 
-      // M3 W3: Gym badge 11
+      // M3 W3: Daily submit → Gym badge 11
       setWeek('W3');
+      simulateDailySubmit();
       globalData.daysSinceLastBadge = 8;
       globalData.weekGymWins = 0;
       var g11 = simulateGymWin(globalData.highestLevel);
@@ -399,8 +431,9 @@ test.describe('M1→M3 逐月模擬測試（真實驗證 EXP/等級/道館/聯�
         });
       }
 
-      // M3 W4: Gym badge 12 → 豐緣 league unlocked!
+      // M3 W4: Daily submit → Gym badge 12 → 豐緣 league unlocked!
       setWeek('W4');
+      simulateDailySubmit();
       globalData.daysSinceLastBadge = 8;
       globalData.weekGymWins = 0;
       var g12 = simulateGymWin(globalData.highestLevel);
@@ -470,6 +503,7 @@ test.describe('M1→M3 逐月模擬測試（真實驗證 EXP/等級/道館/聯�
           highestLevel: globalData.highestLevel,
           leaguesWon: Object.keys(globalData.leagueRegionsWon),
           masters8Completed: globalData.masters8Completed,
+          todayTasksDone: globalData.todayTasksDone,
           expectedLvAtBadge12: EXPECTED_LEVEL[11]
         },
         expectedLevels: {
@@ -489,6 +523,16 @@ test.describe('M1→M3 逐月模擬測試（真實驗證 EXP/等級/道館/聯�
     console.log('=== Final State ===', JSON.stringify(result.final));
 
     // ── Structural verifications ──
+    // 0. todayTasksDone gate verification
+    var gateVerify = result.log.find(function(e) { return e.phase === 'gate_verify'; });
+    expect(gateVerify).toBeTruthy();
+    expect(gateVerify.todayTasksDone).toBe(false);
+    var gateAfterSubmit = result.log.find(function(e) { return e.phase === 'gate_verify_after_submit'; });
+    expect(gateAfterSubmit).toBeTruthy();
+    expect(gateAfterSubmit.todayTasksDone).toBe(true);
+    expect(gateAfterSubmit.expAfterSubmit).toBeGreaterThan(0);
+    expect(result.final.todayTasksDone).toBe(true);
+
     // 1. Total badges after 12 gym wins
     expect(result.final.badges).toBeGreaterThanOrEqual(12);
 
@@ -569,7 +613,7 @@ test.describe('M1→M3 逐月模擬測試（真實驗證 EXP/等級/道館/聯�
         ],
         highestLevel: 5, lockedGymLevel: 5, coins: 0, badges: 0,
         weekGymWins: 0, monthLeagueWins: 0, weekBossWins: 0,
-        todayBattles: 0, todayCompleted: false, daysSinceLastBadge: 99,
+        todayBattles: 0, todayCompleted: false, todayTasksDone: false, daysSinceLastBadge: 99,
         lastBadgeTime: null, leagueRegionsWon: {}, masters8Completed: [],
         masters8Progress: [], hasChampionCloak: false, hasAmuletCoin: false
       };
@@ -589,6 +633,10 @@ test.describe('M1→M3 逐月模擬測試（真實驗證 EXP/等級/道館/聯�
           var dw = document.getElementById('devWeek');
           dw.value = 'W' + w;
           if (typeof forceAdminUpdate === 'function') forceAdminUpdate();
+          // Daily submit first (prerequisite for battles)
+          globalData.todayCompleted = true;
+          globalData.todayTasksDone = true;
+          globalData.roster[0].totalExp += 750; // simulate score=75 daily task
           globalData.daysSinceLastBadge = 8;
           globalData.weekGymWins = 0;
           var gymResult = generateGymWaves(globalData.highestLevel);
@@ -639,32 +687,46 @@ test.describe('M1→M3 逐月模擬測試（真實驗證 EXP/等級/道館/聯�
     console.log('Final level after 12 gyms:', finalEntry.level, 'EXP:', finalEntry.totalExp);
   });
 
-  test('M1→M3 模擬：每週道館限 1 場（weekGymWins gate）', async ({ page }) => {
+  test('M1→M3 模擬：每週道館限 1 場（weekGymWins gate） + todayTasksDone 閘門', async ({ page }) => {
     var gateResult = await page.evaluate(() => {
-      // Test the weekGymWins >= 1 gate in startBattle
-      globalData = { weekGymWins: 0, todayBattles: 0, highestLevel: 5, badges: 0, roster: [{ id: 'P0', totalExp: 0, initialLevel: 5 }], lockedGymLevel: 5, daysSinceLastBadge: 99 };
+      // Test the gate conditions directly (no DOM interaction needed)
+      globalData = { weekGymWins: 0, todayBattles: 0, highestLevel: 5, badges: 0, lockedGymLevel: 5, todayTasksDone: false, todayCompleted: false, hasChampionCloak: false, hasAmuletCoin: false };
       var tests = [];
-      // Before any gym win → should NOT be blocked
-      var blocked0 = (globalData.weekGymWins || 0) >= 1;
-      tests.push({ label: 'no_wins', blocked: blocked0 });
-      // After 1 win → blocked
+
+      // Test #1 (todayTasksDone gate): !todayTasksDone → chain should block
+      var condition1 = !globalData.todayTasksDone; // true = blocked
+      tests.push({ label: 'no_tasks', blockedByTasks: condition1 });
+
+      // Test #2: todayTasksDone=true, weekGymWins=0 → NOT blocked
+      globalData.todayTasksDone = true;
+      var condition2 = !globalData.todayTasksDone || (globalData.weekGymWins || 0) >= 1;
+      tests.push({ label: 'tasks_done_no_wins', blocked: condition2 });
+
+      // Test #3: todayTasksDone=true, weekGymWins=1 → blocked by gym limit
       globalData.weekGymWins = 1;
-      var blocked1 = (globalData.weekGymWins || 0) >= 1;
-      tests.push({ label: 'one_win', blocked: blocked1 });
-      // After week reset → not blocked
+      var condition3 = !globalData.todayTasksDone || (globalData.weekGymWins || 0) >= 1;
+      tests.push({ label: 'tasks_done_one_win', blocked: condition3 });
+
+      // Test #4: todayTasksDone=true, weekGymWins=0 → NOT blocked
       globalData.weekGymWins = 0;
-      var blocked2 = (globalData.weekGymWins || 0) >= 1;
-      tests.push({ label: 'after_reset', blocked: blocked2 });
+      var condition4 = !globalData.todayTasksDone || (globalData.weekGymWins || 0) >= 1;
+      tests.push({ label: 'tasks_done_after_reset', blocked: condition4 });
+
       return tests;
     });
-    expect(gateResult[0].blocked).toBe(false);
-    expect(gateResult[1].blocked).toBe(true);
-    expect(gateResult[2].blocked).toBe(false);
+    // todayTasksDone gate: without tasks, !todayTasksDone = true (blocked)
+    expect(gateResult[0].blockedByTasks).toBe(true);
+    // with tasks + no gym wins → not blocked
+    expect(gateResult[1].blocked).toBe(false);
+    // with tasks + 1 gym win → blocked by week limit
+    expect(gateResult[2].blocked).toBe(true);
+    // after week reset → not blocked
+    expect(gateResult[3].blocked).toBe(false);
   });
 
   test('M1→M3 模擬：跳級防護 + 八大師順序不變', async ({ page }) => {
     var skipResult = await page.evaluate(() => {
-      globalData = { badges: 0, leagueRegionsWon: {}, masters8Completed: [] };
+      globalData = { badges: 0, leagueRegionsWon: {}, masters8Completed: [], todayTasksDone: false, todayCompleted: false };
       var tests = [];
 
       // badge=0 → null (no league)
