@@ -342,18 +342,24 @@ test.describe('VER2.5 交叉驗證 — 事件回放 + 邊界條件 + DevTool', (
     expect(result.w4).toBe(true);
   });
 
-  test('T-DV4 admin isBufferPeriod returns false regardless of state (P4)', async ({ page }) => {
+  test('T-DV4 isBufferPeriod uses getWeekType, not isAdmin flag (P4)', async ({ page }) => {
     const result = await page.evaluate(() => {
       isAdmin = true;
       var dw = $("devWeek");
       if (!dw) return { error: "no devWeek element" };
+      globalData = { badges: 16, todayCompleted: false, todayBattles: 0, highestLevel: 50, roster: [], partyIds: [], masters8Completed: [], leagueRegionsWon: {} };
+      for (var rn in LEAGUE_REGIONS) delete leagueCompletedMonths[rn];
+
       dw.value = "W1";
-      var lastKey = getLastMonthKey();
-      leagueCompletedMonths["關都"] = lastKey;
-      var bufAsAdmin = isBufferPeriod();
-      return { buffer: bufAsAdmin };
+      var bufW1 = isBufferPeriod();
+
+      dw.value = "W4";
+      var bufW4 = isBufferPeriod();
+
+      return { w1: bufW1, w4: bufW4 };
     });
-    expect(result.buffer).toBe(false);
+    expect(result.w1).toBe(true);
+    expect(result.w4).toBe(false);
   });
 
 });

@@ -386,10 +386,11 @@ test.describe('Block I Step 11: 八大師系統驗證', () => {
       for (var i = 0; i < regOrder.length; i++) delete leagueCompletedMonths[regOrder[i]];
     });
 
-    // W1 → gray (VER2.5: button shows with opacity 0.4 in non-W4)
+    // W1 → gray (opacity 0.4 when league already completed this month or today done)
     var w1gray = await page.evaluate(function() {
       $("devWeek").value = "W1";
       globalData = { badges: 32, todayCompleted: false, todayBattles: 0, highestLevel: 50, roster: [], partyIds: [], masters8Completed: [], leagueRegionsWon: {} };
+      leagueCompletedMonths["關都"] = getCurrentMonthKey();
       updateDashboard();
       var btn = $("btnLeagueBattle");
       return btn ? { display: btn.style.display, opacity: btn.style.opacity } : 'no-btn';
@@ -400,6 +401,7 @@ test.describe('Block I Step 11: 八大師系統驗證', () => {
     // W2 → gray
     var w2gray = await page.evaluate(function() {
       $("devWeek").value = "W2";
+      leagueCompletedMonths["關都"] = getCurrentMonthKey();
       globalData.todayCompleted = false;
       updateDashboard();
       var btn = $("btnLeagueBattle");
@@ -411,6 +413,7 @@ test.describe('Block I Step 11: 八大師系統驗證', () => {
     // W3 → gray
     var w3gray = await page.evaluate(function() {
       $("devWeek").value = "W3";
+      leagueCompletedMonths["關都"] = getCurrentMonthKey();
       globalData.todayCompleted = false;
       updateDashboard();
       var btn = $("btnLeagueBattle");
@@ -441,14 +444,15 @@ test.describe('Block I Step 11: 八大師系統驗證', () => {
     expect(w4visible.display).toBe('inline-block');
     expect(w4visible.region).toBe('關都');
 
-    // W4 + 32 badges + todayCompleted → hidden
-    var todayDoneHidden = await page.evaluate(function() {
+    // W4 + 32 badges + todayCompleted → gray (opacity 0.4, btn visible)
+    var todayDoneGray = await page.evaluate(function() {
       globalData.todayCompleted = true;
       updateDashboard();
       var btn = $("btnLeagueBattle");
-      return btn ? btn.style.display : 'no-btn';
+      return btn ? { display: btn.style.display, opacity: btn.style.opacity } : 'no-btn';
     });
-    expect(todayDoneHidden).toBe('none');
+    expect(todayDoneGray.display).toBe('inline-block');
+    expect(todayDoneGray.opacity).toBe('0.4');
 
     // W4 + 32 badges + all regions completed this month → hidden
     var allCompletedHidden = await page.evaluate(function() {
