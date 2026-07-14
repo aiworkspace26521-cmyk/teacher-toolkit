@@ -83,7 +83,7 @@ test.describe('TM Learning System', () => {
       var afterCount = (pkmn.tmMoves && pkmn.tmMoves.length) || 0;
       return { ok: true, learned: afterCount > beforeCount, move: targetMove, before: beforeCount, after: afterCount };
     });
-    if (!result.ok) { test.skip(result.reason); return; }
+    if (!result.ok) { console.log('[SKIP] 8.3 learnTM:', result.reason); test.skip(result.reason); return; }
     expect(result.learned).toBe(true);
     expect(result.after).toBe(result.before + 1);
   });
@@ -117,7 +117,7 @@ test.describe('TM Learning System', () => {
       var afterCount = p.tmMoves ? p.tmMoves.length : 0;
       return { before: beforeCount, after: afterCount, forgotten: afterCount < beforeCount };
     }, setup.pokeId);
-    if (forgetResult.error) { test.skip('Forget error: ' + forgetResult.error); return; }
+    if (forgetResult.error) { console.log('[SKIP] 8.4 openForgetMove:', forgetResult.error); test.skip('Forget error: ' + forgetResult.error); return; }
     expect(forgetResult.forgotten).toBe(true);
   });
 

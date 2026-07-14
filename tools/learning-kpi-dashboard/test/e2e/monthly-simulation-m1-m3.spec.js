@@ -1,5 +1,13 @@
 const { test, expect } = require('@playwright/test');
 
+// Known limitations (P2):
+// - Single Pokemon (P0) only — multi-mon EXP distribution covered by Test 7
+// - Random element in generateGymWaves → EXP varies ~0.09% per run (far below thresholds)
+// - Test 2 gym-only simulation reaches ~Lv.29 (no league/M8 EXP); assertion uses conservative floor
+// - beforeEach loads real Firebase data then overwrites via globalData → isolation risk
+// - EXP calculated via pure functions (calcGymExp/calcLeagueExp/calcMasters8Exp);
+//   Firestore write path verified separately in Test 8
+
 // Helper: build a standard roster entry
 function makeMon(id, baseName, level, extra) {
   return Object.assign({
@@ -244,6 +252,17 @@ test.describe('M1→M3 逐月模擬測試（真實驗證 EXP/等級/道館/聯�
         }
       }
 
+      // P1-1: Defense challenge after M1 關都
+      leagueCompletedMonths = {};
+      leagueCompletedMonths['關都'] = getCurrentMonthKey();
+      localStorage.removeItem('lastDefense_關都');
+      var def1 = checkDefenseChallenge();
+      if (def1) {
+        log.push({ phase: 'M1_W4_defense', region: def1 });
+        triggerDefenseChallenge();
+        document.getElementById('defenseModal').style.display = 'none';
+      }
+
       // ---- Month 2 (M2) ----
       setMonth(2);
 
@@ -351,6 +370,17 @@ test.describe('M1→M3 逐月模擬測試（真實驗證 EXP/等級/道館/聯�
             level: lvM2.level
           });
         }
+      }
+
+      // P1-1: Defense challenge after M2 城都
+      leagueCompletedMonths = {};
+      leagueCompletedMonths['城都'] = getCurrentMonthKey();
+      localStorage.removeItem('lastDefense_城都');
+      var def2 = checkDefenseChallenge();
+      if (def2) {
+        log.push({ phase: 'M2_W4_defense', region: def2 });
+        triggerDefenseChallenge();
+        document.getElementById('defenseModal').style.display = 'none';
       }
 
       // ---- Month 3 (M3) ----
@@ -465,10 +495,38 @@ test.describe('M1→M3 逐月模擬測試（真實驗證 EXP/等級/道館/聯�
         }
       }
 
+      // P1-1: Defense challenge after M3 豐緣
+      leagueCompletedMonths = {};
+      leagueCompletedMonths['豐緣'] = getCurrentMonthKey();
+      localStorage.removeItem('lastDefense_豐緣');
+      var def3 = checkDefenseChallenge();
+      if (def3) {
+        log.push({ phase: 'M3_W4_defense', region: def3 });
+        triggerDefenseChallenge();
+        document.getElementById('defenseModal').style.display = 'none';
+      }
+
       // ============================================================
       // 4. Final state + summary
       // ============================================================
       var finalLvlInfo = calcLevelAndExp(globalData.roster[0].totalExp, globalData.roster[0].initialLevel);
+
+      // P0-2: Verify real victory function executes without error
+      var gymR_final = generateGymWaves(globalData.highestLevel);
+      var saveTriggered = false;
+      if (gymR_final && gymR_final.waves) {
+        window.executeSave = function() { saveTriggered = true; };
+        battleState = {
+          battleOver: false, playerWon: true,
+          playerParty: [{ id: 'P0', name: '伊布', currentHp: 1, totalExp: globalData.roster[0].totalExp, initialLevel: 5 }],
+          gymWaves: gymR_final.waves,
+          totalWaves: gymR_final.waves.length,
+          enemy: gymR_final.waves[gymR_final.waves.length - 1],
+          gymInfo: gymR_final.gymInfo,
+          isGym: true, isLeague: false, isMasters8: false
+        };
+        finishGymVictory();
+      }
 
       // Restore original save functions
       window.executeSave = origExecuteSave;
@@ -486,7 +544,8 @@ test.describe('M1→M3 逐月模擬測試（真實驗證 EXP/等級/道館/聯�
           leaguesWon: Object.keys(globalData.leagueRegionsWon),
           masters8Completed: globalData.masters8Completed,
           todayTasksDone: globalData.todayTasksDone,
-          expectedLvAtBadge12: EXPECTED_LEVEL[11]
+          expectedLvAtBadge12: EXPECTED_LEVEL[11],
+          saveTriggered: saveTriggered
         },
         expectedLevels: {
           badge1: EXPECTED_LEVEL[0],
@@ -533,7 +592,10 @@ test.describe('M1→M3 逐月模擬測試（真實驗證 EXP/等級/道館/聯�
     expect(result.final.level).toBeGreaterThanOrEqual(result.expectedLevels.badge12);
     expect(result.final.highestLevel).toBeGreaterThanOrEqual(result.expectedLevels.badge12);
 
-    // 5. Total EXP must be positive and meaningful
+    // 5. Real finishGymVictory executed executeSave (P0-2)
+    expect(result.final.saveTriggered).toBe(true);
+
+    // 6. Total EXP must be positive and meaningful
     expect(result.final.totalExp).toBeGreaterThan(0);
 
     // 6. EXP progression: each month should have increasing EXP gains
@@ -590,6 +652,7 @@ test.describe('M1→M3 逐月模擬測試（真實驗證 EXP/等級/道館/聯�
       window.isAdmin = true;
       window.globalData = {
         studentId: 'Admin',
+        partyIds: ['P0'],
         roster: [
           { id: 'P0', baseName: '⭐ 伊布 (一般系)', totalExp: 0, initialLevel: 5, catchDate: '初始夥伴', heldItem: '' }
         ],
@@ -932,6 +995,7 @@ test.describe('M1→M3 逐月模擬測試（真實驗證 EXP/等級/道館/聯�
       window.isAdmin = true;
       window.globalData = {
         studentId: 'Admin',
+        partyIds: ['P0'],
         roster: [{ id: 'P0', baseName: '伊布', totalExp: 1250, currentLevel: 7, initialLevel: 5, catchDate: '初始夥伴', heldItem: '' }],
         highestLevel: 7, lockedGymLevel: 7, coins: 0, badges: 0,
         weekGymWins: 0, monthLeagueWins: 0, weekBossWins: 0,
