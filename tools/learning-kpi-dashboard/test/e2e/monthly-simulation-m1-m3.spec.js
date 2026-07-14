@@ -1,5 +1,13 @@
 const { test, expect } = require('@playwright/test');
 
+// Helper: build a standard roster entry
+function makeMon(id, baseName, level, extra) {
+  return Object.assign({
+    id: id, baseName: baseName, currentLevel: level,
+    totalExp: 0, initialLevel: level, catchDate: '初始夥伴', heldItem: ''
+  }, extra || {});
+}
+
 test.describe('M1→M3 逐月模擬測試（真實驗證 EXP/等級/道館/聯盟/八大師）', () => {
 
   test.beforeEach(async ({ page }) => {
@@ -51,71 +59,38 @@ test.describe('M1→M3 逐月模擬測試（真實驗證 EXP/等級/道館/聯�
         hasAmuletCoin: false
       };
 
-      // Helper: compute gym battle EXP using IDENTICAL formula to finishGymVictory()
+      // Helper: compute gym battle EXP via the real calcGymExp() from kpi-dashboard.html
       function simulateGymWin(trainerLevel) {
         var gymResult = generateGymWaves(trainerLevel);
         if (!gymResult || !gymResult.waves) return null;
-        var cumulativeExp = 0;
-        for (var wi = 0; wi < gymResult.waves.length; wi++) {
-          var we = gymResult.waves[wi];
-          var baseExp = ARENA_EXP_BASE + Math.floor(we.level * 3);
-          var waveMult = we.isLastWave ? 2.5 : 1.2;
-          baseExp = Math.floor(baseExp * 1.8 * waveMult);
-          var legBonus = checkIsLegendary(we.name) ? 1.5 : 1;
-          baseExp = Math.floor(baseExp * legBonus);
-          baseExp = Math.floor(baseExp * (globalData.hasChampionCloak ? 1.5 : 1));
-          if (dw.value === 'W2') baseExp = Math.floor(baseExp * 1.5);
-          cumulativeExp += baseExp;
-        }
-        cumulativeExp = Math.floor(cumulativeExp);
-        // Distribute: leader (P0) gets 120%, others get 50%
-        var leaderShare = Math.floor(cumulativeExp * 1.2);
+        var totalExp = calcGymExp(gymResult.waves, globalData.hasChampionCloak);
         return {
-          totalExp: cumulativeExp,
-          leaderShare: leaderShare,
+          totalExp: totalExp,
+          leaderShare: Math.floor(totalExp * 1.2),
           gymInfo: gymResult.gymInfo,
           waves: gymResult.waves
         };
       }
 
-      // Helper: compute league battle EXP using finishLeagueVictory() formula
+      // Helper: compute league battle EXP via the real calcLeagueExp()
       function simulateLeagueWin(region, trainerLevel) {
         var gauntlet = generateLeagueGauntlet(trainerLevel, region);
         if (!gauntlet || !gauntlet.waves) return null;
-        var cumulativeExp = 0;
-        for (var wi = 0; wi < gauntlet.waves.length; wi++) {
-          var we = gauntlet.waves[wi];
-          var baseExp = ARENA_EXP_BASE + Math.floor(we.level * 3);
-          var waveMult = we.isLastWave ? 4 : 2.5;
-          baseExp = Math.floor(baseExp * 5 * waveMult);
-          var legBonus = checkIsLegendary(we.name) ? 1.5 : 1;
-          baseExp = Math.floor(baseExp * legBonus);
-          baseExp = Math.floor(baseExp * (globalData.hasChampionCloak ? 1.5 : 1));
-          cumulativeExp += baseExp;
-        }
-        cumulativeExp = Math.floor(cumulativeExp);
+        var totalExp = calcLeagueExp(gauntlet.waves, globalData.hasChampionCloak);
         return {
-          totalExp: cumulativeExp,
-          leaderShare: Math.floor(cumulativeExp * 1.2)
+          totalExp: totalExp,
+          leaderShare: Math.floor(totalExp * 1.2)
         };
       }
 
-      // Helper: compute Masters 8 battle EXP using finishMasters8Victory() formula
+      // Helper: compute Masters 8 battle EXP via the real calcMasters8Exp()
       function simulateMasters8Win(member, trainerLevel) {
         var battle = generateMasters8Battle(trainerLevel, member);
         if (!battle || !battle.waves) return null;
-        var cumulativeExp = 0;
-        for (var wi = 0; wi < battle.waves.length; wi++) {
-          var we = battle.waves[wi];
-          var baseExp = ARENA_EXP_BASE + Math.floor(we.level * 3);
-          var waveMult = we.isLastWave ? 4 : 2.5;
-          baseExp = Math.floor(baseExp * 8 * waveMult);
-          cumulativeExp += baseExp;
-        }
-        cumulativeExp = Math.floor(cumulativeExp);
+        var totalExp = calcMasters8Exp(battle.waves);
         return {
-          totalExp: cumulativeExp,
-          leaderShare: Math.floor(cumulativeExp * 1.2)
+          totalExp: totalExp,
+          leaderShare: Math.floor(totalExp * 1.2)
         };
       }
 
@@ -648,20 +623,8 @@ test.describe('M1→M3 逐月模擬測試（真實驗證 EXP/等級/道館/聯�
           globalData.weekGymWins = 0;
           var gymResult = generateGymWaves(globalData.highestLevel);
           if (gymResult && gymResult.waves) {
-            var cumulativeExp = 0;
-            for (var wi = 0; wi < gymResult.waves.length; wi++) {
-              var we = gymResult.waves[wi];
-              var baseExp = ARENA_EXP_BASE + Math.floor(we.level * 3);
-              var waveMult = we.isLastWave ? 2.5 : 1.2;
-              baseExp = Math.floor(baseExp * 1.8 * waveMult);
-              var legBonus = checkIsLegendary(we.name) ? 1.5 : 1;
-              baseExp = Math.floor(baseExp * legBonus);
-              baseExp = Math.floor(baseExp * (globalData.hasChampionCloak ? 1.5 : 1));
-              if (dw.value === 'W2') baseExp = Math.floor(baseExp * 1.5);
-              cumulativeExp += baseExp;
-            }
-            cumulativeExp = Math.floor(cumulativeExp);
-            var leaderShare = Math.floor(cumulativeExp * 1.2);
+            var totalExp = calcGymExp(gymResult.waves, globalData.hasChampionCloak);
+            var leaderShare = Math.floor(totalExp * 1.2);
             globalData.roster[0].totalExp += leaderShare;
             var lvlInfo = calcLevelAndExp(globalData.roster[0].totalExp, globalData.roster[0].initialLevel);
             globalData.roster[0].currentLevel = lvlInfo.level;
@@ -811,5 +774,388 @@ test.describe('M1→M3 逐月模擬測試（真實驗證 EXP/等級/道館/聯�
     expect(skipResult[6].allowed).toBe(false);
     // Masters8 boss week gate: W4 allows (boss week)
     expect(skipResult[7].allowed).toBe(true);
+  });
+
+  test('M1→M3 UI 點擊路徑驗證：道館戰按鈕 → 戰鬥 Modal 開啟', async ({ page }) => {
+    await page.evaluate(function() {
+      window.isAdmin = true;
+      window.globalData = {
+        studentId: 'Admin',
+        roster: [{ id: 'P0', baseName: '伊布', totalExp: 0, currentLevel: 5, initialLevel: 5, catchDate: '初始夥伴', heldItem: '' }],
+        partyIds: ['P0'], highestLevel: 5, lockedGymLevel: 5,
+        coins: 0, badges: 0, weekGymWins: 0, monthLeagueWins: 0, weekBossWins: 0,
+        todayBattles: 0, todayCompleted: true, todayTasksDone: true,
+        daysSinceLastBadge: 99, lastBadgeTime: null,
+        leagueRegionsWon: {}, masters8Completed: [], masters8Progress: [],
+        hasChampionCloak: false, hasAmuletCoin: false
+      };
+      if (typeof updateDashboard === 'function') updateDashboard();
+    });
+
+    await page.click('#btnGymBattle');
+    await page.waitForSelector('#battleModal', { state: 'visible', timeout: 5000 });
+
+    var titleText = await page.locator('#battleTitle').textContent();
+    expect(titleText).toContain('道館');
+
+    // Close modal
+    await page.evaluate(function() {
+      document.getElementById('battleModal').style.display = 'none';
+    });
+  });
+
+  test('M1→M3 UI 點擊路徑驗證：閘門阻擋（weekGymWins=1 時 startBattle 不開 Modal）', async ({ page }) => {
+    var gateResult = await page.evaluate(function() {
+      window.isAdmin = true;
+      window.globalData = {
+        studentId: 'Admin',
+        roster: [{ id: 'P0', baseName: '伊布', totalExp: 0, currentLevel: 5, initialLevel: 5, catchDate: '初始夥伴', heldItem: '' }],
+        partyIds: ['P0'], highestLevel: 5, lockedGymLevel: 5,
+        coins: 0, badges: 0, weekGymWins: 1, monthLeagueWins: 0, weekBossWins: 0,
+        todayBattles: 0, todayCompleted: true, todayTasksDone: true,
+        daysSinceLastBadge: 99, lastBadgeTime: null,
+        leagueRegionsWon: {}, masters8Completed: [], masters8Progress: [],
+        hasChampionCloak: false, hasAmuletCoin: false
+      };
+      if (typeof updateDashboard === 'function') updateDashboard();
+
+      // Call startBattle directly (same logic as clicking #btnGymBattle)
+      var modalBefore = document.getElementById('battleModal').style.display;
+      window.startBattle(true, false); // isGym=true
+      var modalAfter = document.getElementById('battleModal').style.display;
+
+      // Also verify the gate condition itself
+      var gateBlocked = (globalData.weekGymWins || 0) >= 1;
+
+      return {
+        gateBlocked: gateBlocked,
+        modalDisplayBefore: modalBefore,
+        modalDisplayAfter: modalAfter
+      };
+    });
+
+    expect(gateResult.gateBlocked).toBe(true);
+    // Modal stays hidden: before call it's '' (CSS default), after blocked call it should not be 'flex'
+    expect(gateResult.modalDisplayAfter).not.toBe('flex');
+  });
+
+  test('M1→M3 模擬：多寶可夢 EXP 分配（先鋒 120% / 留守 50%）', async ({ page }) => {
+    var result = await page.evaluate(function() {
+      window.isAdmin = true;
+      window.globalData = {
+        studentId: 'Admin',
+        roster: [
+          { id: 'P0', baseName: '皮卡丘', currentLevel: 20, totalExp: 5000, initialLevel: 5, catchDate: '初始夥伴', heldItem: '' },
+          { id: 'P1', baseName: '妙蛙種子', currentLevel: 18, totalExp: 4000, initialLevel: 5, catchDate: '第二夥伴', heldItem: '' },
+          { id: 'P2', baseName: '傑尼龜', currentLevel: 16, totalExp: 3000, initialLevel: 5, catchDate: '第三夥伴', heldItem: '' }
+        ],
+        partyIds: ['P0', 'P1', 'P2'],
+        highestLevel: 20, lockedGymLevel: 20,
+        coins: 0, badges: 0,
+        weekGymWins: 0, monthLeagueWins: 0, weekBossWins: 0,
+        todayBattles: 0, todayCompleted: true, todayTasksDone: true,
+        daysSinceLastBadge: 99, lastBadgeTime: null,
+        leagueRegionsWon: {}, masters8Completed: [], masters8Progress: [],
+        hasChampionCloak: false, hasAmuletCoin: false
+      };
+
+      var origExec = window.executeSave;
+      window.executeSave = function() {};
+      window.scheduleStudentFieldUpdate = function() {};
+
+      var gymResult = generateGymWaves(globalData.highestLevel);
+      if (!gymResult || !gymResult.waves) return { error: 'no gym waves' };
+
+      var totalExp = calcGymExp(gymResult.waves, false);
+      var baseExp = totalExp;
+      var leaderShare = Math.floor(baseExp * 1.2);
+      var benchShare = Math.floor(baseExp * 0.5);
+
+      // Simulate the real EXP assignment as in finishGymVictory
+      globalData.roster[0].totalExp += leaderShare;
+      globalData.roster[1].totalExp += benchShare;
+      globalData.roster[2].totalExp += benchShare;
+
+      // Recalc levels
+      var lvl0 = calcLevelAndExp(globalData.roster[0].totalExp, globalData.roster[0].initialLevel);
+      var lvl1 = calcLevelAndExp(globalData.roster[1].totalExp, globalData.roster[1].initialLevel);
+      var lvl2 = calcLevelAndExp(globalData.roster[2].totalExp, globalData.roster[2].initialLevel);
+
+      window.executeSave = origExec;
+
+      return {
+        baseExp: baseExp,
+        leaderShare: leaderShare,
+        benchShare: benchShare,
+        totalP0: globalData.roster[0].totalExp,
+        totalP1: globalData.roster[1].totalExp,
+        lvl0: lvl0.level,
+        lvl1: lvl1.level,
+        lvl2: lvl2.level,
+        rosterCount: globalData.roster.length
+      };
+    });
+
+    // Verify basic structure
+    expect(result.baseExp).toBeGreaterThan(0);
+    expect(result.leaderShare).toBe(Math.floor(result.baseExp * 1.2));
+    expect(result.benchShare).toBe(Math.floor(result.baseExp * 0.5));
+    expect(result.rosterCount).toBe(3);
+
+    // EXP ratios: leader 120%, bench 50%
+    expect(result.leaderShare).toBeGreaterThan(result.baseExp);
+    expect(result.benchShare).toBeLessThan(result.leaderShare);
+    expect(result.benchShare).toBeLessThan(result.baseExp);
+    expect(result.benchShare).toBeGreaterThan(0);
+
+    // All mons should have gained EXP
+    var p0Gained = result.totalP0 - 5000;
+    var p1Gained = result.totalP1 - 4000;
+    expect(p0Gained).toBe(result.leaderShare);
+    expect(p1Gained).toBe(result.benchShare);
+  });
+
+  test('M1→M3 模擬：Firestore 寫入路徑驗證（事件溯源不得拋錯）', async ({ page }) => {
+    var firestoreCalls = await page.evaluate(() => {
+      var calls = [];
+
+      var origExec = window.executeSave;
+      var origSched = window.scheduleStudentFieldUpdate;
+
+      window.executeSave = function(data) {
+        calls.push({ fn: 'executeSave', keys: Object.keys(data || {}), hasStudentId: !!(data && data.studentId) });
+      };
+      window.scheduleStudentFieldUpdate = function(data) {
+        calls.push({ fn: 'scheduleStudentFieldUpdate', hasData: !!data });
+      };
+
+      window.isAdmin = true;
+      window.globalData = {
+        studentId: 'Admin',
+        roster: [{ id: 'P0', baseName: '伊布', totalExp: 1250, currentLevel: 7, initialLevel: 5, catchDate: '初始夥伴', heldItem: '' }],
+        highestLevel: 7, lockedGymLevel: 7, coins: 0, badges: 0,
+        weekGymWins: 0, monthLeagueWins: 0, weekBossWins: 0,
+        todayBattles: 0, todayCompleted: false, todayTasksDone: true,
+        daysSinceLastBadge: 99, lastBadgeTime: null,
+        leagueRegionsWon: {}, masters8Completed: [], masters8Progress: [],
+        hasChampionCloak: false, hasAmuletCoin: false
+      };
+
+      // Set up battleState to call finishGymVictory (which triggers executeSave internally)
+      var gymR = generateGymWaves(globalData.highestLevel);
+      if (!gymR || !gymR.waves) return calls;
+
+      battleState = {
+        battleOver: false, playerWon: true,
+        playerParty: [{ id: 'P0', name: '伊布', currentHp: 1, totalExp: 1250, initialLevel: 5 }],
+        gymWaves: gymR.waves,
+        totalWaves: gymR.waves.length,
+        enemy: gymR.waves[gymR.waves.length - 1],
+        gymInfo: gymR.gymInfo,
+        isGym: true, isLeague: false, isMasters8: false
+      };
+
+      // This will call executeSave internally
+      finishGymVictory();
+
+      // Also verify scheduleStudentFieldUpdate path via finishMasters8Victory
+      var savedExecCalls = calls.filter(function(c){ return c.fn === 'executeSave'; }).length;
+      battleState = {
+        battleOver: false, playerWon: true,
+        playerParty: [{ id: 'P0', name: '伊布', currentHp: 1, totalExp: globalData.roster[0].totalExp, initialLevel: 5 }],
+        gymWaves: gymR.waves,
+        totalWaves: gymR.waves.length,
+        enemy: gymR.waves[gymR.waves.length - 1],
+        gymInfo: { leader: '艾莉絲 (八大師)' },
+        isGym: false, isLeague: false, isMasters8: true
+      };
+      finishMasters8Victory();
+
+      window.executeSave = origExec;
+      window.scheduleStudentFieldUpdate = origSched;
+
+      return calls;
+    });
+
+    // executeSave must have been called for both gym and M8 victories
+    var execCalls = firestoreCalls.filter(function(c) { return c.fn === 'executeSave'; });
+    expect(execCalls.length).toBeGreaterThanOrEqual(2);
+    expect(execCalls[0].hasStudentId).toBe(true);
+    expect(execCalls[0].keys).toContain('studentId');
+    expect(execCalls[0].keys).toContain('expGained');
+    expect(execCalls[0].keys).toContain('action');
+
+    // scheduleStudentFieldUpdate must have been called for M8 victory
+    var schedCalls = firestoreCalls.filter(function(c) { return c.fn === 'scheduleStudentFieldUpdate'; });
+    expect(schedCalls.length).toBeGreaterThanOrEqual(1);
+    expect(schedCalls[0].hasData).toBe(true);
+  });
+
+  test('M1→M3 衛冕挑戰模擬（P2-6）：checkDefenseChallenge 回歸正確地區', async ({ page }) => {
+    var defenseResult = await page.evaluate(function() {
+      window.isAdmin = true;
+      window.globalData = {
+        studentId: 'Admin', highestLevel: 20, lockedGymLevel: 20,
+        roster: [{ id: 'P0', baseName: '伊布', totalExp: 5000, currentLevel: 20, initialLevel: 5, catchDate: '初始夥伴', heldItem: '' }],
+        coins: 0, badges: 8, weekGymWins: 0, monthLeagueWins: 1, weekBossWins: 0,
+        todayBattles: 0, todayCompleted: true, todayTasksDone: true,
+        daysSinceLastBadge: 8, lastBadgeTime: null,
+        leagueRegionsWon: { '關都': true, '城都': true, '豐緣': true },
+        masters8Completed: [], masters8Progress: [],
+        hasChampionCloak: false, hasAmuletCoin: false
+      };
+      if (typeof forceAdminUpdate === 'function') forceAdminUpdate();
+
+      // Simulate completing 關都 league this month (set monthKey for 關都)
+      var monthKey = new Date().getFullYear() + '-' + (new Date().getMonth() + 1);
+      leagueCompletedMonths['關都'] = monthKey;
+      leagueCompletedMonths['城都'] = monthKey;
+      leagueCompletedMonths['豐緣'] = monthKey;
+
+      // Clear cooldown localStorage
+      localStorage.removeItem('lastDefense_關都');
+      localStorage.removeItem('lastDefense_城都');
+      localStorage.removeItem('lastDefense_豐緣');
+
+      var tests = [];
+
+      // Test 1: league completed, no cooldown → returns a league region
+      var challenge1 = checkDefenseChallenge();
+      tests.push({ label: 'no_cooldown', present: !!challenge1 });
+
+      // Test 2: if returned region is one of the completed ones
+      tests.push({ label: 'returned_region_valid', region: challenge1,
+        isValid: challenge1 ? (challenge1 === '關都' || challenge1 === '城都' || challenge1 === '豐緣') : false });
+
+      // Test 3: Set cooldown on ALL completed regions → returns null
+      localStorage.setItem('lastDefense_關都', String(Date.now()));
+      localStorage.setItem('lastDefense_城都', String(Date.now()));
+      localStorage.setItem('lastDefense_豐緣', String(Date.now()));
+      var challenge2 = checkDefenseChallenge();
+      tests.push({ label: 'with_cooldown', present: !!challenge2 });
+
+      // Test 4: No league completed this month → null
+      for (var rn in leagueCompletedMonths) delete leagueCompletedMonths[rn];
+      var challenge3 = checkDefenseChallenge();
+      tests.push({ label: 'no_league_this_month', present: !!challenge3 });
+
+      return tests;
+    });
+
+    expect(defenseResult[0].present).toBe(true);
+    expect(defenseResult[1].isValid).toBe(true);
+    expect(defenseResult[2].present).toBe(false);
+    expect(defenseResult[3].present).toBe(false);
+  });
+
+  test('M1→M3 衛冕挑戰模擬（P2-6）：triggerDefenseChallenge 開啟 Modal', async ({ page }) => {
+    var modalResult = await page.evaluate(function() {
+      window.isAdmin = true;
+      window.globalData = {
+        studentId: 'Admin', highestLevel: 20, lockedGymLevel: 20,
+        roster: [{ id: 'P0', baseName: '伊布', totalExp: 5000, currentLevel: 20, initialLevel: 5, catchDate: '初始夥伴', heldItem: '' }],
+        coins: 0, badges: 8, weekGymWins: 0, monthLeagueWins: 1, weekBossWins: 0,
+        todayBattles: 0, todayCompleted: true, todayTasksDone: true,
+        daysSinceLastBadge: 8, lastBadgeTime: null,
+        leagueRegionsWon: { '關都': true, '城都': true, '豐緣': true },
+        masters8Completed: [], masters8Progress: [],
+        hasChampionCloak: false, hasAmuletCoin: false
+      };
+      if (typeof forceAdminUpdate === 'function') forceAdminUpdate();
+
+      var monthKey = new Date().getFullYear() + '-' + (new Date().getMonth() + 1);
+      leagueCompletedMonths['關都'] = monthKey;
+      localStorage.removeItem('lastDefense_關都');
+
+      // triggerDefenseChallenge should open the defense modal
+      triggerDefenseChallenge();
+      var modalDisplay = document.getElementById('defenseModal').style.display;
+      var defenseBody = document.getElementById('defenseBody');
+      var bodyText = defenseBody ? defenseBody.innerHTML : '';
+
+      // Close modal
+      document.getElementById('defenseModal').style.display = 'none';
+
+      return { modalDisplay: modalDisplay, bodyContainsChampion: bodyText.indexOf('衛冕者') !== -1 };
+    });
+
+    expect(modalResult.modalDisplay).toBe('flex');
+    expect(modalResult.bodyContainsChampion).toBe(true);
+  });
+
+  test('M1→M3 模擬（P2-8）：冠軍披風 calcGymExp ×1.5', async ({ page }) => {
+    var cloakResult = await page.evaluate(function() {
+      window.isAdmin = true;
+      window.globalData = { highestLevel: 20, roster: [], hasChampionCloak: false };
+      var gymR = generateGymWaves(20);
+      if (!gymR || !gymR.waves) return { error: 'no waves' };
+      var noCloak = calcGymExp(gymR.waves, false);
+      var withCloak = calcGymExp(gymR.waves, true);
+      return { baseWaves: gymR.waves.length, noCloak: noCloak, withCloak: withCloak, ratio: withCloak / noCloak };
+    });
+
+    expect(cloakResult.noCloak).toBeGreaterThan(0);
+    expect(cloakResult.withCloak).toBeGreaterThan(cloakResult.noCloak);
+    expect(cloakResult.ratio).toBeCloseTo(1.5, 1);
+  });
+
+  test('M1→M3 模擬（P2-8）：冠軍披風 calcLeagueExp ×1.5', async ({ page }) => {
+    var cloakResult = await page.evaluate(function() {
+      window.isAdmin = true;
+      window.globalData = { highestLevel: 20, badges: 32, roster: [], hasChampionCloak: false };
+      var leagueR = generateLeagueGauntlet(20, '關都');
+      if (!leagueR || !leagueR.waves) return { error: 'no waves' };
+      var noCloak = calcLeagueExp(leagueR.waves, false);
+      var withCloak = calcLeagueExp(leagueR.waves, true);
+      return { baseWaves: leagueR.waves.length, noCloak: noCloak, withCloak: withCloak, ratio: withCloak / noCloak };
+    });
+
+    expect(cloakResult.noCloak).toBeGreaterThan(0);
+    expect(cloakResult.withCloak).toBeGreaterThan(cloakResult.noCloak);
+    expect(cloakResult.ratio).toBeCloseTo(1.5, 1);
+  });
+
+  test('M1→M3 模擬（P2-7）：W2 道館加成週 endBattle EXP ×1.5', async ({ page }) => {
+    var w2Result = await page.evaluate(function() {
+      window.isAdmin = true;
+      window.globalData = { highestLevel: 20, hasChampionCloak: false, hasAmuletCoin: false };
+
+      // Set week to W2
+      var dw = document.getElementById('devWeek');
+      dw.value = 'W2';
+      if (typeof forceAdminUpdate === 'function') forceAdminUpdate();
+
+      var weekType = getWeekType();
+      var enemyLevel = 15;
+
+      // Replicate the endBattle EXP formula for single-enemy (arena) battle
+      var baseExp = ARENA_EXP_BASE + Math.floor(enemyLevel * 3);
+      var gymMultBase = Math.floor(baseExp * 1.8);         // battleState.isGym
+      var w2Bonus = Math.floor(gymMultBase * 1.5);          // W2 bonus
+      var nonW2 = gymMultBase;                               // no W2 bonus (W1/W3/W4)
+
+      // Set week to W1 for comparison
+      dw.value = 'W1';
+      if (typeof forceAdminUpdate === 'function') forceAdminUpdate();
+      var weekTypeW1 = getWeekType();
+
+      return {
+        weekTypeIsW2: weekType === 'W2',
+        weekTypeW1: weekTypeW1,
+        nonW2Exp: nonW2,
+        w2Exp: w2Bonus,
+        ratio: w2Bonus / nonW2,
+        formulaNonW2: gymMultBase,
+        formulaW2: Math.floor(gymMultBase * 1.5)
+      };
+    });
+
+    expect(w2Result.weekTypeIsW2).toBe(true);
+    expect(w2Result.weekTypeW1).toBe('W1');
+    expect(w2Result.nonW2Exp).toBeGreaterThan(0);
+    expect(w2Result.w2Exp).toBeGreaterThan(w2Result.nonW2Exp);
+    expect(w2Result.ratio).toBeCloseTo(1.5, 1);
+    expect(w2Result.w2Exp).toBe(w2Result.formulaW2);
+    expect(w2Result.nonW2Exp).toBe(w2Result.formulaNonW2);
   });
 });

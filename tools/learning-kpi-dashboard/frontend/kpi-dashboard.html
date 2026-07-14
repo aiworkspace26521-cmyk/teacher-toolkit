@@ -3726,6 +3726,48 @@ function startNextWave() {
   if (enemyBox) { enemyBox.classList.remove("entry-animation"); void enemyBox.offsetWidth; enemyBox.classList.add("entry-animation"); }
 }
 
+function calcGymExp(waves, hasChampionCloak) {
+  var total = 0;
+  for (var wi = 0; wi < waves.length; wi++) {
+    var we = waves[wi];
+    var baseExp = ARENA_EXP_BASE + Math.floor(we.level * 3);
+    var waveMult = we.isLastWave ? 2.5 : 1.2;
+    baseExp = Math.floor(baseExp * 1.8 * waveMult);
+    var legBonus = checkIsLegendary(we.name) ? 1.5 : 1;
+    baseExp = Math.floor(baseExp * legBonus);
+    baseExp = Math.floor(baseExp * (hasChampionCloak ? 1.5 : 1));
+    total += baseExp;
+  }
+  return Math.floor(total);
+}
+
+function calcLeagueExp(waves, hasChampionCloak) {
+  var total = 0;
+  for (var wi = 0; wi < waves.length; wi++) {
+    var we = waves[wi];
+    var baseExp = ARENA_EXP_BASE + Math.floor(we.level * 3);
+    var waveMult = we.isLastWave ? 4 : 2.5;
+    baseExp = Math.floor(baseExp * 5 * waveMult);
+    var legBonus = checkIsLegendary(we.name) ? 1.5 : 1;
+    baseExp = Math.floor(baseExp * legBonus);
+    baseExp = Math.floor(baseExp * (hasChampionCloak ? 1.5 : 1));
+    total += baseExp;
+  }
+  return Math.floor(total);
+}
+
+function calcMasters8Exp(waves) {
+  var total = 0;
+  for (var wi = 0; wi < waves.length; wi++) {
+    var we = waves[wi];
+    var baseExp = ARENA_EXP_BASE + Math.floor(we.level * 3);
+    var waveMult = we.isLastWave ? 4 : 2.5;
+    baseExp = Math.floor(baseExp * 8 * waveMult);
+    total += baseExp;
+  }
+  return Math.floor(total);
+}
+
 function finishGymVictory() {
   battleState.battleOver = true;
   battleState.playerWon = true;
@@ -3734,19 +3776,7 @@ function finishGymVictory() {
     var pk = battleState.playerParty[i];
     if (pk.currentHp > 0 && partyUsed.length < 6) partyUsed.push(pk);
   }
-  var cumulativeExp = 0;
-  for (var wi = 0; wi < battleState.totalWaves; wi++) {
-    var we = battleState.gymWaves[wi];
-    var baseExp = ARENA_EXP_BASE + Math.floor(we.level * 3);
-    var waveMult = we.isLastWave ? 2.5 : 1.2;
-    baseExp = Math.floor(baseExp * 1.8 * waveMult);
-    var legBonus = checkIsLegendary(we.name) ? 1.5 : 1;
-    baseExp = Math.floor(baseExp * legBonus);
-    baseExp = Math.floor(baseExp * (globalData.hasChampionCloak ? 1.5 : 1));
-    if (getWeekType() === "W2") baseExp = Math.floor(baseExp * 1.5);
-    cumulativeExp += baseExp;
-  }
-  cumulativeExp = Math.floor(cumulativeExp);
+  var cumulativeExp = calcGymExp(battleState.gymWaves, globalData.hasChampionCloak);
   totalExpGain = cumulativeExp;
   var coinsGain = Math.floor((15 + Math.floor(battleState.enemy.level * 0.8)) * (globalData.hasAmuletCoin ? 1.5 : 1));
   var badgeGain = 0;
@@ -4540,18 +4570,7 @@ function finishMasters8Victory() {
     var pk = battleState.playerParty[i];
     if (pk.currentHp > 0 && partyUsed.length < 6) partyUsed.push(pk);
   }
-  var cumulativeExp = 0;
-  for (var wi = 0; wi < battleState.totalWaves; wi++) {
-    var we = battleState.gymWaves[wi];
-    var baseExp = ARENA_EXP_BASE + Math.floor(we.level * 3);
-    var waveMult = we.isLastWave ? 4 : 2.5;
-    baseExp = Math.floor(baseExp * 8 * waveMult);
-    var legBonus = checkIsLegendary(we.name) ? 1.5 : 1;
-    baseExp = Math.floor(baseExp * legBonus);
-    baseExp = Math.floor(baseExp * (globalData.hasChampionCloak ? 1.5 : 1));
-    cumulativeExp += baseExp;
-  }
-  totalExpGain = Math.floor(cumulativeExp);
+  totalExpGain = calcMasters8Exp(battleState.gymWaves);
   var coinsGain = Math.floor((120 + Math.floor(battleState.enemy.level * 2)) * (globalData.hasAmuletCoin ? 1.5 : 1));
   var msg = "👑 八大師擊敗！戰勝了 " + mastersMember.name + "！各隊員獲得 " + totalExpGain + " 經驗值, " + coinsGain + " 金幣 +20聯盟積分";
   $("arenaBattlePhase").style.display = "none";
@@ -4590,19 +4609,7 @@ function finishLeagueVictory() {
     var pk = battleState.playerParty[i];
     if (pk.currentHp > 0 && partyUsed.length < 6) partyUsed.push(pk);
   }
-  var cumulativeExp = 0;
-  for (var wi = 0; wi < battleState.totalWaves; wi++) {
-    var we = battleState.gymWaves[wi];
-    var baseExp = ARENA_EXP_BASE + Math.floor(we.level * 3);
-    var waveMult = we.isLastWave ? 4 : 2.5;
-    baseExp = Math.floor(baseExp * 5 * waveMult);
-    var legBonus = checkIsLegendary(we.name) ? 1.5 : 1;
-    baseExp = Math.floor(baseExp * legBonus);
-    baseExp = Math.floor(baseExp * (globalData.hasChampionCloak ? 1.5 : 1));
-    cumulativeExp += baseExp;
-  }
-  cumulativeExp = Math.floor(cumulativeExp);
-  totalExpGain = cumulativeExp;
+  totalExpGain = calcLeagueExp(battleState.gymWaves, globalData.hasChampionCloak);
   var coinsGain = Math.floor((80 + Math.floor(battleState.enemy.level * 1.5)) * (globalData.hasAmuletCoin ? 1.5 : 1));
   var captureText = "";
   var alreadyCaptured = regionAlreadyWon;

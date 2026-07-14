@@ -3,6 +3,7 @@ module.exports = defineConfig({
   testDir: './tools/learning-kpi-dashboard/test/e2e',
   timeout: 60000,
   retries: 1,
+  workers: process.env.CI ? 4 : 2,
   use: {
     baseURL: process.env.BASE_URL || 'https://opencodefirebase.web.app',
     headless: true,
