@@ -81,7 +81,7 @@ test.describe('VER2.4 E2E — 道館限額／聯盟開關／依序通關／八�
       if (dw) dw.value = 'W1';
       globalData = {
         studentId: 'Neil', highestLevel: 50, badges: 32,
-        todayCompleted: false, todayBattles: 0, weekGymWins: 0,
+        todayCompleted: false, todayTasksDone: true, todayBattles: 0, weekGymWins: 0,
         leagueRegionsWon: {}, roster: [], partyIds: []
       };
       var regOrder = ['關都','城都','豐緣','神奧','合眾','卡洛斯','阿羅拉','伽勒爾'];
@@ -239,7 +239,7 @@ test.describe('VER2.4 E2E — 道館限額／聯盟開關／依序通關／八�
       var dw = document.getElementById('devWeek');
       if (dw) dw.value = 'W2'; // W2 not W1 to avoid buffer ambiguity
       globalData = {
-        studentId: 'Neil', highestLevel: 50, badges: 32, todayCompleted: false, todayBattles: 0,
+        studentId: 'Neil', highestLevel: 50, badges: 32, todayCompleted: false, todayTasksDone: true, todayBattles: 0,
         leagueRegionsWon: { '關都': true, '城都': true },
         masters8Completed: [], masters8Progress: [],
         roster: [{ id: 'P1', baseName: '皮卡丘', currentLevel: 50, totalExp: 10000, initialLevel: 5, name: '皮卡丘', happiness: 100, stats: { hp: 100, attack: 50, defense: 50, spAttack: 50, spDefense: 50, speed: 50 } }],
@@ -322,11 +322,11 @@ test.describe('VER2.4 E2E — 道館限額／聯盟開關／依序通關／八�
       Date = function() { return new OrigDate(2026, 6, 3); };
       Date.now = function() { return new OrigDate(2026, 6, 3).getTime(); };
       globalData = {
-        studentId: 'Neil', highestLevel: 50, badges: 32, todayCompleted: false,
+        studentId: 'Neil', highestLevel: 50, badges: 32, todayCompleted: false, todayTasksDone: true,
         leagueRegionsWon: {}, roster: [], partyIds: []
       };
       leagueCompletedMonths = {};
-      leagueCompletedMonths['關都'] = '2026-6';
+      leagueCompletedMonths['關都'] = '2026-5';
 
       var confirmModal = document.getElementById('confirmModal');
       if (confirmModal) confirmModal.style.display = 'none';
@@ -356,7 +356,7 @@ test.describe('VER2.4 E2E — 道館限額／聯盟開關／依序通關／八�
       if (dw) dw.value = 'W1';
       globalData = {
         studentId: 'Neil', highestLevel: 20, badges: 0,
-        todayCompleted: false, todayBattles: 0, weekGymWins: 0, weekBossWins: 0, monthLeagueWins: 0,
+        todayCompleted: false, todayTasksDone: true, todayBattles: 0, weekGymWins: 0, weekBossWins: 0, monthLeagueWins: 0,
         daysSinceLastBadge: 7, coins: 500,
         roster: [{ id: 'P1', baseName: '皮卡丘', currentLevel: 20, totalExp: 5000, initialLevel: 5, name: '皮卡丘', happiness: 100, stats: { hp: 80, attack: 40, defense: 35, spAttack: 40, spDefense: 35, speed: 50 } }],
         partyIds: ['P1'],

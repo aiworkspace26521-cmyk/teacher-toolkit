@@ -297,7 +297,7 @@ test.describe('Block I Step 11: 八大師系統驗證', () => {
     };
 
     const blocksWhenNoneCompleted = await page.evaluate(() => {
-      globalData = { highestLevel: 50, todayCompleted: false, todayBattles: 0, masters8Completed: [], masters8Progress: [], roster: [{ id: "P1", baseName: "皮卡丘", currentLevel: 50, totalExp: 10000, initialLevel: 5 }], partyIds: ["P1"] };
+      globalData = { highestLevel: 50, todayCompleted: false, todayTasksDone: true, todayBattles: 0, masters8Completed: [], masters8Progress: [], roster: [{ id: "P1", baseName: "皮卡丘", currentLevel: 50, totalExp: 10000, initialLevel: 5 }], partyIds: ["P1"] };
       isAdmin = true; var dw = $("devWeek"); if (dw) dw.value = "W4";
       var lastToast = null;
       var origToast = toast;
@@ -314,7 +314,7 @@ test.describe('Block I Step 11: 八大師系統驗證', () => {
       globalData.leagueRegionsWon = globalData.leagueRegionsWon || {};
       globalData.leagueRegionsWon["關都"] = true;
       Object.assign(globalData, {
-        highestLevel: 50, todayCompleted: false, todayBattles: 0,
+        highestLevel: 50, todayCompleted: false, todayTasksDone: true, todayBattles: 0,
         masters8Completed: [],
         masters8Progress: [],
         roster: [{ id: "P1", baseName: "皮卡丘", currentLevel: 50, totalExp: 10000, initialLevel: 5, name: "皮卡丘", happiness: 100, stats: { hp: 100, attack: 50, defense: 50, spAttack: 50, spDefense: 50, speed: 50 } }],
@@ -333,7 +333,7 @@ test.describe('Block I Step 11: 八大師系統驗證', () => {
       globalData.leagueRegionsWon = globalData.leagueRegionsWon || {};
       globalData.leagueRegionsWon["關都"] = true;
       globalData = Object.assign(globalData, {
-        highestLevel: 50, todayCompleted: false, todayBattles: 0,
+        highestLevel: 50, todayCompleted: false, todayTasksDone: true, todayBattles: 0,
         masters8Completed: ["小智"],
         masters8Progress: [],
         roster: [{ id: "P1", baseName: "皮卡丘", currentLevel: 50, totalExp: 10000, initialLevel: 5 }],

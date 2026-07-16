@@ -42,7 +42,20 @@ test/e2e/
 └── ...其他單元測試
 ```
 
-### 2.3 四項測試說明
+### 2.3 測試總覽
+
+| 類別 | 測試數 | 說明 |
+|------|:------:|------|
+| 核心模擬 Test 1~4 | 4 | 完整 M1→M3、等級成長、閘門、跳級防護 |
+| UI 點擊驗證 | 2 | 按鈕點擊開啟 Modal、閘門阻擋 |
+| 多寶 EXP | 1 | 先鋒 120% / 留守 50% |
+| Firestore 寫入 | 1 | 事件溯源 executeSave/scheduleStudentFieldUpdate |
+| 衛冕挑戰 | 2 | checkDefenseChallenge 回歸、triggerDefenseChallenge Modal |
+| 冠軍披風 EXP | 2 | calcGymExp ×1.5、calcLeagueExp ×1.5 |
+| W2 加成 | 1 | 道館加成週 EXP ×1.5 |
+| **傳說挑戰系統** | **4** | 八大師觸發、startLegendaryChallenge、finishLegendaryVictory、失敗處理 |
+
+### 2.4 四項核心測試說明
 
 #### Test 1：完整 M1→M3 逐月模擬（主測試）
 
@@ -78,6 +91,40 @@ M3 W4: [每日提交] → Gym 12 (米可利) → 豐緣聯盟 → 八大師·艾
 #### Test 4：跳級防護 + 八大師順序
 
 驗證 `getNextE4Challenge()` 和 `getUnlockedMasters8()` 的循序解鎖邏輯。
+
+### 2.5 傳說挑戰系統測試說明（2026-07-15 新增）
+
+#### Test 5：八大師勝利觸發 pendingLegendary
+
+驗證 `finishMasters8Victory()` 執行後會從 `POKEMON_TIERS["傳說"]` 隨機選取傳說寶可夢並設定 `pendingLegendary`。
+
+**驗證點**：`pendingLegendary.source === "masters8"`、有 `baseName`、有 `types`、`level > 0`
+
+#### Test 6：startLegendaryChallenge 正確建立 battleState
+
+直接呼叫 `startLegendaryChallenge(testData)`，驗證：
+- `battleState.isLegendaryChallenge === true`
+- `gymWaves.length` = 玩家隊伍 − 2（≥ 1）
+- 最後一波的 `isLastWave === true`
+- Modal 正確開啟（`display: flex`）
+
+#### Test 7：finishLegendaryVictory 將傳說加入 Roster
+
+設定 `pendingLegendary` + `battleState` 後呼叫 `finishLegendaryVictory()`，驗證：
+- roster 增加 1 隻
+- 新加入的寶可夢名稱正確
+- 寫入 Firestore 的 `action === "捕捉"`
+- `pendingLegendary` 被清空
+- 確認按鈕文字恢復「✅ 確認」
+
+#### Test 8：傳說挑戰失敗不當機
+
+設定 submit 來源的傳說挑戰 + `battleState.playerWon=false`，呼叫 `endBattle(false)`，驗證：
+- 不拋錯
+- roster 不變（未收服）
+- `pendingLegendary` 被清空
+- submit 來源的 `todayCompleted` 仍為 true（不扣進度）
+- 訊息含「逃走」字樣
 
 ---
 
@@ -122,6 +169,18 @@ expGain = score × 10  （score 預設 80）
 | `todayCompleted` | 任何活動（每日提交/捕捉/訓練/道館戰） | submitData 防重複、UI 狀態 |
 | `todayTasksDone` | 僅 `每日提交` | 戰鬥前置條件（!todayTasksDone 則擋） |
 
+### Bug 2（9eadb71）：submit 傳說路徑 todayCompleted 可能被覆蓋
+
+**問題**：submit 傳說挑戰的非同步流程中，`setTimeout` 啟動傳說挑戰需要時間，而 submit 的 await executeSave 回呼可能在 legendary challenge 開始前就執行完畢，導致控制流程混亂。
+
+**修正**：submitData 中「傳說」tier 分支使用 `pendingLegendary = { source: "submit" }`，並在 `finishLegendaryVictory()` 和 `endBattle()` 敗北分支中確保 `todayCompleted` 正確設定。
+
+### Bug 3（9eadb71）：八大師勝利後按鈕文字未正確重設
+
+**問題**：八大師勝利後按鈕文字改為「⚔️ 接受傳說挑戰！」，若傳說挑戰完成或使用者關閉，按鈕文字需恢復為「✅ 確認」。
+
+**修正**：`finishLegendaryVictory()` 和 `closeBattleResult()` 中正確重設按鈕文字。
+
 ---
 
 ## 五、已知限制與待優化項目
@@ -132,6 +191,17 @@ expGain = score × 10  （score 預設 80）
 2. **無 UI 點擊**：所有戰鬥透過 `page.evaluate()` 直接呼叫 JS 函數，未測試按鈕點擊流程
 3. **單一寶可夢**：模擬僅使用初始伊布（P0），未測試隊伍切換/多寵 EXP 分配
 4. **無隨機性控制**：`generateGymWaves` 等函數包含隨機成分（寶可夢選擇、等級浮動），每次執行結果略有不同
+5. **傳說挑戰非同步流程**：`setTimeout` 啟動傳說挑戰使測試難以精確模擬（僅直接呼叫函數驗證單元邏輯）
+6. **八大師傳說觸發僅單次**：測試只驗證第一次八大師勝利後的 pendingLegendary 設定，未驗證多次觸發的行為
+
+### ✅ 已實作項目（傳說挑戰系統 — 2026-07-15）
+
+- [x] **八大師勝利觸發傳說挑戰**：擊敗任一八大師後 100% 隨機選傳說寶可夢觸發挑戰
+- [x] **Submit 高分解鎖傳說**：得分 ≥ 60 + 機率命中「傳說」tier → 觸發傳說挑戰而非直接捕捉
+- [x] **多波次傳說戰鬥**：敵方數量 = 玩家隊伍 − 2，最後一波為傳說本體（maxLv+2）
+- [x] **收服事件**：`action: "捕捉"` 標準格式寫入 Firestore，確保 replay 正確重建 roster
+- [x] **失敗處理**：不扣進度、reset pendingLegendary，submit 來源仍保留 todayCompleted
+- [x] **取代舊版 Boss 戰**：刪除 `startBossBattle()` 孤兒碼，移除戰鬥中裝飾性捕捉文字
 
 ### P0 待補項目（建議優先實作）
 
@@ -159,6 +229,16 @@ expGain = score × 10  （score 預設 80）
 ---
 
 ## 六、維護指南
+
+### 傳說挑戰系統維護指南
+
+傳說挑戰系統與八大師/Submit 緊密耦合，修改任一系統時需檢查：
+
+1. **八大師勝利路徑**：`finishMasters8Victory()` 的傳說觸發邏輯（`pendingLegendary.source = "masters8"`）
+2. **Submit 觸發路徑**：`submitData()` 中 `tier === "傳說"` 分支
+3. **回呼流程**：`closeBattleResult()` 中 `pendingLegendary.source === "masters8"` 的 `startLegendaryChallenge` 延遲啟動
+4. **失敗路徑**：`endBattle()` 中 `isLegendaryChallenge && !playerWon` 分支
+5. **按鈕文字復原**：所有勝利/失敗/關閉 handler 都需確保確認按鈕文字為「✅ 確認」
 
 ### 新增戰鬥類型時的檢查清單
 

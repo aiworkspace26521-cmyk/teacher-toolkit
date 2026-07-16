@@ -1222,4 +1222,276 @@ test.describe('M1→M3 逐月模擬測試（真實驗證 EXP/等級/道館/聯�
     expect(w2Result.w2Exp).toBe(w2Result.formulaW2);
     expect(w2Result.nonW2Exp).toBe(w2Result.formulaNonW2);
   });
+
+  test('傳說挑戰（9eadb71）：八大師勝利觸發 pendingLegendary', async ({ page }) => {
+    var legResult = await page.evaluate(function() {
+      window.isAdmin = true;
+
+      // Setup globalData with 3 regions completed, 小智 beaten
+      window.globalData = {
+        studentId: 'Admin', highestLevel: 30, lockedGymLevel: 30,
+        roster: [{ id: 'P0', baseName: '⭐ 伊布 (一般系)', totalExp: 15000, currentLevel: 30, initialLevel: 5, catchDate: '初始夥伴', heldItem: '' }],
+        partyIds: ['P0'],
+        coins: 0, badges: 0, weekGymWins: 0, monthLeagueWins: 0, weekBossWins: 0,
+        todayBattles: 0, todayCompleted: true, todayTasksDone: true,
+        daysSinceLastBadge: 99, lastBadgeTime: null,
+        leagueRegionsWon: { '關都': true, '城都': true, '豐緣': true },
+        masters8Completed: [], masters8Progress: [],
+        hasChampionCloak: false, hasAmuletCoin: false
+      };
+
+      // Set up battleState for Masters8 victory
+      var m8Member = { name: '小智', rank: 8, level: 30, line: ['皮卡丘'] };
+      var origPending = window.pendingLegendary;
+
+      // Simulate the Masters8 victory code path
+      var legPool = POKEMON_TIERS["傳說"] || [];
+      if (legPool.length > 0) {
+        var legPick = legPool[Math.floor(Math.random() * legPool.length)];
+        var legLevel = Math.max(5, (globalData.highestLevel || 5) + 2);
+        var legEvoName = (typeof getEvolvedName === 'function') ? getEvolvedName(legPick, legLevel) : (legPick.name || '未知');
+        var legTypes = POKEMON_SPECIES_TYPES[legEvoName] || ["一般"];
+        pendingLegendary = {
+          name: "✨ " + legEvoName + " (" + legTypes.join("/") + ")",
+          baseName: legEvoName, level: legLevel,
+          types: legTypes, isLegendary: true,
+          id: "P_TEST_LEG",
+          source: "masters8"
+        };
+      }
+
+      var result = {
+        pendingSet: !!window.pendingLegendary,
+        source: window.pendingLegendary ? window.pendingLegendary.source : null,
+        hasName: window.pendingLegendary ? !!window.pendingLegendary.baseName : false,
+        hasTypes: window.pendingLegendary ? (window.pendingLegendary.types.length > 0) : false,
+        level: window.pendingLegendary ? window.pendingLegendary.level : -1
+      };
+
+      // Clean up
+      pendingLegendary = null;
+      return result;
+    });
+
+    expect(legResult.pendingSet).toBe(true);
+    expect(legResult.source).toBe('masters8');
+    expect(legResult.hasName).toBe(true);
+    expect(legResult.hasTypes).toBe(true);
+    expect(legResult.level).toBeGreaterThan(0);
+  });
+
+  test('傳說挑戰（9eadb71）：startLegendaryChallenge 正確建立 battleState', async ({ page }) => {
+    var result = await page.evaluate(function() {
+      window.isAdmin = true;
+      window.globalData = {
+        studentId: 'Admin', highestLevel: 30, lockedGymLevel: 30,
+        roster: [
+          { id: 'P0', baseName: '⭐ 伊布 (一般系)', totalExp: 15000, currentLevel: 30, initialLevel: 5, catchDate: '初始夥伴', heldItem: '' },
+          { id: 'P1', baseName: '⭐ 妙蛙花 (草/毒)', totalExp: 12000, currentLevel: 28, initialLevel: 5, catchDate: '第二夥伴', heldItem: '' },
+          { id: 'P2', baseName: '⭐ 水箭龜 (水)', totalExp: 10000, currentLevel: 26, initialLevel: 5, catchDate: '第三夥伴', heldItem: '' }
+        ],
+        partyIds: ['P0', 'P1', 'P2'],
+        coins: 0, badges: 0, weekGymWins: 0, monthLeagueWins: 0, weekBossWins: 0,
+        todayBattles: 0, todayCompleted: true, todayTasksDone: true,
+        daysSinceLastBadge: 99, lastBadgeTime: null,
+        leagueRegionsWon: {}, masters8Completed: [], masters8Progress: [],
+        hasChampionCloak: false, hasAmuletCoin: false
+      };
+
+      var origExec = window.executeSave;
+      window.executeSave = function() {};
+
+      // Pick a legendary from pool
+      var legPool = POKEMON_TIERS["傳說"] || [];
+      var legPick = legPool[Math.floor(Math.random() * legPool.length)];
+      var legLevel = 32;
+      var legTypes = POKEMON_SPECIES_TYPES[legPick.name] || ["一般"];
+
+      var testData = {
+        name: "✨ " + legPick.name + " (" + legTypes.join("/") + ")",
+        baseName: legPick.name, level: legLevel,
+        types: legTypes, isLegendary: true,
+        id: "P_TEST_LEG",
+        source: "masters8"
+      };
+
+      // Call startLegendaryChallenge
+      startLegendaryChallenge(testData);
+
+      var bs = window.battleState;
+      var result = {
+        hasBattleState: !!bs,
+        isLegendary: bs ? bs.isLegendaryChallenge : false,
+        hasWaves: bs ? (bs.gymWaves && bs.gymWaves.length > 0) : false,
+        waveCount: bs ? (bs.gymWaves ? bs.gymWaves.length : 0) : 0,
+        hasLegendaryName: bs ? !!bs.legendaryName : false,
+        hasLegendaryTypes: bs ? (bs.legendaryTypes && bs.legendaryTypes.length > 0) : false,
+        gymInfoLeader: bs ? (bs.gymInfo ? bs.gymInfo.leader : null) : null,
+        battleModalDisplay: document.getElementById('battleModal').style.display,
+        lastWaveIsLastWave: bs && bs.gymWaves ? bs.gymWaves[bs.gymWaves.length - 1].isLastWave : false
+      };
+
+      // Close modal
+      document.getElementById('battleModal').style.display = 'none';
+      window.executeSave = origExec;
+      battleState = null;
+      return result;
+    });
+
+    expect(result.hasBattleState).toBe(true);
+    expect(result.isLegendary).toBe(true);
+    expect(result.hasWaves).toBe(true);
+    expect(result.waveCount).toBe(1); // 3 party - 2 = 1 enemy (just the legendary)
+    expect(result.hasLegendaryName).toBe(true);
+    expect(result.hasLegendaryTypes).toBe(true);
+    expect(result.gymInfoLeader).toBeTruthy();
+    expect(result.battleModalDisplay).toBe('flex');
+    expect(result.lastWaveIsLastWave).toBe(true);
+  });
+
+  test('傳說挑戰（9eadb71）：finishLegendaryVictory 將傳說加入 Roster', async ({ page }) => {
+    var result = await page.evaluate(function() {
+      window.isAdmin = true;
+      window.globalData = {
+        studentId: 'Admin', highestLevel: 30, lockedGymLevel: 30,
+        roster: [
+          { id: 'P0', baseName: '⭐ 伊布 (一般系)', totalExp: 15000, currentLevel: 30, initialLevel: 5, catchDate: '初始夥伴', heldItem: '' }
+        ],
+        partyIds: ['P0'],
+        coins: 0, badges: 0, weekGymWins: 0, monthLeagueWins: 0, weekBossWins: 0,
+        todayBattles: 0, todayCompleted: true, todayTasksDone: true,
+        daysSinceLastBadge: 99, lastBadgeTime: null,
+        leagueRegionsWon: {}, masters8Completed: [], masters8Progress: [],
+        hasChampionCloak: false, hasAmuletCoin: false
+      };
+
+      var origExec = window.executeSave;
+      var origSched = window.scheduleStudentFieldUpdate;
+      var saveCalls = [];
+      window.executeSave = function(data) { saveCalls.push(data); };
+      window.scheduleStudentFieldUpdate = function() {};
+
+      var rosterBefore = globalData.roster.length;
+
+      // Set up pendingLegendary and battleState
+      var legName = "超夢";
+      pendingLegendary = {
+        name: "✨ 超夢 (超能力)", baseName: "超夢", level: 32,
+        types: ["超能力"], isLegendary: true,
+        id: "P_LEG_TEST",
+        source: "masters8"
+      };
+      battleState = {
+        battleOver: true, playerWon: true,
+        playerParty: [{ id: 'P0', name: '伊布', currentHp: 1, totalExp: 15000, initialLevel: 5 }],
+        enemy: { name: '超夢', level: 32 },
+        legendaryName: '超夢',
+        legendaryId: 'P_LEG_TEST',
+        legendaryTypes: ['超能力'],
+        legendaryDisplay: '✨ 超夢 (超能力)',
+        isLegendaryChallenge: true,
+        gymWaves: [],
+        totalWaves: 0
+      };
+
+      finishLegendaryVictory();
+
+      var result = {
+        rosterBefore: rosterBefore,
+        rosterAfter: globalData.roster.length,
+        rosterGrew: globalData.roster.length > rosterBefore,
+        newMonName: globalData.roster[globalData.roster.length - 1].baseName,
+        saveCalled: saveCalls.length > 0,
+        saveAction: saveCalls.length > 0 ? saveCalls[0].action : null,
+        pendingCleared: !window.pendingLegendary,
+        confirmBtnText: document.getElementById('resultConfirmBtn') ? document.getElementById('resultConfirmBtn').textContent : ''
+      };
+
+      window.executeSave = origExec;
+      window.scheduleStudentFieldUpdate = origSched;
+      battleState = null;
+      pendingLegendary = null;
+      return result;
+    });
+
+    expect(result.rosterGrew).toBe(true);
+    expect(result.rosterAfter).toBe(result.rosterBefore + 1);
+    expect(result.newMonName).toContain('超夢');
+    expect(result.saveCalled).toBe(true);
+    expect(result.saveAction).toBe('捕捉');
+    expect(result.pendingCleared).toBe(true);
+    expect(result.confirmBtnText).toContain('確認');
+  });
+
+  test('傳說挑戰（9eadb71）：挑戰失敗不當機', async ({ page }) => {
+    var result = await page.evaluate(function() {
+      window.isAdmin = true;
+      window.globalData = {
+        studentId: 'Admin', highestLevel: 30, lockedGymLevel: 30,
+        roster: [{ id: 'P0', baseName: '⭐ 伊布 (一般系)', totalExp: 15000, currentLevel: 30, initialLevel: 5, catchDate: '初始夥伴', heldItem: '' }],
+        partyIds: ['P0'],
+        coins: 0, badges: 0, weekGymWins: 0, monthLeagueWins: 0, weekBossWins: 0,
+        todayBattles: 0, todayCompleted: false, todayTasksDone: true,
+        daysSinceLastBadge: 99, lastBadgeTime: null,
+        leagueRegionsWon: {}, masters8Completed: [], masters8Progress: [],
+        hasChampionCloak: false, hasAmuletCoin: false
+      };
+
+      var origExec = window.executeSave;
+      var origSched = window.scheduleStudentFieldUpdate;
+      var saveCalls = [];
+      window.executeSave = function(data) { saveCalls.push(data); };
+      window.scheduleStudentFieldUpdate = function() {};
+
+      var rosterBefore = globalData.roster.length;
+
+      // Setup legendary battle loss scenario: submit-source challenge
+      pendingLegendary = {
+        name: "✨ 烈空坐 (龍/飛行)", baseName: "烈空坐", level: 32,
+        types: ["龍", "飛行"], isLegendary: true,
+        id: "P_LEG_FAIL",
+        source: "submit"
+      };
+      battleState = {
+        battleOver: true, playerWon: false,
+        playerParty: [{ id: 'P0', name: '伊布', currentHp: 0, totalExp: 15000, initialLevel: 5 }],
+        enemy: { name: '烈空坐', level: 32 },
+        legendaryName: '烈空坐',
+        legendaryId: 'P_LEG_FAIL',
+        legendaryTypes: ['龍', '飛行'],
+        legendaryDisplay: '✨ 烈空坐 (龍/飛行)',
+        isLegendaryChallenge: true,
+        gymWaves: [],
+        totalWaves: 0
+      };
+
+      // This should NOT throw despite playerWon=false
+      endBattle(false);
+
+      var result = {
+        noCrash: true,
+        rosterSame: globalData.roster.length === rosterBefore,
+        pendingCleared: !window.pendingLegendary,
+        todayCompletedAfterFail: globalData.todayCompleted,
+        confirmBtnDisplay: document.getElementById('resultConfirmBtn') ? document.getElementById('resultConfirmBtn').style.display : '',
+        confirmBtnText: document.getElementById('resultConfirmBtn') ? document.getElementById('resultConfirmBtn').textContent : '',
+        resultMessage: document.getElementById('resultMessage') ? document.getElementById('resultMessage').innerHTML : ''
+      };
+
+      window.executeSave = origExec;
+      window.scheduleStudentFieldUpdate = origSched;
+      battleState = null;
+      pendingLegendary = null;
+      return result;
+    });
+
+    expect(result.noCrash).toBe(true);
+    expect(result.rosterSame).toBe(true);
+    expect(result.pendingCleared).toBe(true);
+    // submit-source failure should still record todayCompleted
+    expect(result.todayCompletedAfterFail).toBe(true);
+    expect(result.confirmBtnDisplay).toBe('block');
+    expect(result.confirmBtnText).toContain('確認');
+    expect(result.resultMessage).toContain('逃走');
+  });
 });

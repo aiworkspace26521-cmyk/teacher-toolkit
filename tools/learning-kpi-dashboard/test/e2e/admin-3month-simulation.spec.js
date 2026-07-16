@@ -223,6 +223,7 @@ test.describe('Admin 3-Month Simulation (M1→M3) vs VER2.4', () => {
     var w4 = await page.evaluate(() => {
       delete leagueCompletedMonths['關都'];
       globalData.todayCompleted = false;
+      globalData.todayTasksDone = true;
       var dw = document.getElementById('devWeek');
       dw.value = 'W4';
       if (typeof forceAdminUpdate === 'function') forceAdminUpdate();
