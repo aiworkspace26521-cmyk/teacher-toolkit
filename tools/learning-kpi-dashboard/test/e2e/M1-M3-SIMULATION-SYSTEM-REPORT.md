@@ -2,7 +2,7 @@
 
 ## 報告資訊
 
-- **建構日期**：2026-07-14（最後更新：2026-07-17）
+- **建構日期**：2026-07-14（最後更新：2026-07-17 Phase 1-2 修復驗證）
 - **主要檔案**：`test/e2e/monthly-simulation-m1-m3.spec.js`, `test/e2e/real-student-e2e.spec.js`
 - **相關輔助檔案**：`test/e2e/admin-3month-simulation.spec.js`, `test/e2e/gym-league.spec.js`
 - **測試目標**：`frontend/kpi-dashboard.html`
@@ -337,4 +337,106 @@ M3: 117,208 → 193,225 EXP（Lv.53）
 
 ---
 
-*本報告由 Claude 於 2026-07-14 自動生成，2026-07-17 新增真實 Firestore 帳號 E2E 測試章節，作為 teacher-toolkit 專案中學習 KPI 管理工具的測試系統技術交接文件。*
+## 八、Phase 1–2 程式碼修復驗證（2026-07-17）
+
+### 8.1 執行摘要
+
+修復計畫源自檔案 `M1-M3-BUGS-AND-FIX-PLAN.md`，依優先順序分三階段執行。本輪完成 **Phase 1（H1/H2/H3）** 與 **Phase 2（M1/M2/M3）**，共修復 **6 項真實 Bug**。
+
+| Phase | 項目 | 影響範圍 | 修復類型 | 狀態 |
+|:------|:-----|:---------|:---------|:----:|
+| 1 | **H1** | 7 個 page.evaluate 區塊 | try-finally 保護 mock 復原 | ✅ |
+| 1 | **H2** | `finishLegendaryVictory` | 移除永不觸發的 dead code | ✅ |
+| 1 | **H3** | `executeSave` | 移除樂觀賦值，改仰賴 `fetchStudentData` replay | ✅ |
+| 2 | **M1** | `confirmBtnYes` | `.onclick=` → `addEventListener` + `_confirmHandler` | ✅ |
+| 2 | **M2** | 3 處 submitData 失敗檢測 | DOM 檢測 → `_submitFailed` state flag | ✅ |
+| 2 | **M3** | `scheduleStudentFieldUpdate` | 快照值 → 定時器觸發時重新讀取 `globalData[fk]` | ✅ |
+
+### 8.2 H1 — try-finally 保護 mock 復原
+
+**問題**：`monthly-simulation-m1-m3.spec.js` 中 7 個 `page.evaluate()` 區塊在區塊結尾復原 mock（`executeSave`、`db.collection().add()` 等），若遊戲邏輯拋錯則 mock 持續生效，污染後續測試。
+
+**修復**：每個區塊加入 try-finally 結構，return 留在 try 內、mock 復原移至 finally，利用 `var` 函數作用域確保 return 值仍可存取。
+
+**受影響檔案**：`test/e2e/monthly-simulation-m1-m3.spec.js`（Test 1, 2, 7, 8, 15, 16, 17）
+
+### 8.3 H3 — 移除 executeSave 樂觀賦值
+
+**問題**：`kpi-dashboard.html:1288-1289` 的 `executeSave` 成功路徑中，在 `fetchStudentData` replay 前先手動修改 `globalData`，與 replay 結果可能衝突。
+
+**修復**：完全移除成功路徑的手動 `globalData` 賦值，100% 仰賴 `fetchStudentData` 回放事件作為唯一 truth source。失敗路徑的手動 rollback（原本 1295）亦同步移除。
+
+**受影響檔案**：`frontend/kpi-dashboard.html`（`executeSave` 函數）
+
+### 8.4 H2 — 移除 finishLegendaryVictory dead code
+
+**問題**：`kpi-dashboard.html:4746-4749` 的 `if (legData.source === "submit" && todayTasksDone && !todayCompleted)` 區塊實際無法觸發（submit 傳說挑戰結束時 `todayCompleted` 已為 true），屬於 dead code。
+
+**修復**：直接移除該區塊。
+
+**受影響檔案**：`frontend/kpi-dashboard.html`
+
+### 8.5 M1 — confirmBtnYes onclick 事件綁定
+
+**問題**：`$("confirmBtnYes").onclick = function()` 在多流程共用 DOM 時會互相覆蓋。`promptE4Challenge` 是唯一呼叫者（L4848），但理論上存在覆蓋風險。
+
+**修復**：移除 `.onclick` 賦值，改在 `DOMContentLoaded` 中註冊一次 `addEventListener('click', handler)`，搭配 `_confirmHandler` 變數傳遞回呼，每次點擊後自動清除。
+
+**受影響檔案**：`frontend/kpi-dashboard.html`（L4848, L7791, L7719）
+
+### 8.6 M2 — submitData 失敗檢測改用 state flag
+
+**問題**：`submitData()` 中 3 處（L7588、L7612、L7629）使用 `!$("submitBtn").disabled` 或 `innerHTML.indexOf("Failed")` 讀取 DOM 狀態判斷儲存是否失敗，DOM 狀態可能被其他程式碼修改。
+
+**修復**：宣告全域 `_submitFailed` flag，在 `executeSave` 失敗路徑設定（L1294），submitData 改為檢查 `_submitFailed`。
+
+**受影響檔案**：`frontend/kpi-dashboard.html`（L7791, L1294, L7588, L7612, L7629）
+
+### 8.7 M3 — debounce 重新讀取 globalData
+
+**問題**：`scheduleStudentFieldUpdate()` 在呼叫時立即 `_pendingStudentUpdate[fk] = fields[fk]` 快取值，500ms 後定時器觸發時若 `globalData` 已被 `fetchStudentData` 替換，寫入的是舊 reference。
+
+**修復**：定時器改儲存欄位名稱（`_pendingStudentUpdate[fk] = null`），觸發時重新讀取 `globalData[fk]`，確保使用最新值。debounce 從 500ms 縮短至 50ms。
+
+**受影響檔案**：`frontend/kpi-dashboard.html`（`scheduleStudentFieldUpdate` 函數）
+
+### 8.8 測試執行結果
+
+執行環境：Playwright (chromium)，target：`https://opencodefirebase.web.app`（production Hosting）
+
+```
+npx playwright test → 175 passed, 1 skipped (3.9min)
+```
+
+| 測試檔案 | 通過 | 跳過 | 說明 |
+|:---------|:---:|:----:|:------|
+| `monthly-simulation-m1-m3.spec.js` | 18 | 0 | 核心 M1→M3 逐月模擬 |
+| `real-student-e2e.spec.js` | 5 | 0 | 真實 Firestore 帳號 E2E |
+| `admin-3month-simulation.spec.js` | 9 | 0 | Admin 輕量邏輯驗證 |
+| `gym-league.spec.js` | 12 | 0 | 道館/聯盟單元測試 |
+| `masters8.spec.js` | 8 | 0 | 八大師系統驗證 |
+| `ver2.4-e2e.spec.js` | 10 | 0 | VER2.4 E2E 回歸 |
+| `ver2.5-cross-verification.spec.js` | 19 | 0 | VER2.5 交叉驗證 |
+| `ver2.5-unit.spec.js` | 15 | 0 | VER2.5 輔助函式 |
+| `smoke.spec.js` | 11 | 0 | 冒煙測試 |
+| `pokedex-*.spec.js` | 12 | 0 | 圖鑑系統 |
+| `pvp-trade.spec.js` | 8 | 0 | PvP/交換系統 |
+| `quest-*.spec.js` | 8 | 0 | 任務/成就系統 |
+| `tm-system.spec.js` | 5 | 1 | TM 學習系統（8.4 預設跳過） |
+| `held-equip.spec.js` | 4 | 0 | 裝備系統 |
+| `shop-order.spec.js` | 1 | 0 | 商店排序 |
+| **總計** | **175** | **1** | |
+
+---
+
+### 8.9 待修復項目（Phase 3）
+
+| 項目 | 優先級 | 說明 |
+|:-----|:------:|:------|
+| **M4** | Medium | 新增不 mock `executeSave` 的整合測試，驗證 `fetchStudentData` replay 路徑 |
+| **M5** | Medium | `todayCompleted` / `todayTasksDone` 兩個 boolean 統一為 state enum |
+| **L1-L5** | Low | 雜項修復（ESLint、命名一致性、console 遺留等） |
+
+---
+
+*本報告由 Claude 於 2026-07-14 自動生成，2026-07-17 新增真實 Firestore 帳號 E2E 測試章節與 Phase 1-2 修復驗證紀錄，作為 teacher-toolkit 專案中學習 KPI 管理工具的測試系統技術交接文件。*

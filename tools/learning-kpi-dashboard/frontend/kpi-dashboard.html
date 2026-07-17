@@ -1285,14 +1285,13 @@ async function executeSave(record, successCb, closeBattleModal) {
   var fbRecord = { studentId: record.user || record.studentId, tasks: record.tasks || [], score: record.totalScore || record.score || 0, action: record.action, expGained: record.expGained || 0, coinsGained: record.coinsGained || 0, badgeChange: record.badgeChange || 0, note: record.extraNote || record.note || "" };
   var result = await saveEventToFirestore(fbRecord);
   if (result && result.success) {
-    // Mark todayCompleted + todayTasksDone immediately for daily submits (defensive: survives fetchStudentData failure)
-    if (fbRecord.action === "\u6BCF\u65E5\u63D0\u4EA4" && globalData) { globalData.todayCompleted = true; globalData.todayTasksDone = true; }
+    // State is managed by fetchStudentData replay below; no optimistic mutation needed
     if (successCb) setTimeout(successCb, 100);
     if (closeBattleModal) closeModal("battleModal");
     var savedEvent = { id: result.eventId }; for (var k in fbRecord) savedEvent[k] = fbRecord[k];
     savedEvent.timestamp = firebase.firestore.Timestamp.now();
     await fetchStudentData(fbRecord.studentId, savedEvent);
-  } else { btn.disabled = false; btn.innerText = oldTxt; toast("Save failed"); if (globalData && fbRecord.action === "\u6BCF\u65E5\u63D0\u4EA4") { globalData.todayCompleted = false; globalData.todayTasksDone = false; } }
+  } else { btn.disabled = false; btn.innerText = oldTxt; _submitFailed = true; toast("Save failed"); }
   _isSaving = false;
 }
 // P4-5c: Debounced student doc field writer — batches small writes into one set()
@@ -1301,15 +1300,16 @@ var _pendingStudentTimer = null;
 function scheduleStudentFieldUpdate(fields) {
   if (!db || !globalData || !globalData.studentId) return;
   if (!_pendingStudentUpdate) _pendingStudentUpdate = {};
-  for (var fk in fields) _pendingStudentUpdate[fk] = fields[fk];
+  for (var fk in fields) _pendingStudentUpdate[fk] = null;
   if (_pendingStudentTimer) clearTimeout(_pendingStudentTimer);
   _pendingStudentTimer = setTimeout(function(){
-    var data = _pendingStudentUpdate;
+    var keys = _pendingStudentUpdate;
     _pendingStudentUpdate = null;
     _pendingStudentTimer = null;
-    data.studentId = globalData.studentId;
+    var data = { studentId: globalData.studentId };
+    for (var k in keys) data[k] = globalData[k];
     db.collection("kpi_students").doc(globalData.studentId).set(data, { merge: true }).catch(function(e){ console.warn("batch save failed:", e); });
-  }, 500);
+  }, 50);
 }
 var MOVE_DATABASE = {
   "撞擊":   { power: 40,  type: "一般",  category: "物理", desc: "用身體撞向對手" },
@@ -4743,10 +4743,6 @@ function finishLegendaryVictory() {
   var mn = ["","一月","二月","三月","四月","五月","六月","七月","八月","九月","十月","十一月","十二月"][(d.getMonth() + 2) % 12 + 1] || (d.getMonth() + "月");
   var noteContent = "📅 " + mn + " | 捕捉: " + legDisplay + " | Lv." + legLevel + " | ID:" + legId + " | 類型: " + (legData.types ? legData.types[0] : "一般");
   executeSave({ studentId: globalData.studentId, score: 0, action: "捕捉", expGained: expGain, coinsGained: coinsGain, badgeChange: 0, note: noteContent, extraNote: noteContent, totalScore: 0, user: globalData.studentId }, null, false);
-  if (legData.source === "submit" && globalData.todayTasksDone && !globalData.todayCompleted) {
-    globalData.todayCompleted = true;
-    scheduleStudentFieldUpdate({ todayCompleted: true });
-  }
   battleState = null;
   pendingLegendary = null;
   $("resultConfirmBtn").textContent = "✅ 確認";
@@ -4850,10 +4846,7 @@ if (isBufferPeriod()) {
 }
 confirmMsg += "<small style='color:#888;'>可選擇跳過，不影響徽章收集進度</small>";
 $("confirmModalText").innerHTML = confirmMsg;
-  $("confirmBtnYes").onclick = function() {
-    $("confirmModal").style.display = "none";
-    startLeagueBattle(challenge.region);
-  };
+  _confirmHandler = function() { startLeagueBattle(challenge.region); };
   $("confirmModal").style.display = "flex";
 }
 
@@ -7590,9 +7583,7 @@ async function submitData() {
         toast("🎉 捕捉到 " + captured.name + " Lv." + captured.level + "！" + (captured.isLegendary ? " 🌟 傳說級！" : ""));
       }, true);
     }
-    if (!$("submitBtn").disabled || $("submitBtn").innerHTML.indexOf("Failed") !== -1) {
-      globalData.todayCompleted = false;
-    }
+    if (_submitFailed) { _submitFailed = false; globalData.todayCompleted = false; }
   } else if (action === "train") {
     if (globalData.todayCompleted) { toast("今日已完成！"); return; }
     var targetId = $("trainTarget").value;
@@ -7614,9 +7605,7 @@ async function submitData() {
     await executeSave(record, function() {
       toast("🎯 " + targetName + " 獲得 " + expGain + " EXP（集中訓練）！");
     }, true);
-    if (!$("submitBtn").disabled || $("submitBtn").innerHTML.indexOf("Failed") !== -1) {
-      globalData.todayCompleted = false;
-    }
+    if (_submitFailed) { _submitFailed = false; globalData.todayCompleted = false; }
   } else {
     // Immediate guard: prevent re-entry before async save completes
     globalData.todayCompleted = true;
@@ -7631,10 +7620,7 @@ async function submitData() {
       toast("🎉 今日紀錄已送出！獲得 " + expGain + " EXP, " + coinsGain + " 金幣！");
     }, true);
     // If save failed, rollback the guard so user can retry
-    if (!$("submitBtn").disabled || $("submitBtn").innerHTML.indexOf("Failed") !== -1) {
-      globalData.todayCompleted = false;
-      globalData.todayTasksDone = false;
-    }
+    if (_submitFailed) { _submitFailed = false; globalData.todayCompleted = false; globalData.todayTasksDone = false; }
   }
 }
 
@@ -7783,6 +7769,11 @@ document.addEventListener("DOMContentLoaded", function() {
 
   $("submitBtn").addEventListener("click", submitData);
 
+  $("confirmBtnYes").addEventListener("click", function() {
+    $("confirmModal").style.display = "none";
+    if (_confirmHandler) { _confirmHandler(); _confirmHandler = null; }
+  });
+
   $("devMonth").addEventListener("change", updatePreview);
   $("devWeek").addEventListener("change", updatePreview);
 
@@ -7802,7 +7793,7 @@ window.addEventListener("beforeunload", function() {
   if (sid) localStorage.setItem("kpi_last_id", sid);
 });
 
-var db = null, globalData = null, isAdmin = false, _isSaving = false, _dataLoading = false;
+var db = null, globalData = null, isAdmin = false, _isSaving = false, _dataLoading = false, _submitFailed = false, _confirmHandler = null;
 
 // ===== ADMIN GYM EDITOR =====
 function openGymEditor() {
