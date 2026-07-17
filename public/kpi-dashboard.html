@@ -5485,14 +5485,23 @@ function fetchPvPOpponentList() {
   listDiv.innerHTML = "<span style='font-size:12px;color:#999;'>載入中...</span>";
   db.collection("kpi_students").limit(20).get().then(function(snap) {
     var myId = globalData.studentId;
-    var html = "";
+    var opponents = [];
     snap.forEach(function(doc) {
       if (doc.id === myId) return;
       var d = doc.data();
       if (!d.roster || d.roster.length < 1 || !d.partyIds || d.partyIds.length < 1) return;
-      html += "<div class='pvp-invite-card'><div><strong>" + doc.id + "</strong> <span style='font-size:11px;color:#666;'>" + (d.roster.length + "隻") + "</span></div>" +
-        "<div class='actions'><button style='background:#8e44ad;color:white;' onclick='invitePvP(\"" + doc.id + "\")'>⚔️ 挑戰</button></div></div>";
+      opponents.push({ id: doc.id, rosterLen: d.roster.length });
     });
+    opponents.sort(function(a, b) {
+      if (a.id === "Admin") return 1;
+      if (b.id === "Admin") return -1;
+      return 0;
+    });
+    var html = "";
+    for (var oi = 0; oi < opponents.length; oi++) {
+      html += "<div class='pvp-invite-card'><div><strong>" + opponents[oi].id + "</strong> <span style='font-size:11px;color:#666;'>" + (opponents[oi].rosterLen + "隻") + "</span></div>" +
+        "<div class='actions'><button style='background:#8e44ad;color:white;' onclick='invitePvP(\"" + opponents[oi].id + "\")'>⚔️ 挑戰</button></div></div>";
+    }
     if (!html) html = "<span style='font-size:12px;color:#999;'>目前沒有可挑戰的對象（對方需有 1+ 寶可夢）</span>";
     listDiv.innerHTML = html;
   }).catch(function() { listDiv.innerHTML = "<span style='font-size:12px;color:#999;'>載入失敗</span>"; });
@@ -6438,10 +6447,15 @@ function renderRankingFromCache() {
   if (!listDiv) return;
   if (seasonEl) seasonEl.textContent = getCurrentSeason();
   if (!rankingCache || rankingCache.length === 0) { listDiv.innerHTML = "<p style='color:#999;text-align:center;'>還沒有排名資料，開始 PvP 對戰吧！</p>"; return; }
+  var sorted = rankingCache.slice().sort(function(a, b) {
+    if (a.id === "Admin") return 1;
+    if (b.id === "Admin") return -1;
+    return (b.data.elo || 1000) - (a.data.elo || 1000);
+  });
   var html = "<div style='display:flex;font-weight:900;font-size:12px;color:#666;padding:6px 8px;border-bottom:2px solid #eee;'>" +
     "<span style='width:40px;'>#</span><span style='flex:1;'>玩家</span><span style='width:60px;text-align:center;'>ELO</span><span style='width:80px;text-align:center;'>戰績</span></div>";
-  for (var i = 0; i < rankingCache.length; i++) {
-    var r = rankingCache[i];
+  for (var i = 0; i < sorted.length; i++) {
+    var r = sorted[i];
     var elo = r.data.elo || 1000;
     var w = r.data.wins || 0;
     var l = r.data.losses || 0;
@@ -7964,13 +7978,23 @@ async function saveAchievementsToFirestore(studentId) {
 async function checkAndUnlockAchievements(gd, events, studentId) {
   if (!gd || !studentId) return;
   var newlyUnlocked = [];
+  var removedIds = [];
   for (var i = 0; i < ACHIEVEMENTS.length; i++) {
     var ach = ACHIEVEMENTS[i];
-    if (globalAchievements[ach.id]) continue;
+    if (globalAchievements[ach.id]) {
+      if (!checkAchievement(ach, gd, events)) {
+        delete globalAchievements[ach.id];
+        removedIds.push(ach.id);
+      }
+      continue;
+    }
     if (checkAchievement(ach, gd, events)) {
       globalAchievements[ach.id] = true;
       newlyUnlocked.push(ach);
     }
+  }
+  if (removedIds.length > 0) {
+    await saveAchievementsToFirestore(studentId);
   }
   if (newlyUnlocked.length > 0) {
     await saveAchievementsToFirestore(studentId);
