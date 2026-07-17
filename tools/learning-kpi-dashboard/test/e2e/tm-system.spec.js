@@ -107,7 +107,7 @@ test.describe('TM Learning System', () => {
     if (!setup) { test.skip('Neil has no roster'); return; }
     if (setup.tmMoveIndex < 1) { test.skip('TM move not found in allMoves list'); return; }
 
-    page.on('dialog', function(d) { d.accept(String(setup.tmMoveIndex)); });
+    page.once('dialog', function(d) { d.accept(String(setup.tmMoveIndex)); });
 
     var forgetResult = await page.evaluate((pid) => {
       var p = globalData.roster.find(function(x) { return x.id === pid; });

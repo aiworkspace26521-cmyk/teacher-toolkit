@@ -283,6 +283,13 @@ async function recalculateStudentState(studentId) {
     const rowDate = evt.timestamp instanceof Timestamp
       ? evt.timestamp.toDate()
       : new Date(evt.timestamp);
+    // Seed data type→action mapping for backward compatibility
+    if (!evt.action && evt.type) {
+      if (evt.type === 'badge') { evt.action = 'system'; evt.badgeChange = (evt.badgeChange || 0) + 1; }
+      else if (evt.type === 'evolution') { evt.action = 'E'; evt.note = (evt.note||'')+'|獲得: '+evt.speciesTo+' ('+evt.flavor+'系)'; }
+      else if (evt.type === 'capture') { evt.action = 'A'; evt.note = '捕獲: '+evt.species+' (一般系)|ID:'+evt.pokemonId; evt.score = evt.score || 80; }
+      else if (evt.type === 'exp') { evt.action = 'B'; evt.expGained = evt.totalExpGained || 20000; evt.note = 'ID:'+evt.pokemonId; }
+    }
     const { action, score, expGained, coinsGained, badgeChange, note, tasks } = evt;
     const rowExp = expGained || 0;
     const rowCoins = coinsGained || 0;
@@ -296,12 +303,12 @@ async function recalculateStudentState(studentId) {
     if (rowBadges > 0) state.lastBadgeTime = rowDate.getTime();
     state.coins += rowCoins;
 
-    if (!['商城兌換', '戰鬥消耗', '物品消耗', 'E', '系統測試', 'trade', '道具裝備'].includes(rowAction)) {
+    if (!['商城兌換', '戰鬥消耗', '物品消耗', 'E', '系統測試', 'trade', '道具裝備', 'system'].includes(rowAction)) {
       state.submitDates[rowDate.toDateString()] = true;
     }
 
     if (rowDate.toDateString() === todayStr &&
-        !['商城兌換', '戰鬥消耗', '物品消耗', 'E', '戰鬥勝利', '系統測試', 'trade', 'A', 'B', '道具裝備', 'PvP'].includes(rowAction)) {
+        !['商城兌換', '戰鬥消耗', '物品消耗', 'E', '戰鬥勝利', '系統測試', 'trade', 'A', 'B', '道具裝備', 'PvP', 'system'].includes(rowAction)) {
       state.todayCompleted = true;
     }
 

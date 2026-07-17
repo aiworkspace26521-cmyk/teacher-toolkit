@@ -939,6 +939,13 @@ async function recalculateStudentState(studentId, events) {
   var submitDates = {};
   for (var ei = 0; ei < events.length; ei++) {
     var evt = events[ei];
+    // Seed data type→action mapping for backward compatibility
+    if (!evt.action && evt.type) {
+      if (evt.type === 'badge') { evt.action = 'system'; evt.badgeChange = (evt.badgeChange || 0) + 1; }
+      else if (evt.type === 'evolution') { evt.action = 'E'; evt.note = (evt.note||'')+'|獲得: '+evt.speciesTo+' ('+evt.flavor+'系)'; }
+      else if (evt.type === 'capture') { evt.action = 'A'; evt.note = '捕獲: '+evt.species+' (一般系)|ID:'+evt.pokemonId; evt.score = evt.score || 80; }
+      else if (evt.type === 'exp') { evt.action = 'B'; evt.expGained = evt.totalExpGained || 20000; evt.note = 'ID:'+evt.pokemonId; }
+    }
     var rowDate = evt.timestamp ? (evt.timestamp.toDate ? evt.timestamp.toDate() : new Date(evt.timestamp)) : new Date();
     var action = evt.action, score = evt.score, expGained = evt.expGained || 0, coinsGained = evt.coinsGained || 0, badgeChange = evt.badgeChange || 0;
     var safeNote = String(evt.note || ""), rowAction = String(action || "");
@@ -946,9 +953,9 @@ async function recalculateStudentState(studentId, events) {
     state.badges += badgeChange;
     if (badgeChange > 0) state.lastBadgeTime = rowDate.getTime();
     state.coins += coinsGained;
-    if (rowDate.toDateString() === todayStr && ["\u5546\u57CE\u514C\u63DB","\u6230\u9B25\u6D88\u8017","\u7269\u54C1\u6D88\u8017","E","\u6230\u9B25\u52DD\u5229","\u7CFB\u7D71\u6E2C\u8A66","trade","A","B","\u9053\u5177\u88DD\u5099","PvP"].indexOf(rowAction) === -1) state.todayCompleted = true;
+    if (rowDate.toDateString() === todayStr && ["\u5546\u57CE\u514C\u63DB","\u6230\u9B25\u6D88\u8017","\u7269\u54C1\u6D88\u8017","E","\u6230\u9B25\u52DD\u5229","\u7CFB\u7D71\u6E2C\u8A66","trade","A","B","\u9053\u5177\u88DD\u5099","PvP","system"].indexOf(rowAction) === -1) state.todayCompleted = true;
     if (rowAction === "\u6BCF\u65E5\u63D0\u4EA4" && rowDate.toDateString() === todayStr) state.todayTasksDone = true;
-    if (["\u5546\u57CE\u514C\u63DB","\u6230\u9B25\u6D88\u8017","\u7269\u54C1\u6D88\u8017","E","\u7CFB\u7D71\u6E2C\u8A66","trade","\u9053\u5177\u88DD\u5099"].indexOf(rowAction) === -1) submitDates[rowDate.toDateString()] = true;
+    if (["\u5546\u57CE\u514C\u63DB","\u6230\u9B25\u6D88\u8017","\u7269\u54C1\u6D88\u8017","E","\u7CFB\u7D71\u6E2C\u8A66","trade","\u9053\u5177\u88DD\u5099","system"].indexOf(rowAction) === -1) submitDates[rowDate.toDateString()] = true;
     // 親密度: 每日提交全員+1
     if (rowAction === "\u6BCF\u65E5\u63D0\u4EA4" || rowAction === "\u6355\u6349" || rowAction === "A") {
       for (var hid in state.roster) {
@@ -2121,6 +2128,7 @@ var ACHIEVEMENTS = [
 ];
 var ACHIEVEMENT_TIERS = { 1: "初階", 2: "進階", 3: "大師" };
 var globalAchievements = {};
+var MONTH_NAMES = ["一月","二月","三月","四月","五月","六月","七月","八月","九月","十月","十一月","十二月"];
 
 var QUESTS = {
   daily: [
@@ -3691,7 +3699,7 @@ function fleeBattle() {
 function startNextWave() {
   if (!battleState || !battleState.gymWaves) return;
   var nextIdx = battleState.currentWave + 1;
-  if (nextIdx >= battleState.totalWaves) {
+  if (nextIdx >= (battleState.gymWaves||[]).length) {
     if (battleState.isMasters8) { finishMasters8Victory(); return; }
     if (battleState.isLeague) { finishLeagueVictory(); return; }
     finishGymVictory();
@@ -3707,7 +3715,7 @@ function startNextWave() {
   applyEntryAbility(battleState.enemy, battleState.playerPokemon, battleState, abLog);
   var leagueRegion = battleState.leagueRegion || "";
   var titlePrefix = battleState.isLeague ? "🏆 === " + leagueRegion + "聯盟 " : "🌊 === 波次 ";
-  log.push(titlePrefix + (nextIdx + 1) + "/" + battleState.totalWaves + " ===");
+  log.push(titlePrefix + (nextIdx + 1) + "/" + (battleState.gymWaves||[]).length + " ===");
   if (battleState.isLeague) {
     var bName = battleState.enemy.bossName || "";
     var bEmoji = battleState.enemy.bossEmoji || "";
@@ -3722,9 +3730,9 @@ function startNextWave() {
     var bEmoji2 = battleState.enemy.bossEmoji || "🏆";
     var bName2 = battleState.enemy.bossName || "四天王";
     var isChamp = battleState.enemy.isLastWave;
-    $("battleTitle").innerHTML = bEmoji2 + " " + bName2 + " (" + (nextIdx + 1) + "/" + battleState.totalWaves + ")" + (isChamp ? " 👑 冠軍戰！" : "");
+    $("battleTitle").innerHTML = bEmoji2 + " " + bName2 + " (" + (nextIdx + 1) + "/" + (battleState.gymWaves||[]).length + ")" + (isChamp ? " 👑 冠軍戰！" : "");
   } else {
-    $("battleTitle").innerHTML = "🏛️ " + gi.emoji + " " + gi.name + " (波次 " + (nextIdx + 1) + "/" + battleState.totalWaves + ")";
+    $("battleTitle").innerHTML = "🏛️ " + gi.emoji + " " + gi.name + " (波次 " + (nextIdx + 1) + "/" + (battleState.gymWaves||[]).length + ")";
   }
   updateArenaUI();
   var enemyBox = $("enemyPkmnName");
@@ -3819,7 +3827,7 @@ function finishGymVictory() {
     rewardsHtml += "<div style='font-size:14px;color:#27ae60;margin-top:8px;font-weight:700;'>✨ " + levelUpList.join("、") + " 升級了！</div>";
   }
   $("resultRewards").innerHTML = rewardsHtml;
-  var noteContent = "⚔️ 道館勝利 | 館主: " + gi.leader + " (" + gi.name + ") [Gym] | 波次:" + battleState.totalWaves + " | 參與者: " + partyUsed.map(function(p){return p.id;}).join(",");
+  var noteContent = "⚔️ 道館勝利 | 館主: " + gi.leader + " (" + gi.name + ") [Gym] | 波次:" + (battleState.gymWaves||[]).length + " | 參與者: " + partyUsed.map(function(p){return p.id;}).join(",");
   executeSave({ studentId: globalData.studentId, score: 0, action: "戰鬥勝利", expGained: totalExpGain, coinsGained: coinsGain, badgeChange: badgeGain, note: noteContent, extraNote: noteContent, totalScore: 0, user: globalData.studentId }, null, false);
   battleState = null;
   $("resultConfirmBtn").style.display = "block";
@@ -4018,7 +4026,7 @@ function openArenaWithWaves(waveEnemies, gymInfo) {
   battleState = {
     playerPokemon: firstPkmn, playerParty: party, enemy: waveEnemies[0],
     isGym: true, isLeague: false, turnLock: false, battleOver: false, playerWon: false,
-    gymWaves: waveEnemies, currentWave: 0, totalWaves: waveEnemies.length, gymInfo: gymInfo,
+    gymWaves: waveEnemies, currentWave: 0, gymInfo: gymInfo,
     weather: null
   };
   var abilityLog2 = [];
@@ -4523,7 +4531,7 @@ function openArenaMasters8(waveEnemies, m8Info) {
     playerPokemon: firstPkmn, playerParty: party, enemy: waveEnemies[0],
     isGym: false, isLeague: true, isMasters8: true, turnLock: false,
     battleOver: false, playerWon: false,
-    gymWaves: waveEnemies, currentWave: 0, totalWaves: waveEnemies.length,
+    gymWaves: waveEnemies, currentWave: 0,
     gymInfo: { name: m8Info.name, emoji: "👑", leader: m8Info.leader },
     weather: null
   };
@@ -4676,7 +4684,7 @@ function startLegendaryChallenge(legendaryData) {
     playerPokemon: firstPkmn, playerParty: party, enemy: waveEnemies[0],
     isGym: false, isLeague: false, isLegendaryChallenge: true,
     turnLock: false, battleOver: false, playerWon: false,
-    gymWaves: waveEnemies, currentWave: 0, totalWaves: waveEnemies.length,
+    gymWaves: waveEnemies, currentWave: 0,
     gymInfo: { name: "傳說挑戰", emoji: "✨", leader: legendaryData.baseName || "傳說寶可夢" },
     legendaryName: legendaryData.baseName || "傳說寶可夢",
     legendaryId: legendaryData.id,
@@ -4745,7 +4753,7 @@ function finishLegendaryVictory() {
   scheduleStudentFieldUpdate({ roster: globalData.roster, partyIds: globalData.partyIds });
   // 記錄到 Firestore（使用捕捉格式以便 replay 正確重建）
   var d = new Date();
-  var mn = ["","一月","二月","三月","四月","五月","六月","七月","八月","九月","十月","十一月","十二月"][(d.getMonth() + 2) % 12 + 1] || (d.getMonth() + "月");
+  var mn = MONTH_NAMES[d.getMonth()] || (d.getMonth() + 1 + "月");
   var noteContent = "📅 " + mn + " | 捕捉: " + legDisplay + " | Lv." + legLevel + " | ID:" + legId + " | 類型: " + (legData.types ? legData.types[0] : "一般");
   executeSave({ studentId: globalData.studentId, score: 0, action: "捕捉", expGained: expGain, coinsGained: coinsGain, badgeChange: 0, note: noteContent, extraNote: noteContent, totalScore: 0, user: globalData.studentId }, null, false);
   battleState = null;
@@ -4872,7 +4880,7 @@ function openArenaLeague(waveEnemies, leagueInfo) {
   battleState = {
     playerPokemon: firstPkmn, playerParty: party, enemy: waveEnemies[0],
     isGym: false, isLeague: true, turnLock: false, battleOver: false, playerWon: false,
-    gymWaves: waveEnemies, currentWave: 0, totalWaves: waveEnemies.length,
+    gymWaves: waveEnemies, currentWave: 0,
     gymInfo: { name: region + "聯盟", emoji: "🏆", leader: leagueInfo.leader || "四天王" },
     weather: null, leagueRegion: region
   };
@@ -7503,7 +7511,7 @@ async function submitData() {
   try { tasks = JSON.parse($("hiddenTasks").value); } catch(e) { tasks = []; }
   var action = $("hiddenAction").value || "";
   var month = getMonthDiff();
-  var monthName = ["","一月","二月","三月","四月","五月","六月","七月","八月","九月","十月","十一月","十二月"][(month + 2) % 12 + 1] || (month + "月");
+  var monthName = MONTH_NAMES[(month + 2) % 12] || (month + "月");
   var studentId = globalData.studentId;
 
   var hasBoth = $("cb-exercise") && $("cb-exercise").checked && $("cb-sleep") && $("cb-sleep").checked;
@@ -7954,8 +7962,10 @@ async function loadAchievementsFromFirestore(studentId) {
       globalAchievements = {};
       var list = doc.data().achievements;
       for (var i = 0; i < list.length; i++) globalAchievements[list[i]] = true;
+      globalData.achievements = list;
     } else {
       globalAchievements = {};
+      globalData.achievements = [];
     }
   } catch(e) {
     console.error("loadAchievements error:", e);
@@ -7969,7 +7979,8 @@ async function saveAchievementsToFirestore(studentId) {
     for (var key in globalAchievements) {
       if (globalAchievements[key]) list.push(key);
     }
-    scheduleStudentFieldUpdate({ achievements: list });
+    globalData.achievements = list;
+    await db.collection("kpi_students").doc(studentId).set({ achievements: list }, { merge: true });
   } catch(e) {
     console.error("saveAchievements error:", e);
   }
@@ -7978,23 +7989,15 @@ async function saveAchievementsToFirestore(studentId) {
 async function checkAndUnlockAchievements(gd, events, studentId) {
   if (!gd || !studentId) return;
   var newlyUnlocked = [];
-  var removedIds = [];
   for (var i = 0; i < ACHIEVEMENTS.length; i++) {
     var ach = ACHIEVEMENTS[i];
     if (globalAchievements[ach.id]) {
-      if (!checkAchievement(ach, gd, events)) {
-        delete globalAchievements[ach.id];
-        removedIds.push(ach.id);
-      }
       continue;
     }
     if (checkAchievement(ach, gd, events)) {
       globalAchievements[ach.id] = true;
       newlyUnlocked.push(ach);
     }
-  }
-  if (removedIds.length > 0) {
-    await saveAchievementsToFirestore(studentId);
   }
   if (newlyUnlocked.length > 0) {
     await saveAchievementsToFirestore(studentId);
@@ -8439,7 +8442,7 @@ async function claimQuestReward(period, questId, rewardExp, rewardCoins) {
   // Create reward event
   var now = new Date();
   var month = getMonthDiff();
-  var monthName = ["","一月","二月","三月","四月","五月","六月","七月","八月","九月","十月","十一月","十二月"][(month + 2) % 12 + 1] || (month + "月");
+  var monthName = MONTH_NAMES[(month + 2) % 12] || (month + "月");
   var questName = "";
   var periodList = QUESTS[period] || [];
   for (var i = 0; i < periodList.length; i++) { if (periodList[i].id === questId) { questName = periodList[i].name; break; } }

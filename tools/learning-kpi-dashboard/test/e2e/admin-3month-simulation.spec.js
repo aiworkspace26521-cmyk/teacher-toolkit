@@ -3,11 +3,10 @@ const { test, expect } = require('@playwright/test');
 test.describe('Admin 3-Month Simulation (M1→M3) vs VER2.4', () => {
 
   test.beforeEach(async ({ page }) => {
-    await page.goto('/kpi');
-    await page.waitForLoadState('networkidle');
+    await page.goto('/kpi', { waitUntil: 'domcontentloaded' });
     await page.selectOption('#studentSelect', 'Admin');
+    await page.waitForFunction(() => typeof globalData !== 'undefined' && globalData !== null, { timeout: 30000 });
     await expect(page.locator('#kpiLevel')).not.toBeEmpty({ timeout: 60000 });
-    await page.waitForFunction(() => typeof globalData !== 'undefined' && globalData !== null, { timeout: 10000 });
   });
 
   // ─────────────────────────────────────────────

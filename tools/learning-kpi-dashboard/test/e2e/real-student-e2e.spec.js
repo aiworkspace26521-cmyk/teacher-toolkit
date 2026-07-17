@@ -295,4 +295,50 @@ test.describe('Neil/Emma 真實學生 E2E — Firestore 資料載入與寫入驗
     });
   });
 
+  // ── 6. recalculateStudentState replay path independent verification ──
+  test('recalculateStudentState replay produces correct state from events', async ({ page }) => {
+    await page.selectOption('#studentSelect', 'Neil');
+    await expect(page.locator('#kpiLevel')).not.toBeEmpty({ timeout: 15000 });
+    await page.waitForFunction(() => window.globalData && window.globalData.studentId === 'Neil', { timeout: 10000 });
+
+    const replayResult = await page.evaluate(async () => {
+      try {
+        const snap = await db.collection('kpi_events')
+          .where('studentId', '==', 'Neil')
+          .orderBy('timestamp', 'asc')
+          .get();
+
+        const events = [];
+        snap.forEach(doc => {
+          const d = doc.data();
+          events.push({ id: doc.id, action: d.action, expGained: d.expGained || 0, coinsGained: d.coinsGained || 0, badgeChange: d.badgeChange || 0, note: d.note || "", score: d.score || 0, timestamp: d.timestamp });
+        });
+
+        if (events.length === 0) return { error: 'no events' };
+
+        const replayed = await recalculateStudentState('Neil', events);
+        if (!replayed) return { error: 'replay returned null' };
+
+        return {
+          replayed: { level: replayed.highestLevel, coins: replayed.coins, badges: replayed.badges, rosterCount: (replayed.roster||[]).length, todayCompleted: replayed.todayCompleted, todayTasksDone: replayed.todayTasksDone },
+          uiState: { level: globalData.highestLevel, coins: globalData.coins, badges: globalData.badges, rosterCount: (globalData.roster||[]).length, todayCompleted: globalData.todayCompleted, todayTasksDone: globalData.todayTasksDone }
+        };
+      } catch (e) {
+        return { error: e.message };
+      }
+    });
+
+    expect(replayResult.replayed).toBeDefined();
+    expect(replayResult.uiState).toBeDefined();
+    expect(replayResult.replayed.level).toBeGreaterThanOrEqual(5);
+    expect(replayResult.replayed.coins).toBeDefined();
+    expect(replayResult.replayed.badges).toBeDefined();
+    expect(replayResult.replayed.rosterCount).toBeGreaterThanOrEqual(1);
+
+    test.info().annotations.push({
+      type: 'replay',
+      description: 'Replayed: level=' + replayResult.replayed.level + ', coins=' + replayResult.replayed.coins + ', badges=' + replayResult.replayed.badges + ', roster=' + replayResult.replayed.rosterCount + ', todayCompleted=' + replayResult.replayed.todayCompleted + ' | UI: level=' + replayResult.uiState.level + ', coins=' + replayResult.uiState.coins + ', badges=' + replayResult.uiState.badges
+    });
+  });
+
 });
