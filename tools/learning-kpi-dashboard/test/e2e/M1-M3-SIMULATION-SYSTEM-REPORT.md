@@ -2,11 +2,12 @@
 
 ## 報告資訊
 
-- **建構日期**：2026-07-14
-- **主要檔案**：`test/e2e/monthly-simulation-m1-m3.spec.js`
+- **建構日期**：2026-07-14（最後更新：2026-07-17）
+- **主要檔案**：`test/e2e/monthly-simulation-m1-m3.spec.js`, `test/e2e/real-student-e2e.spec.js`
 - **相關輔助檔案**：`test/e2e/admin-3month-simulation.spec.js`, `test/e2e/gym-league.spec.js`
 - **測試目標**：`frontend/kpi-dashboard.html`
 - **執行方式**：`npx playwright test tools/learning-kpi-dashboard/test/e2e/monthly-simulation-m1-m3.spec.js`
+- **真實 Firestore 帳號測試**：`npx playwright test tools/learning-kpi-dashboard/test/e2e/real-student-e2e.spec.js`
 
 ---
 
@@ -37,6 +38,7 @@
 ```
 test/e2e/
 ├── monthly-simulation-m1-m3.spec.js   ← 本系統核心（4 個測試）
+├── real-student-e2e.spec.js           ← 真實 Firestore 帳號載入與寫入驗證（5 個測試）
 ├── admin-3month-simulation.spec.js    ← 先前的輕量級邏輯驗證（9 個測試）
 ├── gym-league.spec.js                 ← 道館/聯盟單元測試（12 個測試）
 └── ...其他單元測試
@@ -49,7 +51,8 @@ test/e2e/
 | 核心模擬 Test 1~4 | 4 | 完整 M1→M3、等級成長、閘門、跳級防護 |
 | UI 點擊驗證 | 2 | 按鈕點擊開啟 Modal、閘門阻擋 |
 | 多寶 EXP | 1 | 先鋒 120% / 留守 50% |
-| Firestore 寫入 | 1 | 事件溯源 executeSave/scheduleStudentFieldUpdate |
+| Firestore 寫入（模擬） | 1 | 事件溯源 executeSave/scheduleStudentFieldUpdate |
+| **真實 Firestore E2E** | **5** | Neil/Emma 真實帳號載入、切換、寫入、recalculate 一致性 |
 | 衛冕挑戰 | 2 | checkDefenseChallenge 回歸、triggerDefenseChallenge Modal |
 | 冠軍披風 EXP | 2 | calcGymExp ×1.5、calcLeagueExp ×1.5 |
 | W2 加成 | 1 | 道館加成週 EXP ×1.5 |
@@ -92,7 +95,46 @@ M3 W4: [每日提交] → Gym 12 (米可利) → 豐緣聯盟 → 八大師·艾
 
 驗證 `getNextE4Challenge()` 和 `getUnlockedMasters8()` 的循序解鎖邏輯。
 
-### 2.5 傳說挑戰系統測試說明（2026-07-15 新增）
+### 2.5 真實 Firestore 帳號 E2E 測試說明（2026-07-17 新增）
+
+位於 `test/e2e/real-student-e2e.spec.js`，透過 `page.evaluate()` 操作頁面內 Firebase SDK 直接讀寫 Firestore，驗證真實學生帳號（Neil/Emma）的資料載入與寫入持久化。
+
+#### Test 1：Neil Firestore 資料正確載入至前端
+
+讀取 Firestore `kpi_students/Neil` 與 `kpi_events` 集合，驗證：
+- 預期欄位存在：`highestLevel`、`coins`、`badges`、`roster`、`todayCompleted`
+- 資料型別正確（roster 為陣列、badges 為整數或陣列等）
+- UI 顯示的學生名稱、等級、EXP、徽章數與 Firestore 一致
+- 前端 `window.globalData` 與 Firestore 儲存資料吻合
+
+#### Test 2：Emma Firestore 資料正確載入至前端
+
+與 Test 1 相同流程但切換至 Emma 帳號，驗證不同學生的隔離性。
+
+#### Test 3：Neil → Emma 切換後顯示正確
+
+- 先載入 Neil，擷取其 UI 數值（等級、EXP、徽章）
+- 切換至 Emma，確認顯示 Emma 的資料
+- 再次切回 Neil，確認顯示 Neil 的資料
+- **驗證要點**：無快取污染，每次切換皆反映正確的 Firestore 資料
+
+#### Test 4：Neil Firestore 寫入驗證
+
+雙路徑策略避免干擾真實資料：
+- **若 `todayCompleted = true`**（Neil 已提交）：僅驗證 Firestore 既有資料結構與 UI 一致性，不執行寫入
+- **若 `todayCompleted = false`**：執行 `submitData()` → 驗證 Firestore `kpi_events` 事件數增加 → `todayCompleted` 變為 true → 驗證 EXP 增加
+
+**驗證點**：事件數遞增、`studentId` 正確、`action` 為 `"每日提交"`、`todayCompleted` 狀態切換
+
+#### Test 5：Neil recalculateStudentState 與 Firestore 事件一致
+
+讀取所有 `kpi_events` 事件（依 `studentId='Neil'` 過濾），透過 `recalculateStudentState()` 重新計算，驗證：
+- `recalculated.highestLevel === firestoreData.highestLevel`
+- `recalculated.totalExp === firestoreData.totalExp`（在合理誤差範圍內）
+- roster 中每隻寶可夢的欄位型別正確
+- **證明**：事件溯源能在前端正確重建學生狀態，無須依賴 Firestore 快取欄位
+
+### 2.6 傳說挑戰系統測試說明（2026-07-15 新增）
 
 #### Test 5：八大師勝利觸發 pendingLegendary
 
@@ -187,7 +229,7 @@ expGain = score × 10  （score 預設 80）
 
 ### 當前限制
 
-1. **無真實 Firestore 寫入**：`executeSave` 被覆寫為空函數，事件溯源路徑未經測試
+1. ✅ **已部分解決 — 真實 Firestore 寫入**：`real-student-e2e.spec.js` 已透過 `page.evaluate()` 操作頁面內 Firebase SDK（`db.collection()`）對真實 Neil/Emma 帳號進行讀寫驗證。惟 submitData 寫入僅在帳號未提交時執行（雙路徑保護）。模擬測試的 `executeSave` 仍維持覆寫為空函數。
 2. **無 UI 點擊**：所有戰鬥透過 `page.evaluate()` 直接呼叫 JS 函數，未測試按鈕點擊流程
 3. **單一寶可夢**：模擬僅使用初始伊布（P0），未測試隊伍切換/多寵 EXP 分配
 4. **無隨機性控制**：`generateGymWaves` 等函數包含隨機成分（寶可夢選擇、等級浮動），每次執行結果略有不同
@@ -253,10 +295,16 @@ expGain = score × 10  （score 預設 80）
 `EXPECTED_LEVEL` 陣列（`kpi-dashboard.html:874`）定義了每個徽章數的預期等級。
 模擬測試中 Test 1 的 assertion `expect(result.final.level).toBeGreaterThanOrEqual(46)` 直接引用 `EXPECTED_LEVEL[11]`，變更時無需手動更新。
 
-### 執行全部測試
+### 執行測試
 
 ```powershell
+# 執行 M1→M3 模擬（核心 17 項）
 npx playwright test tools/learning-kpi-dashboard/test/e2e/monthly-simulation-m1-m3.spec.js
+
+# 執行真實 Firestore 帳號 E2E（5 項）
+npx playwright test tools/learning-kpi-dashboard/test/e2e/real-student-e2e.spec.js
+
+# 執行全部測試（176 項）
 npx playwright test tools/learning-kpi-dashboard/test/e2e/
 ```
 
@@ -289,4 +337,4 @@ M3: 117,208 → 193,225 EXP（Lv.53）
 
 ---
 
-*本報告由 Claude 於 2026-07-14 自動生成，作為 teacher-toolkit 專案中學習 KPI 管理工具的 M1→M3 測試系統技術交接文件。*
+*本報告由 Claude 於 2026-07-14 自動生成，2026-07-17 新增真實 Firestore 帳號 E2E 測試章節，作為 teacher-toolkit 專案中學習 KPI 管理工具的測試系統技術交接文件。*
