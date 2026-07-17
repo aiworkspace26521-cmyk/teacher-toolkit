@@ -838,7 +838,7 @@ function recalculateState(studentId, events) {
     hasRockyHelmet: false, hasWeaknessPolicy: false,
     oranBerries: 0, cheriBerries: 0, lumBerries: 0, chilanBerries: 0,
     tms: {},
-    todayCompleted: false,
+    todayStatus: "PENDING",
     daysSinceLastBadge: 0,
     lastBadgeTime: null,
     firstLogTime: null,
@@ -879,7 +879,7 @@ function recalculateState(studentId, events) {
 
     if (rowDate.toDateString() === todayStr &&
         !['商城兌換', '戰鬥消耗', '物品消耗', 'E', '戰鬥勝利', '系統測試', 'trade', 'PvP'].includes(rowAction)) {
-      state.todayCompleted = true;
+      state.todayStatus = "ACTIVE";
     }
 
     // Happiness: daily submit/capture/A => all +1
@@ -1087,7 +1087,7 @@ function recalculateState(studentId, events) {
     lumBerries: state.lumBerries || 0,
     chilanBerries: state.chilanBerries || 0,
     tms: state.tms || {},
-    todayCompleted: state.todayCompleted,
+    todayStatus: state.todayStatus,
     daysSinceLastBadge: state.daysSinceLastBadge,
     roster: rosterArray,
     todayBattles: state.todayBattles,

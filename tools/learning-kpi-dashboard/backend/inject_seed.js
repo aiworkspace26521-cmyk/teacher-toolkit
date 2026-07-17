@@ -106,7 +106,7 @@ async function main() {
     hasWeaknessPolicy: false,
     oranBerries: 10, cheriBerries: 3,
     lumBerries: 2, chilanBerries: 2,
-    todayCompleted: false, todayBattles: 0,
+    todayStatus: "PENDING", todayBattles: 0,
     weekGymWins: 0, monthLeagueWins: 0,
     submitStreak: 3, daysSinceLastBadge: 3,
     simpleMode: false, leagueRegionsWon: {},

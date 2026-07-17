@@ -255,7 +255,7 @@ async function recalculateStudentState(studentId) {
     hasEviolite: false, hasChampionCloak: false, hasAmuletCoin: false,
     hasQuickClaw: false, hasFocusLens: false, hasShellBell: false, hasLifeOrb: false, hasAssaultVest: false,
     電擊盒: false, 岩漿盒: false, '龍之鱗片': false, 護具: false, 金屬膜: false, '王者之證': false,
-    todayCompleted: false,
+    todayStatus: "PENDING",
     daysSinceLastBadge: 0,
     lastBadgeTime: null,
     firstLogTime: null,
@@ -309,7 +309,7 @@ async function recalculateStudentState(studentId) {
 
     if (rowDate.toDateString() === todayStr &&
         !['商城兌換', '戰鬥消耗', '物品消耗', 'E', '戰鬥勝利', '系統測試', 'trade', 'A', 'B', '道具裝備', 'PvP', 'system'].includes(rowAction)) {
-      state.todayCompleted = true;
+      state.todayStatus = "ACTIVE";
     }
 
     // 親密度統計
@@ -561,7 +561,7 @@ async function recalculateStudentState(studentId) {
     '護具': state.護具 || false,
     '金屬膜': state.金屬膜 || false,
     '王者之證': state['王者之證'] || false,
-    todayCompleted: state.todayCompleted,
+    todayStatus: state.todayStatus,
     daysSinceLastBadge: state.daysSinceLastBadge,
     roster: rosterArray,
     todayBattles: state.todayBattles,

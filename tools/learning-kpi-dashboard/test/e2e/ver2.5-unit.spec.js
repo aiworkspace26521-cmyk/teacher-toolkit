@@ -185,7 +185,7 @@ test.describe('VER2.5 單元測試 — 輔助函式與核心邏輯', () => {
   // IT7: Buffer period "最後機會" prompt
   test('IT7 buffer period shows last chance warning', async ({ page }) => {
     const result = await page.evaluate(() => {
-      globalData = { badges: 4, todayCompleted: false, leagueRegionsWon: {} };
+      globalData = { badges: 4, todayStatus: "PENDING", leagueRegionsWon: {} };
       var OrigDate = Date;
       Date = function() { return new OrigDate(2026, 5, 5); };
       Date.now = function() { return new OrigDate(2026, 5, 5).getTime(); };

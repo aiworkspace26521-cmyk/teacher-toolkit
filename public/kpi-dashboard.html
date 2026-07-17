@@ -927,7 +927,7 @@ async function recalculateStudentState(studentId, events) {
     hasFocusSash: false, hasEjectButton: false, hasRockyHelmet: false, hasWeaknessPolicy: false,
     oranBerries: 0, cheriBerries: 0, lumBerries: 0, chilanBerries: 0,
     tms: {},
-    todayCompleted: false, todayTasksDone: false, daysSinceLastBadge: 0, simpleMode: false,
+    todayStatus: "PENDING", daysSinceLastBadge: 0, simpleMode: false,
     lastBadgeTime: null, firstLogTime: null,
     todayBattles: 0, weekGymWins: 0, weekBossWins: 0, monthLeagueWins: 0,
     happiness: {}, leagueRegionsWon: {}, masters8Completed: [], masters8Progress: [],
@@ -953,8 +953,8 @@ async function recalculateStudentState(studentId, events) {
     state.badges += badgeChange;
     if (badgeChange > 0) state.lastBadgeTime = rowDate.getTime();
     state.coins += coinsGained;
-    if (rowDate.toDateString() === todayStr && ["\u5546\u57CE\u514C\u63DB","\u6230\u9B25\u6D88\u8017","\u7269\u54C1\u6D88\u8017","E","\u6230\u9B25\u52DD\u5229","\u7CFB\u7D71\u6E2C\u8A66","trade","A","B","\u9053\u5177\u88DD\u5099","PvP","system"].indexOf(rowAction) === -1) state.todayCompleted = true;
-    if (rowAction === "\u6BCF\u65E5\u63D0\u4EA4" && rowDate.toDateString() === todayStr) state.todayTasksDone = true;
+    if (rowDate.toDateString() === todayStr && ["\u5546\u57CE\u514C\u63DB","\u6230\u9B25\u6D88\u8017","\u7269\u54C1\u6D88\u8017","E","\u6230\u9B25\u52DD\u5229","\u7CFB\u7D71\u6E2C\u8A66","trade","A","B","\u9053\u5177\u88DD\u5099","PvP","system"].indexOf(rowAction) === -1) state.todayStatus = "ACTIVE";
+    if (rowAction === "\u6BCF\u65E5\u63D0\u4EA4" && rowDate.toDateString() === todayStr) state.todayStatus = "SUBMITTED";
     if (["\u5546\u57CE\u514C\u63DB","\u6230\u9B25\u6D88\u8017","\u7269\u54C1\u6D88\u8017","E","\u7CFB\u7D71\u6E2C\u8A66","trade","\u9053\u5177\u88DD\u5099","system"].indexOf(rowAction) === -1) submitDates[rowDate.toDateString()] = true;
     // 親密度: 每日提交全員+1
     if (rowAction === "\u6BCF\u65E5\u63D0\u4EA4" || rowAction === "\u6355\u6349" || rowAction === "A") {
@@ -1157,7 +1157,7 @@ async function recalculateStudentState(studentId, events) {
   var totalSubmitDays = Object.keys(submitDates).length;
   if (totalSubmitDays >= 60) state.badges += 5;
   else if (totalSubmitDays >= 30) state.badges += 2;
-  return { studentId: state.studentId, highestLevel: finalHighestLevel, lockedGymLevel: state.lockedGymLevel, coins: state.coins, badges: state.badges, potions: state.potions, revives: state.revives, candies: state.candies, maxPotions: state.maxPotions, maxRevives: state.maxRevives, expSharePurchased: state.expSharePurchased, hasExpertBelt: state.hasExpertBelt, hasEviolite: state.hasEviolite, hasChampionCloak: state.hasChampionCloak, hasAmuletCoin: state.hasAmuletCoin, hasQuickClaw: state.hasQuickClaw, hasFocusLens: state.hasFocusLens, hasShellBell: state.hasShellBell, hasLifeOrb: state.hasLifeOrb, hasAssaultVest: state.hasAssaultVest, oranBerries: state.oranBerries||0, cheriBerries: state.cheriBerries||0, lumBerries: state.lumBerries||0, chilanBerries: state.chilanBerries||0, hasFocusSash: state.hasFocusSash||false, hasEjectButton: state.hasEjectButton||false, hasRockyHelmet: state.hasRockyHelmet||false, hasWeaknessPolicy: state.hasWeaknessPolicy||false, tms: state.tms||{}, todayCompleted: state.todayCompleted, todayTasksDone: state.todayTasksDone, daysSinceLastBadge: state.daysSinceLastBadge, roster: rosterArray, todayBattles: state.todayBattles, weekGymWins: state.weekGymWins, weekBossWins: state.weekBossWins, monthLeagueWins: state.monthLeagueWins, submitStreak: submitStreak, simpleMode: state.simpleMode || false, leagueRegionsWon: state.leagueRegionsWon || {}, masters8Completed: state.masters8Completed || [], masters8Progress: state.masters8Progress || [] };
+  return { studentId: state.studentId, highestLevel: finalHighestLevel, lockedGymLevel: state.lockedGymLevel, coins: state.coins, badges: state.badges, potions: state.potions, revives: state.revives, candies: state.candies, maxPotions: state.maxPotions, maxRevives: state.maxRevives, expSharePurchased: state.expSharePurchased, hasExpertBelt: state.hasExpertBelt, hasEviolite: state.hasEviolite, hasChampionCloak: state.hasChampionCloak, hasAmuletCoin: state.hasAmuletCoin, hasQuickClaw: state.hasQuickClaw, hasFocusLens: state.hasFocusLens, hasShellBell: state.hasShellBell, hasLifeOrb: state.hasLifeOrb, hasAssaultVest: state.hasAssaultVest, oranBerries: state.oranBerries||0, cheriBerries: state.cheriBerries||0, lumBerries: state.lumBerries||0, chilanBerries: state.chilanBerries||0, hasFocusSash: state.hasFocusSash||false, hasEjectButton: state.hasEjectButton||false, hasRockyHelmet: state.hasRockyHelmet||false, hasWeaknessPolicy: state.hasWeaknessPolicy||false, tms: state.tms||{}, todayStatus: state.todayStatus, daysSinceLastBadge: state.daysSinceLastBadge, roster: rosterArray, todayBattles: state.todayBattles, weekGymWins: state.weekGymWins, weekBossWins: state.weekBossWins, monthLeagueWins: state.monthLeagueWins, submitStreak: submitStreak, simpleMode: state.simpleMode || false, leagueRegionsWon: state.leagueRegionsWon || {}, masters8Completed: state.masters8Completed || [], masters8Progress: state.masters8Progress || [] };
 }
 
 function showSkeletonDashboard() {
@@ -1193,6 +1193,10 @@ async function fetchStudentData(studentId, pendingEvent) {
         var cached = JSON.parse(cachedRaw);
         if (cached && cached.globalData) {
           globalData = cached.globalData;
+          if (!cached.cachedAt || new Date(cached.cachedAt).toDateString() !== new Date().toDateString()) {
+            globalData.todayStatus = "PENDING";
+            globalData.todayBattles = 0;
+          }
           if (cached.achievements) { globalAchievements = {}; for (var ac = 0; ac < cached.achievements.length; ac++) globalAchievements[cached.achievements[ac]] = true; }
           if (cached.questProgress) globalQuestProgress = cached.questProgress;
           hideSkeleton(); updateDashboard(); renderActions(); updateBattleButtons(); renderQuests(); updateTradeBadge();
@@ -1200,7 +1204,7 @@ async function fetchStudentData(studentId, pendingEvent) {
             var ta = $("task-container"); if (ta) ta.style.display = "block";
             var sb = $("strategyBox"); if (sb) sb.style.display = "block";
           }
-          if (globalData.todayTasksDone) { btn.innerHTML = "\u2705 Done"; btn.disabled = true; document.querySelectorAll(".task-cb, input[name=\"actionType\"]").forEach(function(el){ el.checked = false; el.disabled = true; }); document.querySelectorAll(".action-option").forEach(function(el){ el.classList.remove("selected"); }); $("previewBox").innerHTML = "\u{1F31F} Today done!"; }
+          if (globalData.todayStatus === "SUBMITTED") { btn.innerHTML = "\u2705 Done"; btn.disabled = true; document.querySelectorAll(".task-cb, input[name=\"actionType\"]").forEach(function(el){ el.checked = false; el.disabled = true; }); document.querySelectorAll(".action-option").forEach(function(el){ el.classList.remove("selected"); }); $("previewBox").innerHTML = "\u{1F31F} Today done!"; }
           else { btn.disabled = false; btn.textContent = "\u{1F680} Submit"; document.querySelectorAll(".task-cb, input[name=\"actionType\"]").forEach(function(el){ el.checked = false; el.disabled = false; }); document.querySelectorAll(".action-option").forEach(function(el){ el.classList.remove("selected"); }); }
           cacheLoaded = true;
         }
@@ -1218,7 +1222,7 @@ async function fetchStudentData(studentId, pendingEvent) {
       delete refreshed.achievements;
       await db.collection("kpi_students").doc(studentId).set(refreshed, { merge: true });
     } else {
-      globalData = { studentId: studentId, roster: [], highestLevel: 5, lockedGymLevel: 5, coins: 0, badges: 0, potions: 0, revives: 0, candies: 0, maxPotions: 0, maxRevives: 0, expSharePurchased: false, hasExpertBelt: false, hasEviolite: false, hasChampionCloak: false, hasAmuletCoin: false, oranBerries: 0, cheriBerries: 0, lumBerries: 0, chilanBerries: 0, hasFocusSash: false, hasEjectButton: false, hasRockyHelmet: false, hasWeaknessPolicy: false, tms: {}, pokemonTMs: {}, todayCompleted: false, todayTasksDone: false, todayBattles: 0, weekGymWins: 0, weekBossWins: 0, monthLeagueWins: 0, leagueRegionsWon: {}, masters8Completed: [], masters8Progress: [], "\u96FB\u6483\u76D2": false, "\u5E95\u6F3E\u76D2": false, "\u9F8D\u4E4B\u9C5A\u7247": false, "\u8B77\u5177": false, "\u91D1\u5C6C\u819C": false, "\u738B\u8005\u4E4B\u8B49": false };
+      globalData = { studentId: studentId, roster: [], highestLevel: 5, lockedGymLevel: 5, coins: 0, badges: 0, potions: 0, revives: 0, candies: 0, maxPotions: 0, maxRevives: 0, expSharePurchased: false, hasExpertBelt: false, hasEviolite: false, hasChampionCloak: false, hasAmuletCoin: false, oranBerries: 0, cheriBerries: 0, lumBerries: 0, chilanBerries: 0, hasFocusSash: false, hasEjectButton: false, hasRockyHelmet: false, hasWeaknessPolicy: false, tms: {}, pokemonTMs: {}, todayStatus: "PENDING", todayBattles: 0, weekGymWins: 0, weekBossWins: 0, monthLeagueWins: 0, leagueRegionsWon: {}, masters8Completed: [], masters8Progress: [], "\u96FB\u6483\u76D2": false, "\u5E95\u6F3E\u76D2": false, "\u9F8D\u4E4B\u9C5A\u7247": false, "\u8B77\u5177": false, "\u91D1\u5C6C\u819C": false, "\u738B\u8005\u4E4B\u8B49": false };
     }
     // Restore TM data from Firestore doc
     try {
@@ -1236,6 +1240,7 @@ async function fetchStudentData(studentId, pendingEvent) {
       }
     } catch(e) { console.warn("Failed to restore TM data:", e); }
     await loadAchievementsFromFirestore(studentId);
+    revalidateAllAchievements(globalData, events);
     if (globalData.monthLeagueWins > 0 && globalData.leagueRegionsWon) {
       var monthKey = getCurrentMonthKey();
       for (var rn in globalData.leagueRegionsWon) {
@@ -1269,17 +1274,17 @@ async function fetchStudentData(studentId, pendingEvent) {
     saveQuestsToFirestore(studentId, globalQuestProgress);
     renderQuests();
     updateTradeBadge();
-    if (globalData.todayTasksDone) { btn.innerHTML = "\u2705 Done"; btn.disabled = true; document.querySelectorAll(".task-cb, input[name=\"actionType\"]").forEach(function(el){ el.checked = false; el.disabled = true; }); document.querySelectorAll(".action-option").forEach(function(el){ el.classList.remove("selected"); }); $("previewBox").innerHTML = "\u{1F31F} Today done!"; }
+    if (globalData.todayStatus === "SUBMITTED") { btn.innerHTML = "\u2705 Done"; btn.disabled = true; document.querySelectorAll(".task-cb, input[name=\"actionType\"]").forEach(function(el){ el.checked = false; el.disabled = true; }); document.querySelectorAll(".action-option").forEach(function(el){ el.classList.remove("selected"); }); $("previewBox").innerHTML = "\u{1F31F} Today done!"; }
     else { btn.disabled = false; btn.textContent = "\u{1F680} Submit"; document.querySelectorAll(".task-cb, input[name=\"actionType\"]").forEach(function(el){ el.checked = false; el.disabled = false; }); document.querySelectorAll(".action-option").forEach(function(el){ el.classList.remove("selected"); }); }
     var ev = globalData.roster.find(function(p){ return p.id === "P0" && p.baseName.indexOf("\u4F0A\u5E03") !== -1; });
-    if (ev && ev.currentLevel >= 16 && !globalData.todayTasksDone && ev.baseName === "\u{1F43E} \u4F0A\u5E03 (\u4E00\u822C\u7CFB)") $("eeveeModal").style.display = "flex";
+    if (ev && ev.currentLevel >= 16 && globalData.todayStatus !== "SUBMITTED" && ev.baseName === "\u{1F43E} \u4F0A\u5E03 (\u4E00\u822C\u7CFB)") $("eeveeModal").style.display = "flex";
     // P4-5b: Write to sessionStorage cache
     try {
-      var cachePayload = { globalData: globalData, achievements: [], questProgress: globalQuestProgress };
+      var cachePayload = { globalData: globalData, achievements: [], questProgress: globalQuestProgress, cachedAt: Date.now() };
       for (var ak2 in globalAchievements) { if (globalAchievements[ak2]) cachePayload.achievements.push(ak2); }
       sessionStorage.setItem("kpi_cache_" + studentId, JSON.stringify(cachePayload));
     } catch(e) { /* cache full, ignore */ }
-  } catch (e) { console.error("fetchStudentData error:", e); if (!cacheLoaded) { hideSkeleton(); toast("Error: " + e.message); btn.textContent = "Failed"; btn.disabled = false; } else { toast("Background refresh failed, using cached data"); btn.disabled = false; btn.textContent = globalData && globalData.todayTasksDone ? "\u2705 Done" : "\u{1F680} Submit"; } }
+  } catch (e) { console.error("fetchStudentData error:", e); if (!cacheLoaded) { hideSkeleton(); toast("Error: " + e.message); btn.textContent = "Failed"; btn.disabled = false; } else { toast("Background refresh failed, using cached data"); btn.disabled = false; btn.textContent = globalData && globalData.todayStatus === "SUBMITTED" ? "\u2705 Done" : "\u{1F680} Submit"; } }
   _dataLoading = false;
 }
 
@@ -3924,14 +3929,20 @@ function endBattle(playerWon) {
     // Save to Firestore (async, no callback dependency)
     var noteContent = "⚔️ 戰鬥勝利 | 對手: " + battleState.enemy.name + (defRegion ? " [Defense" + defRegion + "]" : battleState.isGym ? " [Gym]" : battleState.isWeeklyBoss ? " [Boss]" : " [路人]") + " | 參與者: " + partyUsed.map(function(p){return p.id;}).join(",") + defMsg;
     executeSave({ studentId: globalData.studentId, score: 0, action: "戰鬥勝利", expGained: totalExpGain, coinsGained: coinsGain, badgeChange: badgeGain, note: noteContent, extraNote: noteContent, totalScore: 0, user: globalData.studentId }, null, false);
+    if (pendingLegendary && pendingLegendary.source === "submit") {
+      globalData.todayStatus = "SUBMITTED";
+      scheduleStudentFieldUpdate({ todayStatus: "SUBMITTED" });
+      try { var cp = { globalData: globalData, achievements: [], questProgress: globalQuestProgress, cachedAt: Date.now() }; for (var ak in globalAchievements) { if (globalAchievements[ak]) cp.achievements.push(ak); } sessionStorage.setItem("kpi_cache_" + globalData.studentId, JSON.stringify(cp)); } catch(e) {}
+    }
   } else {
     if (battleState.isLegendaryChallenge) {
       var legName = battleState.legendaryName || "傳說寶可夢";
       $("resultMessage").innerHTML = "💀 " + legName + " 逃走了... 下次再挑戰！";
       $("resultRewards").innerHTML = "";
       if (pendingLegendary && pendingLegendary.source === "submit") {
-        globalData.todayCompleted = true;
-        scheduleStudentFieldUpdate({ todayCompleted: true });
+        globalData.todayStatus = "SUBMITTED";
+        scheduleStudentFieldUpdate({ todayStatus: "SUBMITTED" });
+        try { var cp = { globalData: globalData, achievements: [], questProgress: globalQuestProgress, cachedAt: Date.now() }; for (var ak in globalAchievements) { if (globalAchievements[ak]) cp.achievements.push(ak); } sessionStorage.setItem("kpi_cache_" + globalData.studentId, JSON.stringify(cp)); } catch(e) {}
       }
       pendingLegendary = null;
       $("resultConfirmBtn").textContent = "✅ 確認";
@@ -4297,7 +4308,7 @@ function updateBattleButtons() {
     var weekType = getWeekType();
     var isW4 = weekType === "W4";
     var isBuffer = isBufferPeriod();
-    var todayOk = globalData.todayTasksDone === true;
+    var todayOk = globalData.todayStatus === "SUBMITTED";
     var nextMasters8 = getUnlockedMasters8();
     if (nextMasters8 && (isW4 || isBuffer) && todayOk) {
       m8Btn.style.display = "inline-block";
@@ -4381,7 +4392,7 @@ function generateGymWaves(trainerLevel) {
 
 function startBattle(isGym, isLeague) {
   if (!globalData || typeof globalData.highestLevel === "undefined") return;
-  if (!globalData.todayTasksDone) { toast("請先完成今日學習任務！"); return; }
+  if (globalData.todayStatus !== "SUBMITTED") { toast("請先完成今日學習任務！"); return; }
   var battlesToday = globalData.todayBattles || 0;
   if (battlesToday >= 5) { toast("今日路人戰次數已用盡！"); return; }
   if (isGym && (globalData.weekGymWins || 0) >= 1) { toast("本週道館已通關！每週限挑戰 1 次"); return; }
@@ -4496,7 +4507,7 @@ function generateMasters8Battle(trainerLevel, mastersMember) {
 
 function startMasters8Battle() {
   if (!globalData || typeof globalData.highestLevel === "undefined") return;
-  if (!globalData.todayTasksDone) { toast("請先完成今日學習任務！"); return; }
+  if (globalData.todayStatus !== "SUBMITTED") { toast("請先完成今日學習任務！"); return; }
   if (!isBossWeek() && !isBufferPeriod()) { toast("八大師挑戰僅在 Boss 週或緩衝期開放！"); return; }
   var mastersMember = getUnlockedMasters8();
   if (!mastersMember) { toast("尚無可挑戰的八大師！需要先通關對應地區聯盟"); return; }
@@ -4821,7 +4832,7 @@ function finishLeagueVictory() {
 
 function startLeagueBattle(region) {
   if (!globalData || typeof globalData.highestLevel === "undefined") return;
-  if (!globalData.todayTasksDone) { toast("請先完成今日學習任務！"); return; }
+  if (globalData.todayStatus !== "SUBMITTED") { toast("請先完成今日學習任務！"); return; }
   region = region || currentRegion;
   var leagueData = getLeagueData(region);
   var badges = globalData.badges || 0;
@@ -4847,7 +4858,7 @@ function startLeagueBattle(region) {
 }
 function promptE4Challenge() {
   if (!isBossWeek() && !isBufferPeriod()) { toast("四天王挑戰僅在 Boss 週或緩衝期開放！"); return; }
-  if (!globalData || !globalData.todayTasksDone) { toast("請先完成今日學習任務！"); return; }
+  if (!globalData || globalData.todayStatus !== "SUBMITTED") { toast("請先完成今日學習任務！"); return; }
   var badges = globalData.badges || 0;
   var challenge = getNextE4Challenge(badges);
   if (!challenge) { toast("尚未達到四天王挑戰門檻（需 4 枚以上徽章）"); return; }
@@ -5392,9 +5403,8 @@ function checkPvpDoneToday() {
 function resetTodayData() {
   window.__pvpEvents = [];
   if (db && globalData && globalData.studentId) {
-    db.collection("kpi_students").doc(globalData.studentId).set({ todayCompleted: false, todayTasksDone: false, todayBattles: 0 }, { merge: true });
-    globalData.todayCompleted = false;
-    globalData.todayTasksDone = false;
+    db.collection("kpi_students").doc(globalData.studentId).set({ todayStatus: "PENDING", todayBattles: 0 }, { merge: true });
+    globalData.todayStatus = "PENDING";
     globalData.todayBattles = 0;
     localStorage.removeItem("kpi_cache_" + globalData.studentId);
     sessionStorage.removeItem("kpi_cache_" + globalData.studentId);
@@ -5500,10 +5510,11 @@ function fetchPvPOpponentList() {
       if (!d.roster || d.roster.length < 1 || !d.partyIds || d.partyIds.length < 1) return;
       opponents.push({ id: doc.id, rosterLen: d.roster.length });
     });
+    var NAME_ORDER = ["Neil","Emma","Lawrence","Admin"];
     opponents.sort(function(a, b) {
-      if (a.id === "Admin") return 1;
-      if (b.id === "Admin") return -1;
-      return 0;
+      var ai = NAME_ORDER.indexOf(a.id), bi = NAME_ORDER.indexOf(b.id);
+      if (ai === -1) ai = 999; if (bi === -1) bi = 999;
+      return ai - bi;
     });
     var html = "";
     for (var oi = 0; oi < opponents.length; oi++) {
@@ -6669,10 +6680,10 @@ function updateDashboard() {
     leagueBtn._e4Region = challenge ? challenge.region : null;
     if (challenge) {
       leagueBtn.style.display = "inline-block";
-      if (isW4orBuffer && gd.todayTasksDone && !completedThisMonth) {
+      if (isW4orBuffer && gd.todayStatus === "SUBMITTED" && !completedThisMonth) {
         leagueBtn.style.opacity = "1";
         leagueBtn.title = "";
-      } else if (isW4orBuffer && !gd.todayTasksDone && !completedThisMonth) {
+      } else if (isW4orBuffer && gd.todayStatus !== "SUBMITTED" && !completedThisMonth) {
         leagueBtn.style.opacity = "0.4";
         leagueBtn.title = "請先完成今日學習任務";
       } else if (!isW4orBuffer) {
@@ -6823,7 +6834,7 @@ function updatePreview() {
 
   if (finalScore > 0) {
     // Don't re-enable submit if already completed today
-    if (globalData && globalData.todayTasksDone) {
+    if (globalData && globalData.todayStatus === "SUBMITTED") {
       $("submitBtn").disabled = true;
     } else {
       $("submitBtn").disabled = false;
@@ -7483,11 +7494,11 @@ async function submitData() {
   if (!globalData) return;
   if (_dataLoading) { toast("資料載入中，請稍候..."); return; }
   if (_isSaving) { toast("正在儲存中，請勿重複點擊"); return; }
-  if (globalData.todayTasksDone) { toast("今日已完成！"); return; }
+  if (globalData.todayStatus === "SUBMITTED") { toast("今日已完成！"); return; }
   // Disable button immediately to prevent double-click during async
   $("submitBtn").disabled = true; $("submitBtn").textContent = "處理中...";
   // Double-check with Firestore in case session cache is stale
-  if (!globalData.todayTasksDone) {
+  if (globalData.todayStatus !== "SUBMITTED") {
     try {
       var todayStart = new Date(); todayStart.setHours(0, 0, 0, 0);
       var existingSnapshot = await db.collection("kpi_events")
@@ -7496,7 +7507,7 @@ async function submitData() {
         .get();
       var hasSubmittedToday = existingSnapshot.docs.some(function(d) { return d.data().action === "\u6BCF\u65E5\u63D0\u4EA4"; });
       if (hasSubmittedToday) {
-        globalData.todayTasksDone = true;
+        globalData.todayStatus = "SUBMITTED";
         toast("今日已完成！");
         return;
       }
@@ -7504,7 +7515,7 @@ async function submitData() {
   }
   // Re-check after async — concurrent clicks bypass earlier guards
   if (_isSaving) { toast("正在儲存中，請勿重複點擊"); return; }
-  if (globalData.todayTasksDone) { toast("今日已完成！"); return; }
+  if (globalData.todayStatus === "SUBMITTED") { toast("今日已完成！"); return; }
   var score = parseInt($("hiddenScore").value) || 0;
   if (score <= 0) { toast("請選擇任務！"); return; }
   var tasks = [];
@@ -7545,7 +7556,7 @@ async function submitData() {
   }
 
   if (action === "capture") {
-    if (globalData.todayCompleted) { toast("今日已完成！"); return; }
+    if (globalData.todayStatus !== "PENDING") { toast("今日已完成！"); return; }
     if (score < 50) { toast("分數不足 50，無法捕捉新寶可夢！"); return; }
     var badges = globalData ? globalData.badges || 0 : 0;
     var canLegendary = badges >= 8;
@@ -7588,7 +7599,7 @@ async function submitData() {
     var captured = generateCapturePokemon(tier, targetType, captureLevel);
     var expGain = 0;
     var coinsGain = origCoins(score);
-    globalData.todayCompleted = true;
+    globalData.todayStatus = "ACTIVE";
     $("submitBtn").innerHTML = "✅ Done"; $("submitBtn").disabled = true;
     document.querySelectorAll(".task-cb, input[name=\"actionType\"]").forEach(function(el){ el.disabled = true; });
     if (tier === "傳說") {
@@ -7610,9 +7621,9 @@ async function submitData() {
         toast("🎉 捕捉到 " + captured.name + " Lv." + captured.level + "！" + (captured.isLegendary ? " 🌟 傳說級！" : ""));
       }, true);
     }
-    if (_submitFailed) { _submitFailed = false; globalData.todayCompleted = false; }
+    if (_submitFailed) { _submitFailed = false; globalData.todayStatus = "PENDING"; }
   } else if (action === "train") {
-    if (globalData.todayCompleted) { toast("今日已完成！"); return; }
+    if (globalData.todayStatus !== "PENDING") { toast("今日已完成！"); return; }
     var targetId = $("trainTarget").value;
     if (!targetId) { toast("請選擇強化目標！"); return; }
     var targetName = "指定寶可夢";
@@ -7624,7 +7635,7 @@ async function submitData() {
       var x = Math.floor(expGain / 10);
       coinsGain += x;
     }
-    globalData.todayCompleted = true;
+    globalData.todayStatus = "ACTIVE";
     $("submitBtn").innerHTML = "✅ Done"; $("submitBtn").disabled = true;
     document.querySelectorAll(".task-cb, input[name=\"actionType\"]").forEach(function(el){ el.disabled = true; });
     var note = "📅 " + monthName + " | 強化: " + targetName + " | 集中訓練 +" + expGain + " EXP | ID:" + targetId;
@@ -7632,11 +7643,10 @@ async function submitData() {
     await executeSave(record, function() {
       toast("🎯 " + targetName + " 獲得 " + expGain + " EXP（集中訓練）！");
     }, true);
-    if (_submitFailed) { _submitFailed = false; globalData.todayCompleted = false; }
+    if (_submitFailed) { _submitFailed = false; globalData.todayStatus = "PENDING"; }
   } else {
     // Immediate guard: prevent re-entry before async save completes
-    globalData.todayCompleted = true;
-    globalData.todayTasksDone = true;
+    globalData.todayStatus = "SUBMITTED";
     $("submitBtn").innerHTML = "✅ Done"; $("submitBtn").disabled = true;
     document.querySelectorAll(".task-cb, input[name=\"actionType\"]").forEach(function(el){ el.disabled = true; });
     var expGain = score * 10;
@@ -7647,7 +7657,7 @@ async function submitData() {
       toast("🎉 今日紀錄已送出！獲得 " + expGain + " EXP, " + coinsGain + " 金幣！");
     }, true);
     // If save failed, rollback the guard so user can retry
-    if (_submitFailed) { _submitFailed = false; globalData.todayCompleted = false; globalData.todayTasksDone = false; }
+    if (_submitFailed) { _submitFailed = false; globalData.todayStatus = "PENDING"; }
   }
 }
 
@@ -8004,6 +8014,27 @@ async function checkAndUnlockAchievements(gd, events, studentId) {
     for (var j = 0; j < newlyUnlocked.length; j++) {
       showAchievementUnlock(newlyUnlocked[j]);
     }
+  }
+}
+
+function revalidateAllAchievements(gd, events) {
+  var changed = false;
+  for (var key in globalAchievements) {
+    if (!globalAchievements[key]) continue;
+    var achDef = null;
+    for (var i = 0; i < ACHIEVEMENTS.length; i++) {
+      if (ACHIEVEMENTS[i].id === key) { achDef = ACHIEVEMENTS[i]; break; }
+    }
+    if (achDef && !checkAchievement(achDef, gd, events)) {
+      delete globalAchievements[key];
+      changed = true;
+    }
+  }
+  if (changed) {
+    var list = [];
+    for (var k in globalAchievements) { if (globalAchievements[k]) list.push(k); }
+    globalData.achievements = list;
+    db.collection("kpi_students").doc(gd.studentId).set({ achievements: list }, { merge: true }).catch(function(e){});
   }
 }
 

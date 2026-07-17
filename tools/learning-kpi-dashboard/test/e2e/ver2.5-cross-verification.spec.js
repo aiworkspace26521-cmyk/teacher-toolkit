@@ -347,7 +347,7 @@ test.describe('VER2.5 交叉驗證 — 事件回放 + 邊界條件 + DevTool', (
       isAdmin = true;
       var dw = $("devWeek");
       if (!dw) return { error: "no devWeek element" };
-      globalData = { badges: 16, todayCompleted: false, todayBattles: 0, highestLevel: 50, roster: [], partyIds: [], masters8Completed: [], leagueRegionsWon: {} };
+      globalData = { badges: 16, todayStatus: "PENDING", todayBattles: 0, highestLevel: 50, roster: [], partyIds: [], masters8Completed: [], leagueRegionsWon: {} };
       for (var rn in LEAGUE_REGIONS) delete leagueCompletedMonths[rn];
 
       dw.value = "W1";

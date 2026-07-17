@@ -24,7 +24,7 @@ test.describe('Neil/Emma 真實學生 E2E — Firestore 資料載入與寫入驗
           coins: typeof doc.data().coins,
           rosterIsArray: Array.isArray(doc.data().roster),
           badges: typeof doc.data().badges,
-          hasTodayCompleted: 'todayCompleted' in doc.data()
+          hasTodayStatus: 'todayStatus' in doc.data()
         };
       } catch (e) {
         return { error: e.message };
@@ -113,7 +113,7 @@ test.describe('Neil/Emma 真實學生 E2E — Firestore 資料載入與寫入驗
 
     // Read current state from UI and Firestore
     const uiState = await page.evaluate(() => ({
-      todayCompleted: globalData.todayCompleted,
+      todayStatus: globalData.todayStatus,
       coins: globalData.coins || 0,
       level: globalData.highestLevel || 5,
       badges: globalData.badges || 0
@@ -124,7 +124,7 @@ test.describe('Neil/Emma 真實學生 E2E — Firestore 資料載入與寫入驗
         const doc = await db.collection('kpi_students').doc('Neil').get();
         if (!doc.exists) return null;
         return {
-          todayCompleted: doc.data().todayCompleted,
+          todayStatus: doc.data().todayStatus,
           coins: doc.data().coins,
           highestLevel: doc.data().highestLevel,
           badges: doc.data().badges
@@ -134,7 +134,7 @@ test.describe('Neil/Emma 真實學生 E2E — Firestore 資料載入與寫入驗
       }
     });
     expect(fbState).not.toBeNull();
-    expect(fbState.todayCompleted).toBeDefined();
+    expect(fbState.todayStatus).toBeDefined();
 
     // Verify Firestore state matches UI state (after recalculation)
     expect(typeof uiState.level).toBe('number');
@@ -143,7 +143,7 @@ test.describe('Neil/Emma 真實學生 E2E — Firestore 資料載入與寫入驗
 
     test.info().annotations.push({
       type: 'consistency',
-      description: 'todayCompleted=' + uiState.todayCompleted +
+      description: 'todayStatus=' + uiState.todayStatus +
         ' | UI level=' + uiState.level + ' FB highestLevel=' + fbState.highestLevel +
         ' | UI coins=' + uiState.coins + ' FB coins=' + fbState.coins +
         ' | badges=' + uiState.badges
@@ -185,7 +185,7 @@ test.describe('Neil/Emma 真實學生 E2E — Firestore 資料載入與寫入驗
     });
 
     // If Neil hasn't submitted today, do a submit and verify
-    if (!uiState.todayCompleted) {
+    if (uiState.todayStatus === "PENDING") {
       test.info().annotations.push({ type: 'submit', description: 'Neil 今日未提交，執行提交測試' });
 
       const submitBtn = page.locator('#submitBtn');
@@ -213,10 +213,10 @@ test.describe('Neil/Emma 真實學生 E2E — Firestore 資料載入與寫入驗
       await expect(submitBtn).toContainText('Done', { timeout: 15000 });
 
       const afterSubmit = await page.evaluate(() => ({
-        todayCompleted: globalData.todayCompleted,
+        todayStatus: globalData.todayStatus,
         coins: globalData.coins
       }));
-      expect(afterSubmit.todayCompleted).toBe(true);
+      expect(afterSubmit.todayStatus).toBe("SUBMITTED");
 
       // Verify event count increased
       const afterEventCount = await page.evaluate(async () => {
@@ -237,7 +237,7 @@ test.describe('Neil/Emma 真實學生 E2E — Firestore 資料載入與寫入驗
     } else {
       test.info().annotations.push({
         type: 'already-done',
-        description: 'Neil 今日已提交（todayCompleted=true），跳過提交動作，僅驗證事件結構'
+        description: 'Neil 今日已提交（todayStatus=SUBMITTED），跳過提交動作，僅驗證事件結構'
       });
     }
   });
@@ -320,8 +320,8 @@ test.describe('Neil/Emma 真實學生 E2E — Firestore 資料載入與寫入驗
         if (!replayed) return { error: 'replay returned null' };
 
         return {
-          replayed: { level: replayed.highestLevel, coins: replayed.coins, badges: replayed.badges, rosterCount: (replayed.roster||[]).length, todayCompleted: replayed.todayCompleted, todayTasksDone: replayed.todayTasksDone },
-          uiState: { level: globalData.highestLevel, coins: globalData.coins, badges: globalData.badges, rosterCount: (globalData.roster||[]).length, todayCompleted: globalData.todayCompleted, todayTasksDone: globalData.todayTasksDone }
+          replayed: { level: replayed.highestLevel, coins: replayed.coins, badges: replayed.badges, rosterCount: (replayed.roster||[]).length, todayStatus: replayed.todayStatus },
+          uiState: { level: globalData.highestLevel, coins: globalData.coins, badges: globalData.badges, rosterCount: (globalData.roster||[]).length, todayStatus: globalData.todayStatus }
         };
       } catch (e) {
         return { error: e.message };
@@ -337,7 +337,7 @@ test.describe('Neil/Emma 真實學生 E2E — Firestore 資料載入與寫入驗
 
     test.info().annotations.push({
       type: 'replay',
-      description: 'Replayed: level=' + replayResult.replayed.level + ', coins=' + replayResult.replayed.coins + ', badges=' + replayResult.replayed.badges + ', roster=' + replayResult.replayed.rosterCount + ', todayCompleted=' + replayResult.replayed.todayCompleted + ' | UI: level=' + replayResult.uiState.level + ', coins=' + replayResult.uiState.coins + ', badges=' + replayResult.uiState.badges
+      description: 'Replayed: level=' + replayResult.replayed.level + ', coins=' + replayResult.replayed.coins + ', badges=' + replayResult.replayed.badges + ', roster=' + replayResult.replayed.rosterCount + ', todayStatus=' + replayResult.replayed.todayStatus + ' | UI: level=' + replayResult.uiState.level + ', coins=' + replayResult.uiState.coins + ', badges=' + replayResult.uiState.badges
     });
   });
 

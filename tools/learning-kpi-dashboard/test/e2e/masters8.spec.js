@@ -182,7 +182,7 @@ test.describe('Block I Step 11: 八大師系統驗證', () => {
 
     const showsOnW4 = await page.evaluate(() => {
       $("devWeek").value = "W4";
-      globalData = { badges: 32, todayCompleted: false, todayBattles: 0, highestLevel: 50, masters8Completed: [], masters8Progress: [],
+      globalData = { badges: 32, todayStatus: "PENDING", todayBattles: 0, highestLevel: 50, masters8Completed: [], masters8Progress: [],
         leagueRegionsWon: { "關都": true } };
       var mKey = new Date().getFullYear() + "-" + (new Date().getMonth() + 1);
       leagueCompletedMonths["關都"] = mKey;
@@ -297,7 +297,7 @@ test.describe('Block I Step 11: 八大師系統驗證', () => {
     };
 
     const blocksWhenNoneCompleted = await page.evaluate(() => {
-      globalData = { highestLevel: 50, todayCompleted: false, todayTasksDone: true, todayBattles: 0, masters8Completed: [], masters8Progress: [], roster: [{ id: "P1", baseName: "皮卡丘", currentLevel: 50, totalExp: 10000, initialLevel: 5 }], partyIds: ["P1"] };
+      globalData = { highestLevel: 50, todayStatus: "SUBMITTED", todayBattles: 0, masters8Completed: [], masters8Progress: [], roster: [{ id: "P1", baseName: "皮卡丘", currentLevel: 50, totalExp: 10000, initialLevel: 5 }], partyIds: ["P1"] };
       isAdmin = true; var dw = $("devWeek"); if (dw) dw.value = "W4";
       var lastToast = null;
       var origToast = toast;
@@ -314,7 +314,7 @@ test.describe('Block I Step 11: 八大師系統驗證', () => {
       globalData.leagueRegionsWon = globalData.leagueRegionsWon || {};
       globalData.leagueRegionsWon["關都"] = true;
       Object.assign(globalData, {
-        highestLevel: 50, todayCompleted: false, todayTasksDone: true, todayBattles: 0,
+        highestLevel: 50, todayStatus: "SUBMITTED", todayBattles: 0,
         masters8Completed: [],
         masters8Progress: [],
         roster: [{ id: "P1", baseName: "皮卡丘", currentLevel: 50, totalExp: 10000, initialLevel: 5, name: "皮卡丘", happiness: 100, stats: { hp: 100, attack: 50, defense: 50, spAttack: 50, spDefense: 50, speed: 50 } }],
@@ -333,7 +333,7 @@ test.describe('Block I Step 11: 八大師系統驗證', () => {
       globalData.leagueRegionsWon = globalData.leagueRegionsWon || {};
       globalData.leagueRegionsWon["關都"] = true;
       globalData = Object.assign(globalData, {
-        highestLevel: 50, todayCompleted: false, todayTasksDone: true, todayBattles: 0,
+        highestLevel: 50, todayStatus: "SUBMITTED", todayBattles: 0,
         masters8Completed: ["小智"],
         masters8Progress: [],
         roster: [{ id: "P1", baseName: "皮卡丘", currentLevel: 50, totalExp: 10000, initialLevel: 5 }],
@@ -375,7 +375,7 @@ test.describe('Block I Step 11: 八大師系統驗證', () => {
   });
 
   // 6.2: btnLeagueBattle 按鈕顯示/隱藏狀態（W4、徽章門檻、月份限制）
-  test('6.2 btnLeagueBattle visibility respects W4, badge threshold, month completion, and todayCompleted', async ({ page }) => {
+  test('6.2 btnLeagueBattle visibility respects W4, badge threshold, month completion, and todayStatus', async ({ page }) => {
     await page.selectOption('#studentSelect', 'Admin');
     await expect(page.locator('#adminPanel')).toBeVisible({ timeout: 15000 });
     await page.waitForTimeout(500);
@@ -389,7 +389,7 @@ test.describe('Block I Step 11: 八大師系統驗證', () => {
     // W1 → gray (opacity 0.4 when league already completed this month or today done)
     var w1gray = await page.evaluate(function() {
       $("devWeek").value = "W1";
-      globalData = { badges: 32, todayCompleted: false, todayBattles: 0, highestLevel: 50, roster: [], partyIds: [], masters8Completed: [], leagueRegionsWon: {} };
+      globalData = { badges: 32, todayStatus: "PENDING", todayBattles: 0, highestLevel: 50, roster: [], partyIds: [], masters8Completed: [], leagueRegionsWon: {} };
       leagueCompletedMonths["關都"] = getCurrentMonthKey();
       updateDashboard();
       var btn = $("btnLeagueBattle");
@@ -402,7 +402,7 @@ test.describe('Block I Step 11: 八大師系統驗證', () => {
     var w2gray = await page.evaluate(function() {
       $("devWeek").value = "W2";
       leagueCompletedMonths["關都"] = getCurrentMonthKey();
-      globalData.todayCompleted = false;
+      globalData.todayStatus = "PENDING";
       updateDashboard();
       var btn = $("btnLeagueBattle");
       return btn ? { display: btn.style.display, opacity: btn.style.opacity } : 'no-btn';
@@ -414,7 +414,7 @@ test.describe('Block I Step 11: 八大師系統驗證', () => {
     var w3gray = await page.evaluate(function() {
       $("devWeek").value = "W3";
       leagueCompletedMonths["關都"] = getCurrentMonthKey();
-      globalData.todayCompleted = false;
+      globalData.todayStatus = "PENDING";
       updateDashboard();
       var btn = $("btnLeagueBattle");
       return btn ? { display: btn.style.display, opacity: btn.style.opacity } : 'no-btn';
@@ -425,7 +425,7 @@ test.describe('Block I Step 11: 八大師系統驗證', () => {
     // W4 + 0 badges → hidden (no region unlocked)
     var w4zeroBadges = await page.evaluate(function() {
       $("devWeek").value = "W4";
-      globalData = { badges: 0, todayCompleted: false, todayBattles: 0, highestLevel: 10, roster: [], partyIds: [], masters8Completed: [] };
+      globalData = { badges: 0, todayStatus: "PENDING", todayBattles: 0, highestLevel: 10, roster: [], partyIds: [], masters8Completed: [] };
       updateDashboard();
       var btn = $("btnLeagueBattle");
       return btn ? btn.style.display : 'no-btn';
@@ -435,7 +435,7 @@ test.describe('Block I Step 11: 八大師系統驗證', () => {
     // W4 + 32 badges + not completed → visible (first eligible region = 關都, VER2.5)
     var w4visible = await page.evaluate(function() {
       $("devWeek").value = "W4";
-      globalData = { badges: 32, todayCompleted: false, todayBattles: 0, highestLevel: 50, roster: [], partyIds: [], masters8Completed: [],
+      globalData = { badges: 32, todayStatus: "PENDING", todayBattles: 0, highestLevel: 50, roster: [], partyIds: [], masters8Completed: [],
         leagueRegionsWon: {} };
       updateDashboard();
       var btn = $("btnLeagueBattle");
@@ -444,9 +444,9 @@ test.describe('Block I Step 11: 八大師系統驗證', () => {
     expect(w4visible.display).toBe('inline-block');
     expect(w4visible.region).toBe('關都');
 
-    // W4 + 32 badges + todayCompleted → gray (opacity 0.4, btn visible)
+    // W4 + 32 badges + todayStatus=SUBMITTED → gray (opacity 0.4, btn visible)
     var todayDoneGray = await page.evaluate(function() {
-      globalData.todayCompleted = true;
+      globalData.todayStatus = "SUBMITTED";
       updateDashboard();
       var btn = $("btnLeagueBattle");
       return btn ? { display: btn.style.display, opacity: btn.style.opacity } : 'no-btn';
@@ -456,7 +456,7 @@ test.describe('Block I Step 11: 八大師系統驗證', () => {
 
     // W4 + 32 badges + all regions completed this month → hidden
     var allCompletedHidden = await page.evaluate(function() {
-      globalData.todayCompleted = false;
+      globalData.todayStatus = "PENDING";
       globalData.leagueRegionsWon = globalData.leagueRegionsWon || {};
       var regOrder = ["關都","城都","豐緣","神奧","合眾","卡洛斯","阿羅拉","伽勒爾"];
       for (var i = 0; i < regOrder.length; i++) globalData.leagueRegionsWon[regOrder[i]] = true;
@@ -479,7 +479,7 @@ test.describe('Block I Step 11: 八大師系統驗證', () => {
     const month1 = await page.evaluate(function() {
       $("devMonth").value = "1";
       $("devWeek").value = "W4";
-      globalData = { badges: 4, todayCompleted: false, todayBattles: 0, highestLevel: 20, roster: [], partyIds: [], masters8Completed: [] };
+      globalData = { badges: 4, todayStatus: "PENDING", todayBattles: 0, highestLevel: 20, roster: [], partyIds: [], masters8Completed: [] };
       var regOrder = ["關都","城都","豐緣","神奧","合眾","卡洛斯","阿羅拉","伽勒爾"];
       for (var i = 0; i < regOrder.length; i++) delete leagueCompletedMonths[regOrder[i]];
       updateDashboard();

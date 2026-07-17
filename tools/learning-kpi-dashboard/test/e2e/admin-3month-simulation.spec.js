@@ -200,7 +200,7 @@ test.describe('Admin 3-Month Simulation (M1→M3) vs VER2.4', () => {
       globalData.badges = 8;
       globalData.highestLevel = 34;
       globalData.leagueRegionsWon = {};
-      globalData.todayCompleted = false;
+      globalData.todayStatus = "PENDING";
       globalData.roster = [];
       globalData.partyIds = [];
       var dw = document.getElementById('devWeek');
@@ -221,8 +221,8 @@ test.describe('Admin 3-Month Simulation (M1→M3) vs VER2.4', () => {
     // W4: remove completion so league is fully enabled
     var w4 = await page.evaluate(() => {
       delete leagueCompletedMonths['關都'];
-      globalData.todayCompleted = false;
-      globalData.todayTasksDone = true;
+      globalData.todayStatus = "PENDING";
+      globalData.todayStatus = "SUBMITTED";
       var dw = document.getElementById('devWeek');
       dw.value = 'W4';
       if (typeof forceAdminUpdate === 'function') forceAdminUpdate();
