@@ -953,8 +953,9 @@ async function recalculateStudentState(studentId, events) {
     state.badges += badgeChange;
     if (badgeChange > 0) state.lastBadgeTime = rowDate.getTime();
     state.coins += coinsGained;
-    if (rowDate.toDateString() === todayStr && ["\u5546\u57CE\u514C\u63DB","\u6230\u9B25\u6D88\u8017","\u7269\u54C1\u6D88\u8017","E","\u6230\u9B25\u52DD\u5229","\u7CFB\u7D71\u6E2C\u8A66","trade","A","B","\u9053\u5177\u88DD\u5099","PvP","system"].indexOf(rowAction) === -1) state.todayStatus = "ACTIVE";
+    if (rowDate.toDateString() === todayStr && ["\u5546\u57CE\u514C\u63DB","\u6230\u9B25\u6D88\u8017","\u7269\u54C1\u6D88\u8017","E","\u6230\u9B25\u52DD\u5229","\u7CFB\u7D71\u6E2C\u8A66","trade","A","B","\u9053\u5177\u88DD\u5099","PvP","system","\u6355\u6349","\u50B3\u8AAA\u6311\u6230","\u7CD6\u679C\u5347\u7D1A"].indexOf(rowAction) === -1) state.todayStatus = "ACTIVE";
     if (rowAction === "\u6BCF\u65E5\u63D0\u4EA4" && rowDate.toDateString() === todayStr) state.todayStatus = "SUBMITTED";
+    if (["\u6355\u6349","\u50B3\u8AAA\u6311\u6230","\u7CD6\u679C\u5347\u7D1A"].indexOf(rowAction) !== -1 && rowDate.toDateString() === todayStr) state.todayStatus = "SUBMITTED";
     if (["\u5546\u57CE\u514C\u63DB","\u6230\u9B25\u6D88\u8017","\u7269\u54C1\u6D88\u8017","E","\u7CFB\u7D71\u6E2C\u8A66","trade","\u9053\u5177\u88DD\u5099","system"].indexOf(rowAction) === -1) submitDates[rowDate.toDateString()] = true;
     // 親密度: 每日提交全員+1
     if (rowAction === "\u6BCF\u65E5\u63D0\u4EA4" || rowAction === "\u6355\u6349" || rowAction === "A") {
@@ -7589,7 +7590,7 @@ async function submitData() {
     var captured = generateCapturePokemon(tier, targetType, captureLevel);
     var expGain = 0;
     var coinsGain = origCoins(score);
-    globalData.todayStatus = "ACTIVE";
+    globalData.todayStatus = "SUBMITTED";
     $("submitBtn").innerHTML = "✅ Done"; $("submitBtn").disabled = true;
     document.querySelectorAll(".task-cb, input[name=\"actionType\"]").forEach(function(el){ el.disabled = true; });
     if (tier === "傳說") {
@@ -7625,7 +7626,7 @@ async function submitData() {
       var x = Math.floor(expGain / 10);
       coinsGain += x;
     }
-    globalData.todayStatus = "ACTIVE";
+    globalData.todayStatus = "SUBMITTED";
     $("submitBtn").innerHTML = "✅ Done"; $("submitBtn").disabled = true;
     document.querySelectorAll(".task-cb, input[name=\"actionType\"]").forEach(function(el){ el.disabled = true; });
     var note = "📅 " + monthName + " | 強化: " + targetName + " | 集中訓練 +" + expGain + " EXP | ID:" + targetId;

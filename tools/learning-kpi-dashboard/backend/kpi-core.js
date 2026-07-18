@@ -308,8 +308,11 @@ async function recalculateStudentState(studentId) {
     }
 
     if (rowDate.toDateString() === todayStr &&
-        !['商城兌換', '戰鬥消耗', '物品消耗', 'E', '戰鬥勝利', '系統測試', 'trade', 'A', 'B', '道具裝備', 'PvP', 'system'].includes(rowAction)) {
+        !['商城兌換', '戰鬥消耗', '物品消耗', 'E', '戰鬥勝利', '系統測試', 'trade', 'A', 'B', '道具裝備', 'PvP', 'system', '捕捉', '傳說挑戰', '糖果升級'].includes(rowAction)) {
       state.todayStatus = "ACTIVE";
+    }
+    if (['每日提交', '捕捉', '傳說挑戰', '糖果升級'].includes(rowAction) && rowDate.toDateString() === todayStr) {
+      state.todayStatus = "SUBMITTED";
     }
 
     // 親密度統計
