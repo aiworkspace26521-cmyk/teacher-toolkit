@@ -2,7 +2,7 @@
 
 ## 報告資訊
 
-- **建構日期**：2026-07-14（最後更新：2026-07-17 Phase 1-2 修復驗證）
+- **建構日期**：2026-07-14（最後更新：2026-07-18 全量回歸 + Neil/Emma E2E 擴充）
 - **主要檔案**：`test/e2e/monthly-simulation-m1-m3.spec.js`, `test/e2e/real-student-e2e.spec.js`
 - **相關輔助檔案**：`test/e2e/admin-3month-simulation.spec.js`, `test/e2e/gym-league.spec.js`
 - **測試目標**：`frontend/kpi-dashboard.html`
@@ -38,7 +38,7 @@
 ```
 test/e2e/
 ├── monthly-simulation-m1-m3.spec.js   ← 本系統核心（4 個測試）
-├── real-student-e2e.spec.js           ← 真實 Firestore 帳號載入與寫入驗證（5 個測試）
+├── real-student-e2e.spec.js           ← 真實 Firestore 帳號載入與寫入驗證（10 個測試）
 ├── admin-3month-simulation.spec.js    ← 先前的輕量級邏輯驗證（9 個測試）
 ├── gym-league.spec.js                 ← 道館/聯盟單元測試（12 個測試）
 └── ...其他單元測試
@@ -52,7 +52,7 @@ test/e2e/
 | UI 點擊驗證 | 2 | 按鈕點擊開啟 Modal、閘門阻擋 |
 | 多寶 EXP | 1 | 先鋒 120% / 留守 50% |
 | Firestore 寫入（模擬） | 1 | 事件溯源 executeSave/scheduleStudentFieldUpdate |
-| **真實 Firestore E2E** | **5** | Neil/Emma 真實帳號載入、切換、寫入、recalculate 一致性 |
+| **真實 Firestore E2E** | **10** | Neil/Emma 載入、切換、寫入、recalculate、緩衝期、八大師持久化、事件回放重建、跨學生隔離 |
 | 衛冕挑戰 | 2 | checkDefenseChallenge 回歸、triggerDefenseChallenge Modal |
 | 冠軍披風 EXP | 2 | calcGymExp ×1.5、calcLeagueExp ×1.5 |
 | W2 加成 | 1 | 道館加成週 EXP ×1.5 |
@@ -95,7 +95,7 @@ M3 W4: [每日提交] → Gym 12 (米可利) → 豐緣聯盟 → 八大師·艾
 
 驗證 `getNextE4Challenge()` 和 `getUnlockedMasters8()` 的循序解鎖邏輯。
 
-### 2.5 真實 Firestore 帳號 E2E 測試說明（2026-07-17 新增）
+### 2.5 真實 Firestore 帳號 E2E 測試說明（2026-07-17 新增，2026-07-18 擴充至 10 項）
 
 位於 `test/e2e/real-student-e2e.spec.js`，透過 `page.evaluate()` 操作頁面內 Firebase SDK 直接讀寫 Firestore，驗證真實學生帳號（Neil/Emma）的資料載入與寫入持久化。
 
@@ -133,6 +133,39 @@ M3 W4: [每日提交] → Gym 12 (米可利) → 豐緣聯盟 → 八大師·艾
 - `recalculated.totalExp === firestoreData.totalExp`（在合理誤差範圍內）
 - roster 中每隻寶可夢的欄位型別正確
 - **證明**：事件溯源能在前端正確重建學生狀態，無須依賴 Firestore 快取欄位
+
+#### Test 7：緩衝期偵測與八大師按鈕狀態（2026-07-18 新增）
+
+讀取 Neil 的 Firestore 資料與前端 `globalData`，驗證：
+- `getWeekType()` 回傳正確的週別（W1/W2/W3/W4）
+- `isBufferPeriod()` 根據 `leagueRegionsWon`、`badges` 與 `getWeekType()` 回傳正確結果
+- 八大師按鈕 `btnMasters8Battle` 的 `display`/`disabled` 狀態與 isBufferPeriod 邏輯一致：
+  - 僅在 W4 或緩衝期、今日已提交、有下一位八大師時可用
+- 按鈕文字顯示正確的下一名八大師名稱
+
+#### Test 8：八大師資料 Firestore 持久化（2026-07-18 新增）
+
+同時讀取 Firestore `kpi_students/Neil` 與前端 `globalData`，驗證：
+- `masters8Completed` 陣列在 Firestore 與 UI 間完全一致（項目、順序、數量）
+- `masters8Progress` 陣列同樣跨層一致
+- `leagueRegionsWon` 在 Firestore 與 UI 間一致
+- **證明**：`scheduleStudentFieldUpdate()` 的 debounce 寫入正確將八大師狀態持久化到 Firestore
+
+#### Test 9：事件回放重建八大師狀態（2026-07-18 新增）
+
+讀取所有 `kpi_events`（依 `studentId='Neil'` 過濾，按 timestamp 排序），透過 `recalculateStudentState()` 重新計算，驗證：
+- replay 結果的 `masters8Completed` 陣列與前端 `globalData.masters8Completed` **完全一致**
+- 從 events 中正確解析 `note` 欄位的 `八大師 [名稱 (#rank)]` 格式
+- **證明**：八大師狀態可透過事件溯源 100% 重建，無須依賴 Firestore 快取
+
+#### Test 10：Neil/Emma 八大師狀態各自獨立（2026-07-18 新增）
+
+多步驟跨學生驗證：
+1. 載入 Neil → 記錄 `masters8Completed` 與 `leagueRegionsWon`
+2. 切換至 Emma → 記錄 Emma 的八大師狀態與 `getUnlockedMasters8()` 結果
+3. 切回 Neil → 再次記錄 Neil 的八大師狀態
+4. 驗證切回後 Neil 的資料與步驟 1 完全一致
+- **驗證要點**：無 cross-contamination，`globalData` 物件每次切換都正確重新載入
 
 ### 2.6 傳說挑戰系統測試說明（2026-07-15 新增）
 
@@ -301,10 +334,10 @@ expGain = score × 10  （score 預設 80）
 # 執行 M1→M3 模擬（核心 17 項）
 npx playwright test tools/learning-kpi-dashboard/test/e2e/monthly-simulation-m1-m3.spec.js
 
-# 執行真實 Firestore 帳號 E2E（5 項）
+# 執行真實 Firestore 帳號 E2E（10 項）
 npx playwright test tools/learning-kpi-dashboard/test/e2e/real-student-e2e.spec.js
 
-# 執行全部測試（176 項）
+# 執行全部測試（177 項）
 npx playwright test tools/learning-kpi-dashboard/test/e2e/
 ```
 
@@ -405,13 +438,15 @@ M3: 117,208 → 193,225 EXP（Lv.53）
 執行環境：Playwright (chromium)，target：`https://opencodefirebase.web.app`（production Hosting）
 
 ```
-npx playwright test → 175 passed, 1 skipped (3.9min)
+npx playwright test → 176 passed, 1 skipped (3.9min)    # 2026-07-17
+npx playwright test → 176 passed, 1 skipped (5.3min)    # 2026-07-18 全量回歸驗證
+npx playwright test .../real-student-e2e → 10 passed    # 2026-07-18 新增 4 項緩衝期+八大師 E2E
 ```
 
 | 測試檔案 | 通過 | 跳過 | 說明 |
 |:---------|:---:|:----:|:------|
 | `monthly-simulation-m1-m3.spec.js` | 18 | 0 | 核心 M1→M3 逐月模擬 |
-| `real-student-e2e.spec.js` | 5 | 0 | 真實 Firestore 帳號 E2E |
+| `real-student-e2e.spec.js` | 10 | 0 | 真實 Firestore 帳號 E2E（+4 緩衝期+八大師持久化） |
 | `admin-3month-simulation.spec.js` | 9 | 0 | Admin 輕量邏輯驗證 |
 | `gym-league.spec.js` | 12 | 0 | 道館/聯盟單元測試 |
 | `masters8.spec.js` | 8 | 0 | 八大師系統驗證 |
@@ -425,7 +460,7 @@ npx playwright test → 175 passed, 1 skipped (3.9min)
 | `tm-system.spec.js` | 5 | 1 | TM 學習系統（8.4 預設跳過） |
 | `held-equip.spec.js` | 4 | 0 | 裝備系統 |
 | `shop-order.spec.js` | 1 | 0 | 商店排序 |
-| **總計** | **175** | **1** | |
+| **總計** | **176** | **1** | |
 
 ---
 

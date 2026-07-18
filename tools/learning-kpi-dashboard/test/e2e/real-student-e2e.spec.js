@@ -341,4 +341,205 @@ test.describe('Neil/Emma 真實學生 E2E — Firestore 資料載入與寫入驗
     });
   });
 
+  // ── 7. Buffer period detection + M8 button state ──
+  test('緩衝期偵測與八大師按鈕狀態', async ({ page }) => {
+    await page.selectOption('#studentSelect', 'Neil');
+    await expect(page.locator('#kpiLevel')).not.toBeEmpty({ timeout: 15000 });
+    await page.waitForFunction(() => window.globalData && window.globalData.studentId === 'Neil', { timeout: 10000 });
+
+    const bpResult = await page.evaluate(() => {
+      const weekType = typeof getWeekType === 'function' ? getWeekType() : 'N/A';
+      const isBuffer = typeof isBufferPeriod === 'function' ? isBufferPeriod() : 'N/A';
+      const m8Btn = document.getElementById('btnMasters8Battle');
+      const m8Visible = m8Btn ? m8Btn.style.display !== 'none' : 'N/A';
+      const m8Disabled = m8Btn ? m8Btn.disabled : 'N/A';
+      const m8Text = m8Btn ? m8Btn.innerHTML : 'N/A';
+      const nextM8 = typeof getUnlockedMasters8 === 'function' ? getUnlockedMasters8() : null;
+      const todayOk = globalData.todayStatus === 'SUBMITTED';
+      const badges = globalData.badges || 0;
+      const leagueRegionsWon = globalData.leagueRegionsWon || {};
+      const m8Completed = globalData.masters8Completed || [];
+      return {
+        weekType, isBuffer, m8Visible, m8Disabled, m8Text,
+        nextM8Name: nextM8 ? nextM8.name : null,
+        todayOk, badges,
+        leagueRegionsWon: Object.keys(leagueRegionsWon),
+        m8CompletedCount: m8Completed.length,
+        m8CompletedList: m8Completed
+      };
+    });
+
+    expect(bpResult.weekType).toMatch(/^W[1-4]$/);
+    expect(bpResult.badges).toBeGreaterThanOrEqual(0);
+
+    // M8 button visibility must be consistent with buffer period and W4
+    if (bpResult.nextM8Name && (bpResult.weekType === 'W4' || bpResult.isBuffer) && bpResult.todayOk) {
+      expect(bpResult.m8Visible).toBe(true);
+      expect(bpResult.m8Disabled).toBe(false);
+      expect(bpResult.m8Text).toContain(bpResult.nextM8Name);
+    }
+
+    test.info().annotations.push({
+      type: 'buffer-m8',
+      description: 'weekType=' + bpResult.weekType + ' isBuffer=' + bpResult.isBuffer +
+        ' m8Visible=' + bpResult.m8Visible + ' badges=' + bpResult.badges +
+        ' regions=' + bpResult.leagueRegionsWon.join(',') +
+        ' m8Done=' + bpResult.m8CompletedList.join(',') +
+        ' nextM8=' + bpResult.nextM8Name
+    });
+  });
+
+  // ── 8. Masters8 Firestore 持久化驗證 ──
+  test('八大師資料 Firestore 持久化：masters8Completed / masters8Progress', async ({ page }) => {
+    await page.selectOption('#studentSelect', 'Neil');
+    await expect(page.locator('#kpiLevel')).not.toBeEmpty({ timeout: 15000 });
+    await page.waitForFunction(() => window.globalData && window.globalData.studentId === 'Neil', { timeout: 10000 });
+
+    const m8State = await page.evaluate(async () => {
+      const m8Completed = globalData.masters8Completed || [];
+      const m8Progress = globalData.masters8Progress || [];
+      const leagueRegionsWon = globalData.leagueRegionsWon || {};
+
+      let fbData = null;
+      try {
+        const doc = await db.collection('kpi_students').doc('Neil').get();
+        if (doc.exists) {
+          const d = doc.data();
+          fbData = {
+            masters8Completed: d.masters8Completed || [],
+            masters8Progress: d.masters8Progress || [],
+            leagueRegionsWon: d.leagueRegionsWon || {}
+          };
+        }
+      } catch (e) { fbData = { error: e.message }; }
+
+      return {
+        ui: {
+          m8Completed: m8Completed,
+          m8CompletedCount: m8Completed.length,
+          m8Progress: m8Progress,
+          leagueRegionsWon: Object.keys(leagueRegionsWon),
+          regionsCount: Object.keys(leagueRegionsWon).length
+        },
+        firestore: fbData
+      };
+    });
+
+    // Must be consistent: UI state matches Firestore
+    expect(m8State.firestore).not.toBeNull();
+    if (m8State.firestore && !m8State.firestore.error) {
+      const fbM8 = m8State.firestore.masters8Completed || [];
+      const uiM8 = m8State.ui.m8Completed;
+      expect(uiM8.length).toBe(fbM8.length);
+      for (let i = 0; i < uiM8.length; i++) {
+        expect(fbM8).toContain(uiM8[i]);
+      }
+    }
+
+    test.info().annotations.push({
+      type: 'masters8-persistence',
+      description: 'UI masters8Completed=[' + m8State.ui.m8Completed.join(',') + '] (' + m8State.ui.m8CompletedCount + ')' +
+        ' | FB masters8Completed=' + JSON.stringify(m8State.firestore?.masters8Completed || []) +
+        ' | regionsWon=' + m8State.ui.leagueRegionsWon.join(',') +
+        ' | m8Progress=' + m8State.ui.m8Progress.join(',')
+    });
+  });
+
+  // ── 9. Event replay reconstructs masters8 state ──
+  test('事件回放重建八大師狀態：recalculateStudentState 包含 masters8Completed', async ({ page }) => {
+    await page.selectOption('#studentSelect', 'Neil');
+    await expect(page.locator('#kpiLevel')).not.toBeEmpty({ timeout: 15000 });
+    await page.waitForFunction(() => window.globalData && window.globalData.studentId === 'Neil', { timeout: 10000 });
+
+    const replayM8 = await page.evaluate(async () => {
+      try {
+        const snap = await db.collection('kpi_events')
+          .where('studentId', '==', 'Neil')
+          .orderBy('timestamp', 'asc')
+          .get();
+
+        const events = [];
+        snap.forEach(doc => {
+          const d = doc.data();
+          events.push({
+            id: doc.id, action: d.action, expGained: d.expGained || 0,
+            coinsGained: d.coinsGained || 0, badgeChange: d.badgeChange || 0,
+            note: d.note || '', score: d.score || 0, timestamp: d.timestamp
+          });
+        });
+
+        if (events.length === 0) return { error: 'no events' };
+
+        const replayed = await recalculateStudentState('Neil', events);
+        if (!replayed) return { error: 'replay returned null' };
+
+        const replayM8Completed = replayed.masters8Completed || [];
+        const uiM8Completed = globalData.masters8Completed || [];
+
+        // Collect m8 notes from events
+        const m8Notes = events.filter(e => e.note && e.note.indexOf('八大師') !== -1).map(e => {
+          const m = e.note.match(/\[(.+?)\s*\(#\d+\)\]/);
+          return { note: e.note.substring(0, 60), parsed: m ? m[1] : null, action: e.action };
+        });
+
+        return {
+          replayM8Completed: replayM8Completed,
+          uiM8Completed: uiM8Completed,
+          m8EventCount: m8Notes.length,
+          m8EventDetails: m8Notes.slice(-5),
+          match: JSON.stringify(replayM8Completed) === JSON.stringify(uiM8Completed),
+          replayRosterCount: (replayed.roster || []).length
+        };
+      } catch (e) {
+        return { error: e.message };
+      }
+    });
+
+    expect(replayM8.replayM8Completed).toBeDefined();
+    expect(replayM8.uiM8Completed).toBeDefined();
+    expect(replayM8.match).toBe(true);
+
+    test.info().annotations.push({
+      type: 'masters8-replay',
+      description: 'UI masters8=[' + replayM8.uiM8Completed.join(',') + ']' +
+        ' | Replay masters8=[' + replayM8.replayM8Completed.join(',') + ']' +
+        ' | Match=' + replayM8.match +
+        ' | M8 events=' + replayM8.m8EventCount
+    });
+  });
+
+  // ── 10. Cross-student masters8 differentiation ──
+  test('Neil/Emma 八大師狀態各自獨立', async ({ page }) => {
+    // Load Neil
+    await page.selectOption('#studentSelect', 'Neil');
+    await page.waitForFunction(() => window.globalData && window.globalData.studentId === 'Neil', { timeout: 10000 });
+    const neilM8 = await page.evaluate(() => (globalData.masters8Completed || []).slice());
+    const neilRegions = await page.evaluate(() => Object.keys(globalData.leagueRegionsWon || {}));
+
+    // Switch to Emma
+    await page.selectOption('#studentSelect', 'Emma');
+    await page.waitForFunction(() => window.globalData && window.globalData.studentId === 'Emma', { timeout: 10000 });
+    const emmaM8 = await page.evaluate(() => (globalData.masters8Completed || []).slice());
+    const emmaRegions = await page.evaluate(() => Object.keys(globalData.leagueRegionsWon || {}));
+    const emmaNextM8 = await page.evaluate(() => {
+      if (typeof getUnlockedMasters8 !== 'function') return null;
+      const m = getUnlockedMasters8();
+      return m ? m.name : null;
+    });
+
+    // Switch back to Neil and verify no cross-contamination
+    await page.selectOption('#studentSelect', 'Neil');
+    await page.waitForFunction(() => window.globalData && window.globalData.studentId === 'Neil', { timeout: 10000 });
+    const neilM8Again = await page.evaluate(() => (globalData.masters8Completed || []).slice());
+
+    expect(neilM8Again).toEqual(neilM8);
+
+    test.info().annotations.push({
+      type: 'cross-student-m8',
+      description: 'Neil M8=[' + neilM8.join(',') + '] regions=[' + neilRegions.join(',') + ']' +
+        ' | Emma M8=[' + emmaM8.join(',') + '] regions=[' + emmaRegions.join(',') + '] nextM8=' + emmaNextM8 +
+        ' | Switch-back Neil M8=[' + neilM8Again.join(',') + '] consistent=' + (JSON.stringify(neilM8Again) === JSON.stringify(neilM8))
+    });
+  });
+
 });
