@@ -3838,7 +3838,7 @@ function finishGymVictory() {
   $("resultConfirmBtn").style.display = "block";
 }
 
-function endBattle(playerWon) {
+async function endBattle(playerWon) {
   if (!battleState) return;
   if (playerWon && battleState.gymWaves && !battleState.enemy.isLastWave) {
     startNextWave();
@@ -3928,22 +3928,12 @@ function endBattle(playerWon) {
 
     // Save to Firestore (async, no callback dependency)
     var noteContent = "⚔️ 戰鬥勝利 | 對手: " + battleState.enemy.name + (defRegion ? " [Defense" + defRegion + "]" : battleState.isGym ? " [Gym]" : battleState.isWeeklyBoss ? " [Boss]" : " [路人]") + " | 參與者: " + partyUsed.map(function(p){return p.id;}).join(",") + defMsg;
-    executeSave({ studentId: globalData.studentId, score: 0, action: "戰鬥勝利", expGained: totalExpGain, coinsGained: coinsGain, badgeChange: badgeGain, note: noteContent, extraNote: noteContent, totalScore: 0, user: globalData.studentId }, null, false);
-    if (pendingLegendary && pendingLegendary.source === "submit") {
-      globalData.todayStatus = "SUBMITTED";
-      scheduleStudentFieldUpdate({ todayStatus: "SUBMITTED" });
-      try { var cp = { globalData: globalData, achievements: [], questProgress: globalQuestProgress, cachedAt: Date.now() }; for (var ak in globalAchievements) { if (globalAchievements[ak]) cp.achievements.push(ak); } sessionStorage.setItem("kpi_cache_" + globalData.studentId, JSON.stringify(cp)); } catch(e) {}
-    }
+    await executeSave({ studentId: globalData.studentId, score: 0, action: "戰鬥勝利", expGained: totalExpGain, coinsGained: coinsGain, badgeChange: badgeGain, note: noteContent, extraNote: noteContent, totalScore: 0, user: globalData.studentId }, null, false);
   } else {
     if (battleState.isLegendaryChallenge) {
       var legName = battleState.legendaryName || "傳說寶可夢";
       $("resultMessage").innerHTML = "💀 " + legName + " 逃走了... 下次再挑戰！";
       $("resultRewards").innerHTML = "";
-      if (pendingLegendary && pendingLegendary.source === "submit") {
-        globalData.todayStatus = "SUBMITTED";
-        scheduleStudentFieldUpdate({ todayStatus: "SUBMITTED" });
-        try { var cp = { globalData: globalData, achievements: [], questProgress: globalQuestProgress, cachedAt: Date.now() }; for (var ak in globalAchievements) { if (globalAchievements[ak]) cp.achievements.push(ak); } sessionStorage.setItem("kpi_cache_" + globalData.studentId, JSON.stringify(cp)); } catch(e) {}
-      }
       pendingLegendary = null;
       $("resultConfirmBtn").textContent = "✅ 確認";
     } else {
