@@ -1309,7 +1309,7 @@ async function executeSave(record, successCb, closeBattleModal) {
     var savedEvent = { id: result.eventId }; for (var k in fbRecord) savedEvent[k] = fbRecord[k];
     savedEvent.timestamp = firebase.firestore.Timestamp.now();
     await fetchStudentData(fbRecord.studentId, savedEvent);
-  } else { btn.disabled = false; btn.innerText = oldTxt; _submitFailed = true; toast("Save failed"); }
+  } else { btn.disabled = false; btn.textContent = (globalData && globalData.todayStatus === "SUBMITTED") ? "\u2705 Done" : "\u{1F680} Submit"; _submitFailed = true; toast("Save failed"); }
   _isSaving = false;
 }
 // P4-5c: Debounced student doc field writer — batches small writes into one set()
@@ -7499,6 +7499,7 @@ async function submitData() {
       var hasSubmittedToday = existingSnapshot.docs.some(function(d) { return d.data().action === "\u6BCF\u65E5\u63D0\u4EA4"; });
       if (hasSubmittedToday) {
         globalData.todayStatus = "SUBMITTED";
+        $("submitBtn").disabled = false; $("submitBtn").textContent = "\u2705 Done";
         toast("今日已完成！");
         return;
       }

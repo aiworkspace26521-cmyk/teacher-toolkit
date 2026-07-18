@@ -3,11 +3,12 @@ rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
 
-    // kpi_events: 僅可新增+讀取，不可修改/刪除（事件溯源）
+    // kpi_events: 可新增/讀取/刪除（需 studentId 欄位）
     match /kpi_events/{eventId} {
       allow create: if request.resource.data.keys().hasAll(['studentId', 'action', 'timestamp']);
       allow read: if true;
-      allow update, delete: if false;
+      allow delete: if resource.data.studentId is string;
+      allow update: if false;
     }
 
     // kpi_students: 學生可讀寫自己的快取資料
