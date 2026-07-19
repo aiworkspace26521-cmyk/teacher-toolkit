@@ -377,6 +377,7 @@ const EVO_CONDITIONS = {
   "飛天螳螂": { type: "item", to: "巨鉗螳螂", item: "金屬膜", minLevel: 30 },
   "呆呆獸": { type: "item", to: "呆殼獸", item: "王者之證", minLevel: 30 },
   "蚊香君": { type: "item", to: "蚊香泳士", item: "王者之證", minLevel: 30 },
+  "皮卡丘": { type: "item", to: "雷丘", item: "雷之石", minLevel: 15 },
   "勇基拉": { type: "trade", to: "胡地" },
   "豪力": { type: "trade", to: "怪力" },
   "隆隆石": { type: "trade", to: "隆隆岩" },
@@ -390,6 +391,14 @@ const EVO_ITEMS = {
   "護具": { cost: 60, icon: "🛡️", desc: "讓鑽角犀獸進化為超鐵暴龍" },
   "金屬膜": { cost: 45, icon: "⚙️", desc: "讓特定寶可夢進化" },
   "王者之證": { cost: 55, icon: "👑", desc: "讓特定寶可夢進化" },
+  "雷之石": { cost: 40, icon: "⚡", desc: "讓皮卡丘進化為雷丘" },
+  "水之石": { cost: 40, icon: "💧", desc: "讓伊布進化為水伊布" },
+  "火之石": { cost: 40, icon: "🔥", desc: "讓伊布進化為火伊布" },
+  "葉之石": { cost: 40, icon: "🍃", desc: "讓伊布進化為葉伊布" },
+  "冰之石": { cost: 40, icon: "❄️", desc: "讓伊布進化為冰伊布" },
+  "日之石": { cost: 40, icon: "☀️", desc: "讓伊布進化為太陽伊布" },
+  "月之石": { cost: 40, icon: "🌙", desc: "讓伊布進化為月亮伊布" },
+  "妖精之石": { cost: 40, icon: "✨", desc: "讓伊布進化為仙子伊布" },
 };
 
 const HELD_ITEMS = {
@@ -719,7 +728,19 @@ function checkEvoReady(pkmn, gd) {
   const raw = getRawName(pkmn.baseName);
   if (!raw) return null;
   if (raw === "伊布") {
-    if (pkmn.currentLevel >= 16) return { ready: true, nextName: getRandomEeveelution(), type: "eevee", info: "等級 16+" };
+    if (pkmn.currentLevel >= 16) {
+      const stoneMap = {
+        "水之石":"水伊布","雷之石":"雷伊布","火之石":"火伊布",
+        "日之石":"太陽伊布","月之石":"月亮伊布",
+        "葉之石":"葉伊布","冰之石":"冰伊布","妖精之石":"仙子伊布"
+      };
+      for (const s in stoneMap) {
+        if (gd && gd[s]) {
+          return { ready: true, nextName: stoneMap[s], type: "eevee", item: s, info: "需要 " + s };
+        }
+      }
+      return null;
+    }
     return null;
   }
   const cond = getEvoCondition(raw);
