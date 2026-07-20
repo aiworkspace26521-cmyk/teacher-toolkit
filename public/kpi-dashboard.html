@@ -1256,7 +1256,7 @@ async function fetchStudentData(studentId, pendingEvent) {
     globalData.partyIds = [];
     if (savedParty) { try { var parsed = JSON.parse(savedParty); globalData.partyIds = parsed.filter(function(id){ return globalData.roster.some(function(p){return p.id === id;}); }); } catch(e) {} }
     if (globalData.partyIds.length === 0) { var sorted = globalData.roster.slice().sort(function(a,b){ return b.currentLevel - a.currentLevel; }); globalData.partyIds = sorted.slice(0, 6).map(function(p){ return p.id; }); }
-    if (db && globalData.studentId) { db.collection("kpi_students").doc(globalData.studentId).set({ partyIds: globalData.partyIds }, { merge: true }).catch(function(e){}); }
+    if (db && globalData.studentId) { db.collection("kpi_students").doc(globalData.studentId).set({ partyIds: globalData.partyIds, roster: globalData.roster }, { merge: true }).catch(function(e){}); }
         if (!cacheLoaded) { hideSkeleton(); updateDashboard(); renderActions(); }
         updateBattleButtons();
     // show task/strategy sections for non-admin users
