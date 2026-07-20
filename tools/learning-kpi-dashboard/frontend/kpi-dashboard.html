@@ -7749,6 +7749,21 @@ async function doEvolve(pokemonId) {
         updateDashboard();
       });
     }, false);
+  } else {
+    // 標準等級進化
+    var raw = getRawName(pkmn.baseName);
+    var types = POKEMON_SPECIES_TYPES[evoInfo.nextName] || POKEMON_SPECIES_TYPES[raw] || ["一般"];
+    var newName = evoInfo.nextName + " (" + types.join("/") + ")";
+    var prefix = pkmn.baseName.match(/^[^\w\u4e00-\u9fff]+\s*/u);
+    newName = (prefix ? prefix[0] : "⭐ ") + newName;
+    var conNote = "進化ID:" + pokemonId + " => " + newName;
+    sfx.levelup();
+    await executeSave({ studentId: globalData.studentId, score: 0, action: "E", expGained: 0, coinsGained: 0, badgeChange: 0, note: conNote, extraNote: conNote, totalScore: 0, user: globalData.studentId }, function() {
+      showEvoCutscene(pkmn.baseName, newName, function() {
+        pkmn.baseName = newName;
+        updateDashboard();
+      });
+    }, false);
   }
 }
 function showEvoCutscene(oldName, newName, callback) {
