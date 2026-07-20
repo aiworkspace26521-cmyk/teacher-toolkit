@@ -1257,7 +1257,8 @@ async function fetchStudentData(studentId, pendingEvent) {
     if (savedParty) { try { var parsed = JSON.parse(savedParty); globalData.partyIds = parsed.filter(function(id){ return globalData.roster.some(function(p){return p.id === id;}); }); } catch(e) {} }
     if (globalData.partyIds.length === 0) { var sorted = globalData.roster.slice().sort(function(a,b){ return b.currentLevel - a.currentLevel; }); globalData.partyIds = sorted.slice(0, 6).map(function(p){ return p.id; }); }
     if (db && globalData.studentId) { db.collection("kpi_students").doc(globalData.studentId).set({ partyIds: globalData.partyIds, roster: globalData.roster }, { merge: true }).catch(function(e){}); }
-        if (!cacheLoaded) { hideSkeleton(); updateDashboard(); renderActions(); }
+        if (!cacheLoaded) { hideSkeleton(); }
+        updateDashboard(); renderActions();
         updateBattleButtons();
     // show task/strategy sections for non-admin users
     if (!isAdmin) {
@@ -8361,8 +8362,8 @@ function computeQuestProgress(events) {
       if (action !== "系統測試") {
         qp.daily.progress["LOGIN"] = (qp.daily.progress["LOGIN"] || 0) + 1;
       }
-      // DAILY_SUBMIT: count daily task submissions
-      if (action === "每日提交") {
+      // DAILY_SUBMIT: count daily task submissions (incl. auto-submit via capture/legendary/candy)
+      if (action === "每日提交" || action === "捕捉" || action === "傳說挑戰" || action === "糖果升級" || action === "A") {
         qp.daily.progress["DAILY_SUBMIT"] = (qp.daily.progress["DAILY_SUBMIT"] || 0) + 1;
       }
       // BATTLE_3: count battle wins tagged as daily/路人
