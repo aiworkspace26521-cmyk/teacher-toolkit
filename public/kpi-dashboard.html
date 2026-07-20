@@ -931,7 +931,8 @@ async function recalculateStudentState(studentId, events) {
     lastBadgeTime: null, firstLogTime: null,
     todayBattles: 0, weekGymWins: 0, weekBossWins: 0, monthLeagueWins: 0,
     happiness: {}, leagueRegionsWon: {}, masters8Completed: [], masters8Progress: [],
-    roster: { P0: { id: "P0", baseName: "\u{1F43E} \u4F0A\u5E03 (\u4E00\u822C\u7CFB)", totalExp: 0, initialLevel: 5, catchDate: "\u521D\u59CB\u5925\u4F34", heldItem: "" } }
+    roster: { P0: { id: "P0", baseName: "\u{1F43E} \u4F0A\u5E03 (\u4E00\u822C\u7CFB)", totalExp: 0, initialLevel: 5, catchDate: "\u521D\u59CB\u5925\u4F34", heldItem: "" } },
+    雷之石: false, 水之石: false, 火之石: false, 葉之石: false, 冰之石: false, 日之石: false, 月之石: false, 妖精之石: false
   };
   var dNow = new Date(), todayStr = dNow.toDateString();
   var startOfWeek = getStartOfWeek(dNow).getTime(), startOfMonth = getStartOfMonth(dNow).getTime();
@@ -1277,8 +1278,6 @@ async function fetchStudentData(studentId, pendingEvent) {
     updateTradeBadge();
     if (globalData.todayStatus === "SUBMITTED") { btn.innerHTML = "\u2705 Done"; btn.disabled = true; document.querySelectorAll(".task-cb, input[name=\"actionType\"]").forEach(function(el){ el.checked = false; el.disabled = true; }); document.querySelectorAll(".action-option").forEach(function(el){ el.classList.remove("selected"); }); $("previewBox").innerHTML = "\u{1F31F} Today done!"; }
     else { btn.disabled = false; btn.textContent = "\u{1F680} Submit"; document.querySelectorAll(".task-cb, input[name=\"actionType\"]").forEach(function(el){ el.checked = false; el.disabled = false; }); document.querySelectorAll(".action-option").forEach(function(el){ el.classList.remove("selected"); }); }
-    var ev = globalData.roster.find(function(p){ return p.id === "P0" && p.baseName.indexOf("\u4F0A\u5E03") !== -1; });
-    if (ev && ev.currentLevel >= 16 && globalData.todayStatus !== "SUBMITTED" && ev.baseName === "\u{1F43E} \u4F0A\u5E03 (\u4E00\u822C\u7CFB)") $("eeveeModal").style.display = "flex";
     // P4-5b: Write to sessionStorage cache
     try {
       var cachePayload = { globalData: globalData, achievements: [], questProgress: globalQuestProgress, cachedAt: Date.now() };
@@ -1318,14 +1317,14 @@ var _pendingStudentTimer = null;
 function scheduleStudentFieldUpdate(fields) {
   if (!db || !globalData || !globalData.studentId) return;
   if (!_pendingStudentUpdate) _pendingStudentUpdate = {};
-  for (var fk in fields) _pendingStudentUpdate[fk] = null;
+  for (var fk in fields) _pendingStudentUpdate[fk] = fields[fk];
   if (_pendingStudentTimer) clearTimeout(_pendingStudentTimer);
   _pendingStudentTimer = setTimeout(function(){
     var keys = _pendingStudentUpdate;
     _pendingStudentUpdate = null;
     _pendingStudentTimer = null;
     var data = { studentId: globalData.studentId };
-    for (var k in keys) data[k] = globalData[k];
+    for (var k in keys) data[k] = keys[k];
     db.collection("kpi_students").doc(globalData.studentId).set(data, { merge: true }).catch(function(e){ console.warn("batch save failed:", e); });
   }, 50);
 }

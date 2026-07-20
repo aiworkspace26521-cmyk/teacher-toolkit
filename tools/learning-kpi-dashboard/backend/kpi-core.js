@@ -257,6 +257,7 @@ async function recalculateStudentState(studentId) {
     hasEviolite: false, hasChampionCloak: false, hasAmuletCoin: false,
     hasQuickClaw: false, hasFocusLens: false, hasShellBell: false, hasLifeOrb: false, hasAssaultVest: false,
     電擊盒: false, 岩漿盒: false, '龍之鱗片': false, 護具: false, 金屬膜: false, '王者之證': false,
+    雷之石: false, 水之石: false, 火之石: false, 葉之石: false, 冰之石: false, 日之石: false, 月之石: false, 妖精之石: false,
     todayStatus: "PENDING",
     daysSinceLastBadge: 0,
     lastBadgeTime: null,
@@ -360,6 +361,14 @@ async function recalculateStudentState(studentId) {
     if (safeNote.includes('護具')) state.護具 = true;
     if (safeNote.includes('金屬膜')) state.金屬膜 = true;
     if (safeNote.includes('王者之證')) state['王者之證'] = true;
+    if (safeNote.includes('雷之石')) state['雷之石'] = true;
+    if (safeNote.includes('水之石')) state['水之石'] = true;
+    if (safeNote.includes('火之石')) state['火之石'] = true;
+    if (safeNote.includes('葉之石')) state['葉之石'] = true;
+    if (safeNote.includes('冰之石')) state['冰之石'] = true;
+    if (safeNote.includes('日之石')) state['日之石'] = true;
+    if (safeNote.includes('月之石')) state['月之石'] = true;
+    if (safeNote.includes('妖精之石')) state['妖精之石'] = true;
     if (safeNote.includes('橙橙果')) state.oranBerries++;
     if (safeNote.includes('奇異果')) state.cheriBerries++;
     if (safeNote.includes('木子果')) state.lumBerries++;
