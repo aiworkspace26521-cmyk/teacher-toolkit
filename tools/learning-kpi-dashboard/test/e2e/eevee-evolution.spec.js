@@ -93,8 +93,8 @@ test.describe('伊布道具制進化 8 路徑 E2E', () => {
         var captured = null;
         var origSave = executeSave;
         var origCutscene = showEvoCutscene;
-        showEvoCutscene = function() {};
-        executeSave = function(data, cb) { captured = data; if (cb) cb(); };
+        showEvoCutscene = function(prevName, newName, cb) { if (cb) cb(); };
+        executeSave = function(record, successCb) { captured = record; if (typeof successCb === 'function') successCb(); };
         try {
           await doEvolve('P0');
         } catch (e) {

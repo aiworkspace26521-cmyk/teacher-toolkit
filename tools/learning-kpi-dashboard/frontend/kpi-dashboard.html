@@ -696,7 +696,7 @@
   </div>
 </div>
 
-<div id="eeveeModal" class="modal"><div class="modal-content" style="border-color:var(--kpi-blue);"><h3 style="color:var(--kpi-blue);margin-top:0;">🌟 伊布進化大覺醒！</h3><p style="font-size:14px;color:#666;margin-bottom:15px;">伊布已達 <b>Lv.16</b>，請選擇<b>一種</b>進化型態(不可更改)：</p><select id="eeveeChoice" class="main-select" style="margin-bottom:15px;"><option value="💧 水伊布 (水系)">💧 水伊布</option><option value="🔥 火伊布 (火系)">🔥 火伊布</option><option value="🍃 葉伊布 (草系)">🍃 葉伊布</option><option value="⚡ 雷伊布 (電系)">⚡ 雷伊布</option><option value="🔮 太陽伊布 (超能系)">🔮 太陽伊布</option><option value="🕶️ 月亮伊布 (惡系)">🕶️ 月亮伊布</option><option value="❄️ 冰伊布 (冰系)">❄️ 冰伊布</option><option value="✨ 仙子伊布 (妖精系)">✨ 仙子伊布</option></select><button class="buy-btn" style="width:100%;font-size:16px;padding:12px;" onclick="confirmEeveeEvolution()">確認進化</button></div></div>
+
 
 <div id="toastContainer" style="position:fixed;bottom:20px;left:50%;transform:translateX(-50%);z-index:9999;display:flex;flex-direction:column;gap:6px;pointer-events:none;max-width:90%;"></div>
 <script>
@@ -908,10 +908,6 @@ async function devAdd(type, val) {
   }, false);
 }
 function confirmEvo() { closeModal('evoCutscene'); toast('🎉 進化完成！'); }
-function confirmEeveeEvolution() {
-  var sel = $('eeveeChoice');
-  if (sel) evolveEevee(sel.value);
-}
 
 // ===== Firebase data functions =====
 async function recalculateStudentState(studentId, events) {
@@ -7683,20 +7679,6 @@ async function submitData() {
   }
 }
 
-async function evolveEevee(evolution) {
-  var evoMap = {
-    "水伊布":"水","雷伊布":"電","火伊布":"火","太陽伊布":"超能力","月亮伊布":"惡","葉伊布":"草","冰伊布":"冰","仙子伊布":"妖精"
-  };
-  var type = evoMap[evolution] || "一般";
-  var newName = "🐾 " + evolution + " (" + type + ")";
-  await executeSave({ studentId: globalData.studentId, score: 0, action: "E", expGained: 0, coinsGained: 0, badgeChange: 0, note: "進化: 獲得: " + newName, extraNote: "進化: 獲得: " + newName, totalScore: 0, user: globalData.studentId }, function() {
-    toast("🎉 伊布進化為 " + evolution + "！");
-    closeModal("eeveeModal");
-    if (globalData.roster && globalData.roster[0]) {
-      globalData.roster[0].baseName = newName;
-    }
-  }, false);
-}
 async function doEvolve(pokemonId) {
   if (!globalData) return;
   var pkmn = globalData.roster.find(function(p){ return p.id === pokemonId; });
