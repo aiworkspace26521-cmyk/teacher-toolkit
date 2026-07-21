@@ -5049,7 +5049,7 @@ function renderPCBoxContent() {
   var heldLabels = [];
   for (var _hid2 in HELD_ITEMS) { if (gd[HELD_ITEMS[_hid2].flag]) heldLabels.push({ id:_hid2, name:HELD_ITEMS[_hid2].name, icon:HELD_ITEMS[_hid2].icon }); }
   if (gd.tms && gd.tms.universal) heldLabels.push({ id:"tmUniversal", name:"萬能學習器 x" + gd.tms.universal, icon:"📀" });
-  for (var ei in EVO_ITEMS) { if (gd[ei]) heldLabels.push({ id:ei, name:EVO_ITEMS[ei].name, icon:EVO_ITEMS[ei].icon }); }
+  for (var ei in EVO_ITEMS) { if (gd[ei]) heldLabels.push({ id:ei, name:ei, icon:EVO_ITEMS[ei].icon }); }
   if (heldLabels.length > 0) {
     heldSection.innerHTML = "<span style='font-weight:700;'>持有裝備:</span> ";
     for (var hl = 0; hl < heldLabels.length; hl++) {
