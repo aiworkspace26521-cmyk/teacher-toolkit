@@ -1087,9 +1087,15 @@ async function recalculateStudentState(studentId, events) {
       var nm = safeNote.match(/\u7372\u5F97:\s*([^|]+)/);
       if (nm && state.roster['P0']) state.roster['P0'].baseName = nm[1].trim();
       // 新格式: 進化ID:{pokemonId} => {newName}
-      var evoMatch = safeNote.match(/進化ID:(\S+)\s*=>\s*(.+)/);
+      var evoMatch = safeNote.match(/進化ID:(\S+)\s*=>\s*([^|]+)/);
       if (evoMatch && state.roster[evoMatch[1]]) {
         state.roster[evoMatch[1]].baseName = evoMatch[2].trim();
+      }
+      // 消耗進化道具: 進化ID:P0 => 水伊布|消耗:水之石
+      var consumeMatch = safeNote.match(/\|消耗:(.+)/);
+      if (consumeMatch) {
+        var consumed = consumeMatch[1].trim();
+        if (EVO_ITEMS[consumed]) state[consumed] = false;
       }
     } else if (rowAction === "道具裝備") {
       var allHeld = { "expShare":"學習裝置" };
@@ -7692,7 +7698,7 @@ async function doEvolve(pokemonId) {
     var newName = evoInfo.nextName + " (" + types.join("/") + ")";
     var prefix = pkmn.baseName.match(/^[^\w\u4e00-\u9fff]+\s*/u);
     newName = (prefix ? prefix[0] : "⭐ ") + newName;
-    var conNote = "進化ID:" + pokemonId + " => " + newName;
+    var conNote = "進化ID:" + pokemonId + " => " + newName + (evoInfo.item ? "|消耗:" + evoInfo.item : "");
     sfx.levelup();
     await executeSave({ studentId: globalData.studentId, score: 0, action: "E", expGained: 0, coinsGained: 0, badgeChange: 0, note: conNote, extraNote: conNote, totalScore: 0, user: globalData.studentId }, function() {
       showEvoCutscene(pkmn.baseName, newName, function() {
@@ -7722,7 +7728,7 @@ async function doEvolve(pokemonId) {
     newName2 = (prefix2 ? prefix2[0] : "⭐ ") + newName2;
     // 消耗進化道具
     globalData[evoInfo.item] = false;
-    var conNote = "進化ID:" + pokemonId + " => " + newName2;
+    var conNote = "進化ID:" + pokemonId + " => " + newName2 + "|消耗:" + evoInfo.item;
     await executeSave({ studentId: globalData.studentId, score: 0, action: "E", expGained: 0, coinsGained: 0, badgeChange: 0, note: conNote, extraNote: conNote, totalScore: 0, user: globalData.studentId }, function() {
       sfx.levelup();
       showEvoCutscene(pkmn.baseName, newName2, function() {

@@ -467,9 +467,15 @@ async function recalculateStudentState(studentId) {
         state.roster['P0'].baseName = newName;
       }
       // 新格式: 進化ID:{pokemonId} => {newName}
-      const evoMatch = safeNote.match(/進化ID:(\S+)\s*=>\s*(.+)/);
+      const evoMatch = safeNote.match(/進化ID:(\S+)\s*=>\s*([^|]+)/);
       if (evoMatch && state.roster[evoMatch[1]]) {
         state.roster[evoMatch[1]].baseName = evoMatch[2].trim();
+      }
+      // 消耗進化道具: 進化ID:P0 => 水伊布|消耗:水之石
+      const consumeMatch = safeNote.match(/\|消耗:(.+)/);
+      if (consumeMatch) {
+        const consumed = consumeMatch[1].trim();
+        if (consumed in state) state[consumed] = false;
       }
     } else if (rowAction === '滿級轉化') {
       state.coins += rowCoins;
@@ -575,6 +581,14 @@ async function recalculateStudentState(studentId) {
     '護具': state.護具 || false,
     '金屬膜': state.金屬膜 || false,
     '王者之證': state['王者之證'] || false,
+    '雷之石': state['雷之石'] || false,
+    '水之石': state['水之石'] || false,
+    '火之石': state['火之石'] || false,
+    '葉之石': state['葉之石'] || false,
+    '冰之石': state['冰之石'] || false,
+    '日之石': state['日之石'] || false,
+    '月之石': state['月之石'] || false,
+    '妖精之石': state['妖精之石'] || false,
     todayStatus: state.todayStatus,
     daysSinceLastBadge: state.daysSinceLastBadge,
     roster: rosterArray,
