@@ -1026,7 +1026,9 @@ async function recalculateStudentState(studentId, events) {
       if (lvMatch) initLv = parseInt(lvMatch[2], 10);
       var lvFromNote = safeNote.match(/\|\s*Lv\.(\d+)\s*\|/);
       if (lvFromNote) initLv = parseInt(lvFromNote[1], 10);
-      initLv = Math.min(initLv, Math.max(5, (state.lockedGymLevel || 5)) + 3);
+      if (!lvMatch && !lvFromNote) {
+        initLv = Math.min(initLv, Math.max(5, (state.lockedGymLevel || 5)) + 3);
+      }
       var cleanName = pNameRaw.indexOf("(") !== -1 ? pNameRaw : pNameRaw + " (\u4E00\u822C\u7CFB)";
       // Re-evaluate evolution chain against capped level
       if (typeof EVO_STAGE_MAP !== "undefined" && initLv >= 5) {
@@ -1133,14 +1135,7 @@ async function recalculateStudentState(studentId, events) {
       p.happiness = p.happiness || 0;
     }
     if (p.currentLevel > finalHighestLevel) finalHighestLevel = p.currentLevel;
-    // 自動進化（模擬 replay 用）
-    var raw2 = getRawName(p.baseName);
-    if (raw2 === "伊布" && p.currentLevel >= 16) {
-      var evo2 = getRandomEeveelution();
-      var types2 = POKEMON_SPECIES_TYPES[evo2] || ["一般"];
-      var prefix2 = p.baseName.match(/^[^\w\u4e00-\u9fff]+\s*/u);
-      p.baseName = (prefix2 ? prefix2[0] : "⭐ ") + evo2 + " (" + types2.join("/") + ")";
-    }
+
     rosterArray.push(p);
   }
   var submitStreak = 0;
@@ -1155,7 +1150,9 @@ async function recalculateStudentState(studentId, events) {
   var totalSubmitDays = Object.keys(submitDates).length;
   if (totalSubmitDays >= 60) state.badges += 5;
   else if (totalSubmitDays >= 30) state.badges += 2;
-  return { studentId: state.studentId, highestLevel: finalHighestLevel, lockedGymLevel: state.lockedGymLevel, coins: state.coins, badges: state.badges, potions: state.potions, revives: state.revives, candies: state.candies, maxPotions: state.maxPotions, maxRevives: state.maxRevives, expSharePurchased: state.expSharePurchased, hasExpertBelt: state.hasExpertBelt, hasEviolite: state.hasEviolite, hasChampionCloak: state.hasChampionCloak, hasAmuletCoin: state.hasAmuletCoin, hasQuickClaw: state.hasQuickClaw, hasFocusLens: state.hasFocusLens, hasShellBell: state.hasShellBell, hasLifeOrb: state.hasLifeOrb, hasAssaultVest: state.hasAssaultVest, oranBerries: state.oranBerries||0, cheriBerries: state.cheriBerries||0, lumBerries: state.lumBerries||0, chilanBerries: state.chilanBerries||0, hasFocusSash: state.hasFocusSash||false, hasEjectButton: state.hasEjectButton||false, hasRockyHelmet: state.hasRockyHelmet||false, hasWeaknessPolicy: state.hasWeaknessPolicy||false, tms: state.tms||{}, todayStatus: state.todayStatus, daysSinceLastBadge: state.daysSinceLastBadge, roster: rosterArray, todayBattles: state.todayBattles, weekGymWins: state.weekGymWins, weekBossWins: state.weekBossWins, monthLeagueWins: state.monthLeagueWins, submitStreak: submitStreak, simpleMode: state.simpleMode || false, leagueRegionsWon: state.leagueRegionsWon || {}, masters8Completed: state.masters8Completed || [], masters8Progress: state.masters8Progress || [] };
+  var result = { studentId: state.studentId, highestLevel: finalHighestLevel, lockedGymLevel: state.lockedGymLevel, coins: state.coins, badges: state.badges, potions: state.potions, revives: state.revives, candies: state.candies, maxPotions: state.maxPotions, maxRevives: state.maxRevives, expSharePurchased: state.expSharePurchased, hasExpertBelt: state.hasExpertBelt, hasEviolite: state.hasEviolite, hasChampionCloak: state.hasChampionCloak, hasAmuletCoin: state.hasAmuletCoin, hasQuickClaw: state.hasQuickClaw, hasFocusLens: state.hasFocusLens, hasShellBell: state.hasShellBell, hasLifeOrb: state.hasLifeOrb, hasAssaultVest: state.hasAssaultVest, oranBerries: state.oranBerries||0, cheriBerries: state.cheriBerries||0, lumBerries: state.lumBerries||0, chilanBerries: state.chilanBerries||0, hasFocusSash: state.hasFocusSash||false, hasEjectButton: state.hasEjectButton||false, hasRockyHelmet: state.hasRockyHelmet||false, hasWeaknessPolicy: state.hasWeaknessPolicy||false, tms: state.tms||{}, todayStatus: state.todayStatus, daysSinceLastBadge: state.daysSinceLastBadge, roster: rosterArray, todayBattles: state.todayBattles, weekGymWins: state.weekGymWins, weekBossWins: state.weekBossWins, monthLeagueWins: state.monthLeagueWins, submitStreak: submitStreak, simpleMode: state.simpleMode || false, leagueRegionsWon: state.leagueRegionsWon || {}, masters8Completed: state.masters8Completed || [], masters8Progress: state.masters8Progress || [] };
+  for (var ei3 in EVO_ITEMS) result[ei3] = state[ei3] || false;
+  return result;
 }
 
 function showSkeletonDashboard() {
@@ -1213,14 +1210,15 @@ async function fetchStudentData(studentId, pendingEvent) {
   try {
     var snapshot = await db.collection("kpi_events").where("studentId", "==", studentId).orderBy("timestamp", "asc").get();
     var events = snapshot.docs.map(function(d){ var o = {id:d.id}; for(var k in d.data()) o[k]=d.data()[k]; return o; });
-    if (pendingEvent) { var found = false; for (var i = 0; i < events.length; i++) { if (events[i].id === pendingEvent.id) { found = true; break; } } if (!found) events.push(pendingEvent); }
+    if (pendingEvent) { events = events.filter(function(e) { return e.id !== pendingEvent.id; }); events.push(pendingEvent); }
     var refreshed = await recalculateStudentState(studentId, events);
     if (refreshed) {
       globalData = {}; for (var sk in refreshed) globalData[sk] = refreshed[sk]; delete globalData.cached;
       delete refreshed.achievements;
       await db.collection("kpi_students").doc(studentId).set(refreshed, { merge: true });
     } else {
-      globalData = { studentId: studentId, roster: [], highestLevel: 5, lockedGymLevel: 5, coins: 0, badges: 0, potions: 0, revives: 0, candies: 0, maxPotions: 0, maxRevives: 0, expSharePurchased: false, hasExpertBelt: false, hasEviolite: false, hasChampionCloak: false, hasAmuletCoin: false, oranBerries: 0, cheriBerries: 0, lumBerries: 0, chilanBerries: 0, hasFocusSash: false, hasEjectButton: false, hasRockyHelmet: false, hasWeaknessPolicy: false, tms: {}, pokemonTMs: {}, todayStatus: "PENDING", todayBattles: 0, weekGymWins: 0, weekBossWins: 0, monthLeagueWins: 0, leagueRegionsWon: {}, masters8Completed: [], masters8Progress: [], "\u96FB\u6483\u76D2": false, "\u5E95\u6F3E\u76D2": false, "\u9F8D\u4E4B\u9C5A\u7247": false, "\u8B77\u5177": false, "\u91D1\u5C6C\u819C": false, "\u738B\u8005\u4E4B\u8B49": false };
+      globalData = { studentId: studentId, roster: [], highestLevel: 5, lockedGymLevel: 5, coins: 0, badges: 0, potions: 0, revives: 0, candies: 0, maxPotions: 0, maxRevives: 0, expSharePurchased: false, hasExpertBelt: false, hasEviolite: false, hasChampionCloak: false, hasAmuletCoin: false, oranBerries: 0, cheriBerries: 0, lumBerries: 0, chilanBerries: 0, hasFocusSash: false, hasEjectButton: false, hasRockyHelmet: false, hasWeaknessPolicy: false, tms: {}, pokemonTMs: {}, todayStatus: "PENDING", todayBattles: 0, weekGymWins: 0, weekBossWins: 0, monthLeagueWins: 0, leagueRegionsWon: {}, masters8Completed: [], masters8Progress: [] };
+      for (var ei4 in EVO_ITEMS) globalData[ei4] = false;
     }
     // Restore TM data from Firestore doc
     try {
