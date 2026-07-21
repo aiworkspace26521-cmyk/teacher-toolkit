@@ -6586,55 +6586,7 @@ function updateDashboard() {
   if (simpleToggle) simpleToggle.checked = !!gd.simpleMode;
   renderBadgeCase();
 
-  var rosterDiv = $("rosterDisplay");
-  if (rosterDiv) {
-    rosterDiv.style.display = "block";
-    rosterDiv.innerHTML = "";
-    var partyIds = gd.partyIds || [];
-    var display = partyIds.length > 0
-      ? partyIds.map(function(id) { return gd.roster.find(function(p){ return p.id === id; }); }).filter(Boolean)
-      : gd.roster.slice(0, 6);
-    for (var i = 0; i < Math.min(6, display.length); i++) {
-      var p = display[i];
-      var card = document.createElement("div"); card.className = "pkmn-card";
-      var pType = getPokemonType(p.baseName);
-      var typesHtml = renderTypeBadges(pType);
-      var typeColor = getTypeColor(pType);
-      var leg = checkIsLegendary(p.baseName);
-      card.style.borderLeft = "4px solid " + typeColor;
-      var nameDisplay = p.baseName;
-      if (leg && nameDisplay.indexOf("?") === -1) nameDisplay = "★ " + nameDisplay;
-      // 持有道具顯示
-      var heldBadge = HELD_ITEM_ICONS[p.heldItem] ? " <span style=\"font-size:11px;color:#8e44ad;\">" + HELD_ITEM_ICONS[p.heldItem] + "</span>" : "";
-      // 親密度顯示 (❤️ 數值條)
-      var h = Math.min(getHappiness(p), 120);
-      var heartDisplay = h > 0 ? " <span style=\"font-size:11px;\">\u2764\uFE0F " + h + "/120</span>" : "";
-      var heartBar = h > 0 ? "<div style=\"margin-top:2px;background:#ffe0e0;border-radius:4px;height:4px;\"><div style=\"width:" + Math.round(h / 120 * 100) + "%;background:#e74c3c;height:4px;border-radius:4px;\"></div></div>" : "";
-      // 進化按鈕
-      var evoInfo = checkEvoReady(p, gd);
-      var evoBtn = "";
-      if (evoInfo && evoInfo.type !== "trade") {
-        evoBtn = " <button class=\"buy-btn\" style=\"padding:2px 8px;font-size:11px;margin-left:4px;\" onclick=\"doEvolve('" + p.id + "')\">\u8B93\u4ED6\u9032\u5316!</button>";
-      }
-      var abilName = getPokemonAbility(p.baseName);
-      var abilBadge = abilName ? " <span class=\"ability-tag\">[" + abilName + "]</span>" : "";
-      var dreamAbil = getLowBstDreamAbility(p.baseName);
-      var dreamBadge = dreamAbil ? " <span class=\"ability-tag\" style=\"background:#e8daef;color:#6c3483;\">[夢]" + dreamAbil.name + "</span>" : "";
-      var rawEvoName = getRawName(p.baseName);
-      var evoCond = getEvoCondition(rawEvoName);
-      var evoTag = "";
-      if (evoCond) {
-        if (evoCond.type === "item") evoTag = " <span class=\"ability-tag\" style=\"background:#fef9e7;color:#b7950b;\">📦 " + evoCond.item + "</span>";
-        else if (evoCond.type === "trade") evoTag = " <span class=\"ability-tag\" style=\"background:#fdedec;color:#c0392b;\">🤝 交換進化</span>";
-        else if (evoCond.type === "happiness") evoTag = " <span class=\"ability-tag\" style=\"background:#fdedec;color:#c0392b;\">💕 親密度進化</span>";
-      }
-      card.innerHTML = "<div style=\"font-weight:bold;font-size:14px;\">" + nameDisplay + " " + typesHtml + abilBadge + dreamBadge + evoTag + heldBadge + heartDisplay + "</div>" +
-        "<div style=\"font-size:12px;color:#666;\">Lv." + p.currentLevel + " | EXP " + p.expProgress + "/" + p.expNeeded + "</div>" +
-        "<div style=\"margin-top:4px;background:#e0e0e0;border-radius:4px;height:6px;\"><div style=\"width:" + Math.round(p.expProgress / (p.expNeeded||1) * 100) + "%;background:" + typeColor + ";height:6px;border-radius:4px;\"></div></div>" + heartBar +
-        (evoInfo ? "<div style=\"margin-top:4px;font-size:11px;color:#e67e22;font-weight:700;\">\u2B50 " + evoInfo.nextName + (evoInfo.info ? " (" + evoInfo.info + ")" : "") + evoBtn + "</div>" : "");
-      rosterDiv.appendChild(card);
-    }
-  }
+  // 主面板不顯示寶可夢隊伍 (移至 PC Box 與 PvP 選隊檢視)
 
   var bagDiv = $("bagDisplay");
   if (bagDiv) {
