@@ -6588,6 +6588,7 @@ function updateDashboard() {
 
   var rosterDiv = $("rosterDisplay");
   if (rosterDiv) {
+    rosterDiv.style.display = "block";
     rosterDiv.innerHTML = "";
     var partyIds = gd.partyIds || [];
     var display = partyIds.length > 0
