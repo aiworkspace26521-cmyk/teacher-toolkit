@@ -1555,7 +1555,115 @@ var MOVE_DATABASE = {
   "魅惑之聲": { power: 40,  type: "妖精",  category: "特殊", desc: "必定命中" },
   "撒嬌":     { power: 0,   type: "妖精",  category: "變化", desc: "大幅降低對手攻擊", effect: "debuff_atk" },
   "薄霧場地": { power: 0,   type: "妖精",  category: "變化", desc: "防止異常狀態", effect: "misty_terrain" },
-  "薄霧炸裂": { power: 100, type: "妖精",  category: "特殊", desc: "自己也會昏厥", effect: "self_kill" },
+  "薄霧炸裂": { power: 100, type: "妖精", category: "特殊", desc: "自己也會昏厥", effect: "self_kill" },
+};
+
+// ======== 招式規則系統 — 通用招白名單 ========
+var UNIVERSAL_MOVES = [
+  "撞擊","叫聲","抓","電光一閃","拍擊","瞪眼",
+  "搖尾巴","變硬","影子分身","替身","守住","睡覺",
+  "高速星星","覺醒力量","劈開","摔打","百萬噸重拳",
+  "泰山壓頂","捨身衝撞","絕對零度","大爆炸","玉石俱碎"
+];
+
+// ======== 招式規則系統 — 種族招式池 ========
+var SPECIES_LEARNSET = {
+  "水伊布":   ["水炮","冷凍光束","幫助","守住","水之波動","衝浪","溶化","泡沫光線"],
+  "雷伊布":   ["十萬伏特","電球","高速移動","潑沙","打雷","電擊","電網","影子分身"],
+  "火伊布":   ["噴射火焰","火焰牙","嬉鬧","電光一閃","大字爆","火焰球","火花","咬住"],
+  "太陽伊布": ["精神強念","預知未來","幻象光線","高速星星","暗影球","魔法葉","冥想","電光一閃"],
+  "月亮伊布": ["暗影球","咬住","月光","惡之波動","咬碎","奇異之光","電磁波","覺醒力量"],
+  "葉伊布":   ["飛葉快刀","劍舞","光合作用","十字剪","葉刃","能量球","魔法葉","大晴天"],
+  "冰伊布":   ["冷凍光束","冰礫","鏡面反射","暴風雪","冰雹","冰凍之風","冰柱墜擊","冰凍牙"],
+  "仙子伊布": ["月亮之力","巨聲","吸取之吻","電光一閃","魔法閃耀","魅惑之聲","薄霧場地","撒嬌"],
+  "噴火龍":   ["噴射火焰","大字爆","龍之波動","翅膀攻擊","熱風","龍爪","空氣斬","火焰踢"],
+  "火恐龍":   ["火花","噴射火焰","抓","叫聲","龍之怒","火焰牙","龍爪","劈開"],
+  "小火龍":   ["火花","叫聲","抓","瞪眼","龍之怒","火焰牙","龍捲風","電光一閃"],
+  "水箭龜":   ["水炮","冷凍光束","真氣彈","鐵尾","衝浪","水之波動","縮入殼中","加農光炮"],
+  "卡咪龜":   ["水槍","泡沫光線","咬住","縮入殼中","水之波動","鹽水","貝殼刃","守住"],
+  "傑尼龜":   ["水槍","搖尾巴","撞擊","縮入殼中","泡沫","咬住","水之波動","守住"],
+  "妙蛙花":   ["日光束","污泥炸彈","飛葉風暴","地震","能量球","寄生種子","毒粉","光合作用"],
+  "妙蛙草":   ["飛葉快刀","毒粉","寄生種子","藤鞭","催眠粉","能量球","生長","光合作用"],
+  "妙蛙種子": ["撞擊","叫聲","藤鞭","生長","寄生種子","毒粉","飛葉快刀","催眠粉"],
+  "快龍":     ["龍星群","颱風","大字爆","打雷","龍之波動","地震","龍爪","暴風"],
+  "班基拉斯": ["咬碎","岩石封鎖","地震","鐵尾","尖石攻擊","岩崩","火焰拳","冷凍拳"],
+  "暴飛龍":   ["龍星群","大字爆","噴射火焰","咬碎","龍之波動","熱風","龍爪","翅膀攻擊"],
+  "巨金怪":   ["流星閃衝","地震","鐵頭","精神強念","冷凍拳","雷電拳","子彈拳","加農光炮"],
+  "烈咬陸鯊": ["逆鱗","地震","毒擊","咬碎","龍爪","岩石封鎖","尖石攻擊","龍之波動"],
+  "路卡利歐": ["近身戰","真氣彈","暗影球","子彈拳","波導彈","龍之波動","冰凍拳","雷電拳"],
+  "沙奈朵":   ["月亮之力","精神強念","十萬伏特","暗影球","魔法閃耀","幻象光線","冥想","能量球"],
+  "火焰雞":   ["火焰踢","近身戰","電光一閃","岩石封鎖","火焰拳","雷電拳","健美","劈瓦"],
+  "蜥蜴王":   ["飛葉風暴","真氣彈","龍之波動","電光一閃","能量球","十字剪","劍舞","雜技"],
+  "巨沼怪":   ["水炮","地震","冷凍光束","岩石封鎖","攀瀑","衝浪","冰凍拳","重踏"],
+  "大菊花":   ["日光束","地震","鐵尾","能量球","飛葉風暴","光合作用","魔法葉","毒粉"],
+  "火爆獸":   ["大字爆炎","噴射火焰","雷電拳","地震","熱風","火焰踢","閃焰衝鋒","煙幕"],
+  "大力鱷":   ["水炮","咬碎","冰凍拳","地震","攀瀑","衝浪","劍舞","蠻力"],
+  "倫琴貓":   ["打雷","十萬伏特","咬碎","電光一閃","雷電牙","冰凍牙","火焰牙","高速移動"],
+  "姆克鷹":   ["勇鳥猛攻","近身戰","翅膀攻擊","電光一閃","急速折返","熱風","鐵頭","搖晃舞"],
+  "君主蛇":   ["飛葉風暴","能量球","魔法葉","水炮","龍之波動","大蛇瞪眼","光合作用","種子炸彈"],
+  "炎武王":   ["大字爆","近身戰","地震","火焰踢","閃焰衝鋒","臂錘","鐵頭","真氣彈"],
+  "西獅海壬": ["月亮之力","水炮","暴風雪","巨聲","魔法閃耀","泡影的詠歎調","能量球","冷凍光束"],
+  "狙射樹梟": ["飛葉風暴","暗影球","縫影","毒擊","能量球","影子偷襲","劍舞","光合作用"],
+  "熾焰咆哮虎":["大字爆","近身戰","咬碎","地獄突刺","閃焰衝鋒","劈瓦","地震","雷電拳"],
+  "千面避役": ["水炮","冷凍光束","龍之波動","暗影球","惡之波動","濁流","冷凍之風","電磁波"],
+  "轟擂金剛猩":["木槌","地震","近身戰","鼓擊","種子炸彈","臂錘","岩石封鎖","健美"],
+  "閃焰王牌": ["火焰球","飛膝踢","電光一閃","鐵頭","火焰踢","雜技","彈跳","高速移動"],
+  "黏美龍":   ["龍星群","水炮","污泥炸彈","地震","龍之波動","濁流","冷凍光束","真氣彈"],
+  "杖尾鱗甲龍":["逆鱗","近身戰","地震","毒擊","龍爪","鐵頭","岩崩","龍之舞"],
+  "超夢":     ["精神擊破","暗影球","冷凍光束","真氣彈","精神強念","冥想","大字爆","十萬伏特"],
+  "洛奇亞":   ["氣旋攻擊","精神強念","水炮","冷凍光束","暴風","冥想","睡覺","冰雹"],
+  "鳳王":     ["神聖之火","颱風","地震","精神強念","大字爆","太陽光線","大晴天","勇鳥猛攻"],
+  "蓋歐卡":   ["根源波動","水炮","暴風雪","打雷","衝浪","冷凍光束","冥想","睡覺"],
+  "固拉多":   ["斷崖之劍","地震","岩石封鎖","大字爆","火焰拳","劍舞","大地之力","日光束"],
+  "烈空坐":   ["畫龍點睛","龍星群","颱風","地震","龍之波動","暴風","大字爆","十萬伏特"],
+  "帝牙盧卡": ["時光咆哮","打雷","大字爆","鐵尾","加農光炮","龍星群","龍之波動","大地之力"],
+  "帕路奇亞": ["龍星群","水炮","精神強念","地震","亞空裂斬","衝浪","暴風雪","大字爆"],
+  "騎拉帝納": ["龍星群","暗影球","暗黑洞","地震","龍爪","影子偷襲","奇異之光","大地之力"],
+  "阿爾宙斯": ["創造完","精神強念","大字爆","打雷","冷凍光束","暗影球","地震","劍舞"],
+  "萊希拉姆": ["大字爆","龍星群","噴射火焰","暗影球","龍之波動","熱風","大地之力","石刃"],
+  "捷克羅姆": ["打雷","龍星群","閃電強襲","咬碎","龍爪","雷電拳","地震","龍之波動"],
+  "酋雷姆":   ["暴風雪","龍星群","冷凍光束","暗影球","冰凍之風","龍之波動","大地之力","暗黑洞"],
+  "火焰鳥":   ["神鳥猛擊","大字爆","噴射火焰","颱風","熱風","暴風","火焰踢","大晴天"],
+  "急凍鳥":   ["暴風雪","冷凍光束","冰凍之風","精神強念","冰礫","冰雹","睡覺","影子分身"],
+  "閃電鳥":   ["打雷","十萬伏特","鑽啄","颱風","高速移動","暴風","電磁波","電光一閃"],
+  "夢幻":     ["精神強念","水炮","大字爆","十萬伏特","暗影球","冷凍光束","變身","劍舞"],
+  "露奈雅拉": ["暗影球","月亮之力","精神強念","冷凍光束","惡之波動","冥想","影子偷襲","大字爆"],
+  "索爾迦雷歐":["流星閃衝","意念頭錘","火焰拳","地震","鐵頭","精神強念","劍舞","雷電拳"],
+  "哲爾尼亞斯":["月亮之力","精神強念","十萬伏特","地震","魔法閃耀","能量球","冥想","大聲咆哮"],
+  "伊裴爾塔爾":["暗影球","颱風","精神強念","大字爆","惡之波動","暴風","龍之波動","突襲"],
+  "無極汰那": ["龍星群","暗影球","毒擊","大字爆","污泥炸彈","毒液衝擊","龍之波動","大地之力"],
+  "故勒頓":   ["近身戰","龍之波動","地震","閃電強襲","龍爪","火焰拳","雷電拳","劍舞"],
+  "密勒頓":   ["打雷","龍星群","十萬伏特","精神強念","龍之波動","電磁波","伏特替換","閃電強襲"],
+  "厄鬼椪":   ["木角","嬉鬧","暗影球","意念頭錘","種子炸彈","吸取之吻","劍舞","尖石攻擊"],
+  "太樂巴戈斯":["太晶爆發","精神強念","水炮","大地之力","龍之波動","衝浪","冷凍光束","睡覺"],
+  "索羅亞克": ["暗影球","惡之波動","精神強念","突襲","暗襲要害","詭計","噴射火焰","幻象光線"],
+  "大比鳥":   ["颱風","翅膀攻擊","電光一閃","熱風","龍捲風","勇鳥猛攻","高速移動","暴風"],
+  "鴨嘴炎獸": ["大字爆","噴射火焰","真氣彈","雷電拳","火焰拳","劈瓦","濁霧","十萬伏特"],
+  "電擊魔獸": ["打雷","十萬伏特","地震","冷凍拳","雷電拳","火焰拳","劈瓦","真氣彈"],
+};
+
+// ======== 招式規則系統 — Off-Type 例外表 ========
+var OFF_TYPE_EXCEPTIONS = {
+  "耿鬼":         ["十萬伏特","魔法閃耀","能量球"],
+  "暴鯉龍":       ["大字爆","暴風雪","打雷"],
+  "拉普拉斯":     ["十萬伏特","打雷","精神強念"],
+  "呆殼獸":       ["火焰拳","雷電拳","冰凍拳"],
+  "快龍":         ["大字爆","打雷","噴射火焰","暴風雪"],
+  "暴飛龍":       ["大字爆","噴射火焰","水炮"],
+  "烈咬陸鯊":     ["大字爆","噴射火焰","石刃"],
+  "巨金怪":       ["冷凍拳","雷電拳","火焰拳","精神強念"],
+  "班基拉斯":     ["大字爆","噴射火焰","打雷","十萬伏特","冷凍光束"],
+  "路卡利歐":     ["暗影球","精神強念","龍之波動"],
+  "沙奈朵":       ["十萬伏特","能量球","暗影球"],
+  "倫琴貓":       ["咬碎","冰凍牙","火焰牙"],
+  "黏美龍":       ["水炮","污泥炸彈","冷凍光束"],
+  "烈空坐":       ["大字爆","十萬伏特","水炮","暴風雪"],
+  "蓋歐卡":       ["打雷","暴風雪"],
+  "固拉多":       ["大字爆","劍舞"],
+  "萊希拉姆":     ["暗影球","大地之力"],
+  "捷克羅姆":     ["咬碎","地震"],
+  "酋雷姆":       ["暗影球","大地之力"],
+  "騎拉帝納":     ["地震","大地之力"],
 };
 
 var TYPE_MOVE_POOL = {
@@ -1574,7 +1682,7 @@ var TYPE_MOVE_POOL = {
   "毒":   ["毒針","溶解液","污泥炸彈","垃圾射擊","污泥波"],
   "鋼":   ["金屬爪","鐵頭","重磅衝撞","鐵尾","加農光炮"],
   "惡":   ["抓","暗襲要害","咬碎","突襲","暗黑洞"],
-  "冰":   ["冰礫","冰雹","冰凍牙","冰凍光束","暴風雪"],
+  "冰":   ["冰礫","冰雹","冰凍牙","冷凍光束","暴風雪"],
   "蟲":   ["蟲咬","蟲鳴","十字剪","信號光束","超級角擊"],
   "岩石": ["落石","沙暴","岩崩","尖石攻擊","雙刃頭錘"]
 };
@@ -2416,125 +2524,230 @@ function getMoveDetails(moveName) {
   return MOVE_DATABASE[moveName] || { power: 40, type: "一般", category: "物理", desc: "普通攻擊" };
 }
 
+function getPokemonTier(raw) {
+  for (var t in POKEMON_TIERS) {
+    for (var i = 0; i < POKEMON_TIERS[t].length; i++) {
+      if (POKEMON_TIERS[t][i].name === raw) return t;
+    }
+  }
+  return "一般";
+}
+
+function generateLearnset(raw, types, tier) {
+  var pool = [];
+  // 1. STAB 本系招
+  for (var ti = 0; ti < types.length; ti++) {
+    var tMoves = TYPE_MOVE_POOL[types[ti]];
+    if (tMoves) {
+      for (var mi = 0; mi < Math.min(3, tMoves.length); mi++) {
+        pool.push(tMoves[mi]);
+      }
+      if (tMoves.length >= 3) {
+        pool.push(tMoves[tMoves.length - 1]);
+      }
+    }
+  }
+  // 2. 變化/輔助招（依 tier）
+  var hasSetup = tier === "稀有" || tier === "傳說";
+  if (hasSetup) {
+    var primaryType = types[0];
+    var setupMoves = [];
+    if (["草","蟲","毒"].indexOf(primaryType) !== -1) setupMoves = ["劍舞","光合作用","催眠粉"];
+    else if (["超能力","幽靈","妖精"].indexOf(primaryType) !== -1) setupMoves = ["冥想","自我再生","電磁波"];
+    else setupMoves = ["劍舞","冥想","自我再生"];
+    for (var si = 0; si < setupMoves.length; si++) {
+      pool.push(setupMoves[si]);
+    }
+  }
+  if (tier === "傳說") {
+    pool.push("睡覺");
+  }
+  // 3. Off-type 例外
+  if (OFF_TYPE_EXCEPTIONS[raw]) {
+    for (var oi = 0; oi < OFF_TYPE_EXCEPTIONS[raw].length; oi++) {
+      pool.push(OFF_TYPE_EXCEPTIONS[raw][oi]);
+    }
+  }
+  // 4. 去重
+  var uniq = [];
+  for (var ui = 0; ui < pool.length; ui++) {
+    if (uniq.indexOf(pool[ui]) === -1) uniq.push(pool[ui]);
+  }
+  // 5. 限長：取前 10 招，確保至少 6 招
+  if (uniq.length > 10) uniq = uniq.slice(0, 10);
+  var fallbackIdx = 0;
+  var fallbacks = ["撞擊","叫聲","電光一閃","拍擊","瞪眼","影子分身","高速星星","覺醒力量"];
+  while (uniq.length < 6) {
+    if (uniq.indexOf(fallbacks[fallbackIdx]) === -1) uniq.push(fallbacks[fallbackIdx]);
+    fallbackIdx++;
+    if (fallbackIdx >= fallbacks.length) break;
+  }
+  return uniq;
+}
+
 function getPokemonMoveset(baseName, level) {
   var raw = baseName.replace(/^[^\w\u4e00-\u9fff]+\s*/u,"").replace(/\s*\(.*\)/,"");
-  var isHigh = level >= 30;
   var types = POKEMON_SPECIES_TYPES[raw] || ["一般"];
-  var primaryType = types[0];
+  var tier = getPokemonTier(raw);
   var leg = checkIsLegendary(raw);
   var stats = getPokemonStats(baseName, Math.min(level, 50));
   var isPhys = stats.atk >= stats.spatk;
-  var pool = [];
-
-  if (raw === "超夢") pool = ["精神擊破","暗影球","冰凍光束","真氣彈"];
-  else if (raw === "烈空坐") pool = ["畫龍點睛","龍星群","颱風","地震"];
-  else if (raw === "蓋歐卡") pool = ["根源波動","水炮","暴風雪","打雷"];
-  else if (raw === "固拉多") pool = ["斷崖之劍","地震","岩石封鎖","大字爆"];
-  else if (raw === "阿爾宙斯") pool = ["創造完","精神強念","大字爆","打雷"];
-  else if (raw === "騎拉帝納") pool = ["龍星群","暗影球","暗黑洞","地震"];
-  else if (raw === "帝牙盧卡") pool = ["時光咆哮","打雷","大字爆","鐵尾"];
-  else if (raw === "帕路奇亞") pool = ["龍星群","水炮","精神強念","地震"];
-  else if (raw === "萊希拉姆") pool = ["大字爆","龍星群","噴射火焰","暗影球"];
-  else if (raw === "捷克羅姆") pool = ["打雷","龍星群","閃電強襲","咬碎"];
-  else if (raw === "酋雷姆") pool = ["暴風雪","龍星群","冷凍光束","暗影球"];
-  else if (raw === "鳳王") pool = ["神聖之火","颱風","地震","精神強念"];
-  else if (raw === "洛奇亞") pool = ["氣旋攻擊","精神強念","水炮","冷凍光束"];
-  else if (raw === "火焰鳥") pool = ["神鳥猛擊","大字爆","噴射火焰","颱風"];
-  else if (raw === "急凍鳥") pool = ["暴風雪","冷凍光束","冰凍之風","精神強念"];
-  else if (raw === "閃電鳥") pool = ["打雷","十萬伏特","鑽啄","颱風"];
-  else if (raw === "夢幻") pool = ["精神強念","水炮","大字爆","十萬伏特"];
-  else if (raw === "索爾迦雷歐") pool = ["流星閃衝","意念頭錘","火焰拳","地震"];
-  else if (raw === "露奈雅拉") pool = ["暗影球","月亮之力","精神強念","冷凍光束"];
-  else if (raw === "哲爾尼亞斯") pool = ["月亮之力","精神強念","十萬伏特","地震"];
-  else if (raw === "伊裴爾塔爾") pool = ["暗影球","颱風","精神強念","大字爆"];
-  else if (raw === "無極汰那") pool = ["龍星群","暗影球","毒擊","大字爆"];
-  else if (raw === "故勒頓") pool = ["近身戰","龍之波動","地震","閃電強襲"];
-  else if (raw === "密勒頓") pool = ["打雷","龍星群","十萬伏特","精神強念"];
-  else if (raw === "厄鬼椪") pool = ["木角","嬉鬧","暗影球","意念頭錘"];
-  else if (raw === "太樂巴戈斯") pool = ["太晶爆發","精神強念","水炮","大地之力"];
-  else if (raw === "噴火龍") pool = isHigh ? ["噴射火焰","大字爆","龍之波動","翅膀攻擊"] : ["火花","叫聲","抓","噴射火焰"];
-  else if (raw === "水箭龜") pool = isHigh ? ["水炮","冷凍光束","真氣彈","鐵尾"] : ["水槍","縮入殼中","泡沫","咬住"];
-  else if (raw === "妙蛙花") pool = isHigh ? ["日光束","污泥炸彈","飛葉風暴","地震"] : ["飛葉快刀","寄生種子","毒粉","藤鞭"];
-  else if (raw === "火恐龍") pool = ["火花","噴射火焰","抓","叫聲"];
-  else if (raw === "卡咪龜") pool = ["水槍","泡沫光線","咬住","縮入殼中"];
-  else if (raw === "妙蛙草") pool = ["飛葉快刀","毒粉","寄生種子","藤鞭"];
-  else if (raw === "快龍") pool = isHigh ? ["龍星群","颱風","大字爆","打雷"] : ["龍之怒","電光一閃","摔打","翅膀攻擊"];
-  else if (raw === "班基拉斯") pool = ["咬碎","岩石封鎖","地震","鐵尾"];
-  else if (raw === "暴飛龍") pool = ["龍星群","大字爆","噴射火焰","咬碎"];
-  else if (raw === "巨金怪") pool = ["流星閃衝","地震","鐵頭","精神強念"];
-  else if (raw === "烈咬陸鯊") pool = ["逆鱗","地震","毒擊","咬碎"];
-  else if (raw === "路卡利歐") pool = ["近身戰","真氣彈","暗影球","子彈拳"];
-  else if (raw === "沙奈朵") pool = ["月亮之力","精神強念","十萬伏特","暗影球"];
-  else if (raw === "火焰雞") pool = ["火焰踢","近身戰","電光一閃","岩石封鎖"];
-  else if (raw === "蜥蜴王") pool = ["飛葉風暴","真氣彈","龍之波動","電光一閃"];
-  else if (raw === "巨沼怪") pool = ["水炮","地震","冷凍光束","岩石封鎖"];
-  else if (raw === "大菊花") pool = ["日光束","地震","鐵尾","能量球"];
-  else if (raw === "火爆獸") pool = ["大字爆炎","噴射火焰","雷電拳","地震"];
-  else if (raw === "大力鱷") pool = ["水炮","咬碎","冰凍拳","地震"];
-  else if (raw === "倫琴貓") pool = ["打雷","十萬伏特","咬碎","電光一閃"];
-  else if (raw === "姆克鷹") pool = ["勇鳥猛攻","近身戰","翅膀攻擊","電光一閃"];
-  else if (raw === "君主蛇") pool = ["飛葉風暴","能量球","魔法葉","水炮"];
-  else if (raw === "炎武王") pool = ["大字爆","近身戰","地震","火焰踢"];
-  else if (raw === "大比鳥") pool = ["颱風","翅膀攻擊","電光一閃","熱風"];
-  else if (raw === "西獅海壬") pool = ["月亮之力","水炮","暴風雪","巨聲"];
-  else if (raw === "狙射樹梟") pool = ["飛葉風暴","暗影球","縫影","毒擊"];
-  else if (raw === "熾焰咆哮虎") pool = ["大字爆","近身戰","咬碎","地獄突刺"];
-  else if (raw === "千面避役") pool = ["水炮","冰凍光束","龍之波動","暗影球"];
-  else if (raw === "轟擂金剛猩") pool = ["木槌","地震","近身戰","鼓擊"];
-  else if (raw === "閃焰王牌") pool = ["火焰球","飛膝踢","電光一閃","鐵頭"];
-  else if (raw === "黏美龍") pool = ["龍星群","水炮","污泥炸彈","地震"];
-  else if (raw === "杖尾鱗甲龍") pool = ["逆鱗","近身戰","地震","毒擊"];
-  else if (raw === "鴨嘴炎獸") pool = ["大字爆","噴射火焰","真氣彈","雷電拳"];
-  else if (raw === "電擊魔獸") pool = ["打雷","十萬伏特","地震","冷凍拳"];
-  else if (raw === "水伊布") pool = ["水炮","冷凍光束","幫助","守住"];
-  else if (raw === "雷伊布") pool = ["十萬伏特","電球","高速移動","潑沙"];
-  else if (raw === "火伊布") pool = ["噴射火焰","火焰牙","嬉鬧","電光一閃"];
-  else if (raw === "太陽伊布") pool = ["精神強念","預知未來","高速星星","月亮之力"];
-  else if (raw === "月亮伊布") pool = ["暗影球","咬住","月光","電磁波"];
-  else if (raw === "葉伊布") pool = ["飛葉快刀","劍舞","光合作用","十字剪"];
-  else if (raw === "冰伊布") pool = ["冷凍光束","冰礫","鏡面反射","水槍"];
-  else if (raw === "仙子伊布") pool = ["月亮之力","巨聲","吸取之吻","電光一閃"];
-  else {
-    var tPool = TYPE_MOVE_POOL[primaryType] || TYPE_MOVE_POOL["一般"];
-    pool.push(tPool[0] || "撞擊");
-    if (level >= 36) pool.push(tPool[tPool.length - 1]);
-    else if (level >= 16) pool.push(tPool[1] || tPool[0]);
-    else pool.push(tPool[1] || "電光一閃");
-    if (level >= 16) {
-      var covMoves = isPhys ? ["冰凍牙","地震","咬碎","攀瀑"] : ["冰凍光束","暗影球","幻象光線","魔法葉"];
-      var cov = "撞擊";
-      for (var ci = 0; ci < covMoves.length; ci++) {
-        var d = getMoveDetails(covMoves[ci]);
-        if (d && types.indexOf(d.type) === -1) { cov = covMoves[ci]; break; }
-      }
-      pool.push(cov);
-    } else {
-      pool.push(tPool[1] || "電光一閃");
-    }
-    if (level >= 36) {
-      var sPool = [];
-      if (["草","蟲","毒"].indexOf(primaryType) !== -1) sPool = ["催眠粉","光合作用","劍舞"];
-      else if (["超能力","幽靈","妖精"].indexOf(primaryType) !== -1) sPool = ["冥想","自我再生","電磁波"];
-      else if (isPhys) sPool = ["劍舞","電磁波","自我再生"];
-      else sPool = ["冥想","電磁波","自我再生"];
-      var si = raw.charCodeAt(0) % sPool.length;
-      pool.push(sPool[si]);
-    }
-    if (level >= 50 && leg && SIGNATURE_MOVES[raw]) {
-      pool[pool.length - 1] = SIGNATURE_MOVES[raw].name;
-    }
-    var uniq = [], fallback = ["撞擊","抓","電光一閃","拍擊"];
-    for (var ui = 0; ui < pool.length; ui++) {
-      if (uniq.indexOf(pool[ui]) === -1) uniq.push(pool[ui]);
-    }
-    var fi = 0;
-    while (uniq.length < 4) {
-      if (fallback.indexOf(fallback[fi]) !== -1 && uniq.indexOf(fallback[fi]) === -1) uniq.push(fallback[fi]);
-      fi++;
-    }
-    pool = uniq.slice(0, 4);
+  var pool = SPECIES_LEARNSET[raw];
+  if (!pool) {
+    pool = generateLearnset(raw, types, tier);
+    SPECIES_LEARNSET[raw] = pool;
   }
-  return pool;
+  var selected = selectMovesFromPool(pool, level, types, isPhys, leg, raw);
+  return selected;
+}
+
+function selectMovesFromPool(pool, level, types, isPhys, isLegendary, speciesRaw) {
+  var lowMoves = [], midMoves = [], highMoves = [];
+  for (var mi = 0; mi < pool.length; mi++) {
+    var details = getMoveDetails(pool[mi]);
+    if (details.power <= 50 || details.power === 0) {
+      lowMoves.push(pool[mi]);
+    } else if (details.power <= 85) {
+      midMoves.push(pool[mi]);
+    } else {
+      highMoves.push(pool[mi]);
+    }
+  }
+  // 本系招 pool
+  var stabMoves = [];
+  for (var si = 0; si < pool.length; si++) {
+    var dt = getMoveDetails(pool[si]);
+    if (types.indexOf(dt.type) !== -1) stabMoves.push(pool[si]);
+  }
+  var result = [];
+  // 第1招：本系 STAB（依等級選）
+  var chooseFromStab = function(levelGroup) {
+    var candidates = [];
+    for (var ci = 0; ci < stabMoves.length; ci++) {
+      if (levelGroup.indexOf(stabMoves[ci]) !== -1) candidates.push(stabMoves[ci]);
+    }
+    if (candidates.length > 0) return candidates[0];
+    if (stabMoves.length > 0) return stabMoves[0];
+    return null;
+  };
+  if (level < 16) {
+    var pick = chooseFromStab(lowMoves);
+    if (!pick) pick = chooseFromStab(midMoves);
+    if (!pick && stabMoves.length > 0) pick = stabMoves[0];
+    if (pick) result.push(pick);
+  } else if (level < 36) {
+    var pick = chooseFromStab(midMoves);
+    if (!pick) pick = chooseFromStab(lowMoves);
+    if (!pick && stabMoves.length > 0) pick = stabMoves[0];
+    if (pick) result.push(pick);
+  } else {
+    var pick = chooseFromStab(highMoves);
+    if (!pick) pick = chooseFromStab(midMoves);
+    if (!pick && stabMoves.length > 0) pick = stabMoves[stabMoves.length - 1];
+    if (pick) result.push(pick);
+  }
+  // 第2招：第二本系招（若雙屬性）或其他 STAB
+  var usedTypes = [];
+  for (var ri = 0; ri < result.length; ri++) {
+    var rd = getMoveDetails(result[ri]);
+    if (rd && usedTypes.indexOf(rd.type) === -1) usedTypes.push(rd.type);
+  }
+  var stab2Candidates = [];
+  for (var s2i = 0; s2i < stabMoves.length; s2i++) {
+    var s2d = getMoveDetails(stabMoves[s2i]);
+    if (usedTypes.indexOf(s2d.type) === -1 && result.indexOf(stabMoves[s2i]) === -1) {
+      stab2Candidates.push(stabMoves[s2i]);
+    }
+  }
+  var secondPick = null;
+  if (level < 16) {
+    for (var li = 0; li < lowMoves.length; li++) { if (stab2Candidates.indexOf(lowMoves[li]) !== -1) { secondPick = lowMoves[li]; break; } }
+  } else if (level < 36) {
+    for (var li2 = 0; li2 < midMoves.length; li2++) { if (stab2Candidates.indexOf(midMoves[li2]) !== -1) { secondPick = midMoves[li2]; break; } }
+  } else {
+    for (var li3 = 0; li3 < highMoves.length; li3++) { if (stab2Candidates.indexOf(highMoves[li3]) !== -1) { secondPick = highMoves[li3]; break; } }
+  }
+  if (!secondPick && stab2Candidates.length > 0) secondPick = stab2Candidates[0];
+  if (secondPick) result.push(secondPick);
+  // 第3招：補盲/變化招（不重複屬性）
+  var coveredTypes = [];
+  for (var ci2 = 0; ci2 < result.length; ci2++) {
+    var cd = getMoveDetails(result[ci2]);
+    if (cd && cd.type && coveredTypes.indexOf(cd.type) === -1) coveredTypes.push(cd.type);
+  }
+  var coveragePick = null, bestCovPower = 0;
+  for (var pi = 0; pi < pool.length; pi++) {
+    if (result.indexOf(pool[pi]) === -1) {
+      var pd = getMoveDetails(pool[pi]);
+      if (pd && pd.type && coveredTypes.indexOf(pd.type) === -1 && pd.power !== 0) {
+        if (pd.power > bestCovPower) { bestCovPower = pd.power; coveragePick = pool[pi]; }
+      }
+    }
+  }
+  if (!coveragePick) {
+    for (var pi2 = 0; pi2 < pool.length; pi2++) {
+      if (result.indexOf(pool[pi2]) === -1) {
+        var pd2 = getMoveDetails(pool[pi2]);
+        if (pd2 && pd2.type && coveredTypes.indexOf(pd2.type) === -1) {
+          coveragePick = pool[pi2]; break;
+        }
+      }
+    }
+  }
+  if (coveragePick) { result.push(coveragePick); }
+  // 第4招：最高威力招（傳說 > 36 給專屬）
+    if (level >= 36 && isLegendary && speciesRaw && SIGNATURE_MOVES[speciesRaw]) {
+    result.push(SIGNATURE_MOVES[speciesRaw].name);
+  } else {
+    var bestPowerPick = null, bestPower = 0;
+    for (var bpi = 0; bpi < pool.length; bpi++) {
+      if (result.indexOf(pool[bpi]) === -1) {
+        var bd = getMoveDetails(pool[bpi]);
+        if (bd && bd.power > bestPower && bd.power > 0) { bestPower = bd.power; bestPowerPick = pool[bpi]; }
+      }
+    }
+    if (bestPowerPick) result.push(bestPowerPick);
+  }
+  // 去重
+  var finalUnique = [];
+  for (var fui = 0; fui < result.length; fui++) {
+    if (finalUnique.indexOf(result[fui]) === -1) finalUnique.push(result[fui]);
+  }
+  // 補滿 4 招
+  var fallbackMoves = ["撞擊","電光一閃","叫聲","拍擊","瞪眼","影子分身","高速星星"];
+  var fbi = 0;
+  while (finalUnique.length < 4) {
+    if (finalUnique.indexOf(fallbackMoves[fbi]) === -1 && pool.indexOf(fallbackMoves[fbi]) !== -1) {
+      finalUnique.push(fallbackMoves[fbi]);
+    }
+    fbi++;
+    if (fbi >= fallbackMoves.length) {
+      for (var fi2 = 0; fi2 < fallbackMoves.length && finalUnique.length < 4; fi2++) {
+        if (finalUnique.indexOf(fallbackMoves[fi2]) === -1) finalUnique.push(fallbackMoves[fi2]);
+      }
+      break;
+    }
+  }
+  return finalUnique.slice(0, 4);
+}
+
+function validateMoveset(baseName, moves) {
+  var raw = baseName.replace(/^[^\w\u4e00-\u9fff]+\s*/u,"").replace(/\s*\(.*\)/,"");
+  var types = POKEMON_SPECIES_TYPES[raw] || ["一般"];
+  var results = [];
+  for (var mi = 0; mi < moves.length; mi++) {
+    var move = moves[mi];
+    var details = getMoveDetails(move);
+    var isValid = false;
+    if (types.indexOf(details.type) !== -1) isValid = true;
+    if (UNIVERSAL_MOVES.indexOf(move) !== -1) isValid = true;
+    if (SPECIES_LEARNSET[raw] && SPECIES_LEARNSET[raw].indexOf(move) !== -1) isValid = true;
+    if (OFF_TYPE_EXCEPTIONS[raw] && OFF_TYPE_EXCEPTIONS[raw].indexOf(move) !== -1) isValid = true;
+    if (!isValid) {
+      results.push({ species: raw, move: move, type: details.type, reason: "非本系招、非通用招、不在 learnset pool 中" });
+    }
+  }
+  return { passed: results.length === 0, violations: results };
 }
 
 function getPokemonStats(baseName, level) {
