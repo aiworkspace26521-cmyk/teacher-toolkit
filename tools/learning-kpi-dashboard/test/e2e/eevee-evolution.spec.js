@@ -26,7 +26,7 @@ test.describe('伊布道具制進化 8 路徑 E2E', () => {
       if (!m) return 'not-found';
       return window.getComputedStyle(m).display !== 'none';
     });
-    expect(modalVisible).toBe(false);
+    expect(modalVisible).toBeFalsy();
   });
 
   test('Bug #1: recalculateStudentState 初始狀態含 stone fields', async ({ page }) => {

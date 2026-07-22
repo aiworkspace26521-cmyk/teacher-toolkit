@@ -61,6 +61,10 @@ exports.onKpiEventWritten = onDocumentWritten('kpi_events/{eventId}', async (eve
   if (!event.data.after.exists) return;
   const studentId = event.data.after.get('studentId');
   if (!studentId) return;
+  // Skip Admin — Admin is a management account, not a real student.
+  // Replaying events on Admin would overwrite its state with defaults,
+  // corrupting its roster, coins, badges, etc.
+  if (studentId === 'Admin') return;
   try {
     const state = await kpi.recalculateStudentState(studentId);
     if (state) {

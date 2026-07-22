@@ -789,6 +789,7 @@ EVO_STAGE_MAP = (function(){
   m["幸福蛋"] = 2;                      // 3-stage chain — overwritten by 吉利蛋's entry
   m["黑夜魔靈"] = 2;                    // 3-stage chain — overwritten by 彷徨夜靈's entry
   m["羅絲雷朵"] = 2;                    // 3-stage chain — overwritten by 毒薔薇's entry
+  m["劈斧螳螂"] = 2;                    // 3-stage chain — overwritten by 巨鉗螳螂's entry
   return m;
 })();
 

@@ -1221,7 +1221,11 @@ async function fetchStudentData(studentId, pendingEvent) {
     if (refreshed) {
       globalData = {}; for (var sk in refreshed) globalData[sk] = refreshed[sk]; delete globalData.cached;
       delete refreshed.achievements;
-      await db.collection("kpi_students").doc(studentId).set(refreshed, { merge: true });
+      // Skip Firestore write for Admin — Admin's state should not be overwritten
+      // by event replay (evolution test events would corrupt its roster).
+      if (!isAdmin) {
+        await db.collection("kpi_students").doc(studentId).set(refreshed, { merge: true });
+      }
     } else {
       globalData = { studentId: studentId, roster: [], highestLevel: 5, lockedGymLevel: 5, coins: 0, badges: 0, potions: 0, revives: 0, candies: 0, maxPotions: 0, maxRevives: 0, expSharePurchased: false, hasExpertBelt: false, hasEviolite: false, hasChampionCloak: false, hasAmuletCoin: false, oranBerries: 0, cheriBerries: 0, lumBerries: 0, chilanBerries: 0, hasFocusSash: false, hasEjectButton: false, hasRockyHelmet: false, hasWeaknessPolicy: false, tms: {}, pokemonTMs: {}, todayStatus: "PENDING", todayBattles: 0, weekGymWins: 0, weekBossWins: 0, monthLeagueWins: 0, leagueRegionsWon: {}, masters8Completed: [], masters8Progress: [] };
       for (var ei4 in EVO_ITEMS) globalData[ei4] = false;
@@ -1256,7 +1260,7 @@ async function fetchStudentData(studentId, pendingEvent) {
     globalData.partyIds = [];
     if (savedParty) { try { var parsed = JSON.parse(savedParty); globalData.partyIds = parsed.filter(function(id){ return globalData.roster.some(function(p){return p.id === id;}); }); } catch(e) {} }
     if (globalData.partyIds.length === 0) { var sorted = globalData.roster.slice().sort(function(a,b){ return b.currentLevel - a.currentLevel; }); globalData.partyIds = sorted.slice(0, 6).map(function(p){ return p.id; }); }
-    if (db && globalData.studentId) { db.collection("kpi_students").doc(globalData.studentId).set({ partyIds: globalData.partyIds, roster: globalData.roster }, { merge: true }).catch(function(e){}); }
+    if (db && globalData.studentId && !isAdmin) { db.collection("kpi_students").doc(globalData.studentId).set({ partyIds: globalData.partyIds, roster: globalData.roster }, { merge: true }).catch(function(e){}); }
         if (!cacheLoaded) { hideSkeleton(); }
         updateDashboard(); renderActions();
         updateBattleButtons();
@@ -1710,7 +1714,7 @@ var POKEMON_TIERS = {
     { name: "飛腿郎" },
     { name: "快拳郎" },
     { name: "大舌頭", evolutions: ["大舌舔"] },
-    { name: "飛天螳螂", evolutions: ["巨鉗螳螂"] },
+    { name: "飛天螳螂", evolutions: ["巨鉗螳螂","劈斧螳螂"] },
     { name: "吉利蛋", evolutions: ["幸福蛋"] },
     { name: "蔓藤怪", evolutions: ["巨蔓藤"] },
     { name: "袋獸" },
@@ -1968,6 +1972,7 @@ var EVO_STAGE_MAP = (function(){
   m["幸福蛋"] = 2;
   m["黑夜魔靈"] = 2;
   m["羅絲雷朵"] = 2;
+  m["劈斧螳螂"] = 2;
   return m;
 })();
 // GYM LEADERS — 8 地區 × 4 館主 = 32 道館 (VER2.2)

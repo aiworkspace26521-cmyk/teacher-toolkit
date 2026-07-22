@@ -38,6 +38,19 @@ jobs:
       - name: Run simulation test
         run: node tools/learning-kpi-dashboard/test/simulation-test.js
 
+  evo-stage-audit:
+    name: EVO_STAGE_MAP Audit
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - name: Run EVO_STAGE_MAP level audit (801 species)
+        run: node tools/learning-kpi-dashboard/test/evo-stage-level-audit.js
+      - name: Run EVO_STAGE_MAP chain audit
+        run: node tools/learning-kpi-dashboard/test/evo-stage-audit.js
+
   e2e-smoke:
     name: E2E Smoke Tests
     runs-on: ubuntu-latest
