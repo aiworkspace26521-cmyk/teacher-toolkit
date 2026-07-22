@@ -142,7 +142,7 @@ test.describe('Neil/Emma 真實學生進化 E2E', () => {
       return { rawName: raw, stage: stage, requiredLevel: (stage + 1) * 15, currentLevel: p5.currentLevel, evoNext: getEvoNextName(raw), hasEvoBtn: allContent.indexOf('⬆️') !== -1 };
     });
     expect(p5Check.rawName).toBe('由基拉');
-    expect(p5Check.evoNext).toBe('沙基拉');
+    expect(p5Check.evoNext).toBe('沙基拉斯');
     expect(p5Check.currentLevel).toBeLessThan(p5Check.requiredLevel);
     expect(p5Check.hasEvoBtn).toBe(false);
   });
@@ -163,7 +163,7 @@ test.describe('Neil/Emma 真實學生進化 E2E', () => {
     expect(btnCheck.hasEvoBtn).toBe(true);
   });
 
-  test('Emma 由基拉 Lv.15 doEvolve → 沙基拉', async ({ page }) => {
+  test('Emma 由基拉 Lv.15 doEvolve → 沙基拉斯', async ({ page }) => {
     await page.selectOption('#studentSelect', 'Emma');
     await page.waitForFunction(() => window.globalData && window.globalData.studentId === 'Emma', { timeout: 10000 });
     await injectRoster(page, emmaRoster(), 15);
@@ -181,8 +181,8 @@ test.describe('Neil/Emma 真實學生進化 E2E', () => {
     });
     expect(result.error).toBeUndefined();
     expect(result.captured).toBe(true);
-    expect(result.rawName).toBe('沙基拉');
-    expect(result.note).toContain('沙基拉');
+    expect(result.rawName).toBe('沙基拉斯');
+    expect(result.note).toContain('沙基拉斯');
   });
 
   // ══════════ 跨學生隔離 ══════════
