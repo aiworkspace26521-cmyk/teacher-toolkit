@@ -1,5 +1,4 @@
 ﻿<!DOCTYPE html>
-<!-- v3 -->
 <html lang="zh-TW">
 <head>
   <meta charset="utf-8">
@@ -5007,7 +5006,17 @@ function renderPCBoxContent() {
       var abilNameP = getPokemonAbility(match.baseName);
       var hParty = Math.min(match.happiness || 0, 120);
       var heldIconP = HELD_ITEM_ICONS[match.heldItem] ? " " + HELD_ITEM_ICONS[match.heldItem] : "";
-      slot.innerHTML = match.baseName + " Lv." + match.currentLevel + heldIconP + (abilNameP ? " <span style=\"font-size:10px;color:#8e44ad;\">[" + abilNameP + "]</span>" : "") + (hParty > 0 ? " <span style=\"font-size:10px;color:#e74c3c;\">❤️ " + hParty + "/120</span>" : "") + " <span title='檢視能力值詳情' style='cursor:pointer;font-size:12px;' onclick='event.stopPropagation();openPkmnDetail(\"" + match.id + "\")'>📊</span>";
+      var evoInfoP = checkEvoReady(match, globalData);
+      var evoBtnP = "";
+      if (evoInfoP) {
+        var rawP = getRawName(match.baseName);
+        if (rawP === "伊布") {
+          evoBtnP = " <span title='選擇進化型態' style='font-size:10px;color:#e67e22;cursor:pointer;' onclick='event.stopPropagation();showEeveeEvolutionChoice(\"" + match.id + "\")'>⬆️進化</span>";
+        } else {
+          evoBtnP = " <span title='進化!" + evoInfoP.nextName + "' style='font-size:10px;color:#e67e22;cursor:pointer;' onclick='event.stopPropagation();doEvolve(\"" + match.id + "\")'>⬆️進化</span>";
+        }
+      }
+      slot.innerHTML = match.baseName + " Lv." + match.currentLevel + heldIconP + (abilNameP ? " <span style=\"font-size:10px;color:#8e44ad;\">[" + abilNameP + "]</span>" : "") + (hParty > 0 ? " <span style=\"font-size:10px;color:#e74c3c;\">❤️ " + hParty + "/120</span>" : "") + evoBtnP + " <span title='檢視能力值詳情' style='cursor:pointer;font-size:12px;' onclick='event.stopPropagation();openPkmnDetail(\"" + match.id + "\")'>📊</span>";
       slot.dataset.pokemonId = match.id;
       slot.classList.add("pc-filled");
     } else {
@@ -7635,6 +7644,44 @@ async function submitData() {
     // If save failed, rollback the guard so user can retry
     if (_submitFailed) { _submitFailed = false; globalData.todayStatus = "PENDING"; }
   }
+}
+
+function showEeveeEvolutionChoice(pokemonId) {
+  var stoneMap = {"水之石":"水伊布","雷之石":"雷伊布","火之石":"火伊布","日之石":"太陽伊布","月之石":"月亮伊布","葉之石":"葉伊布","冰之石":"冰伊布","妖精之石":"仙子伊布"};
+  var available = [];
+  for (var s in stoneMap) { if (globalData[s]) available.push({ stone: s, evo: stoneMap[s] }); }
+  if (available.length === 0) { toast("沒有可用的進化石"); return; }
+  if (available.length === 1) { doEeveeDirectEvolve(pokemonId, available[0].evo, available[0].stone); return; }
+  var html = "<div style='text-align:center;'><div style='font-size:48px;margin:10px 0;'>🌟</div><div style='font-size:16px;margin-bottom:12px;'>伊布已達 Lv.16，請選擇進化型態：</div>";
+  for (var i = 0; i < available.length; i++) {
+    var evoName = available[i].evo;
+    var evoTypes = POKEMON_SPECIES_TYPES[evoName] || ["一般"];
+    var evoIcon = {"水伊布":"💧","雷伊布":"⚡","火伊布":"🔥","太陽伊布":"🔮","月亮伊布":"🕶️","葉伊布":"🍃","冰伊布":"❄️","仙子伊布":"✨"};
+    html += "<button class='buy-btn' style='display:block;width:100%;margin-bottom:6px;font-size:15px;text-align:left;' onclick=\"doEeveeDirectEvolve('" + pokemonId + "','" + evoName + "','" + available[i].stone + "')\">" + (evoIcon[evoName] || "⬆️") + " " + evoName + " (" + evoTypes.join("/") + ")  — 使用" + available[i].stone + "</button>";
+  }
+  html += "<button class='close-btn' style='margin-top:6px;width:100%;' onclick=\"document.getElementById('customModal').style.display='none'\">取消</button></div>";
+  showModal(html, "🌟 伊布進化大覺醒！");
+}
+
+function doEeveeDirectEvolve(pokemonId, evoName, stoneName) {
+  if (!globalData) return;
+  var pkmn = globalData.roster.find(function(p){ return p.id === pokemonId; });
+  if (!pkmn) { toast("找不到寶可夢"); return; }
+  if (stoneName) globalData[stoneName] = false;
+  var raw = getRawName(pkmn.baseName);
+  var types = POKEMON_SPECIES_TYPES[evoName] || ["一般"];
+  var newName = evoName + " (" + types.join("/") + ")";
+  var prefix = pkmn.baseName.match(/^[^\w\u4e00-\u9fff]+\s*/u);
+  newName = (prefix ? prefix[0] : "⭐ ") + newName;
+  var conNote = "進化ID:" + pokemonId + " => " + newName + (stoneName ? "|消耗:" + stoneName : "");
+  sfx.levelup();
+  $("customModal").style.display = "none";
+  executeSave({ studentId: globalData.studentId, score: 0, action: "E", expGained: 0, coinsGained: 0, badgeChange: 0, note: conNote, extraNote: conNote, totalScore: 0, user: globalData.studentId }, function() {
+    showEvoCutscene(pkmn.baseName, newName, function() {
+      pkmn.baseName = newName;
+      updateDashboard();
+    });
+  }, false);
 }
 
 async function doEvolve(pokemonId) {
