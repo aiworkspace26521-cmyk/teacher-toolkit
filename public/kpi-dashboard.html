@@ -927,7 +927,7 @@ async function recalculateStudentState(studentId, events) {
     lastBadgeTime: null, firstLogTime: null,
     todayBattles: 0, weekGymWins: 0, weekBossWins: 0, monthLeagueWins: 0,
     happiness: {}, leagueRegionsWon: {}, masters8Completed: [], masters8Progress: [],
-    roster: { P0: { id: "P0", baseName: "\u{1F43E} \u4F0A\u5E03 (\u4E00\u822C\u7CFB)", totalExp: 0, initialLevel: 5, catchDate: "\u521D\u59CB\u5925\u4F34", heldItem: "" } },
+    roster: { P0: { id: "P0", baseName: "\u{1F43E} \u4F0A\u5E03 (\u4E00\u822C\u7CFB)", totalExp: 0, initialLevel: 5, catchDate: "\u521D\u59CB\u5925\u4F34", heldItem: "", skillTree: { atk: { sp: 0, tier: 1 }, spa: { sp: 0, tier: 1 }, buf: { sp: 0, tier: 1 }, dis: { sp: 0, tier: 1 }, ult: { sp: 0, tier: 1 } }, learnedMoves: {}, equippedMoves: [] } },
     雷之石: false, 水之石: false, 火之石: false, 葉之石: false, 冰之石: false, 日之石: false, 月之石: false, 妖精之石: false
   };
   var dNow = new Date(), todayStr = dNow.toDateString();
@@ -950,10 +950,10 @@ async function recalculateStudentState(studentId, events) {
     state.badges += badgeChange;
     if (badgeChange > 0) state.lastBadgeTime = rowDate.getTime();
     state.coins += coinsGained;
-    if (rowDate.toDateString() === todayStr && ["\u5546\u57CE\u514C\u63DB","\u6230\u9B25\u6D88\u8017","\u7269\u54C1\u6D88\u8017","E","\u6230\u9B25\u52DD\u5229","\u7CFB\u7D71\u6E2C\u8A66","trade","A","B","\u9053\u5177\u88DD\u5099","PvP","system","\u6355\u6349","\u50B3\u8AAA\u6311\u6230","\u7CD6\u679C\u5347\u7D1A"].indexOf(rowAction) === -1) state.todayStatus = "ACTIVE";
+    if (rowDate.toDateString() === todayStr && ["\u5546\u57CE\u514C\u63DB","\u6230\u9B25\u6D88\u8017","\u7269\u54C1\u6D88\u8017","E","\u6230\u9B25\u52DD\u5229","\u7CFB\u7D71\u6E2C\u8A66","trade","A","B","\u9053\u5177\u88DD\u5099","PvP","system","\u6355\u6349","\u50B3\u8AAA\u6311\u6230","\u7CD6\u679C\u5347\u7D1A","SP_ALLOCATE","MOVE_LEARN","MOVE_UPGRADE","MOVE_EQUIP","SKILL_RESET"].indexOf(rowAction) === -1) state.todayStatus = "ACTIVE";
     if (rowAction === "\u6BCF\u65E5\u63D0\u4EA4" && rowDate.toDateString() === todayStr) state.todayStatus = "SUBMITTED";
     if (["\u6355\u6349","\u50B3\u8AAA\u6311\u6230","\u7CD6\u679C\u5347\u7D1A"].indexOf(rowAction) !== -1 && rowDate.toDateString() === todayStr) state.todayStatus = "SUBMITTED";
-    if (["\u5546\u57CE\u514C\u63DB","\u6230\u9B25\u6D88\u8017","\u7269\u54C1\u6D88\u8017","E","\u7CFB\u7D71\u6E2C\u8A66","trade","\u9053\u5177\u88DD\u5099","system"].indexOf(rowAction) === -1) submitDates[rowDate.toDateString()] = true;
+    if (["\u5546\u57CE\u514C\u63DB","\u6230\u9B25\u6D88\u8017","\u7269\u54C1\u6D88\u8017","E","\u7CFB\u7D71\u6E2C\u8A66","trade","\u9053\u5177\u88DD\u5099","system","SP_ALLOCATE","MOVE_LEARN","MOVE_UPGRADE","MOVE_EQUIP","SKILL_RESET"].indexOf(rowAction) === -1) submitDates[rowDate.toDateString()] = true;
     // 親密度: 每日提交全員+1
     if (rowAction === "\u6BCF\u65E5\u63D0\u4EA4" || rowAction === "\u6355\u6349" || rowAction === "A") {
       for (var hid in state.roster) {
@@ -1054,7 +1054,7 @@ async function recalculateStudentState(studentId, events) {
           }
         }
       }
-      if (!state.roster[pid]) state.roster[pid] = { id: pid, baseName: cleanName, totalExp: 0, initialLevel: initLv, catchDate: rowDate.getFullYear()+"/"+((rowDate.getMonth()+1)+"").padStart(2,"0")+"/"+(rowDate.getDate()+"").padStart(2,"0"), heldItem: "" };
+      if (!state.roster[pid]) state.roster[pid] = { id: pid, baseName: cleanName, totalExp: 0, initialLevel: initLv, catchDate: rowDate.getFullYear()+"/"+((rowDate.getMonth()+1)+"").padStart(2,"0")+"/"+(rowDate.getDate()+"").padStart(2,"0"), heldItem: "", skillTree: { atk: { sp: 0, tier: 1 }, spa: { sp: 0, tier: 1 }, buf: { sp: 0, tier: 1 }, dis: { sp: 0, tier: 1 }, ult: { sp: 0, tier: 1 } }, learnedMoves: {}, equippedMoves: [] };
     } else if (rowAction === "B" || rowAction === "\u7CD6\u679C\u5347\u7D1A") {
       var pid2 = (safeNote.match(/ID:(P\d+(?:_LEG)?|legacy_\d+)/)||[])[1];
       if (pid2) for (var k in state.roster) {
@@ -1076,7 +1076,7 @@ async function recalculateStudentState(studentId, events) {
       if (bossMatch) {
         var bossId = "P" + rowDate.getTime() + "_LEG";
         var bossName = (bossMatch[1].trim().indexOf("(") !== -1 ? bossMatch[1].trim() : bossMatch[1].trim() + " (\u4E00\u822C\u7CFB)");
-        if (!state.roster[bossId]) state.roster[bossId] = { id: bossId, baseName: bossName, totalExp: 0, initialLevel: Math.min(99, Math.max(5, state.lockedGymLevel) + 5), catchDate: rowDate.getFullYear()+"/"+((rowDate.getMonth()+1)+"").padStart(2,"0")+"/"+(rowDate.getDate()+"").padStart(2,"0"), heldItem: "" };
+        if (!state.roster[bossId]) state.roster[bossId] = { id: bossId, baseName: bossName, totalExp: 0, initialLevel: Math.min(99, Math.max(5, state.lockedGymLevel) + 5), catchDate: rowDate.getFullYear()+"/"+((rowDate.getMonth()+1)+"").padStart(2,"0")+"/"+(rowDate.getDate()+"").padStart(2,"0"), heldItem: "", skillTree: { atk: { sp: 0, tier: 1 }, spa: { sp: 0, tier: 1 }, buf: { sp: 0, tier: 1 }, dis: { sp: 0, tier: 1 }, ult: { sp: 0, tier: 1 } }, learnedMoves: {}, equippedMoves: [] };
       }
       if (rowDate.toDateString() === todayStr && (safeNote.indexOf("[Daily]") !== -1 || safeNote.indexOf("\u8DEF\u4EBA") !== -1 || safeNote.indexOf("Raid") !== -1)) state.todayBattles++;
       if (rowDate.getTime() >= startOfWeek && (safeNote.indexOf("[Gym]") !== -1 || safeNote.indexOf("\u9053\u9928") !== -1)) state.weekGymWins++;
@@ -1122,6 +1122,54 @@ async function recalculateStudentState(studentId, events) {
         } catch(e) { console.warn("trade recv parse error:", e); }
       } else if (evt.tradeType === "send" && evt.tradePokemonId) {
         delete state.roster[evt.tradePokemonId];
+      }
+    } else if (rowAction === "SP_ALLOCATE") {
+      var spParts = safeNote.match(/^(\S+):(\w+):(\d+)/);
+      if (spParts && state.roster[spParts[1]]) {
+        var pid4 = spParts[1], treeType = spParts[2], spAmt = parseInt(spParts[3]);
+        if (!state.roster[pid4].skillTree) state.roster[pid4].skillTree = { atk: { sp: 0, tier: 1 }, spa: { sp: 0, tier: 1 }, buf: { sp: 0, tier: 1 }, dis: { sp: 0, tier: 1 }, ult: { sp: 0, tier: 1 } };
+        if (!state.roster[pid4].skillTree[treeType]) state.roster[pid4].skillTree[treeType] = { sp: 0, tier: 1 };
+        state.roster[pid4].skillTree[treeType].sp += spAmt;
+        // 計算階層
+        var totalSp = state.roster[pid4].skillTree[treeType].sp;
+        if (totalSp >= 30) state.roster[pid4].skillTree[treeType].tier = 5;
+        else if (totalSp >= 20) state.roster[pid4].skillTree[treeType].tier = 4;
+        else if (totalSp >= 12) state.roster[pid4].skillTree[treeType].tier = 3;
+        else if (totalSp >= 5) state.roster[pid4].skillTree[treeType].tier = 2;
+      }
+    } else if (rowAction === "MOVE_LEARN") {
+      var mlParts = safeNote.match(/^(\S+):(.+?):tier(\d+)(?::(\w+))?/);
+      if (mlParts && state.roster[mlParts[1]]) {
+        var pid5 = mlParts[1], moveName5 = mlParts[2], tier5 = parseInt(mlParts[3]), source5 = mlParts[4] || "spa";
+        if (!state.roster[pid5].learnedMoves) state.roster[pid5].learnedMoves = {};
+        state.roster[pid5].learnedMoves[moveName5] = { level: 1, tier: tier5, source: source5 };
+      }
+    } else if (rowAction === "MOVE_UPGRADE") {
+      var muParts = safeNote.match(/^(\S+):(.+?):(\d+)/);
+      if (muParts && state.roster[muParts[1]]) {
+        var pid6 = muParts[1], moveName6 = muParts[2], newLv = parseInt(muParts[3]);
+        if (!state.roster[pid6].learnedMoves) state.roster[pid6].learnedMoves = {};
+        if (state.roster[pid6].learnedMoves[moveName6]) {
+          state.roster[pid6].learnedMoves[moveName6].level = newLv;
+        }
+      }
+    } else if (rowAction === "MOVE_EQUIP") {
+      var eqParts = safeNote.match(/^(\S+):(.+)/);
+      if (eqParts && state.roster[eqParts[1]]) {
+        var pid7 = eqParts[1];
+        state.roster[pid7].equippedMoves = eqParts[2].split(",").map(function(s){return s.trim();}).filter(function(s){return s;});
+      }
+    } else if (rowAction === "SKILL_RESET") {
+      var srParts = safeNote.match(/^(\S+):(.+)/);
+      if (srParts && state.roster[srParts[1]]) {
+        var pid8 = srParts[1];
+        if (state.roster[pid8].skillTree) {
+          for (var stKey in state.roster[pid8].skillTree) {
+            state.roster[pid8].skillTree[stKey].sp = 0;
+            state.roster[pid8].skillTree[stKey].tier = 1;
+          }
+        }
+        state.roster[pid8].learnedMoves = {};
       }
     }
     var currentIterLevel = 5;
@@ -9020,4 +9068,5 @@ function openLeagueRanking() {
 
 </script>
 <script src="pokemon-gen2-9.js"></script>
+<script src="pokemon-skill-tree.js"></script>
 </html>

@@ -266,7 +266,7 @@ async function recalculateStudentState(studentId) {
     todayBattles: 0,
     weekGymWins: 0,
     monthLeagueWins: 0,
-    roster: { P0: { id: 'P0', baseName: '🐾 伊布 (一般系)', totalExp: 0, initialLevel: 5, catchDate: '初始夥伴', heldItem: '' } },
+    roster: { P0: { id: 'P0', baseName: '🐾 伊布 (一般系)', totalExp: 0, initialLevel: 5, catchDate: '初始夥伴', heldItem: '', skillTree: { atk: { sp: 0, tier: 1 }, spa: { sp: 0, tier: 1 }, buf: { sp: 0, tier: 1 }, dis: { sp: 0, tier: 1 }, ult: { sp: 0, tier: 1 } }, learnedMoves: {}, equippedMoves: [] } },
     submitStreak: 0,
     oranBerries: 0, cheriBerries: 0, lumBerries: 0, chilanBerries: 0,
     hasFocusSash: false, hasEjectButton: false, hasRockyHelmet: false, hasWeaknessPolicy: false,
@@ -306,12 +306,12 @@ async function recalculateStudentState(studentId) {
     if (rowBadges > 0) state.lastBadgeTime = rowDate.getTime();
     state.coins += rowCoins;
 
-    if (!['商城兌換', '戰鬥消耗', '物品消耗', 'E', '系統測試', 'trade', '道具裝備', 'system'].includes(rowAction)) {
+    if (!['商城兌換', '戰鬥消耗', '物品消耗', 'E', '系統測試', 'trade', '道具裝備', 'system', 'SP_ALLOCATE', 'MOVE_LEARN', 'MOVE_UPGRADE', 'MOVE_EQUIP', 'SKILL_RESET'].includes(rowAction)) {
       state.submitDates[rowDate.toDateString()] = true;
     }
 
     if (rowDate.toDateString() === todayStr &&
-        !['商城兌換', '戰鬥消耗', '物品消耗', 'E', '戰鬥勝利', '系統測試', 'trade', 'A', 'B', '道具裝備', 'PvP', 'system', '捕捉', '傳說挑戰', '糖果升級'].includes(rowAction)) {
+        !['商城兌換', '戰鬥消耗', '物品消耗', 'E', '戰鬥勝利', '系統測試', 'trade', 'A', 'B', '道具裝備', 'PvP', 'system', '捕捉', '傳說挑戰', '糖果升級', 'SP_ALLOCATE', 'MOVE_LEARN', 'MOVE_UPGRADE', 'MOVE_EQUIP', 'SKILL_RESET'].includes(rowAction)) {
       state.todayStatus = "ACTIVE";
     }
     if (['每日提交', '捕捉', '傳說挑戰', '糖果升級'].includes(rowAction) && rowDate.toDateString() === todayStr) {
@@ -410,7 +410,9 @@ async function recalculateStudentState(studentId) {
         state.roster[pid] = {
           id: pid, baseName: fixedName, totalExp: 0, initialLevel: initLv,
           catchDate: `${rowDate.getFullYear()}/${(rowDate.getMonth() + 1).toString().padStart(2, '0')}/${rowDate.getDate().toString().padStart(2, '0')}`,
-          heldItem: ''
+          heldItem: '',
+          skillTree: { atk: { sp: 0, tier: 1 }, spa: { sp: 0, tier: 1 }, buf: { sp: 0, tier: 1 }, dis: { sp: 0, tier: 1 }, ult: { sp: 0, tier: 1 } },
+          learnedMoves: {}, equippedMoves: []
         };
       }
     } else if (rowAction === '道具裝備') {
@@ -445,14 +447,16 @@ async function recalculateStudentState(studentId) {
       if (bossMatch) {
         const bossId = 'P' + rowDate.getTime() + '_LEG';
         const bossName = (bossMatch[1].trim().includes('(') ? bossMatch[1].trim() : bossMatch[1].trim() + ' (一般系)');
-        if (!state.roster[bossId]) {
-          state.roster[bossId] = {
-            id: bossId, baseName: bossName, totalExp: 0,
-            initialLevel: Math.min(99, Math.max(5, state.lockedGymLevel) + 5),
-            catchDate: `${rowDate.getFullYear()}/${(rowDate.getMonth() + 1).toString().padStart(2, '0')}/${rowDate.getDate().toString().padStart(2, '0')}`,
-            heldItem: ''
-          };
-        }
+          if (!state.roster[bossId]) {
+            state.roster[bossId] = {
+              id: bossId, baseName: bossName, totalExp: 0,
+              initialLevel: Math.min(99, Math.max(5, state.lockedGymLevel) + 5),
+              catchDate: `${rowDate.getFullYear()}/${(rowDate.getMonth() + 1).toString().padStart(2, '0')}/${rowDate.getDate().toString().padStart(2, '0')}`,
+              heldItem: '',
+              skillTree: { atk: { sp: 0, tier: 1 }, spa: { sp: 0, tier: 1 }, buf: { sp: 0, tier: 1 }, dis: { sp: 0, tier: 1 }, ult: { sp: 0, tier: 1 } },
+              learnedMoves: {}, equippedMoves: []
+            };
+          }
       }
       const isRowToday = rowDate.toDateString() === todayStr;
       const isRowThisWeek = rowDate.getTime() >= startOfWeek;
@@ -479,19 +483,66 @@ async function recalculateStudentState(studentId) {
       }
     } else if (rowAction === '滿級轉化') {
       state.coins += rowCoins;
-    } else if (rowAction === 'trade') {
-      if (evt.tradeType === 'recv' && evt.tradedPokemon) {
-        try {
-          const tradedPkmn = JSON.parse(evt.tradedPokemon);
-          const pid = evt.tradePokemonId || tradedPkmn.id;
-          tradedPkmn.heldItem = tradedPkmn.heldItem || '';
-          tradedPkmn.catchDate = tradedPkmn.catchDate || `${rowDate.getFullYear()}/${(rowDate.getMonth() + 1).toString().padStart(2, '0')}/${rowDate.getDate().toString().padStart(2, '0')}`;
-          state.roster[pid] = tradedPkmn;
-        } catch (e) { console.warn('trade recv parse error:', e); }
-      } else if (evt.tradeType === 'send' && evt.tradePokemonId) {
-        delete state.roster[evt.tradePokemonId];
+      } else if (rowAction === 'trade') {
+        if (evt.tradeType === 'recv' && evt.tradedPokemon) {
+          try {
+            const tradedPkmn = JSON.parse(evt.tradedPokemon);
+            const pid = evt.tradePokemonId || tradedPkmn.id;
+            tradedPkmn.heldItem = tradedPkmn.heldItem || '';
+            tradedPkmn.catchDate = tradedPkmn.catchDate || `${rowDate.getFullYear()}/${(rowDate.getMonth() + 1).toString().padStart(2, '0')}/${rowDate.getDate().toString().padStart(2, '0')}`;
+            state.roster[pid] = tradedPkmn;
+          } catch (e) { console.warn('trade recv parse error:', e); }
+        } else if (evt.tradeType === 'send' && evt.tradePokemonId) {
+          delete state.roster[evt.tradePokemonId];
+        }
+      } else if (rowAction === 'SP_ALLOCATE') {
+        const spParts = safeNote.match(/^(\S+):(\w+):(\d+)/);
+        if (spParts && state.roster[spParts[1]]) {
+          const pid4 = spParts[1], treeType = spParts[2], spAmt = parseInt(spParts[3]);
+          if (!state.roster[pid4].skillTree) state.roster[pid4].skillTree = { atk: { sp: 0, tier: 1 }, spa: { sp: 0, tier: 1 }, buf: { sp: 0, tier: 1 }, dis: { sp: 0, tier: 1 }, ult: { sp: 0, tier: 1 } };
+          if (!state.roster[pid4].skillTree[treeType]) state.roster[pid4].skillTree[treeType] = { sp: 0, tier: 1 };
+          state.roster[pid4].skillTree[treeType].sp += spAmt;
+          const totalSp = state.roster[pid4].skillTree[treeType].sp;
+          if (totalSp >= 30) state.roster[pid4].skillTree[treeType].tier = 5;
+          else if (totalSp >= 20) state.roster[pid4].skillTree[treeType].tier = 4;
+          else if (totalSp >= 12) state.roster[pid4].skillTree[treeType].tier = 3;
+          else if (totalSp >= 5) state.roster[pid4].skillTree[treeType].tier = 2;
+        }
+      } else if (rowAction === 'MOVE_LEARN') {
+        const mlParts = safeNote.match(/^(\S+):(.+?):tier(\d+)(?::(\w+))?/);
+        if (mlParts && state.roster[mlParts[1]]) {
+          const pid5 = mlParts[1], moveName5 = mlParts[2], tier5 = parseInt(mlParts[3]), source5 = mlParts[4] || 'spa';
+          if (!state.roster[pid5].learnedMoves) state.roster[pid5].learnedMoves = {};
+          state.roster[pid5].learnedMoves[moveName5] = { level: 1, tier: tier5, source: source5 };
+        }
+      } else if (rowAction === 'MOVE_UPGRADE') {
+        const muParts = safeNote.match(/^(\S+):(.+?):(\d+)/);
+        if (muParts && state.roster[muParts[1]]) {
+          const pid6 = muParts[1], moveName6 = muParts[2], newLv = parseInt(muParts[3]);
+          if (!state.roster[pid6].learnedMoves) state.roster[pid6].learnedMoves = {};
+          if (state.roster[pid6].learnedMoves[moveName6]) {
+            state.roster[pid6].learnedMoves[moveName6].level = newLv;
+          }
+        }
+      } else if (rowAction === 'MOVE_EQUIP') {
+        const eqParts = safeNote.match(/^(\S+):(.+)/);
+        if (eqParts && state.roster[eqParts[1]]) {
+          const pid7 = eqParts[1];
+          state.roster[pid7].equippedMoves = eqParts[2].split(',').map(s => s.trim()).filter(s => s);
+        }
+      } else if (rowAction === 'SKILL_RESET') {
+        const srParts = safeNote.match(/^(\S+):(.+)/);
+        if (srParts && state.roster[srParts[1]]) {
+          const pid8 = srParts[1];
+          if (state.roster[pid8].skillTree) {
+            for (const stKey in state.roster[pid8].skillTree) {
+              state.roster[pid8].skillTree[stKey].sp = 0;
+              state.roster[pid8].skillTree[stKey].tier = 1;
+            }
+          }
+          state.roster[pid8].learnedMoves = {};
+        }
       }
-    }
 
     let currentIterLevel = 5;
     for (const k in state.roster) {
