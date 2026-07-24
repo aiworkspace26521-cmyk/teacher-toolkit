@@ -302,6 +302,39 @@
     .modal-overlay { position: fixed; top:0; left:0; right:0; bottom:0; background: rgba(0,0,0,0.4); z-index: 999; display: flex; align-items: center; justify-content: center; }
     .item-badge { display: inline-block; padding: 4px 10px; margin: 2px; background: #f0f0f0; border-radius: 12px; font-size: 12px; font-weight: 700; }
     .loading-spinner { display: inline-block; width: 14px; height: 14px; border: 2px solid #fff; border-top-color: transparent; border-radius: 50%; animation: spin 0.6s linear infinite; vertical-align: middle; }
+/* ===== Phase 3: 技能樹面板 ===== */
+.skilltree-container { text-align: left; }
+.st-tree-tabs { display:flex; gap:4px; margin-bottom:10px; flex-wrap:wrap; }
+.st-tab { padding:6px 10px; border-radius:8px; border:2px solid #ddd; cursor:pointer; font-weight:700; font-size:12px; transition:0.15s; background:#f8f9fa; flex:1; text-align:center; min-width:60px; }
+.st-tab:hover { border-color:#999; }
+.st-tab.active { border-color:#3B4CCA; background:#e8ecf8; color:#3B4CCA; }
+.st-tab.unlocked { border-color:#27ae60; background:#eafaf1; }
+.st-canvas { padding:8px; background:#fafafa; border-radius:8px; min-height:200px; }
+.st-node-row { display:flex; gap:6px; margin-bottom:6px; flex-wrap:wrap; }
+.st-tier-label { font-size:11px; color:#888; font-weight:700; width:100%; margin-bottom:2px; }
+.st-node { padding:5px 8px; border-radius:6px; font-size:12px; font-weight:700; border:2px solid #ddd; background:white; cursor:pointer; transition:0.15s; display:inline-flex; align-items:center; gap:4px; }
+.st-node:hover { transform:scale(1.05); }
+.st-node.learned { border-color:#27ae60; background:#eafaf1; }
+.st-node.available { border-color:#f39c12; background:#fef9e7; cursor:pointer; }
+.st-node.locked { opacity:0.4; cursor:not-allowed; border-style:dashed; }
+.st-node.req-glow { animation:pulse 1s infinite; border-color:#e74c3c; }
+.st-fp-cost { font-size:10px; color:#8e44ad; font-weight:400; margin-left:2px; }
+.st-passive { font-size:11px; color:#8e44ad; background:#f4ecf7; padding:2px 8px; border-radius:4px; margin:2px 0; display:inline-block; }
+.st-sp-bar { display:flex; align-items:center; gap:8px; margin:8px 0; padding:8px 12px; background:#eaf2f8; border-radius:8px; }
+.st-sp-label { font-size:13px; font-weight:700; color:#2980b9; }
+.st-sp-amount { font-size:18px; font-weight:900; color:#3B4CCA; }
+.st-sp-btn { padding:4px 12px; border-radius:6px; border:none; font-weight:700; cursor:pointer; font-size:12px; transition:0.15s; }
+.st-sp-btn:hover { transform:scale(1.05); }
+.st-tree-info { font-size:12px; color:#666; padding:4px 0; }
+.st-progress { height:6px; background:#e0e0e0; border-radius:3px; overflow:hidden; margin:4px 0; }
+.st-progress-fill { height:100%; background:linear-gradient(90deg,#3B4CCA,#27ae60); border-radius:3px; transition:width 0.3s; }
+.st-preview-card { background:white; border:2px solid #e0e0e0; border-radius:8px; padding:10px; margin-top:8px; }
+/* ===== Phase 3: 戰鬥 FP 條 ===== */
+.fp-bar-bg { width:100%; height:6px; background:#e8e0f0; border-radius:3px; overflow:hidden; margin-top:3px; }
+.fp-bar-fill { height:100%; background:linear-gradient(90deg,#8e44ad,#9b59b6); border-radius:3px; transition:width 0.3s; }
+.fp-label { font-size:11px; color:#8e44ad; margin-top:1px; display:flex; justify-content:space-between; }
+.fp-cost { font-size:10px; color:#8e44ad; font-weight:400; margin-left:4px; }
+.fp-cost.insufficient { color:#e74c3c; font-weight:700; }
     @keyframes spin { to { transform: rotate(360deg); } }
     @keyframes shake { 0%,100% { transform: translateX(0); } 10%,30%,50%,70%,90% { transform: translateX(-6px); } 20%,40%,60%,80% { transform: translateX(6px); } }
     @keyframes flash-dmg { 0%,100% { opacity:1; } 25% { opacity:0.2; } 50% { opacity:1; } 75% { opacity:0.2; } }
@@ -515,6 +548,18 @@
   <button class="close-btn" onclick="closeModal('collectionModal');sfx.click();openPCBoxModal()">關閉</button>
 </div></div>
 
+<div id="skillTreeModal" class="modal"><div class="modal-content" style="border-color:#3B4CCA;max-width:520px;">
+  <h3 style="color:#3B4CCA;margin-top:0;">🌳 技能樹</h3>
+  <div id="skillTreeHeader" style="font-size:13px;font-weight:700;margin-bottom:8px;"></div>
+  <div id="skillTreeSpBar" class="st-sp-bar"><span class="st-sp-label">⚡ SP</span> <span class="st-sp-amount" id="stSpAmount">0</span> <span style="font-size:12px;color:#666;">可用</span> <span style="flex:1;"></span> <button class="st-sp-btn" style="background:#e74c3c;color:white;" onclick="resetActiveSkillTree()">🔄 重置</button></div>
+  <div id="skillTreeBody" class="skilltree-container">
+    <div id="stTabs" class="st-tree-tabs"></div>
+    <div id="stCanvas" class="st-canvas"></div>
+    <div id="stPreview" class="st-preview-card" style="display:none;"></div>
+  </div>
+  <button class="close-btn" onclick="closeModal('skillTreeModal');saveSkillTreeState();">關閉</button>
+</div></div>
+
 <div id="trophyModal" class="modal"><div class="modal-content" style="border-color:#f39c12;">
   <h3 style="color:#f39c12;">🏆 獎盃櫃</h3>
   <div id="trophyProgress" class="trophy-progress">已獲得: <span id="trophyEarnedCount">0</span> / <span id="trophyTotalCount">15</span></div>
@@ -568,11 +613,15 @@
         <div class="hp-label"><span id="enemyPkmnName">???</span> <span id="enemyTypeIcon"></span> <span id="enemyStatus" style="font-size:11px;color:#e67e22;"></span></div>
         <div class="hp-bar-bg"><div class="hp-bar-fill hp-red" id="enemyHpBar" style="width:100%"></div></div>
         <div style="font-size:11px;text-align:right;">HP: <span id="enemyHpText">0/0</span></div>
+        <div class="fp-bar-bg" id="enemyFpBarBg" style="display:none;"><div class="fp-bar-fill" id="enemyFpBar" style="width:100%"></div></div>
+        <div class="fp-label" id="enemyFpLabel" style="display:none;">FP: <span id="enemyFpText">0/0</span></div>
       </div>
       <div class="arena-hp-section" style="background:#eaf2f8;border-radius:8px;padding:10px;margin-bottom:10px;">
-        <div class="hp-label"><span id="playerPkmnName">???</span> <span id="playerTypeIcon"></span> <span id="playerStatus" style="font-size:11px;color:#e67e22;"></span></div>
+        <div class="hp-label"><span id="playerPkmnName">???</span> <span id="playerTypeIcon"></span> <span id="playerStatus" style="font-size:11px;color:#e67e22;"></span> <span id="playerFpIndicator" style="font-size:11px;color:#8e44ad;font-weight:700;margin-left:6px;"></span></div>
         <div class="hp-bar-bg"><div class="hp-bar-fill hp-green" id="playerHpBar" style="width:100%"></div></div>
         <div style="font-size:11px;text-align:right;">HP: <span id="playerHpText">0/0</span></div>
+        <div class="fp-bar-bg"><div class="fp-bar-fill" id="playerFpBar" style="width:100%"></div></div>
+        <div class="fp-label">FP: <span id="playerFpText">0/0</span></div>
       </div>
       <div id="playerMoveBtns" style="margin-bottom:8px;"></div>
       <details style="margin-bottom:8px;"><summary style="cursor:pointer;font-weight:700;">🔄 更換寶可夢</summary><div id="playerSwapBtns" style="margin-top:5px;"></div></details>
@@ -599,9 +648,12 @@
   <div class="modal-content" style="position:relative;border-color:#3498db;max-width:500px;width:95%;padding:15px;">
     <h3 style="color:#2980b9;margin-top:0;">🔧 寶可夢管理</h3>
     <span class="modal-close-x" onclick="closeModal('pcBoxModal')">&times;</span>
-    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;flex-wrap:wrap;gap:4px;">
       <span style="font-size:12px;color:#666;">點擊兩張卡片即可交換位置。</span>
-      <button class="buy-btn" onclick="sfx.click();openCollection()" style="padding:3px 10px;font-size:12px;">⚡ 裝備/招式學習</button>
+      <div style="display:flex;gap:4px;">
+        <button class="buy-btn" onclick="sfx.click();openSkillTreeFromPcBox()" style="padding:3px 10px;font-size:12px;background:#3B4CCA;">🌳 技能樹</button>
+        <button class="buy-btn" onclick="sfx.click();openCollection()" style="padding:3px 10px;font-size:12px;">⚡ 裝備/招式學習</button>
+      </div>
     </div>
     <div id="pcBoxBody"></div>
     <div id="pcSwapInfo" style="display:none;background:#fff3cd;padding:8px;border-radius:6px;margin-top:8px;font-weight:700;text-align:center;"></div>
@@ -2908,13 +2960,15 @@ function createEnemyPokemon(name, level, isGym, isLeague) {
   var abilName = getPokemonAbility(name);
   var abilData = abilName ? (ABILITY_EFFECTS[abilName] || null) : null;
   var dreamAbil = getLowBstDreamAbility(name);
+  var maxFpValue = typeof calcMaxFp !== "undefined" ? calcMaxFp(level) : 100 + level * 3;
   return {
     name: name, level: level, maxHp: stats.hp, currentHp: stats.hp,
     atk: stats.atk, def: stats.def, spatk: stats.spatk, spdef: stats.spdef, speed: stats.speed,
     type: stats.type, moves: selectedMoves, isGym: isGym || false, isLeague: isLeague || false,
     status: null, statStages: { atk:0,def:0,spatk:0,spdef:0,speed:0,evasion:0,accuracy:0 },
     ability: abilData, abilityName: abilName,
-    dreamAbility: dreamAbil, dreamAbilityName: dreamAbil ? dreamAbil.name : null
+    dreamAbility: dreamAbil, dreamAbilityName: dreamAbil ? dreamAbil.name : null,
+    maxFp: maxFpValue, currentFp: maxFpValue
   };
 }
 
@@ -3612,6 +3666,18 @@ function performAttack(moveName, isPlayer) {
   if (battleState.turnLock) return;
   battleState.turnLock = true;
 
+  // FP 消耗
+  if (isPlayer && moveName) {
+    var fpCost = getMoveFpCost(moveName);
+    if (!consumeFp(pAtk, fpCost)) {
+      log.push("⚠️ FP 不足，無法使用 " + moveName + "！");
+      renderBattleLog(log);
+      battleState.turnLock = false;
+      return;
+    }
+    log.push("🔮 FP -" + fpCost);
+  }
+
   // 速度判定 — 決定先攻順序
   var ps = battleState.playerPokemon.speed * Math.pow(1.1, (battleState.playerPokemon.statStages.speed || 0));
   var es = battleState.enemy.speed * Math.pow(1.1, (battleState.enemy.statStages.speed || 0));
@@ -3736,6 +3802,8 @@ function performAttack(moveName, isPlayer) {
       }
       if (nextAlly) {
         battleState.playerPokemon = nextAlly;
+        // 換上場時補滿 FP
+        nextAlly.currentFp = nextAlly.maxFp;
         log.push("🔄 換上 " + nextAlly.name + "！");
         renderBattleLog(log);
         setTimeout(function(){ shakeElement("playerPkmnName"); }, 100);
@@ -3766,9 +3834,9 @@ function performAttack(moveName, isPlayer) {
         setTimeout(function(){
           var gameOver = handlePlayerKO();
           if (gameOver) {
-            if (battleState && !battleState.playerWon) battleState.turnLock = false;
-          } else {
-            if (battleState && !battleState.playerWon) battleState.turnLock = false;
+          if (battleState && !battleState.playerWon) { battleState.turnLock = false; triggerFpRegen(); }
+            } else {
+              if (battleState && !battleState.playerWon) { battleState.turnLock = false; triggerFpRegen(); }
             if (battleState) processWeatherDecay(log);
             updateArenaUI();
           }
@@ -3786,13 +3854,13 @@ function performAttack(moveName, isPlayer) {
           faintAnimation("enemyPkmnName");
           setTimeout(function(){
             if (battleState.enemy.currentHp <= 0) battleState.playerWon = true;
-            if (battleState.playerWon) endBattle(true);
-            if (battleState) battleState.turnLock = false;
+      if (battleState.playerWon) endBattle(true);
+              if (battleState) { battleState.turnLock = false; triggerFpRegen(); }
           }, 650);
         }, 300);
         return;
       }
-      battleState.turnLock = false;
+      if (battleState) { battleState.turnLock = false; triggerFpRegen(); }
       if (battleState) processWeatherDecay(log);
       updateArenaUI();
     }, 800);
@@ -3802,6 +3870,7 @@ function performAttack(moveName, isPlayer) {
   // === 玩家先攻 ===
   if (battleState.enemy.currentHp <= 0 || quickClawFlinch) {
     if (battleState) processWeatherDecay(log);
+    triggerFpRegen();
     battleState.turnLock = false;
     updateArenaUI();
     return;
@@ -3815,7 +3884,7 @@ function performAttack(moveName, isPlayer) {
       faintAnimation("enemyPkmnName");
       setTimeout(function(){
         if (battleState.enemy.currentHp <= 0) { battleState.playerWon = true; endBattle(true); }
-        if (battleState) battleState.turnLock = false;
+        if (battleState) { battleState.turnLock = false; triggerFpRegen(); }
       }, 650);
     }, 300);
     return;
@@ -3828,7 +3897,7 @@ function performAttack(moveName, isPlayer) {
       var enemyMove = battleState.enemy.moves[Math.floor(Math.random() * battleState.enemy.moves.length)];
       var eInfo = doTurn(battleState.enemy, battleState.playerPokemon, enemyMove, false, "player", null);
       var enemyStopped = enemyHitDefense(eInfo.result, eInfo.moveDetails);
-      if (enemyStopped) { battleState.turnLock = false; return; }
+      if (enemyStopped) { battleState.turnLock = false; triggerFpRegen(); return; }
 
       if (battleState.enemy.currentHp <= 0) {
         sfx.faint();
@@ -3849,24 +3918,24 @@ function performAttack(moveName, isPlayer) {
           faintAnimation("playerPkmnName");
           setTimeout(function() {
             if (!handlePlayerKO()) {
-              if (battleState && !battleState.playerWon) battleState.turnLock = false;
+              if (battleState && !battleState.playerWon) { battleState.turnLock = false; triggerFpRegen(); }
               if (battleState) processWeatherDecay(log);
               updateArenaUI();
             } else {
-              if (battleState && !battleState.playerWon) battleState.turnLock = false;
+              if (battleState && !battleState.playerWon) { battleState.turnLock = false; triggerFpRegen(); }
             }
           }, 700);
         }, 300);
         return;
       }
 
-      if (battleState && !battleState.playerWon) battleState.turnLock = false;
+      if (battleState && !battleState.playerWon) { battleState.turnLock = false; triggerFpRegen(); }
       if (battleState) processWeatherDecay(log);
       updateArenaUI();
     }, 1200);
   } else {
     if (battleState) processWeatherDecay(log);
-    if (battleState) battleState.turnLock = false;
+    if (battleState) { battleState.turnLock = false; triggerFpRegen(); }
     if (battleState) updateArenaUI();
   }
 }
@@ -4051,6 +4120,9 @@ function startNextWave() {
   battleState.turnLock = false;
   battleState.battleOver = false;
   battleState.playerWon = false;
+  // 新波次補滿 FP
+  battleState.enemy.currentFp = battleState.enemy.maxFp;
+  battleState.playerPokemon.currentFp = Math.min(battleState.playerPokemon.maxFp, (battleState.playerPokemon.currentFp || 0) + Math.floor(battleState.playerPokemon.maxFp * 0.5));
   var log = [];
   var abLog = [];
   applyEntryAbility(battleState.enemy, battleState.playerPokemon, battleState, abLog);
@@ -4176,6 +4248,7 @@ function finishGymVictory() {
 
 async function endBattle(playerWon) {
   if (!battleState) return;
+  triggerFpRegen();
   if (playerWon && battleState.gymWaves && !battleState.enemy.isLastWave) {
     startNextWave();
     return;
@@ -4499,6 +4572,14 @@ function updateArenaUI() {
   $("playerStatus").innerHTML = pp.status ? "<span class=\"status-icon\">" + getStatusIcon(pp.status) + "</span><span style=\"font-size:11px;color:#e67e22;font-weight:700;\">" + (statusNames[pp.status]||pp.status) + "</span>" : "";
   $("playerTypeIcon").innerHTML = renderTypeBadges(pp.type);
 
+  // FP UI update
+  if (pp.maxFp !== undefined) {
+    var pfpPct = Math.round(pp.currentFp / pp.maxFp * 100);
+    $("playerFpBar").style.width = pfpPct + "%";
+    $("playerFpText").innerHTML = pp.currentFp + "/" + pp.maxFp;
+    $("playerFpIndicator").innerHTML = "FP " + pp.currentFp + "/" + pp.maxFp;
+  }
+
   var ep = battleState.enemy;
   $("enemyPkmnName").innerHTML = ep.name + " Lv." + ep.level + (ep.abilityName ? " <span class=\"ability-tag\">[" + ep.abilityName + "]</span>" : "") + (ep.dreamAbilityName ? " <span class=\"ability-tag\" style=\"background:#e8daef;color:#6c3483;\">[夢]" + ep.dreamAbilityName + "</span>" : "");
   var ehpPct = Math.round(ep.currentHp / ep.maxHp * 100);
@@ -4507,6 +4588,13 @@ function updateArenaUI() {
   $("enemyHpText").innerHTML = ep.currentHp + "/" + ep.maxHp;
   $("enemyStatus").innerHTML = ep.status ? "<span class=\"status-icon\">" + getStatusIcon(ep.status) + "</span><span style=\"font-size:11px;color:#e67e22;font-weight:700;\">" + (statusNames[ep.status]||ep.status) + "</span>" : "";
   $("enemyTypeIcon").innerHTML = renderTypeBadges(ep.type);
+  if ($("enemyFpBarBg")) {
+    $("enemyFpBarBg").style.display = "block";
+    $("enemyFpLabel").style.display = "flex";
+    var efpPct = Math.round(ep.currentFp / ep.maxFp * 100);
+    $("enemyFpBar").style.width = efpPct + "%";
+    $("enemyFpText").innerHTML = ep.currentFp + "/" + ep.maxFp;
+  }
 
   var moveBtns = $("playerMoveBtns");
   moveBtns.innerHTML = "";
@@ -4514,12 +4602,14 @@ function updateArenaUI() {
     var m = pp.moves[i];
     var details = getMoveDetails(m);
     var color = getTypeColor(details.type);
+    var fpCost = getMoveFpCost(m);
+    var hasFp = pp.currentFp >= fpCost;
     var btn = document.createElement("button");
     btn.className = "btn-move";
     btn.style.borderLeft = "4px solid " + color;
-    btn.innerHTML = m + " <small style=\"color:"+color+"\">("+details.type+"/"+details.category+"/Pw"+details.power+")</small>";
+    btn.innerHTML = m + " <small style=\"color:"+color+"\">("+details.type+"/"+details.category+"/Pw"+details.power+")</small> <span class='fp-cost" + (hasFp ? "" : " insufficient") + "'>FP" + fpCost + "</span>";
     btn.onclick = (function(moveName) { return function() { performAttack(moveName, true); }; })(m);
-    if (battleState.turnLock || battleState.battleOver || pp.currentHp <= 0 || ep.currentHp <= 0) btn.disabled = true;
+    if (battleState.turnLock || battleState.battleOver || pp.currentHp <= 0 || ep.currentHp <= 0 || !hasFp) btn.disabled = true;
     moveBtns.appendChild(btn);
   }
 
@@ -4536,6 +4626,7 @@ function updateArenaUI() {
     btn2.onclick = (function(pk) { return function() {
       if (pk.currentHp <= 0) return;
       battleState.playerPokemon = pk;
+      pk.currentFp = pk.maxFp;
       updateArenaUI();
       var sl = []; sl.push("🔄 換上 " + pk.name + "！");
       var abLog = [];
@@ -9059,6 +9150,420 @@ function acceptDefense() {
   var enemy = window._defenseEnemy;
   window._defenseEnemy = null;
   openArena(enemy);
+}
+
+// ===== Phase 3: 技能樹面板 =====
+var _skillTreePkmnId = null;
+var _skillTreeActiveTab = "atk";
+var _skillTreeDirty = false;
+
+function openSkillTreeFromPcBox() {
+  closeModal("pcBoxModal");
+  var roster = globalData.roster || [];
+  if (roster.length === 0) { toast("還沒有寶可夢"); return; }
+  openSkillTree(roster[0].id);
+}
+
+function openSkillTree(pkmnId) {
+  _skillTreePkmnId = pkmnId;
+  _skillTreeActiveTab = "atk";
+  _skillTreeDirty = false;
+  renderSkillTree();
+  $("skillTreeModal").style.display = "flex";
+}
+
+function selectSkillTreeTab(treeType) {
+  _skillTreeActiveTab = treeType;
+  renderSkillTree();
+}
+
+function renderSkillTree() {
+  var roster = globalData.roster || [];
+  var pkmn = null;
+  for (var ri = 0; ri < roster.length; ri++) { if (roster[ri].id === _skillTreePkmnId) { pkmn = roster[ri]; break; } }
+  if (!pkmn) { $("skillTreeHeader").innerHTML = "找不到寶可夢"; return; }
+
+  var types = (typeof POKEMON_SPECIES_TYPES !== "undefined") ? POKEMON_SPECIES_TYPES[pkmn.baseName] : ["一般"];
+  var atkStat = pkmn.atk || 50;
+  var spaStat = pkmn.spatk || 50;
+  var tree = typeof getSkillTree !== "undefined" ? getSkillTree(pkmn.baseName, types, atkStat, spaStat) : null;
+  if (!tree) { $("skillTreeBody").innerHTML = "暫無技能樹資料"; return; }
+
+  var sp = pkmn.skillPoints || 0;
+  var totalSp = pkmn.totalSpEarned || 0;
+  var investedSp = 0;
+  if (pkmn.skillTree) {
+    for (var sk in pkmn.skillTree) { if (pkmn.skillTree[sk]) investedSp += (pkmn.skillTree[sk].sp || 0); }
+  }
+  var maxTier = pkmn.maxTreeTier || 3;
+
+  $("skillTreeHeader").innerHTML = "🌳 <strong>" + pkmn.baseName + "</strong> Lv." + (pkmn.currentLevel || 5) + " | 階層上限: T" + maxTier;
+  $("stSpAmount").innerHTML = sp;
+
+  // Tabs
+  var tabsHtml = "";
+  var treeTypes = ["atk","spa","buf","dis","ult"];
+  var tabLabels = { atk:"✧攻擊", spa:"✦特攻", buf:"✤強化", dis:"✦干擾", ult:"★奧義" };
+  for (var ti = 0; ti < treeTypes.length; ti++) {
+    var tt = treeTypes[ti];
+    var treeData = tree.trees[tt];
+    var stData = pkmn.skillTree && pkmn.skillTree[tt] ? pkmn.skillTree[tt] : { sp: 0, tier: 1 };
+    var currentTier = getTreeTier(stData);
+    var isActive = tt === _skillTreeActiveTab;
+    var cls = "st-tab";
+    if (isActive) cls += " active";
+    if (currentTier > 1) cls += " unlocked";
+    tabsHtml += "<div class='" + cls + "' onclick='sfx.click();selectSkillTreeTab(\"" + tt + "\")'>" + tabLabels[tt] + " <small style='color:#888;'>T" + currentTier + "</small></div>";
+  }
+  $("stTabs").innerHTML = tabsHtml;
+
+  // Canvas
+  var activeTree = tree.trees[_skillTreeActiveTab];
+  if (!activeTree) { $("stCanvas").innerHTML = "暫無資料"; return; }
+  var activeStData = pkmn.skillTree && pkmn.skillTree[_skillTreeActiveTab] ? pkmn.skillTree[_skillTreeActiveTab] : { sp: 0, tier: 1 };
+  var currentTierVal = getTreeTier(activeStData);
+  var currentSp = activeStData.sp || 0;
+
+  var canvasHtml = "";
+  var treeTypeLabel = tabLabels[_skillTreeActiveTab] || _skillTreeActiveTab;
+  canvasHtml += "<div style='display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;'>";
+  canvasHtml += "<strong style='font-size:14px;'>" + treeTypeLabel + "</strong>";
+  canvasHtml += "<span style='font-size:12px;color:#8e44ad;'>已投入: <strong>" + currentSp + "</strong> SP | 當前階層: T<strong>" + currentTierVal + "</strong></span>";
+  canvasHtml += "</div>";
+
+  // Progress bar for this tree
+  var tierSpThresholds = [0, 0, 5, 12, 20, 30];
+  var nextTier = Math.min(currentTierVal + 1, 5);
+  var nextThreshold = tierSpThresholds[nextTier];
+  var prevThreshold = tierSpThresholds[currentTierVal];
+  var progressInTier = prevThreshold >= nextThreshold ? 100 : Math.min(100, Math.floor((currentSp - prevThreshold) / (nextThreshold - prevThreshold) * 100));
+  if (currentTierVal >= 5) progressInTier = 100;
+  canvasHtml += "<div class='st-progress'><div class='st-progress-fill' style='width:" + progressInTier + "%'></div></div>";
+
+  // Nodes by tier
+  var nodesByTier = { 1:[], 2:[], 3:[], 4:[], 5:[] };
+  var tierLabels = { 1:"T1 (基礎)", 2:"T2 (初階)", 3:"T3 (中階)", 4:"T4 (高階)", 5:"T5 (頂階)" };
+  for (var ni = 0; ni < activeTree.nodes.length; ni++) {
+    var node = activeTree.nodes[ni];
+    if (node.tier && nodesByTier[node.tier]) nodesByTier[node.tier].push(node);
+    else nodesByTier[1].push(node);
+  }
+
+  for (var t = 1; t <= 5; t++) {
+    var tierNodes = nodesByTier[t] || [];
+    var isTierLocked = t > maxTier;
+    var isTierUnlocked = currentTierVal >= t;
+
+    canvasHtml += "<div style='margin-bottom:8px;opacity:" + (isTierLocked ? 0.35 : 1) + ";'>";
+    canvasHtml += "<div class='st-tier-label'>" + tierLabels[t] + (isTierLocked ? " 🔒 (進化解鎖)" : "") + (isTierUnlocked && !isTierLocked ? " ✅" : "") + "</div>";
+    canvasHtml += "<div class='st-node-row'>";
+
+    if (tierNodes.length === 0) {
+      canvasHtml += "<span style='font-size:11px;color:#ccc;'>—</span>";
+    } else {
+      for (var nj = 0; nj < tierNodes.length; nj++) {
+        var nd = tierNodes[nj];
+        var ndName = nd.name || "?";
+        var isLearned = pkmn.learnedMoves && pkmn.learnedMoves[ndName];
+        var hasPrereqs = true;
+        if (nd.prereqs && nd.prereqs.length > 0) {
+          for (var pr = 0; pr < nd.prereqs.length; pr++) {
+            if (!pkmn.learnedMoves || !pkmn.learnedMoves[nd.prereqs[pr]]) { hasPrereqs = false; break; }
+          }
+        }
+        var canLearn = !isLearned && isTierUnlocked && !isTierLocked && hasPrereqs && sp >= (nd.spCost || 1);
+        var isLearnable = !isLearned && isTierUnlocked && !isTierLocked && hasPrereqs;
+        var ndCls = "st-node";
+        if (isLearned) ndCls += " learned";
+        else if (canLearn) ndCls += " available";
+        else ndCls += " locked";
+        var ndFpCost = typeof getTierFpCost !== "undefined" ? getTierFpCost(_skillTreeActiveTab, nd.tier || t) : 5;
+        canvasHtml += "<div class='" + ndCls + "' onclick='sfx.click();" + (canLearn ? "learnSkillTreeNode(\"" + ndName + "\")" : "") + "' title='FP消耗:" + ndFpCost + "'>";
+        canvasHtml += ndName;
+        if (isLearned) canvasHtml += " ✅";
+        if (canLearn) canvasHtml += " <small style='color:#e67e22;'>+" + (nd.spCost || 1) + "SP</small>";
+        canvasHtml += "<span class='st-fp-cost'>FP" + ndFpCost + "</span>";
+        canvasHtml += "</div>";
+      }
+    }
+    canvasHtml += "</div>";
+
+    // Passives for this tier
+    if (activeTree.passives) {
+      for (var pi = 0; pi < activeTree.passives.length; pi++) {
+        var pass = activeTree.passives[pi];
+        if (pass.tier === t) {
+          var passiveActive = currentTierVal >= t;
+          canvasHtml += "<div class='st-passive' style='opacity:" + (passiveActive ? 1 : 0.4) + ";'>" + (passiveActive ? "✅ " : "🔒 ") + pass.effect + "</div>";
+        }
+      }
+    }
+    canvasHtml += "</div>";
+  }
+
+  // Allocate SP button
+  canvasHtml += "<div style='margin-top:10px;display:flex;gap:6px;flex-wrap:wrap;'>";
+  var canAllocate = sp >= 1 && currentTierVal < 5 && maxTier > currentTierVal;
+  if (canAllocate) {
+    canvasHtml += "<button class='st-sp-btn' style='background:#27ae60;color:white;flex:1;' onclick='sfx.click();allocateSp(\"" + _skillTreeActiveTab + "\")'>⬆ 投入 1 SP</button>";
+  }
+  canvasHtml += "<button class='st-sp-btn' style='background:#3498db;color:white;flex:1;' onclick='sfx.click();allocateSpBulk(\"" + _skillTreeActiveTab + "\")'>⬆⬆ 最大投入</button>";
+  canvasHtml += "<button class='st-sp-btn' style='background:#95a5a6;color:white;' onclick='sfx.click();openSkillTreePkmnSelector()'>🔄 切換</button>";
+  canvasHtml += "</div>";
+  if (!canAllocate && sp > 0 && currentTierVal >= 5) {
+    canvasHtml += "<div style='font-size:12px;color:#27ae60;text-align:center;margin-top:6px;'>✅ 此系已達最高階層 T5</div>";
+  } else if (!canAllocate && sp === 0) {
+    canvasHtml += "<div style='font-size:12px;color:#888;text-align:center;margin-top:6px;'>SP 不足 — 升級可獲得 SP</div>";
+  } else if (!canAllocate && currentTierVal >= maxTier) {
+    canvasHtml += "<div style='font-size:12px;color:#e67e22;text-align:center;margin-top:6px;'>🔒 需進化才能繼續提升階層</div>";
+  }
+
+  $("stCanvas").innerHTML = canvasHtml;
+
+  // Preview: learned moves for this tree
+  var previewHtml = "";
+  var learnedMoves = pkmn.learnedMoves || {};
+  var hasPreview = false;
+  for (var lm in learnedMoves) {
+    if (!learnedMoves[lm]) continue;
+    for (var ti2 = 0; ti2 < activeTree.nodes.length; ti2++) {
+      if (activeTree.nodes[ti2].name === lm) {
+        var lv = learnedMoves[lm].level || 0;
+        var fpCost = typeof getTierFpCost !== "undefined" ? getTierFpCost(_skillTreeActiveTab, activeTree.nodes[ti2].tier || 1) : 5;
+        previewHtml += "<div style='display:flex;justify-content:space-between;font-size:12px;padding:2px 0;border-bottom:1px dashed #eee;'>";
+        previewHtml += "<span>✅ " + lm + " <small style='color:#8e44ad;'>FP" + fpCost + "</small></span>";
+        previewHtml += "<span style='color:#666;'>Lv." + lv + "/" + (typeof getMaxMoveLevel !== "undefined" ? getMaxMoveLevel(activeTree.nodes[ti2].tier || 1) : 5) + "</span>";
+        previewHtml += "</div>";
+        hasPreview = true;
+        break;
+      }
+    }
+  }
+  if (hasPreview) {
+    $("stPreview").style.display = "block";
+    $("stPreview").innerHTML = "<div style='font-weight:700;font-size:13px;margin-bottom:4px;'>📋 已學招式</div>" + previewHtml;
+  } else {
+    $("stPreview").style.display = "none";
+  }
+}
+
+function getTreeTier(stData) {
+  if (!stData) return 1;
+  var sp = stData.sp || 0;
+  if (sp >= 30) return 5;
+  if (sp >= 20) return 4;
+  if (sp >= 12) return 3;
+  if (sp >= 5) return 2;
+  return 1;
+}
+
+function allocateSp(treeType) {
+  if (!_skillTreePkmnId) return;
+  var roster = globalData.roster || [];
+  var pkmn = null;
+  for (var ri = 0; ri < roster.length; ri++) { if (roster[ri].id === _skillTreePkmnId) { pkmn = roster[ri]; break; } }
+  if (!pkmn) return;
+  if (!pkmn.skillTree) pkmn.skillTree = { atk: { sp: 0, tier: 1 }, spa: { sp: 0, tier: 1 }, buf: { sp: 0, tier: 1 }, dis: { sp: 0, tier: 1 }, ult: { sp: 0, tier: 1 } };
+  if (!pkmn.skillTree[treeType]) pkmn.skillTree[treeType] = { sp: 0, tier: 1 };
+  if ((pkmn.skillPoints || 0) < 1) return;
+  var maxTier = pkmn.maxTreeTier || 3;
+  if (getTreeTier(pkmn.skillTree[treeType]) >= maxTier) return;
+
+  pkmn.skillTree[treeType].sp = (pkmn.skillTree[treeType].sp || 0) + 1;
+  pkmn.skillTree[treeType].tier = getTreeTier(pkmn.skillTree[treeType]);
+  pkmn.skillPoints = (pkmn.skillPoints || 0) - 1;
+  _skillTreeDirty = true;
+  sfx.levelup();
+  renderSkillTree();
+}
+
+function allocateSpBulk(treeType) {
+  if (!_skillTreePkmnId) return;
+  var roster = globalData.roster || [];
+  var pkmn = null;
+  for (var ri = 0; ri < roster.length; ri++) { if (roster[ri].id === _skillTreePkmnId) { pkmn = roster[ri]; break; } }
+  if (!pkmn) return;
+  if (!pkmn.skillTree) return;
+  if (!pkmn.skillTree[treeType]) pkmn.skillTree[treeType] = { sp: 0, tier: 1 };
+  var maxTier = pkmn.maxTreeTier || 3;
+  var spAvail = pkmn.skillPoints || 0;
+  var currentTier = getTreeTier(pkmn.skillTree[treeType]);
+  if (currentTier >= maxTier || spAvail <= 0) return;
+
+  var tierSpThresholds = [0, 0, 5, 12, 20, 30];
+  var spToNext = tierSpThresholds[Math.min(currentTier + 1, 5)] - (pkmn.skillTree[treeType].sp || 0);
+  if (spToNext <= 0) { spToNext = spAvail; }
+  var toAlloc = Math.min(spAvail, spToNext);
+
+  pkmn.skillTree[treeType].sp = (pkmn.skillTree[treeType].sp || 0) + toAlloc;
+  pkmn.skillTree[treeType].tier = getTreeTier(pkmn.skillTree[treeType]);
+  pkmn.skillPoints = (pkmn.skillPoints || 0) - toAlloc;
+  _skillTreeDirty = true;
+  sfx.levelup();
+  renderSkillTree();
+}
+
+function learnSkillTreeNode(nodeName) {
+  if (!_skillTreePkmnId) return;
+  var roster = globalData.roster || [];
+  var pkmn = null;
+  for (var ri = 0; ri < roster.length; ri++) { if (roster[ri].id === _skillTreePkmnId) { pkmn = roster[ri]; break; } }
+  if (!pkmn) return;
+  if (!pkmn.learnedMoves) pkmn.learnedMoves = {};
+  if (pkmn.learnedMoves[nodeName]) return;
+  var sp = pkmn.skillPoints || 0;
+  var treeData = typeof getSkillTree !== "undefined" ? getSkillTree(pkmn.baseName, ["一般"], 50, 50) : null;
+  var treeTypes = ["atk","spa","buf","dis","ult"];
+  var treeNode = null;
+  for (var ti = 0; ti < treeTypes.length; ti++) {
+    if (treeData && treeData.trees[treeTypes[ti]]) {
+      for (var nj = 0; nj < treeData.trees[treeTypes[ti]].nodes.length; nj++) {
+        if (treeData.trees[treeTypes[ti]].nodes[nj].name === nodeName) { treeNode = treeData.trees[treeTypes[ti]].nodes[nj]; break; }
+      }
+    }
+    if (treeNode) break;
+  }
+  var cost = treeNode ? (treeNode.spCost || 1) : 1;
+  if (sp < cost) { toast("SP 不足"); return; }
+  pkmn.learnedMoves[nodeName] = { level: 1, learnedAt: Date.now() };
+  pkmn.skillPoints = (pkmn.skillPoints || 0) - cost;
+  _skillTreeDirty = true;
+  sfx.levelup();
+  renderSkillTree();
+  toast("✅ " + pkmn.baseName + " 學會了 " + nodeName + "！");
+}
+
+function resetActiveSkillTree() {
+  if (!_skillTreePkmnId) return;
+  if (!confirm("確定重置此寶可夢的整棵技能樹？所有已投入 SP 將全部返還。")) return;
+  var roster = globalData.roster || [];
+  var pkmn = null;
+  for (var ri = 0; ri < roster.length; ri++) { if (roster[ri].id === _skillTreePkmnId) { pkmn = roster[ri]; break; } }
+  if (!pkmn) return;
+  if (pkmn.skillTree) {
+    var refundSp = 0;
+    for (var sk in pkmn.skillTree) {
+      if (pkmn.skillTree[sk]) { refundSp += (pkmn.skillTree[sk].sp || 0); pkmn.skillTree[sk].sp = 0; pkmn.skillTree[sk].tier = 1; }
+    }
+    pkmn.skillPoints = (pkmn.skillPoints || 0) + refundSp;
+    pkmn.learnedMoves = {};
+    _skillTreeDirty = true;
+    sfx.levelup();
+    renderSkillTree();
+    toast("🔄 技能樹已重置，返還 " + refundSp + " SP");
+  }
+}
+
+function openSkillTreePkmnSelector() {
+  var roster = globalData.roster || [];
+  var options = "";
+  for (var ri = 0; ri < roster.length; ri++) {
+    var p = roster[ri];
+    var sel = p.id === _skillTreePkmnId ? "selected" : "";
+    options += "<option value='" + p.id + "' " + sel + ">" + p.baseName + " Lv." + (p.currentLevel || 5) + "</option>";
+  }
+  var div = document.createElement("div");
+  div.style.cssText = "position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.5);z-index:9999;display:flex;align-items:center;justify-content:center;";
+  div.innerHTML = "<div style='background:white;padding:20px;border-radius:12px;text-align:center;max-width:300px;width:90%;'>" +
+    "<h4 style='margin:0 0 10px;'>切換寶可夢</h4>" +
+    "<select id='stPkmnSelect' style='width:100%;padding:8px;border-radius:6px;font-weight:700;margin-bottom:12px;'>" + options + "</select>" +
+    "<button class='st-sp-btn' style='background:#3B4CCA;color:white;width:100%;padding:8px;' onclick='confirmStPkmnSwitch()'>確認切換</button>" +
+    "<button class='st-sp-btn' style='background:#95a5a6;color:white;width:100%;padding:8px;margin-top:6px;' onclick='this.parentElement.parentElement.remove()'>取消</button>" +
+    "</div>";
+  document.body.appendChild(div);
+}
+
+function confirmStPkmnSwitch() {
+  var sel = document.getElementById("stPkmnSelect");
+  if (sel && sel.value) {
+    _skillTreePkmnId = sel.value;
+    _skillTreeActiveTab = "atk";
+    renderSkillTree();
+  }
+  var div = document.querySelector("div[style*='z-index:9999']");
+  if (div) div.remove();
+}
+
+function saveSkillTreeState() {
+  if (!_skillTreeDirty || !_skillTreePkmnId) return;
+  scheduleStudentFieldUpdate({ roster: globalData.roster });
+  _skillTreeDirty = false;
+}
+
+// ===== Phase 3: 戰鬥 FP 條 =====
+function getMoveFpCost(moveName) {
+  var details = typeof getMoveDetails !== "undefined" ? getMoveDetails(moveName) : null;
+  if (!details) return 5;
+  var cats = details.category || "物理";
+  var pwr = details.power || 0;
+  if (cats === "變化") return Math.max(2, Math.floor(pwr / 10));
+  if (pwr <= 40) return 5;
+  if (pwr <= 60) return 8;
+  if (pwr <= 90) return 12;
+  if (pwr <= 120) return 18;
+  return 25;
+}
+
+function updateFpUI() {
+  if (!battleState) return;
+  var pp = battleState.playerPokemon;
+  var ep = battleState.enemy;
+  if (pp.maxFp !== undefined) {
+    var fpPct = Math.round(pp.currentFp / pp.maxFp * 100);
+    $("playerFpBar").style.width = fpPct + "%";
+    $("playerFpText").innerHTML = pp.currentFp + "/" + pp.maxFp;
+    $("playerFpIndicator").innerHTML = "FP " + pp.currentFp + "/" + pp.maxFp;
+  }
+  if (ep.maxFp !== undefined && $("enemyFpBarBg")) {
+    $("enemyFpBarBg").style.display = "block";
+    $("enemyFpLabel").style.display = "flex";
+    var efpPct = Math.round(ep.currentFp / ep.maxFp * 100);
+    $("enemyFpBar").style.width = efpPct + "%";
+    $("enemyFpText").innerHTML = ep.currentFp + "/" + ep.maxFp;
+  }
+}
+
+function consumeFp(pkmn, fpCost) {
+  if (!pkmn || pkmn.currentFp === undefined) return false;
+  if (pkmn.currentFp < fpCost) return false;
+  pkmn.currentFp = Math.max(0, pkmn.currentFp - fpCost);
+  return true;
+}
+
+function fpRegenTick(pkmn) {
+  if (!pkmn || pkmn.currentFp === undefined || pkmn.maxFp === undefined) return;
+  var regen = Math.floor(pkmn.maxFp * 0.1);
+  if (regen < 5) regen = 5;
+  pkmn.currentFp = Math.min(pkmn.maxFp, pkmn.currentFp + regen);
+}
+
+function applyFpCostToMoveButtons() {
+  var moveBtns = $("playerMoveBtns");
+  if (!moveBtns) return;
+  var pp = battleState ? battleState.playerPokemon : null;
+  if (!pp) return;
+  var buttons = moveBtns.querySelectorAll(".btn-move");
+  for (var bi = 0; bi < buttons.length; bi++) {
+    var btn = buttons[bi];
+    var moveName = btn.innerHTML.split("<small")[0].trim();
+    var fpCost = getMoveFpCost(moveName);
+    var hasFp = pp.currentFp >= fpCost;
+    btn.innerHTML = btn.innerHTML.replace(/<span class="fp-cost[^"]*"[^>]*>.*?<\/span>/, "");
+    if (!hasFp) {
+      btn.innerHTML += " <span class='fp-cost insufficient'>FP不足</span>";
+      btn.disabled = true;
+    }
+  }
+}
+
+function triggerFpRegen() {
+  if (!battleState) return;
+  var pp = battleState.playerPokemon;
+  var ep = battleState.enemy;
+  fpRegenTick(pp);
+  fpRegenTick(ep);
+  updateFpUI();
+  applyFpCostToMoveButtons();
 }
 
 function triggerDefenseChallenge() {

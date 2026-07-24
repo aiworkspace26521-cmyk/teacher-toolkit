@@ -2,7 +2,7 @@ param([switch]$Quiet)
 # Sync frontend source files to public/ before Firebase deploy
 $src = "tools/learning-kpi-dashboard/frontend"
 $dst = "public"
-$files = @("kpi-dashboard.html", "pokemon-gen2-9.js")
+$files = @("kpi-dashboard.html", "pokemon-gen2-9.js", "pokemon-skill-tree.js")
 $changed = 0
 foreach ($f in $files) {
   $s = Join-Path $src $f
