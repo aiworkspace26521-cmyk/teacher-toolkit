@@ -266,7 +266,7 @@ async function recalculateStudentState(studentId) {
     todayBattles: 0,
     weekGymWins: 0,
     monthLeagueWins: 0,
-    roster: { P0: { id: 'P0', baseName: '🐾 伊布 (一般系)', totalExp: 0, initialLevel: 5, catchDate: '初始夥伴', heldItem: '', skillTree: { atk: { sp: 0, tier: 1 }, spa: { sp: 0, tier: 1 }, buf: { sp: 0, tier: 1 }, dis: { sp: 0, tier: 1 }, ult: { sp: 0, tier: 1 } }, learnedMoves: {}, equippedMoves: [] } },
+    roster: { P0: { id: 'P0', baseName: '🐾 伊布 (一般系)', totalExp: 0, initialLevel: 5, catchDate: '初始夥伴', heldItem: '', skillTree: { atk: { sp: 0, tier: 1 }, spa: { sp: 0, tier: 1 }, buf: { sp: 0, tier: 1 }, dis: { sp: 0, tier: 1 }, ult: { sp: 0, tier: 1 } }, learnedMoves: {}, equippedMoves: [], skillPoints: 0, totalSpEarned: 0, evoStage: 0 } },
     submitStreak: 0,
     oranBerries: 0, cheriBerries: 0, lumBerries: 0, chilanBerries: 0,
     hasFocusSash: false, hasEjectButton: false, hasRockyHelmet: false, hasWeaknessPolicy: false,
@@ -412,7 +412,7 @@ async function recalculateStudentState(studentId) {
           catchDate: `${rowDate.getFullYear()}/${(rowDate.getMonth() + 1).toString().padStart(2, '0')}/${rowDate.getDate().toString().padStart(2, '0')}`,
           heldItem: '',
           skillTree: { atk: { sp: 0, tier: 1 }, spa: { sp: 0, tier: 1 }, buf: { sp: 0, tier: 1 }, dis: { sp: 0, tier: 1 }, ult: { sp: 0, tier: 1 } },
-          learnedMoves: {}, equippedMoves: []
+          learnedMoves: {}, equippedMoves: [], skillPoints: 0, totalSpEarned: 0, evoStage: 0
         };
       }
     } else if (rowAction === '道具裝備') {
@@ -454,7 +454,7 @@ async function recalculateStudentState(studentId) {
               catchDate: `${rowDate.getFullYear()}/${(rowDate.getMonth() + 1).toString().padStart(2, '0')}/${rowDate.getDate().toString().padStart(2, '0')}`,
               heldItem: '',
               skillTree: { atk: { sp: 0, tier: 1 }, spa: { sp: 0, tier: 1 }, buf: { sp: 0, tier: 1 }, dis: { sp: 0, tier: 1 }, ult: { sp: 0, tier: 1 } },
-              learnedMoves: {}, equippedMoves: []
+              learnedMoves: {}, equippedMoves: [], skillPoints: 0, totalSpEarned: 0, evoStage: 0
             };
           }
       }
@@ -469,11 +469,14 @@ async function recalculateStudentState(studentId) {
       if (nm && state.roster['P0']) {
         const newName = (nm[1].trim().includes('(') ? nm[1].trim() : nm[1].trim() + ' (一般系)');
         state.roster['P0'].baseName = newName;
+        state.roster['P0'].evoStage = Math.min(2, (state.roster['P0'].evoStage || 0) + 1);
       }
       // 新格式: 進化ID:{pokemonId} => {newName}
       const evoMatch = safeNote.match(/進化ID:(\S+)\s*=>\s*([^|]+)/);
       if (evoMatch && state.roster[evoMatch[1]]) {
         state.roster[evoMatch[1]].baseName = evoMatch[2].trim();
+        // 更新進化階段
+        state.roster[evoMatch[1]].evoStage = Math.min(2, (state.roster[evoMatch[1]].evoStage || 0) + 1);
       }
       // 消耗進化道具: 進化ID:P0 => 水伊布|消耗:水之石
       const consumeMatch = safeNote.match(/\|消耗:(.+)/);
@@ -575,6 +578,17 @@ async function recalculateStudentState(studentId) {
     p.currentLevel = lvlInfo.level;
     p.expProgress = lvlInfo.expProgress;
     p.expNeeded = lvlInfo.expNeeded;
+    // SP 計算：每級+5，已投入 = 五系 skillTree.sp 總和
+    p.totalSpEarned = Math.max(0, (p.currentLevel - (p.initialLevel || 5)) * 5);
+    let investedSp = 0;
+    if (p.skillTree) {
+      for (const stKey of Object.keys(p.skillTree)) {
+        if (p.skillTree[stKey] && p.skillTree[stKey].sp) investedSp += p.skillTree[stKey].sp;
+      }
+    }
+    p.skillPoints = Math.max(0, p.totalSpEarned - investedSp);
+    // 進化階段決定技能樹最高可用階層
+    p.maxTreeTier = p.evoStage >= 2 ? 5 : (p.evoStage >= 1 ? 4 : 3);
     if (state._happinessEvents && state._happinessEvents[p.id]) {
       p.happiness = (p.happiness || 0) + state._happinessEvents[p.id];
     } else {

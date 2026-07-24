@@ -927,7 +927,7 @@ async function recalculateStudentState(studentId, events) {
     lastBadgeTime: null, firstLogTime: null,
     todayBattles: 0, weekGymWins: 0, weekBossWins: 0, monthLeagueWins: 0,
     happiness: {}, leagueRegionsWon: {}, masters8Completed: [], masters8Progress: [],
-    roster: { P0: { id: "P0", baseName: "\u{1F43E} \u4F0A\u5E03 (\u4E00\u822C\u7CFB)", totalExp: 0, initialLevel: 5, catchDate: "\u521D\u59CB\u5925\u4F34", heldItem: "", skillTree: { atk: { sp: 0, tier: 1 }, spa: { sp: 0, tier: 1 }, buf: { sp: 0, tier: 1 }, dis: { sp: 0, tier: 1 }, ult: { sp: 0, tier: 1 } }, learnedMoves: {}, equippedMoves: [] } },
+    roster: { P0: { id: "P0", baseName: "\u{1F43E} \u4F0A\u5E03 (\u4E00\u822C\u7CFB)", totalExp: 0, initialLevel: 5, catchDate: "\u521D\u59CB\u5925\u4F34", heldItem: "", skillTree: { atk: { sp: 0, tier: 1 }, spa: { sp: 0, tier: 1 }, buf: { sp: 0, tier: 1 }, dis: { sp: 0, tier: 1 }, ult: { sp: 0, tier: 1 } }, learnedMoves: {}, equippedMoves: [], skillPoints: 0, totalSpEarned: 0, evoStage: 0 } },
     雷之石: false, 水之石: false, 火之石: false, 葉之石: false, 冰之石: false, 日之石: false, 月之石: false, 妖精之石: false
   };
   var dNow = new Date(), todayStr = dNow.toDateString();
@@ -1054,7 +1054,7 @@ async function recalculateStudentState(studentId, events) {
           }
         }
       }
-      if (!state.roster[pid]) state.roster[pid] = { id: pid, baseName: cleanName, totalExp: 0, initialLevel: initLv, catchDate: rowDate.getFullYear()+"/"+((rowDate.getMonth()+1)+"").padStart(2,"0")+"/"+(rowDate.getDate()+"").padStart(2,"0"), heldItem: "", skillTree: { atk: { sp: 0, tier: 1 }, spa: { sp: 0, tier: 1 }, buf: { sp: 0, tier: 1 }, dis: { sp: 0, tier: 1 }, ult: { sp: 0, tier: 1 } }, learnedMoves: {}, equippedMoves: [] };
+      if (!state.roster[pid]) state.roster[pid] = { id: pid, baseName: cleanName, totalExp: 0, initialLevel: initLv, catchDate: rowDate.getFullYear()+"/"+((rowDate.getMonth()+1)+"").padStart(2,"0")+"/"+(rowDate.getDate()+"").padStart(2,"0"), heldItem: "", skillTree: { atk: { sp: 0, tier: 1 }, spa: { sp: 0, tier: 1 }, buf: { sp: 0, tier: 1 }, dis: { sp: 0, tier: 1 }, ult: { sp: 0, tier: 1 } }, learnedMoves: {}, equippedMoves: [], skillPoints: 0, totalSpEarned: 0, evoStage: 0 };
     } else if (rowAction === "B" || rowAction === "\u7CD6\u679C\u5347\u7D1A") {
       var pid2 = (safeNote.match(/ID:(P\d+(?:_LEG)?|legacy_\d+)/)||[])[1];
       if (pid2) for (var k in state.roster) {
@@ -1076,7 +1076,7 @@ async function recalculateStudentState(studentId, events) {
       if (bossMatch) {
         var bossId = "P" + rowDate.getTime() + "_LEG";
         var bossName = (bossMatch[1].trim().indexOf("(") !== -1 ? bossMatch[1].trim() : bossMatch[1].trim() + " (\u4E00\u822C\u7CFB)");
-        if (!state.roster[bossId]) state.roster[bossId] = { id: bossId, baseName: bossName, totalExp: 0, initialLevel: Math.min(99, Math.max(5, state.lockedGymLevel) + 5), catchDate: rowDate.getFullYear()+"/"+((rowDate.getMonth()+1)+"").padStart(2,"0")+"/"+(rowDate.getDate()+"").padStart(2,"0"), heldItem: "", skillTree: { atk: { sp: 0, tier: 1 }, spa: { sp: 0, tier: 1 }, buf: { sp: 0, tier: 1 }, dis: { sp: 0, tier: 1 }, ult: { sp: 0, tier: 1 } }, learnedMoves: {}, equippedMoves: [] };
+        if (!state.roster[bossId]) state.roster[bossId] = { id: bossId, baseName: bossName, totalExp: 0, initialLevel: Math.min(99, Math.max(5, state.lockedGymLevel) + 5), catchDate: rowDate.getFullYear()+"/"+((rowDate.getMonth()+1)+"").padStart(2,"0")+"/"+(rowDate.getDate()+"").padStart(2,"0"), heldItem: "", skillTree: { atk: { sp: 0, tier: 1 }, spa: { sp: 0, tier: 1 }, buf: { sp: 0, tier: 1 }, dis: { sp: 0, tier: 1 }, ult: { sp: 0, tier: 1 } }, learnedMoves: {}, equippedMoves: [], skillPoints: 0, totalSpEarned: 0, evoStage: 0 };
       }
       if (rowDate.toDateString() === todayStr && (safeNote.indexOf("[Daily]") !== -1 || safeNote.indexOf("\u8DEF\u4EBA") !== -1 || safeNote.indexOf("Raid") !== -1)) state.todayBattles++;
       if (rowDate.getTime() >= startOfWeek && (safeNote.indexOf("[Gym]") !== -1 || safeNote.indexOf("\u9053\u9928") !== -1)) state.weekGymWins++;
@@ -1090,6 +1090,13 @@ async function recalculateStudentState(studentId, events) {
       var evoMatch = safeNote.match(/進化ID:(\S+)\s*=>\s*([^|]+)/);
       if (evoMatch && state.roster[evoMatch[1]]) {
         state.roster[evoMatch[1]].baseName = evoMatch[2].trim();
+        // 更新進化階段
+        var evoRaw = evoMatch[2].trim().replace(/^[^\w\u4e00-\u9fff]+\s*/u,"").replace(/\s*\([^)]*\).*$/,"");
+        if (typeof EVO_STAGE_MAP !== "undefined" && EVO_STAGE_MAP[evoRaw] !== undefined) {
+          state.roster[evoMatch[1]].evoStage = EVO_STAGE_MAP[evoRaw];
+        } else {
+          state.roster[evoMatch[1]].evoStage = Math.min(2, (state.roster[evoMatch[1]].evoStage || 0) + 1);
+        }
       }
       // 消耗進化道具: 進化ID:P0 => 水伊布|消耗:水之石
       var consumeMatch = safeNote.match(/\|消耗:(.+)/);
@@ -1182,6 +1189,23 @@ async function recalculateStudentState(studentId, events) {
   for (var k4 in state.roster) {
     var p = state.roster[k4]; var lvlInfo = calcLevelAndExp(p.totalExp, p.initialLevel);
     p.currentLevel = lvlInfo.level; p.expProgress = lvlInfo.expProgress; p.expNeeded = lvlInfo.expNeeded;
+    // SP 計算：每級+5，已投入 = 五系 skillTree.sp 總和
+    p.totalSpEarned = Math.max(0, (p.currentLevel - (p.initialLevel || 5)) * 5);
+    var investedSp = 0;
+    if (p.skillTree) {
+      for (var stKey in p.skillTree) {
+        if (p.skillTree[stKey] && p.skillTree[stKey].sp) investedSp += p.skillTree[stKey].sp;
+      }
+    }
+    p.skillPoints = Math.max(0, p.totalSpEarned - investedSp);
+    // 進化階段決定技能樹最高可用階層
+    p.maxTreeTier = p.evoStage >= 2 ? 5 : (p.evoStage >= 1 ? 4 : 3);
+    if (typeof EVO_STAGE_MAP !== "undefined") {
+      var rawName = p.baseName.replace(/^[^\w\u4e00-\u9fff]+\s*/u,"").replace(/\s*\([^)]*\).*$/,"");
+      var mapStage = EVO_STAGE_MAP[rawName];
+      if (mapStage !== undefined) p.evoStage = mapStage;
+      p.maxTreeTier = p.evoStage >= 2 ? 5 : (p.evoStage >= 1 ? 4 : 3);
+    }
     // 合併親密度到 roster
     if (happinessToday[p.id]) {
       p.happiness = (p.happiness || 0) + happinessToday[p.id];
@@ -2896,12 +2920,27 @@ function createEnemyPokemon(name, level, isGym, isLeague) {
 
 function createPlayerPokemon(pokemon) {
   var stats = getPokemonStats(pokemon.baseName, pokemon.currentLevel);
-  var moveset = getPokemonMoveset(pokemon.baseName, pokemon.currentLevel);
-  var selectedMoves = moveset.slice(0, Math.min(4, moveset.length));
+  // 技能樹裝備招式優先，否則自動選擇
+  var finalMoves;
+  var moveLevels = {};
+  if (pokemon.equippedMoves && pokemon.equippedMoves.length > 0) {
+    finalMoves = pokemon.equippedMoves.slice(0, 6);
+    // 帶入招式等級
+    if (pokemon.learnedMoves) {
+      for (var mlName in pokemon.learnedMoves) {
+        if (pokemon.learnedMoves[mlName] && pokemon.learnedMoves[mlName].level) {
+          moveLevels[mlName] = pokemon.learnedMoves[mlName].level;
+        }
+      }
+    }
+  } else {
+    var moveset = getPokemonMoveset(pokemon.baseName, pokemon.currentLevel);
+    var selectedMoves = moveset.slice(0, Math.min(4, moveset.length));
+    finalMoves = selectedMoves.slice(0, 4);
+  }
   // TM 招式取代前 N 個槽位
   var tmMoves = pokemon.tmMoves || [];
-  var finalMoves = selectedMoves.slice(0, 4);
-  for (var tmIdx = 0; tmIdx < Math.min(tmMoves.length, 4); tmIdx++) {
+  for (var tmIdx = 0; tmIdx < Math.min(tmMoves.length, finalMoves.length); tmIdx++) {
     finalMoves[tmIdx] = tmMoves[tmIdx];
   }
   var abilName = getPokemonAbility(pokemon.baseName);
@@ -2916,7 +2955,10 @@ function createPlayerPokemon(pokemon) {
     ability: abilData, abilityName: abilName,
     heldItem: pokemon.heldItem || "",
     dreamAbility: dreamAbil, dreamAbilityName: dreamAbil ? dreamAbil.name : null,
-    happiness: pokemon.happiness || 0
+    happiness: pokemon.happiness || 0,
+    moveLevels: moveLevels,
+    maxFp: typeof calcMaxFp !== "undefined" ? calcMaxFp(pokemon.currentLevel) : 100 + pokemon.currentLevel * 3,
+    currentFp: typeof calcMaxFp !== "undefined" ? calcMaxFp(pokemon.currentLevel) : 100 + pokemon.currentLevel * 3
   };
 }
 
@@ -2933,6 +2975,11 @@ function getEffectiveness(atkType, defTypes) {
 function calculateMovePower(move, attacker, defender, isPlayerAttacker, weather) {
   var details = getMoveDetails(move);
   var power = details.power || 40;
+  // 技能樹招式等級加成
+  if (isPlayerAttacker && attacker.moveLevels && attacker.moveLevels[move]) {
+    var ml = attacker.moveLevels[move];
+    power = Math.floor(power * (1 + 0.05 * ml));
+  }
   var eff = getEffectiveness(details.type, defender.type);
   var activeWeather = weather || (battleState && battleState.weather);
   var legAtk = checkIsLegendary(attacker.name);
