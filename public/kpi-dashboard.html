@@ -274,9 +274,11 @@
     .pkmn-card, .pkmn-collection-card { border: 2px solid #e0e0e0; border-radius: 8px; padding: 10px; margin-bottom: 8px; background: white; box-shadow: 1px 1px 4px rgba(0,0,0,0.08); }
     .pkmn-collection-card { margin-bottom: 6px; padding: 8px 10px; }
     .shop-card { border: 2px solid #e0e0e0; border-radius: 8px; padding: 12px; margin-bottom: 8px; background: white; display: flex; align-items: center; gap: 10px; }
-    .btn-move, .btn-swap, .btn-item { display: block; width: 100%; padding: 8px 12px; margin-bottom: 6px; border: 1px solid #ddd; border-radius: 6px; background: white; cursor: pointer; font-size: 13px; text-align: left; transition: 0.15s; }
+    .btn-move, .btn-swap, .btn-item { display: block; width: 100%; padding: 7px 10px; margin-bottom: 5px; border: 1px solid #ddd; border-radius: 6px; background: white; cursor: pointer; font-size: 13px; text-align: left; transition: 0.15s; line-height: 1.4; }
     .btn-move:hover, .btn-swap:hover, .btn-item:hover { background: #f5f5f5; border-color: #999; }
     .btn-move:disabled, .btn-swap:disabled, .btn-item:disabled { opacity: 0.5; cursor: not-allowed; }
+    .btn-move .move-name-row { display:flex; align-items:center; flex-wrap:wrap; gap:3px; }
+    .btn-move .move-lv-badge { display:inline-block; background:#8e44ad; color:white; font-size:9px; font-weight:700; padding:0 5px; border-radius:3px; vertical-align:middle; line-height:16px; }
     .btn-pvp-select, .btn-pvp-start { display: block; width: 100%; padding: 10px; margin-bottom: 6px; border: 2px solid #8e44ad; border-radius: 8px; background: white; cursor: pointer; font-size: 14px; font-weight: 700; color: #8e44ad; transition: 0.15s; }
     .btn-pvp-select:hover, .btn-pvp-start:hover { background: #f3e5f5; }
     .btn-pvp-start { background: #8e44ad; color: white; }
@@ -329,12 +331,15 @@
 .st-progress { height:6px; background:#e0e0e0; border-radius:3px; overflow:hidden; margin:4px 0; }
 .st-progress-fill { height:100%; background:linear-gradient(90deg,#3B4CCA,#27ae60); border-radius:3px; transition:width 0.3s; }
 .st-preview-card { background:white; border:2px solid #e0e0e0; border-radius:8px; padding:10px; margin-top:8px; }
+.st-upgrade-btn { padding:1px 8px; font-size:10px; font-weight:700; border:none; border-radius:4px; cursor:pointer; vertical-align:middle; transition:0.1s; }
+.st-upgrade-btn:hover { transform:scale(1.15); filter:brightness(1.2); }
 /* ===== Phase 3: 戰鬥 FP 條 ===== */
 .fp-bar-bg { width:100%; height:6px; background:#e8e0f0; border-radius:3px; overflow:hidden; margin-top:3px; }
 .fp-bar-fill { height:100%; background:linear-gradient(90deg,#8e44ad,#9b59b6); border-radius:3px; transition:width 0.3s; }
 .fp-label { font-size:11px; color:#8e44ad; margin-top:1px; display:flex; justify-content:space-between; }
 .fp-cost { font-size:10px; color:#8e44ad; font-weight:400; margin-left:4px; }
 .fp-cost.insufficient { color:#e74c3c; font-weight:700; }
+.move-name-row { display:flex; align-items:center; gap:3px; }
     @keyframes spin { to { transform: rotate(360deg); } }
     @keyframes shake { 0%,100% { transform: translateX(0); } 10%,30%,50%,70%,90% { transform: translateX(-6px); } 20%,40%,60%,80% { transform: translateX(6px); } }
     @keyframes flash-dmg { 0%,100% { opacity:1; } 25% { opacity:0.2; } 50% { opacity:1; } 75% { opacity:0.2; } }
@@ -4604,10 +4609,17 @@ function updateArenaUI() {
     var color = getTypeColor(details.type);
     var fpCost = getMoveFpCost(m);
     var hasFp = pp.currentFp >= fpCost;
+    var mvLv = (pp.moveLevels && pp.moveLevels[m]) || 0;
+    var mvPower = details.power || 0;
+    var boostedPower = mvLv > 0 ? Math.floor(mvPower * (1 + 0.05 * mvLv)) : mvPower;
     var btn = document.createElement("button");
     btn.className = "btn-move";
+    btn.setAttribute("data-move", m);
     btn.style.borderLeft = "4px solid " + color;
-    btn.innerHTML = m + " <small style=\"color:"+color+"\">("+details.type+"/"+details.category+"/Pw"+details.power+")</small> <span class='fp-cost" + (hasFp ? "" : " insufficient") + "'>FP" + fpCost + "</span>";
+    var lvBadge = mvLv > 0 ? " <span class='move-lv-badge'>Lv." + mvLv + "</span>" : "";
+    var pwDisplay = details.category !== "變化" ? "Pw" + boostedPower + (mvLv > 0 ? "<small style='color:#888;font-size:9px;'>("+mvPower+")</small>" : "") : "變化";
+    btn.innerHTML = "<span class='move-name-row'>" + m + lvBadge + " <span class='fp-cost" + (hasFp ? "" : " insufficient") + "'>FP" + fpCost + "</span></span>";
+    btn.innerHTML += " <small style='color:"+color+";font-size:10px;'>("+details.type+"/"+details.category+"/"+pwDisplay+")</small>";
     btn.onclick = (function(moveName) { return function() { performAttack(moveName, true); }; })(m);
     if (battleState.turnLock || battleState.battleOver || pp.currentHp <= 0 || ep.currentHp <= 0 || !hasFp) btn.disabled = true;
     moveBtns.appendChild(btn);
@@ -9320,7 +9332,7 @@ function renderSkillTree() {
 
   $("stCanvas").innerHTML = canvasHtml;
 
-  // Preview: learned moves for this tree
+  // Preview: learned moves for this tree (with upgrade)
   var previewHtml = "";
   var learnedMoves = pkmn.learnedMoves || {};
   var hasPreview = false;
@@ -9329,11 +9341,18 @@ function renderSkillTree() {
     for (var ti2 = 0; ti2 < activeTree.nodes.length; ti2++) {
       if (activeTree.nodes[ti2].name === lm) {
         var lv = learnedMoves[lm].level || 0;
+        var maxLv = typeof getMaxMoveLevel !== "undefined" ? getMaxMoveLevel(activeTree.nodes[ti2].tier || 1) : 5;
         var fpCost = typeof getTierFpCost !== "undefined" ? getTierFpCost(_skillTreeActiveTab, activeTree.nodes[ti2].tier || 1) : 5;
-        previewHtml += "<div style='display:flex;justify-content:space-between;font-size:12px;padding:2px 0;border-bottom:1px dashed #eee;'>";
+        var canUpgrade = lv < maxLv && sp >= 1;
+        previewHtml += "<div style='display:flex;justify-content:space-between;align-items:center;font-size:12px;padding:2px 0;border-bottom:1px dashed #eee;'>";
         previewHtml += "<span>✅ " + lm + " <small style='color:#8e44ad;'>FP" + fpCost + "</small></span>";
-        previewHtml += "<span style='color:#666;'>Lv." + lv + "/" + (typeof getMaxMoveLevel !== "undefined" ? getMaxMoveLevel(activeTree.nodes[ti2].tier || 1) : 5) + "</span>";
-        previewHtml += "</div>";
+        previewHtml += "<span style='color:#666;'>Lv." + lv + "/" + maxLv;
+        if (canUpgrade) {
+          previewHtml += " <button class='st-upgrade-btn' style='background:#8e44ad;color:white;' onclick='sfx.click();upgradeMoveInSkillTree(\"" + lm + "\")'>⬆+1</button>";
+        } else if (lv >= maxLv) {
+          previewHtml += " <span style='color:#27ae60;font-weight:700;'>MAX</span>";
+        }
+        previewHtml += "</span></div>";
         hasPreview = true;
         break;
       }
@@ -9345,6 +9364,71 @@ function renderSkillTree() {
   } else {
     $("stPreview").style.display = "none";
   }
+
+  // Equipped moves editor
+  renderEquipEditor(pkmn);
+}
+
+function renderEquipEditor(pkmn) {
+  var learnedKeys = Object.keys(pkmn.learnedMoves || {});
+  var equipped = pkmn.equippedMoves || [];
+  var eqHtml = "";
+  eqHtml += "<div style='margin-top:10px;border-top:2px dashed #ddd;padding-top:8px;'>";
+  eqHtml += "<div style='display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;'>";
+  eqHtml += "<strong style='font-size:13px;'>✋ 攜帶招式 <span style='font-size:11px;color:#888;'>(" + equipped.length + "/6)</span></strong>";
+  eqHtml += "<button class='st-sp-btn' style='background:#8e44ad;color:white;font-size:11px;' onclick=\"toggleEquipEditor()\">" + (_showEquipEditor ? "收起 ▲" : "編輯 ✏️") + "</button>";
+  eqHtml += "</div>";
+  eqHtml += "<div id='stEquipEditor' style='display:" + (_showEquipEditor ? "block" : "none") + ";'>";
+  if (learnedKeys.length === 0) {
+    eqHtml += "<div style='font-size:12px;color:#999;padding:4px 0;'>尚未學習任何招式</div>";
+  } else {
+    eqHtml += "<div style='font-size:11px;color:#888;margin-bottom:4px;'>勾選欲攜帶的招式（最多 6 招）：</div>";
+    for (var ei = 0; ei < learnedKeys.length; ei++) {
+      var mn = learnedKeys[ei];
+      var isEq = equipped.indexOf(mn) !== -1;
+      var canSelect = !isEq && equipped.length >= 6;
+      eqHtml += "<label style='display:flex;align-items:center;gap:6px;padding:3px 6px;border-radius:4px;font-size:12px;cursor:" + (canSelect ? "not-allowed" : "pointer") + ";background:" + (isEq ? "#eafaf1" : "transparent") + ";margin:2px 0;'>";
+      eqHtml += "<input type='checkbox' " + (isEq ? "checked" : "") + " " + (canSelect ? "disabled" : "") + " onchange=\"toggleEquipMove('" + mn + "', this.checked)\" style='accent-color:#8e44ad;'>";
+      eqHtml += mn + " <small style='color:#666;'>Lv." + ((pkmn.learnedMoves[mn] && pkmn.learnedMoves[mn].level) || 0) + "</small>";
+      eqHtml += "</label>";
+    }
+  }
+  eqHtml += "</div></div>";
+  // Append to skill tree body (after stPreview)
+  var existingEditor = document.getElementById("stEquipContainer");
+  if (!existingEditor) {
+    var container = document.createElement("div");
+    container.id = "stEquipContainer";
+    $("skillTreeBody").appendChild(container);
+  }
+  document.getElementById("stEquipContainer").innerHTML = eqHtml;
+}
+
+var _showEquipEditor = false;
+
+function toggleEquipEditor() {
+  _showEquipEditor = !_showEquipEditor;
+  var roster = globalData.roster || [];
+  var pkmn = null;
+  for (var ri = 0; ri < roster.length; ri++) { if (roster[ri].id === _skillTreePkmnId) { pkmn = roster[ri]; break; } }
+  if (pkmn) renderEquipEditor(pkmn);
+}
+
+function toggleEquipMove(moveName, isChecked) {
+  if (!_skillTreePkmnId) return;
+  var roster = globalData.roster || [];
+  var pkmn = null;
+  for (var ri = 0; ri < roster.length; ri++) { if (roster[ri].id === _skillTreePkmnId) { pkmn = roster[ri]; break; } }
+  if (!pkmn) return;
+  if (!pkmn.equippedMoves) pkmn.equippedMoves = [];
+  if (isChecked) {
+    if (pkmn.equippedMoves.length >= 6) { toast("最多攜帶 6 招"); return; }
+    if (pkmn.equippedMoves.indexOf(moveName) === -1) pkmn.equippedMoves.push(moveName);
+  } else {
+    pkmn.equippedMoves = pkmn.equippedMoves.filter(function(m){ return m !== moveName; });
+  }
+  _skillTreeDirty = true;
+  renderEquipEditor(pkmn);
 }
 
 function getTreeTier(stData) {
@@ -9431,6 +9515,36 @@ function learnSkillTreeNode(nodeName) {
   sfx.levelup();
   renderSkillTree();
   toast("✅ " + pkmn.baseName + " 學會了 " + nodeName + "！");
+}
+
+function upgradeMoveInSkillTree(moveName) {
+  if (!_skillTreePkmnId) return;
+  var roster = globalData.roster || [];
+  var pkmn = null;
+  for (var ri = 0; ri < roster.length; ri++) { if (roster[ri].id === _skillTreePkmnId) { pkmn = roster[ri]; break; } }
+  if (!pkmn) return;
+  if (!pkmn.learnedMoves || !pkmn.learnedMoves[moveName]) return;
+  var sp = pkmn.skillPoints || 0;
+  if (sp < 1) { toast("SP 不足，無法升級"); return; }
+  var lv = pkmn.learnedMoves[moveName].level || 0;
+  var treeData = typeof getSkillTree !== "undefined" ? getSkillTree(pkmn.baseName, ["一般"], 50, 50) : null;
+  var treeTypes = ["atk","spa","buf","dis","ult"];
+  var tier = 1;
+  for (var ti = 0; ti < treeTypes.length; ti++) {
+    if (treeData && treeData.trees[treeTypes[ti]]) {
+      for (var nj = 0; nj < treeData.trees[treeTypes[ti]].nodes.length; nj++) {
+        if (treeData.trees[treeTypes[ti]].nodes[nj].name === moveName) { tier = treeData.trees[treeTypes[ti]].nodes[nj].tier || 1; break; }
+      }
+    }
+  }
+  var maxLv = typeof getMaxMoveLevel !== "undefined" ? getMaxMoveLevel(tier) : 5;
+  if (lv >= maxLv) { toast("已達最高等級"); return; }
+  pkmn.learnedMoves[moveName].level = lv + 1;
+  pkmn.skillPoints = (pkmn.skillPoints || 0) - 1;
+  _skillTreeDirty = true;
+  sfx.levelup();
+  renderSkillTree();
+  toast("⬆ " + moveName + " 升級至 Lv." + (lv + 1) + "！");
 }
 
 function resetActiveSkillTree() {
@@ -9545,14 +9659,26 @@ function applyFpCostToMoveButtons() {
   var buttons = moveBtns.querySelectorAll(".btn-move");
   for (var bi = 0; bi < buttons.length; bi++) {
     var btn = buttons[bi];
-    var moveName = btn.innerHTML.split("<small")[0].trim();
+    var moveName = btn.getAttribute("data-move") || "";
+    if (!moveName) continue;
     var fpCost = getMoveFpCost(moveName);
     var hasFp = pp.currentFp >= fpCost;
-    btn.innerHTML = btn.innerHTML.replace(/<span class="fp-cost[^"]*"[^>]*>.*?<\/span>/, "");
-    if (!hasFp) {
-      btn.innerHTML += " <span class='fp-cost insufficient'>FP不足</span>";
-      btn.disabled = true;
+    // Update the FP span inside the move-name-row
+    var fpSpan = btn.querySelector(".move-name-row .fp-cost");
+    if (fpSpan) {
+      fpSpan.className = "fp-cost" + (hasFp ? "" : " insufficient");
+      fpSpan.textContent = hasFp ? "FP" + fpCost : "FP不足";
+    } else {
+      // Fallback: append if not found
+      var nameRow = btn.querySelector(".move-name-row");
+      if (nameRow) {
+        var newSpan = document.createElement("span");
+        newSpan.className = "fp-cost" + (hasFp ? "" : " insufficient");
+        newSpan.textContent = hasFp ? "FP" + fpCost : "FP不足";
+        nameRow.appendChild(newSpan);
+      }
     }
+    btn.disabled = !hasFp;
   }
 }
 
