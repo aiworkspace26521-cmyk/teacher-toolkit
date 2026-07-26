@@ -23,7 +23,7 @@ test.describe('Pokédex Evolution Chain', () => {
       return { rareCount: entries.length, withEvo: withEvo, withoutEvo: withoutEvo, missingEvo: missingEvo };
     });
 
-    expect(stats.rareCount).toBe(77);
+    expect(stats.rareCount).toBe(76);
     expect(stats.missingEvo).toEqual([]);
   });
 

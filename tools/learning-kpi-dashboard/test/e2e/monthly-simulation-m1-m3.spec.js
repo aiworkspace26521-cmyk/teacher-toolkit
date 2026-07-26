@@ -1439,7 +1439,7 @@ test.describe('M1→M3 逐月模擬測試（真實驗證 EXP/等級/道館/聯�
   });
 
   test('傳說挑戰（9eadb71）：挑戰失敗不當機', async ({ page }) => {
-    var result = await page.evaluate(function() {
+    var result = await page.evaluate(async function() {
       window.isAdmin = true;
       window.globalData = {
         studentId: 'Admin', highestLevel: 30, lockedGymLevel: 30,
@@ -1449,7 +1449,8 @@ test.describe('M1→M3 逐月模擬測試（真實驗證 EXP/等級/道館/聯�
         todayBattles: 0, todayStatus: "PENDING",
         daysSinceLastBadge: 99, lastBadgeTime: null,
         leagueRegionsWon: {}, masters8Completed: [], masters8Progress: [],
-        hasChampionCloak: false, hasAmuletCoin: false
+        hasChampionCloak: false, hasAmuletCoin: false,
+        fp: 50, maxFp: 100
       };
 
       var origExec = window.executeSave;
@@ -1484,7 +1485,7 @@ test.describe('M1→M3 逐月模擬測試（真實驗證 EXP/等級/道館/聯�
         };
 
         // This should NOT throw despite playerWon=false
-        endBattle(false);
+        await endBattle(false);
 
         result = {
           noCrash: true,

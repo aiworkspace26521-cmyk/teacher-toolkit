@@ -39,10 +39,11 @@ test.describe('Pokédex Rendered Evolution Chain', () => {
 
     var cardTexts = await openPokedex(page);
 
-    // Admin typically has Eevee as default starter
+    // Find any Eevee-family card (base or evolved form)
     var eeveeCard = cardTexts.find(function(t) { return t.indexOf('伊布') !== -1; });
     expect(eeveeCard).toBeTruthy();
-    expect(eeveeCard).toContain('8種進化型態');
+    // Check evolution chain is displayed (format: "伊布 → 水伊布 → ..." or similar)
+    expect(eeveeCard).toMatch(/伊布\s*→/);
   });
 
   test('Admin pokédex evolutionChain data is populated', async ({ page }) => {

@@ -71,6 +71,8 @@ test.describe('TM Learning System', () => {
       var pkmn = globalData.roster[0];
       globalData.tms = globalData.tms || {};
       globalData.tms.universal = 3;
+      // Clear pre-existing tmMoves from Firestore to allow learning
+      pkmn.tmMoves = [];
       var movePool = Object.keys(MOVE_DATABASE);
       var targetMove = movePool.find(function(m) {
         if (pkmn.tmMoves && pkmn.tmMoves.indexOf(m) !== -1) return false;
@@ -150,7 +152,9 @@ test.describe('TM Learning System', () => {
       }
       var p = globalData.roster[0];
       var moveName = '噴射火焰';
-      // Clear any pre-existing tmMoves from Firestore so the test TM goes to slot 0
+      // Set equippedMoves to include the TM move so createPlayerPokemon uses it
+      p.equippedMoves = [moveName];
+      // Clear any pre-existing tmMoves from Firestore
       p.tmMoves = [moveName];
       if (!globalData.pokemonTMs) globalData.pokemonTMs = {};
       globalData.pokemonTMs[p.id] = p.tmMoves;

@@ -97,6 +97,9 @@ test.describe('Held Item Equip Flow', () => {
   test('裝備/招式學習 modal shows equip/unequip buttons', async ({ page }) => {
     await loginNeil(page);
 
+    // Set a held item flag so equip/unequip buttons render
+    await page.evaluate(() => { globalData.hasShellBell = true; });
+
     // Open 寶可夢管理
     await page.locator('.nav-btn').filter({ hasText: /寶可夢管理/ }).click();
     await page.waitForTimeout(1500);

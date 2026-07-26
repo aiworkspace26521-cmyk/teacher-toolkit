@@ -90,7 +90,7 @@ test.describe('Block I Step 10: 任務+成就系統驗證', () => {
     expect(progressResult.weekly).toBeDefined();
 
     expect(progressResult.daily.progress["LOGIN"]).toBeGreaterThanOrEqual(1);
-    expect(progressResult.daily.progress["DAILY_SUBMIT"]).toBe(1);
+    expect(progressResult.daily.progress["DAILY_SUBMIT"]).toBe(2); // "捕捉" also auto-submits
     expect(progressResult.daily.progress["BATTLE_3"]).toBe(3);
     expect(progressResult.daily.progress["CAPTURE_1"]).toBe(1);
 
