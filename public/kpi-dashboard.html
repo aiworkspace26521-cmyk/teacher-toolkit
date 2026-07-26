@@ -2997,10 +2997,12 @@ function createPlayerPokemon(pokemon) {
     var selectedMoves = moveset.slice(0, Math.min(4, moveset.length));
     finalMoves = selectedMoves.slice(0, 4);
   }
-  // TM 招式取代前 N 個槽位
+  // TM 招式附加到現有招式之後（不覆蓋技能樹裝備招）
   var tmMoves = pokemon.tmMoves || [];
-  for (var tmIdx = 0; tmIdx < Math.min(tmMoves.length, finalMoves.length); tmIdx++) {
-    finalMoves[tmIdx] = tmMoves[tmIdx];
+  for (var tmIdx = 0; tmIdx < tmMoves.length; tmIdx++) {
+    if (finalMoves.length < 6) {
+      finalMoves.push(tmMoves[tmIdx]);
+    }
   }
   var abilName = getPokemonAbility(pokemon.baseName);
   var abilData = abilName ? (ABILITY_EFFECTS[abilName] || null) : null;
@@ -9459,6 +9461,10 @@ function allocateSp(treeType) {
   _skillTreeDirty = true;
   sfx.levelup();
   renderSkillTree();
+  saveSkillTreeState();
+  if (typeof saveEventToFirestore !== "undefined") {
+    saveEventToFirestore({ studentId: globalData.studentId, action: "SP_ALLOCATE", score: 0, expGained: 0, coinsGained: 0, badgeChange: 0, note: _skillTreePkmnId + ":" + treeType + ":1" });
+  }
 }
 
 function allocateSpBulk(treeType) {
@@ -9485,6 +9491,10 @@ function allocateSpBulk(treeType) {
   _skillTreeDirty = true;
   sfx.levelup();
   renderSkillTree();
+  saveSkillTreeState();
+  if (typeof saveEventToFirestore !== "undefined") {
+    saveEventToFirestore({ studentId: globalData.studentId, action: "SP_ALLOCATE", score: 0, expGained: 0, coinsGained: 0, badgeChange: 0, note: _skillTreePkmnId + ":" + treeType + ":" + toAlloc });
+  }
 }
 
 function learnSkillTreeNode(nodeName) {
@@ -9496,7 +9506,10 @@ function learnSkillTreeNode(nodeName) {
   if (!pkmn.learnedMoves) pkmn.learnedMoves = {};
   if (pkmn.learnedMoves[nodeName]) return;
   var sp = pkmn.skillPoints || 0;
-  var treeData = typeof getSkillTree !== "undefined" ? getSkillTree(pkmn.baseName, ["一般"], 50, 50) : null;
+  var types = (typeof POKEMON_SPECIES_TYPES !== "undefined") ? POKEMON_SPECIES_TYPES[pkmn.baseName] : ["一般"];
+  var atkStat = pkmn.atk || 50;
+  var spaStat = pkmn.spatk || 50;
+  var treeData = typeof getSkillTree !== "undefined" ? getSkillTree(pkmn.baseName, types, atkStat, spaStat) : null;
   var treeTypes = ["atk","spa","buf","dis","ult"];
   var treeNode = null;
   for (var ti = 0; ti < treeTypes.length; ti++) {
@@ -9509,11 +9522,27 @@ function learnSkillTreeNode(nodeName) {
   }
   var cost = treeNode ? (treeNode.spCost || 1) : 1;
   if (sp < cost) { toast("SP 不足"); return; }
-  pkmn.learnedMoves[nodeName] = { level: 1, learnedAt: Date.now() };
+  if (treeNode && treeNode.evolveStage !== undefined && treeNode.evolveStage > (pkmn.evoStage || 0)) {
+    toast("需要進化到第 " + treeNode.evolveStage + " 階段才能學習 " + nodeName);
+    return;
+  }
+  if (treeNode && treeNode.prereqs && treeNode.prereqs.length > 0) {
+    for (var pri = 0; pri < treeNode.prereqs.length; pri++) {
+      if (!pkmn.learnedMoves[treeNode.prereqs[pri]]) {
+        toast("需要先學會 " + treeNode.prereqs[pri] + " 才能學習 " + nodeName);
+        return;
+      }
+    }
+  }
+  pkmn.learnedMoves[nodeName] = { level: 1, learnedAt: Date.now(), tier: treeNode ? (treeNode.tier || 1) : 1 };
   pkmn.skillPoints = (pkmn.skillPoints || 0) - cost;
   _skillTreeDirty = true;
   sfx.levelup();
   renderSkillTree();
+  saveSkillTreeState();
+  if (typeof saveEventToFirestore !== "undefined") {
+    saveEventToFirestore({ studentId: globalData.studentId, action: "MOVE_LEARN", score: 0, expGained: 0, coinsGained: 0, badgeChange: 0, note: _skillTreePkmnId + ":" + nodeName + ":tier" + (treeNode ? (treeNode.tier || 1) : 1) + ":" + (treeNode ? (treeNode.treeType || "spa") : "spa") });
+  }
   toast("✅ " + pkmn.baseName + " 學會了 " + nodeName + "！");
 }
 
@@ -9527,16 +9556,7 @@ function upgradeMoveInSkillTree(moveName) {
   var sp = pkmn.skillPoints || 0;
   if (sp < 1) { toast("SP 不足，無法升級"); return; }
   var lv = pkmn.learnedMoves[moveName].level || 0;
-  var treeData = typeof getSkillTree !== "undefined" ? getSkillTree(pkmn.baseName, ["一般"], 50, 50) : null;
-  var treeTypes = ["atk","spa","buf","dis","ult"];
-  var tier = 1;
-  for (var ti = 0; ti < treeTypes.length; ti++) {
-    if (treeData && treeData.trees[treeTypes[ti]]) {
-      for (var nj = 0; nj < treeData.trees[treeTypes[ti]].nodes.length; nj++) {
-        if (treeData.trees[treeTypes[ti]].nodes[nj].name === moveName) { tier = treeData.trees[treeTypes[ti]].nodes[nj].tier || 1; break; }
-      }
-    }
-  }
+  var tier = pkmn.learnedMoves[moveName].tier || 1;
   var maxLv = typeof getMaxMoveLevel !== "undefined" ? getMaxMoveLevel(tier) : 5;
   if (lv >= maxLv) { toast("已達最高等級"); return; }
   pkmn.learnedMoves[moveName].level = lv + 1;
@@ -9544,12 +9564,16 @@ function upgradeMoveInSkillTree(moveName) {
   _skillTreeDirty = true;
   sfx.levelup();
   renderSkillTree();
+  saveSkillTreeState();
+  if (typeof saveEventToFirestore !== "undefined") {
+    saveEventToFirestore({ studentId: globalData.studentId, action: "MOVE_UPGRADE", score: 0, expGained: 0, coinsGained: 0, badgeChange: 0, note: _skillTreePkmnId + ":" + moveName + ":" + (lv + 1) });
+  }
   toast("⬆ " + moveName + " 升級至 Lv." + (lv + 1) + "！");
 }
 
 function resetActiveSkillTree() {
   if (!_skillTreePkmnId) return;
-  if (!confirm("確定重置此寶可夢的整棵技能樹？所有已投入 SP 將全部返還。")) return;
+  if (!window._skillTreeSkipConfirm && !confirm("確定重置此寶可夢的整棵技能樹？所有已投入 SP 將全部返還。")) return;
   var roster = globalData.roster || [];
   var pkmn = null;
   for (var ri = 0; ri < roster.length; ri++) { if (roster[ri].id === _skillTreePkmnId) { pkmn = roster[ri]; break; } }
@@ -9564,6 +9588,10 @@ function resetActiveSkillTree() {
     _skillTreeDirty = true;
     sfx.levelup();
     renderSkillTree();
+    saveSkillTreeState();
+    if (typeof saveEventToFirestore !== "undefined") {
+      saveEventToFirestore({ studentId: globalData.studentId, action: "SKILL_RESET", score: 0, expGained: 0, coinsGained: 0, badgeChange: 0, note: _skillTreePkmnId + ":" + pkmn.baseName });
+    }
     toast("🔄 技能樹已重置，返還 " + refundSp + " SP");
   }
 }
@@ -9660,7 +9688,10 @@ function applyFpCostToMoveButtons() {
   for (var bi = 0; bi < buttons.length; bi++) {
     var btn = buttons[bi];
     var moveName = btn.getAttribute("data-move") || "";
-    if (!moveName) continue;
+    if (!moveName) {
+      moveName = (btn.textContent || "").replace(/[0-9\s].*$/, "").trim();
+      if (!moveName) continue;
+    }
     var fpCost = getMoveFpCost(moveName);
     var hasFp = pp.currentFp >= fpCost;
     // Update the FP span inside the move-name-row
