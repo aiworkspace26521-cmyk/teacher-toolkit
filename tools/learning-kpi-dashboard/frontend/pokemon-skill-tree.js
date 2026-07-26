@@ -14,6 +14,16 @@ var DIS_FP_COST = { 1: 3, 2: 5, 3: 10, 4: 15, 5: 25 };
 var ULT_FP_COST = { 1: 10, 2: 20, 3: 35, 4: 50, 5: 80 };
 var MAX_MOVE_LEVEL = { 1: 10, 2: 8, 3: 5, 4: 3, 5: 3 };
 
+// ULT 招式新名稱映射（取代舊的 +Pro 規則）
+var ULT_MOVE_RENAME = {
+  "噴射火焰": "焚焰放射",
+  "大字爆": "滅世爆焰",
+  "暗影球": "噬影球",
+  "地震": "震滅",
+  "十萬伏特": "轟雷",
+  "打雷": "萬雷轟"
+};
+
 // ========== 手工設計技能樹 ==========
 
 var SPECIES_SKILL_TREE = {};
@@ -84,11 +94,11 @@ addSpecies("噴火龍", {
       { tier: 4, effect: "對手弱化 +5%" }
     ]},
     ult: { label: "奧義系", nodes: [
-      { tier: 1, name: "高速星星",   spCost: 1, prereqs: [] },
-      { tier: 2, name: "劈開",       spCost: 2, prereqs: ["高速星星"] },
-      { tier: 3, name: "噴射火焰Pro", spCost: 3, prereqs: ["劈開"], evolveStage: 1 },
-      { tier: 4, name: "大字爆Pro",   spCost: 4, prereqs: ["噴射火焰Pro"], evolveStage: 2 },
-      { tier: 5, name: "燃燼衝鋒",    spCost: 5, prereqs: ["大字爆Pro"], evolveStage: 2 }
+      { tier: 1, name: "高速星星", spCost: 1, prereqs: [] },
+      { tier: 2, name: "劈開",     spCost: 2, prereqs: ["高速星星"] },
+      { tier: 3, name: "焚焰放射", spCost: 3, prereqs: ["劈開"], evolveStage: 1 },
+      { tier: 4, name: "滅世爆焰", spCost: 4, prereqs: ["焚焰放射"], evolveStage: 2 },
+      { tier: 5, name: "燃燼衝鋒", spCost: 5, prereqs: ["滅世爆焰"], evolveStage: 2 }
     ], passives: [
       { tier: 3, effect: "奧義威力 +10%" }
     ]}
@@ -156,11 +166,11 @@ addSpecies("超夢", {
       { tier: 4, effect: "對手弱化 +5%" }
     ]},
     ult: { label: "奧義系", nodes: [
-      { tier: 1, name: "高速星星",   spCost: 1, prereqs: [] },
-      { tier: 2, name: "覺醒力量",   spCost: 2, prereqs: ["高速星星"] },
-      { tier: 3, name: "暗影球Pro",  spCost: 3, prereqs: ["覺醒力量"] },
-      { tier: 4, name: "波導彈",     spCost: 4, prereqs: ["暗影球Pro"] },
-      { tier: 5, name: "精神擊破",   spCost: 5, prereqs: ["波導彈"] }
+      { tier: 1, name: "高速星星", spCost: 1, prereqs: [] },
+      { tier: 2, name: "覺醒力量", spCost: 2, prereqs: ["高速星星"] },
+      { tier: 3, name: "噬影球",   spCost: 3, prereqs: ["覺醒力量"] },
+      { tier: 4, name: "波導彈",   spCost: 4, prereqs: ["噬影球"] },
+      { tier: 5, name: "精神擊破", spCost: 5, prereqs: ["波導彈"] }
     ], passives: [
       { tier: 3, effect: "奧義威力 +10%" }
     ]}
@@ -220,11 +230,11 @@ addSpecies("皮卡丘", {
       { tier: 2, effect: "狀態命中 +5%" }
     ]},
     ult: { label: "奧義系", nodes: [
-      { tier: 1, name: "高速星星",  spCost: 1, prereqs: [] },
-      { tier: 2, name: "電球",      spCost: 2, prereqs: ["高速星星"] },
-      { tier: 3, name: "十萬伏特Pro", spCost: 3, prereqs: ["電球"] },
-      { tier: 4, name: "打雷Pro",    spCost: 4, prereqs: ["十萬伏特Pro"], evolveStage: 1 },
-      { tier: 5, name: "千萬伏特",   spCost: 5, prereqs: ["打雷Pro"], evolveStage: 1 }
+      { tier: 1, name: "高速星星", spCost: 1, prereqs: [] },
+      { tier: 2, name: "電球",     spCost: 2, prereqs: ["高速星星"] },
+      { tier: 3, name: "轟雷",     spCost: 3, prereqs: ["電球"] },
+      { tier: 4, name: "萬雷轟",   spCost: 4, prereqs: ["轟雷"], evolveStage: 1 },
+      { tier: 5, name: "千萬伏特", spCost: 5, prereqs: ["萬雷轟"], evolveStage: 1 }
     ], passives: [
       { tier: 3, effect: "奧義威力 +10%" }
     ]}
@@ -342,12 +352,18 @@ function generateSkillTree(speciesName, types, atkStat, spaStat) {
         ];
         var topAtk = atkPool.length > 0 ? atkPool[atkPool.length - 1] : null;
         var topSpa = spaPool.length > 0 ? spaPool[spaPool.length - 1] : null;
-        if (topAtk) ultNodes.push({ tier: 3, name: topAtk + "Pro", spCost: 3, prereqs: [GENERIC_ULT_T2[0]] });
-        if (topSpa) ultNodes.push({ tier: 4, name: topSpa + "Pro", spCost: 4, prereqs: [topAtk + "Pro"] });
+        function getUltFallback(idx) {
+          var fb = ["泰山壓頂", "地球上投", "終極衝擊", "破壞光線"];
+          return fb[idx] || fb[0];
+        }
+        var ultT3Name = topAtk ? (ULT_MOVE_RENAME[topAtk] || getUltFallback(0)) : null;
+        var ultT4Name = topSpa ? (ULT_MOVE_RENAME[topSpa] || getUltFallback(1)) : null;
+        if (topAtk) ultNodes.push({ tier: 3, name: ultT3Name, spCost: 3, prereqs: [GENERIC_ULT_T2[0]] });
+        if (topSpa) ultNodes.push({ tier: 4, name: ultT4Name, spCost: 4, prereqs: [ultT3Name] });
         if (sigMove) {
-          ultNodes.push({ tier: 5, name: sigMove, spCost: 5, prereqs: [topSpa + "Pro"] });
+          ultNodes.push({ tier: 5, name: sigMove, spCost: 5, prereqs: [ultT4Name] });
         } else {
-          ultNodes.push({ tier: 5, name: GENERIC_ULT_T3[0], spCost: 5, prereqs: [topSpa + "Pro"] });
+          ultNodes.push({ tier: 5, name: getUltFallback(2), spCost: 5, prereqs: [ultT4Name] });
         }
         return ultNodes;
       })(), passives: [{ tier: 3, effect: "奧義威力 +10%" }] }

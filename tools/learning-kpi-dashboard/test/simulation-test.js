@@ -1802,28 +1802,34 @@ function checkSkillTreeFormulas() {
       issues.push(`M9-6 MOVE_POWER: base=${c.base} lv=${c.lv} expected ${c.expected} got ${actual}`);
   }
 
-  // M9-7: FP 消耗
-  function getMoveFpCost(power, category) {
-    if (category === '變化') return Math.max(2, Math.floor(power / 10));
-    if (power <= 40) return 5;
-    if (power <= 60) return 8;
-    if (power <= 90) return 12;
-    if (power <= 120) return 18;
-    return 25;
+  // M9-7: FP 消耗（依樹系 × 階層，與 pokemon-skill-tree.js 一致）
+  function getTierFpCost(treeType, tier) {
+    if (treeType === 'buf' || treeType === 'dis') {
+      var bufMap = { 1: 3, 2: 5, 3: 10, 4: 15, 5: 25 };
+      return bufMap[tier] || 5;
+    }
+    if (treeType === 'ult') {
+      var ultMap = { 1: 10, 2: 20, 3: 35, 4: 50, 5: 80 };
+      return ultMap[tier] || 10;
+    }
+    var atkMap = { 1: 5, 2: 10, 3: 20, 4: 35, 5: 50 };
+    return atkMap[tier] || 5;
   }
   const fpCostCases = [
-    { pwr: 0,   cat: '變化', expected: 2  },
-    { pwr: 40,  cat: '物理', expected: 5  },
-    { pwr: 55,  cat: '物理', expected: 8  },
-    { pwr: 60,  cat: '物理', expected: 8  },
-    { pwr: 90,  cat: '特殊', expected: 12 },
-    { pwr: 110, cat: '特殊', expected: 18 },
-    { pwr: 150, cat: '特殊', expected: 25 }
+    { type: 'atk', tier: 1, expected: 5  },
+    { type: 'atk', tier: 3, expected: 20 },
+    { type: 'atk', tier: 5, expected: 50 },
+    { type: 'buf', tier: 1, expected: 3  },
+    { type: 'buf', tier: 3, expected: 10 },
+    { type: 'buf', tier: 5, expected: 25 },
+    { type: 'ult', tier: 1, expected: 10 },
+    { type: 'ult', tier: 3, expected: 35 },
+    { type: 'ult', tier: 5, expected: 80 }
   ];
   for (const c of fpCostCases) {
-    const actual = getMoveFpCost(c.pwr, c.cat);
+    const actual = getTierFpCost(c.type, c.tier);
     if (actual !== c.expected)
-      issues.push(`M9-7 FP_COST: power=${c.pwr} cat=${c.cat} expected ${c.expected} got ${actual}`);
+      issues.push(`M9-7 FP_COST: ${c.type} T${c.tier} expected ${c.expected} got ${actual}`);
   }
 
   // M9-8: 各階層招式最高等級
