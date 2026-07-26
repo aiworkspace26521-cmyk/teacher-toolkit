@@ -1688,6 +1688,162 @@ function checkDualTypes() {
   return { status: issues.length > 0 ? 'ISSUES_FOUND' : 'OK', issues };
 }
 
+/**
+ * M9: 招式培養系統 — 技能樹與 FP 公式驗證
+ */
+function checkSkillTreeFormulas() {
+  const issues = [];
+
+  // M9-1: SP 獲得公式
+  function calcTotalSpEarned(level, initialLevel) {
+    return Math.max(0, (level - initialLevel) * 5);
+  }
+  const spCases = [
+    { lv: 5,  init: 5, expected: 0  },
+    { lv: 10, init: 5, expected: 25 },
+    { lv: 20, init: 5, expected: 75 },
+    { lv: 50, init: 5, expected: 225 },
+    { lv: 100,init: 5, expected: 475 }
+  ];
+  for (const c of spCases) {
+    const actual = calcTotalSpEarned(c.lv, c.init);
+    if (actual !== c.expected)
+      issues.push(`M9-1 SP_EARNED: Lv.${c.lv}(init=${c.init}) expected ${c.expected} got ${actual}`);
+  }
+
+  // M9-2: 階層門檻
+  function getTreeTier(sp) {
+    if (sp >= 30) return 5;
+    if (sp >= 20) return 4;
+    if (sp >= 12) return 3;
+    if (sp >= 5) return 2;
+    return 1;
+  }
+  const tierCases = [
+    { sp: 0,  expected: 1 },
+    { sp: 4,  expected: 1 },
+    { sp: 5,  expected: 2 },
+    { sp: 11, expected: 2 },
+    { sp: 12, expected: 3 },
+    { sp: 19, expected: 3 },
+    { sp: 20, expected: 4 },
+    { sp: 29, expected: 4 },
+    { sp: 30, expected: 5 },
+    { sp: 99, expected: 5 }
+  ];
+  for (const c of tierCases) {
+    const actual = getTreeTier(c.sp);
+    if (actual !== c.expected)
+      issues.push(`M9-2 TIER_THRESHOLD: sp=${c.sp} expected T${c.expected} got T${actual}`);
+  }
+
+  // M9-3: 進化階段決定最高階層
+  function getMaxTreeTier(evoStage) {
+    return evoStage >= 2 ? 5 : (evoStage >= 1 ? 4 : 3);
+  }
+  const evoTierCases = [
+    { stage: 0, expected: 3 },
+    { stage: 1, expected: 4 },
+    { stage: 2, expected: 5 }
+  ];
+  for (const c of evoTierCases) {
+    const actual = getMaxTreeTier(c.stage);
+    if (actual !== c.expected)
+      issues.push(`M9-3 EVO_TIER: stage=${c.stage} expected T${c.expected} got T${actual}`);
+  }
+
+  // M9-4: FP 公式
+  function calcMaxFp(lv) { return 100 + lv * 3; }
+  const fpCases = [
+    { lv: 5,   expected: 115 },
+    { lv: 20,  expected: 160 },
+    { lv: 50,  expected: 250 },
+    { lv: 100, expected: 400 }
+  ];
+  for (const c of fpCases) {
+    const actual = calcMaxFp(c.lv);
+    if (actual !== c.expected)
+      issues.push(`M9-4 FP_FORMULA: Lv.${c.lv} expected ${c.expected} got ${actual}`);
+  }
+
+  // M9-5: FP 回復
+  function fpRegenTick(maxFp, currentFp) {
+    var regen = Math.floor(maxFp * 0.1);
+    if (regen < 5) regen = 5;
+    return Math.min(maxFp, currentFp + regen);
+  }
+  const regenCases = [
+    { max: 250, cur: 100, expected: 125 },
+    { max: 30,  cur: 0,   expected: 5   },
+    { max: 400, cur: 390, expected: 400 },
+    { max: 100, cur: 95,  expected: 100 }  // 95 + floor(100*0.1)=10, min(100,105)=100
+  ];
+  for (const c of regenCases) {
+    const actual = fpRegenTick(c.max, c.cur);
+    if (actual !== c.expected)
+      issues.push(`M9-5 FP_REGEN: max=${c.max} cur=${c.cur} expected ${c.expected} got ${actual}`);
+  }
+
+  // M9-6: 招式等級威力加成
+  function calcMovePower(basePower, moveLevel) {
+    return Math.floor(basePower * (1 + 0.05 * moveLevel));
+  }
+  const powerCases = [
+    { base: 90, lv: 0, expected: 90  },
+    { base: 90, lv: 1, expected: 94  },
+    { base: 90, lv: 3, expected: 103 },
+    { base: 90, lv: 5, expected: 112 },
+    { base: 40, lv: 10,expected: 60  },
+    { base: 110,lv: 3, expected: 126 }
+  ];
+  for (const c of powerCases) {
+    const actual = calcMovePower(c.base, c.lv);
+    if (actual !== c.expected)
+      issues.push(`M9-6 MOVE_POWER: base=${c.base} lv=${c.lv} expected ${c.expected} got ${actual}`);
+  }
+
+  // M9-7: FP 消耗
+  function getMoveFpCost(power, category) {
+    if (category === '變化') return Math.max(2, Math.floor(power / 10));
+    if (power <= 40) return 5;
+    if (power <= 60) return 8;
+    if (power <= 90) return 12;
+    if (power <= 120) return 18;
+    return 25;
+  }
+  const fpCostCases = [
+    { pwr: 0,   cat: '變化', expected: 2  },
+    { pwr: 40,  cat: '物理', expected: 5  },
+    { pwr: 55,  cat: '物理', expected: 8  },
+    { pwr: 60,  cat: '物理', expected: 8  },
+    { pwr: 90,  cat: '特殊', expected: 12 },
+    { pwr: 110, cat: '特殊', expected: 18 },
+    { pwr: 150, cat: '特殊', expected: 25 }
+  ];
+  for (const c of fpCostCases) {
+    const actual = getMoveFpCost(c.pwr, c.cat);
+    if (actual !== c.expected)
+      issues.push(`M9-7 FP_COST: power=${c.pwr} cat=${c.cat} expected ${c.expected} got ${actual}`);
+  }
+
+  // M9-8: 各階層招式最高等級
+  const MAX_MOVE_LEVEL = { 1: 10, 2: 8, 3: 5, 4: 3, 5: 3 };
+  const maxLvCases = [
+    { tier: 1, expected: 10 },
+    { tier: 2, expected: 8  },
+    { tier: 3, expected: 5  },
+    { tier: 4, expected: 3  },
+    { tier: 5, expected: 3  }
+  ];
+  for (const c of maxLvCases) {
+    const actual = MAX_MOVE_LEVEL[c.tier];
+    if (actual !== c.expected)
+      issues.push(`M9-8 MAX_MOVE_LV: tier=${c.tier} expected ${c.expected} got ${actual}`);
+  }
+
+  return { status: issues.length > 0 ? 'ISSUES_FOUND' : 'OK', issues };
+}
+
 // =========================================================================
 // SECTION 6 — MAIN SIMULATION LOOP
 // =========================================================================
@@ -1824,6 +1980,12 @@ function runSimulation() {
   const dualTypeResult = checkDualTypes();
   printCheck('SYSTEM', dualTypeResult);
   if (dualTypeResult.issues.length > 0) bugsFound.push({ issue: 'M8-DUAL_TYPE', student: 'system', details: dualTypeResult.issues.join('; ') });
+
+  // --- M9: Skill Tree Formulas ---
+  console.log('\n--- M9: 招式培養系統公式驗證 ---');
+  const skillTreeResult = checkSkillTreeFormulas();
+  printCheck('SYSTEM', skillTreeResult);
+  if (skillTreeResult.issues.length > 0) bugsFound.push({ issue: 'M9-SKILL_TREE', student: 'system', details: skillTreeResult.issues.join('; ') });
 
   // =========================================================================
   // SECTION 8 — SUMMARY
