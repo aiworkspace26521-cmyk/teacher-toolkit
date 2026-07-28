@@ -2171,13 +2171,18 @@ function selectUltVariant(pokemon, type, variantName) {
   var typeSpec = TYPE_SPEC_V2[type];
   if (!typeSpec || !typeSpec.VARIANTS[variantName]) return null;
   var variant = typeSpec.VARIANTS[variantName];
-  var ultIndex = variant.ultMapping;
+  var ultIndex = variant.ultMapping || mapVariantToUltIndex(variantName, pokemon, type);
   var ULT_SUFFIX_MAP = {
     "A": { suffix: "制裁", category: "物理型" },
     "B": { suffix: "終結", category: "特攻型" },
     "C": { suffix: "極致", category: "速攻型" },
     "D": { suffix: "裁決", category: "防禦型" },
-    "E": { suffix: "傳說", category: "傳說型" }
+    "E": { suffix: "傳說", category: "傳說型" },
+    0: { suffix: "制裁", category: "物理型" },
+    1: { suffix: "終結", category: "特攻型" },
+    2: { suffix: "極致", category: "速攻型" },
+    3: { suffix: "裁決", category: "防禦型" },
+    4: { suffix: "傳說", category: "傳說型" }
   };
   var ultInfo = ULT_SUFFIX_MAP[ultIndex] || { suffix: "制裁", category: "物理型" };
   var ultMoves = ULT_VARIANTS[type] && ULT_VARIANTS[type][ultIndex];
@@ -2186,18 +2191,7 @@ function selectUltVariant(pokemon, type, variantName) {
   }
   var t3Name = ultMoves[0];
   var t4Name = ultMoves[1];
-  var t5Name = ultMoves[2];
-  if (pokemon.isLegendary) {
-    var SIGNATURE_MOVES = {
-      "噴火龍": "火系·噴火龍制裁",
-      "烈空坐": "龍系·烈空坐裁決",
-      "固拉多": "地面·固拉多裁決",
-      "蓋歐卡": "水系·蓋歐卡裁決",
-    };
-    if (SIGNATURE_MOVES[pokemon.baseName]) {
-      t5Name = SIGNATURE_MOVES[pokemon.baseName];
-    }
-  }
+  var t5Name = getUltT5Name(pokemon, type, ultIndex);
   return {
     index: ultIndex,
     suffix: ultInfo.suffix,
@@ -2206,6 +2200,59 @@ function selectUltVariant(pokemon, type, variantName) {
     t4Name: t4Name,
     t5Name: t5Name
   };
+}
+
+// Phase 3: ULT 變體索引映射 — 變體名稱關鍵字 → ULT 陣列索引 (0=A,1=B,2=C,3=D,4=E)
+function mapVariantToUltIndex(variantName, pokemon, type) {
+  if (typeof variantName !== "string") return 0;
+  if (/物理|強攻|猛攻|剛拳|石刃|鐵頭|逆鱗|咬碎|地震|鐵壁|近戰|冰錐|閃電/.test(variantName)) return 0;
+  if (/特攻|轟炸|精神|蟲鳴|暗黑|龍息|陰謀|月光|詭計|幻象|溶解|暴雪|沙暴|暴風/.test(variantName)) return 1;
+  if (/速攻|先制|飛行|連擊|急(?!.*型)|極速|電光/.test(variantName)) return 2;
+  if (/防禦|坦克|天氣|雪崩|干擾|消耗|詛咒|回復|續航|治癒/.test(variantName)) return 3;
+  if (pokemon && pokemon.isLegendary && ULT_VARIANTS[type]) {
+    var keys = Object.keys(ULT_VARIANTS[type]);
+    return keys.length - 1;
+  }
+  return 0;
+}
+
+// Phase 3: ULT T3/T4 變體更名 — 原招 → ULT 風格名稱
+function getUltMoveName(baseMove, ultIndex, type) {
+  if (ULT_MOVE_RENAME[baseMove]) return ULT_MOVE_RENAME[baseMove];
+  if (type && ULT_VARIANTS[type]) {
+    var ultArr = ULT_VARIANTS[type][ultIndex];
+    if (ultArr && ultArr.length >= 2) {
+      return ultArr[baseMove === ultArr[0] ? 0 : 1];
+    }
+  }
+  return baseMove;
+}
+
+// Phase 3: ULT T5 三層優先級命名
+function getUltT5Name(pokemon, type, ultIndex) {
+  if (!pokemon || !type) return "終極衝擊";
+  if (pokemon.isLegendary) {
+    var SIGS = {
+      "阿爾宙斯":"制裁光礫","蒼響":"巨獸斬","藏瑪然特":"巨獸彈",
+      "超夢":"精神擊破","帝牙盧卡":"時光咆哮","鳳王":"神聖之火",
+      "蓋歐卡":"根源波動","固拉多":"斷崖之劍","烈空坐":"畫龍點睛",
+      "洛奇亞":"氣旋攻擊","帕路奇亞":"亞空裂斬","騎拉帝納":"暗影強襲",
+      "酋雷姆":"冰封世界","無極汰那":"極巨炮","伊裴爾塔爾":"死亡之翼",
+      "哲爾尼亞斯":"幾何雪花","火焰鳥":"神鳥猛擊","雷公":"打雷",
+      "水君":"熱水","炎帝":"噴射火焰","萊希拉姆":"交錯火焰",
+      "捷克羅姆":"交錯閃電","捷拉奧拉":"等離子拳"
+    };
+    if (SIGS[pokemon.baseName || pokemon.name]) return SIGS[pokemon.baseName || pokemon.name];
+  }
+  if (typeof window !== "undefined" && window.SPECIES_LEARNSET) {
+    var pName = pokemon.baseName || pokemon.name;
+    if (window.SPECIES_LEARNSET[pName] && window.SPECIES_LEARNSET[pName].ultT5) {
+      return window.SPECIES_LEARNSET[pName].ultT5;
+    }
+  }
+  var suffixMap = {0:"制裁",1:"終結",2:"極致",3:"裁決",4:"傳說"};
+  var suffix = suffixMap[ultIndex] || "制裁";
+  return type + "·" + (pokemon.baseName || pokemon.name) + suffix;
 }
 
 // T5 三層優先級選招
@@ -2236,6 +2283,9 @@ window.selectVariant = selectVariant;
 window.seededRandom = seededRandom;
 window.buildTreeFromVariant = buildTreeFromVariant;
 window.selectUltVariant = selectUltVariant;
+window.mapVariantToUltIndex = mapVariantToUltIndex;
+window.getUltMoveName = getUltMoveName;
+window.getUltT5Name = getUltT5Name;
 window.resolveT5Move = resolveT5Move;
 window.ULT_VARIANTS = ULT_VARIANTS;
 window.TYPE_SPEC_V2 = TYPE_SPEC_V2;

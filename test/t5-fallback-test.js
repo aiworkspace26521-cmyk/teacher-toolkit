@@ -55,8 +55,8 @@ function runT5FallbackTests() {
 
   // Test 2: 神獸簽證招式覆蓋測試
   var LEGENDARY_TESTS = [
-    { name: "噴火龍", type: "火", variant: "物理猛攻型", expectT5: "火系·噴火龍制裁" },
-    { name: "烈空坐", type: "龍", variant: "逆鱗強攻型", expectT5: "龍系·烈空坐裁決" },
+    { name: "噴火龍", type: "火", variant: "物理猛攻型", expectT5: "火·噴火龍制裁" },
+    { name: "烈空坐", type: "龍", variant: "逆鱗強攻型", expectT5: "畫龍點睛" },
   ];
   for (var li = 0; li < LEGENDARY_TESTS.length; li++) {
     var lt = LEGENDARY_TESTS[li];
