@@ -2,6 +2,7 @@
   "env": { "browser": true, "es2022": true, "node": true },
   "parserOptions": { "ecmaVersion": 2022, "sourceType": "script" },
   "extends": ["eslint:recommended"],
+  "plugins": ["html"],
   "rules": {
     "no-unused-vars": "warn",
     "no-undef": "warn",
