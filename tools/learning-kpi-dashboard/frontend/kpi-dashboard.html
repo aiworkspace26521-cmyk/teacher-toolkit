@@ -4074,9 +4074,16 @@ function useItemInArena(itemType) {
     battleState.chilanShield = true;
     log.push("🫐 使用了抗性果，" + pkmn.name + " 獲得了屬性抗性護盾！");
     pendingItemSave = { item: "抗性果", qty: 1 };
+  } else if (itemType === "energyShard") {
+    if ((globalData.energyShards || 0) <= 0) { toast("沒有元氣碎片了！"); return; }
+    globalData.energyShards--;
+    var fpRecover = 50;
+    pkmn.currentFp = Math.min(pkmn.maxFp, pkmn.currentFp + fpRecover);
+    log.push("💎 使用了元氣碎片，" + pkmn.name + " 回復了 " + fpRecover + " FP！");
+    pendingItemSave = { item: "元氣碎片", qty: 1 };
   }
   if (pendingItemSave) {
-    var berryItems = { "橙橙果":1, "奇異果":1, "木子果":1 };
+    var berryItems = { "橙橙果":1, "奇異果":1, "木子果":1, "元氣碎片":1 };
     var unit = berryItems[pendingItemSave.item] ? "個" : "瓶";
     var note = "消耗1" + unit + pendingItemSave.item;
     globalData.coins = globalData.coins || 0;
@@ -4089,7 +4096,8 @@ function useItemInArena(itemType) {
       oranBerries: globalData.oranBerries,
       cheriBerries: globalData.cheriBerries,
       lumBerries: globalData.lumBerries,
-      chilanBerries: globalData.chilanBerries
+      chilanBerries: globalData.chilanBerries,
+      energyShards: globalData.energyShards
     });
     executeSave({ studentId: globalData.studentId, score: 0, action: "戰鬥消耗", expGained: 0, coinsGained: 0, badgeChange: 0, note: note, extraNote: note, totalScore: 0, user: globalData.studentId }, function() {
       pendingItemSave = null;
@@ -4664,7 +4672,8 @@ function updateArenaUI() {
     {name:"橙橙果",count:globalData.oranBerries||0,key:"oranBerry"},
     {name:"奇異果",count:globalData.cheriBerries||0,key:"cheriBerry"},
     {name:"木子果",count:globalData.lumBerries||0,key:"lumBerry"},
-    {name:"抗性果",count:globalData.chilanBerries||0,key:"chilanBerry"}
+    {name:"抗性果",count:globalData.chilanBerries||0,key:"chilanBerry"},
+    {name:"元氣碎片",count:globalData.energyShards||0,key:"energyShard"}
   ];
   for (var k = 0; k < items.length; k++) {
     var ibtn = document.createElement("button");
