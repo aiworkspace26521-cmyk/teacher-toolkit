@@ -3127,6 +3127,7 @@ function applyStatusEffect(move, defender) {
   if (eff === "confusion" && !defender.status) { defender.status = "confusion"; if (battleState) animateStatusPop(defender === battleState.enemy ? "enemy" : "player"); return "😵 " + defender.name + " 混亂了！"; }
   if (eff === "heal_50") { var heal = Math.floor(defender.maxHp * 0.5); defender.currentHp = Math.min(defender.maxHp, defender.currentHp + heal); return "💚 " + defender.name + " 回復了 " + heal + " HP！"; }
   if (eff === "heal_ally") { var heal2 = Math.floor(defender.maxHp * 0.5); defender.currentHp = Math.min(defender.maxHp, defender.currentHp + heal2); return "💚 " + defender.name + " 回復了 " + heal2 + " HP！"; }
+  if (eff === "rest") { defender.status = "sleep"; defender.currentHp = defender.maxHp; if (defender.currentFp !== undefined) defender.currentFp = defender.maxFp; return "💤 " + defender.name + " 使用了睡覺，回復了所有體力！"; }
   if (eff === "buff_atk") { defender.statStages.atk = Math.min(6, defender.statStages.atk + 2); return "⬆️ " + defender.name + " 攻擊大幅提升！"; }
   if (eff === "buff_spatk") { defender.statStages.spatk = Math.min(6, defender.statStages.spatk + 2); return "⬆️ " + defender.name + " 特攻大幅提升！"; }
   if (eff === "buff_def") { defender.statStages.def = Math.min(6, defender.statStages.def + 2); return "⬆️ " + defender.name + " 防禦大幅提升！"; }
@@ -3175,6 +3176,7 @@ function executeTurn(playerAtk, playerDef, enemyAtk, enemyDef, moveName, isPlaye
     else if (details.effect && details.effect.indexOf("protect") !== -1) { effText = applyStatusEffect(moveName, defender); if (effText) log.push(effText); }
     else if (details.effect && details.effect.indexOf("weather") !== -1) { effText = applyStatusEffect(moveName, null); if (effText) log.push(effText); }
     else if (details.effect && details.effect.indexOf("self_kill") !== -1) { attacker.currentHp = 0; result.ko = true; log.push("💥 " + attacker.name + " 用了玉石俱焚！"); }
+    else if (details.effect && details.effect.indexOf("rest") !== -1) { effText = applyStatusEffect(moveName, attacker); if (effText) log.push(effText); }
     else { effText = applyStatusEffect(moveName, defender); if (effText) log.push(effText); }
     return result;
   }
@@ -9633,6 +9635,18 @@ function saveSkillTreeState() {
 }
 
 // ===== Phase 3: 戰鬥 FP 條 =====
+function getTierFpCost(tab, tier) {
+  var costTable = {
+    atk: { 1: 5, 2: 10, 3: 20 },
+    spa: { 1: 5, 2: 10, 3: 20 },
+    buf: { 1: 3, 2: 7,  3: 15 },
+    dis: { 1: 3, 2: 7,  3: 15 },
+    ult: { 1: 15, 2: 25, 3: 40 }
+  };
+  var costs = costTable[tab] || costTable.atk;
+  return costs[tier] || costs[1];
+}
+
 function getMoveFpCost(moveName) {
   var details = typeof getMoveDetails !== "undefined" ? getMoveDetails(moveName) : null;
   if (!details) return 5;
