@@ -266,11 +266,12 @@ async function recalculateStudentState(studentId) {
     todayBattles: 0,
     weekGymWins: 0,
     monthLeagueWins: 0,
-    roster: { P0: { id: 'P0', baseName: '🐾 伊布 (一般系)', totalExp: 0, initialLevel: 5, catchDate: '初始夥伴', heldItem: '', skillTree: { atk: { sp: 0, tier: 1 }, spa: { sp: 0, tier: 1 }, buf: { sp: 0, tier: 1 }, dis: { sp: 0, tier: 1 }, ult: { sp: 0, tier: 1 } }, learnedMoves: {}, equippedMoves: [], skillPoints: 0, totalSpEarned: 0, evoStage: 0 } },
+    roster: { P0: { id: 'P0', baseName: '🐾 伊布 (一般系)', totalExp: 0, initialLevel: 5, catchDate: '初始夥伴', heldItem: '', skillTree: { atk: { sp: 0, tier: 1 }, spa: { sp: 0, tier: 1 }, buf: { sp: 0, tier: 1 }, dis: { sp: 0, tier: 1 }, ult: { sp: 0, tier: 1 } }, learnedMoves: {}, equippedMoves: [], skillPoints: 0, totalSpEarned: 0, evoStage: 0, bonusSp: 0, personality: Math.floor(Math.random() * 256) } },
     submitStreak: 0,
     oranBerries: 0, cheriBerries: 0, lumBerries: 0, chilanBerries: 0,
     hasFocusSash: false, hasEjectButton: false, hasRockyHelmet: false, hasWeaknessPolicy: false,
     tms: {},
+    memoryCapsules: 0,
     simpleMode: false,
     leagueRegionsWon: {},
     lastEventTimestamp: null,
@@ -377,6 +378,7 @@ async function recalculateStudentState(studentId) {
     if (safeNote.includes('逃脱按鈕')) state.hasEjectButton = true;
     if (safeNote.includes('凸凸頭盔')) state.hasRockyHelmet = true;
     if (safeNote.includes('弱點保險')) state.hasWeaknessPolicy = true;
+    if (safeNote.includes('回憶膠囊')) state.memoryCapsules = (state.memoryCapsules || 0) + 1;
     const tmMatch = safeNote.match(/TM學習器:\s*(\S+)/);
     if (tmMatch) { if (!state.tms) state.tms = {}; state.tms[tmMatch[1]] = (state.tms[tmMatch[1]] || 0) + 1; }
     }
@@ -410,11 +412,11 @@ async function recalculateStudentState(studentId) {
         state.roster[pid] = {
           id: pid, baseName: fixedName, totalExp: 0, initialLevel: initLv,
           catchDate: `${rowDate.getFullYear()}/${(rowDate.getMonth() + 1).toString().padStart(2, '0')}/${rowDate.getDate().toString().padStart(2, '0')}`,
-          heldItem: '',
-          skillTree: { atk: { sp: 0, tier: 1 }, spa: { sp: 0, tier: 1 }, buf: { sp: 0, tier: 1 }, dis: { sp: 0, tier: 1 }, ult: { sp: 0, tier: 1 } },
-          learnedMoves: {}, equippedMoves: [], skillPoints: 0, totalSpEarned: 0, evoStage: 0
-        };
-      }
+      heldItem: '',
+      skillTree: { atk: { sp: 0, tier: 1 }, spa: { sp: 0, tier: 1 }, buf: { sp: 0, tier: 1 }, dis: { sp: 0, tier: 1 }, ult: { sp: 0, tier: 1 } },
+      learnedMoves: {}, equippedMoves: [], skillPoints: 0, totalSpEarned: 0, evoStage: 0, bonusSp: 0, personality: Math.floor(Math.random() * 256)
+    };
+  }
     } else if (rowAction === '道具裝備') {
       const HELD_NAMES = { expShare: '學習裝置', expertBelt: '達人帶', eviolite: '進化奇石', championCloak: '冠軍披風', amuletCoin: '護符金幣', quickClaw: '先制之爪', focusLens: '焦點鏡', shellBell: '貝殼之鈴', lifeOrb: '生命寶珠', assaultVest: 'AV背心', focusSash: '氣勢披帶', ejectButton: '逃脱按鈕', rockyHelmet: '凸凸頭盔', weaknessPolicy: '弱點保險' };
       for (const [hid, hname] of Object.entries(HELD_NAMES)) {
@@ -454,7 +456,7 @@ async function recalculateStudentState(studentId) {
               catchDate: `${rowDate.getFullYear()}/${(rowDate.getMonth() + 1).toString().padStart(2, '0')}/${rowDate.getDate().toString().padStart(2, '0')}`,
               heldItem: '',
               skillTree: { atk: { sp: 0, tier: 1 }, spa: { sp: 0, tier: 1 }, buf: { sp: 0, tier: 1 }, dis: { sp: 0, tier: 1 }, ult: { sp: 0, tier: 1 } },
-              learnedMoves: {}, equippedMoves: [], skillPoints: 0, totalSpEarned: 0, evoStage: 0
+               learnedMoves: {}, equippedMoves: [], skillPoints: 0, totalSpEarned: 0, evoStage: 0, bonusSp: 0, personality: Math.floor(Math.random() * 256)
             };
           }
       }
@@ -477,6 +479,18 @@ async function recalculateStudentState(studentId) {
         state.roster[evoMatch[1]].baseName = evoMatch[2].trim();
         // 更新進化階段
         state.roster[evoMatch[1]].evoStage = Math.min(2, (state.roster[evoMatch[1]].evoStage || 0) + 1);
+      }
+      // 進化獎勵 SP
+      const evoPkmnId = evoMatch ? evoMatch[1] : (nm ? 'P0' : null);
+      if (evoPkmnId && state.roster[evoPkmnId]) {
+        const prevStage = state.roster[evoPkmnId].evoStage || 0;
+        const newStage = Math.min(2, prevStage + 1);
+        const stageDiff = newStage - prevStage;
+        if (stageDiff === 1 && prevStage === 0) {
+          state.roster[evoPkmnId].bonusSp = (state.roster[evoPkmnId].bonusSp || 0) + 5;
+        } else if (stageDiff === 1 && prevStage === 1) {
+          state.roster[evoPkmnId].bonusSp = (state.roster[evoPkmnId].bonusSp || 0) + 10;
+        }
       }
       // 消耗進化道具: 進化ID:P0 => 水伊布|消耗:水之石
       const consumeMatch = safeNote.match(/\|消耗:(.+)/);
@@ -578,8 +592,11 @@ async function recalculateStudentState(studentId) {
     p.currentLevel = lvlInfo.level;
     p.expProgress = lvlInfo.expProgress;
     p.expNeeded = lvlInfo.expNeeded;
-    // SP 計算：每級+5，已投入 = 五系 skillTree.sp 總和
-    p.totalSpEarned = Math.max(0, (p.currentLevel - (p.initialLevel || 5)) * 5);
+    // Data Migration — 舊資料自動補上缺失欄位
+    if (p.personality === undefined || p.personality === null) p.personality = Math.floor(Math.random() * 256);
+    if (p.bonusSp === undefined) p.bonusSp = 0;
+    // SP 計算：每級+5 + 進化獎勵，已投入 = 五系 skillTree.sp 總和
+    p.totalSpEarned = Math.max(0, (p.currentLevel - (p.initialLevel || 5)) * 5 + (p.bonusSp || 0));
     let investedSp = 0;
     if (p.skillTree) {
       for (const stKey of Object.keys(p.skillTree)) {
@@ -671,6 +688,7 @@ async function recalculateStudentState(studentId) {
     hasRockyHelmet: state.hasRockyHelmet || false,
     hasWeaknessPolicy: state.hasWeaknessPolicy || false,
     tms: state.tms || {},
+    memoryCapsules: state.memoryCapsules || 0,
     simpleMode: state.simpleMode || false,
     leagueRegionsWon: state.leagueRegionsWon || {},
     lastUpdated: Timestamp.now()

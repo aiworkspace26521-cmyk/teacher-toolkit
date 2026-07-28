@@ -1125,7 +1125,7 @@ async function recalculateStudentState(studentId, events) {
           }
         }
       }
-      if (!state.roster[pid]) state.roster[pid] = { id: pid, baseName: cleanName, totalExp: 0, initialLevel: initLv, catchDate: rowDate.getFullYear()+"/"+((rowDate.getMonth()+1)+"").padStart(2,"0")+"/"+(rowDate.getDate()+"").padStart(2,"0"), heldItem: "", skillTree: { atk: { sp: 0, tier: 1 }, spa: { sp: 0, tier: 1 }, buf: { sp: 0, tier: 1 }, dis: { sp: 0, tier: 1 }, ult: { sp: 0, tier: 1 } }, learnedMoves: {}, equippedMoves: [], skillPoints: 0, totalSpEarned: 0, evoStage: 0 };
+      if (!state.roster[pid]) state.roster[pid] = { id: pid, baseName: cleanName, totalExp: 0, initialLevel: initLv, catchDate: rowDate.getFullYear()+"/"+((rowDate.getMonth()+1)+"").padStart(2,"0")+"/"+(rowDate.getDate()+"").padStart(2,"0"), heldItem: "", skillTree: { atk: { sp: 0, tier: 1 }, spa: { sp: 0, tier: 1 }, buf: { sp: 0, tier: 1 }, dis: { sp: 0, tier: 1 }, ult: { sp: 0, tier: 1 } }, learnedMoves: {}, equippedMoves: [], skillPoints: 0, totalSpEarned: 0, evoStage: 0, bonusSp: 0, personality: Math.floor(Math.random() * 256) };
     } else if (rowAction === "B" || rowAction === "\u7CD6\u679C\u5347\u7D1A") {
       var pid2 = (safeNote.match(/ID:(P\d+(?:_LEG)?|legacy_\d+)/)||[])[1];
       if (pid2) for (var k in state.roster) {
@@ -1167,6 +1167,18 @@ async function recalculateStudentState(studentId, events) {
           state.roster[evoMatch[1]].evoStage = EVO_STAGE_MAP[evoRaw];
         } else {
           state.roster[evoMatch[1]].evoStage = Math.min(2, (state.roster[evoMatch[1]].evoStage || 0) + 1);
+        }
+      }
+      // 進化獎勵 SP
+      var evoPkmnId = evoMatch ? evoMatch[1] : (nm ? 'P0' : null);
+      if (evoPkmnId && state.roster[evoPkmnId]) {
+        var prevStage = state.roster[evoPkmnId].evoStage || 0;
+        var newStage = Math.min(2, prevStage + 1);
+        var stageDiff = newStage - prevStage;
+        if (stageDiff === 1 && prevStage === 0) {
+          state.roster[evoPkmnId].bonusSp = (state.roster[evoPkmnId].bonusSp || 0) + 5;
+        } else if (stageDiff === 1 && prevStage === 1) {
+          state.roster[evoPkmnId].bonusSp = (state.roster[evoPkmnId].bonusSp || 0) + 10;
         }
       }
       // 消耗進化道具: 進化ID:P0 => 水伊布|消耗:水之石
@@ -1260,8 +1272,11 @@ async function recalculateStudentState(studentId, events) {
   for (var k4 in state.roster) {
     var p = state.roster[k4]; var lvlInfo = calcLevelAndExp(p.totalExp, p.initialLevel);
     p.currentLevel = lvlInfo.level; p.expProgress = lvlInfo.expProgress; p.expNeeded = lvlInfo.expNeeded;
-    // SP 計算：每級+5，已投入 = 五系 skillTree.sp 總和
-    p.totalSpEarned = Math.max(0, (p.currentLevel - (p.initialLevel || 5)) * 5);
+    // Data Migration — 舊資料自動補上缺失欄位
+    if (p.personality === undefined || p.personality === null) p.personality = Math.floor(Math.random() * 256);
+    if (p.bonusSp === undefined) p.bonusSp = 0;
+    // SP 計算：每級+5 + 進化獎勵，已投入 = 五系 skillTree.sp 總和
+    p.totalSpEarned = Math.max(0, (p.currentLevel - (p.initialLevel || 5)) * 5 + (p.bonusSp || 0));
     var investedSp = 0;
     if (p.skillTree) {
       for (var stKey in p.skillTree) {
