@@ -3031,6 +3031,7 @@ function createPlayerPokemon(pokemon) {
   for (var tmIdx = 0; tmIdx < tmMoves.length; tmIdx++) {
     if (finalMoves.length < 6) {
       finalMoves.push(tmMoves[tmIdx]);
+      if (!moveLevels[tmMoves[tmIdx]]) moveLevels[tmMoves[tmIdx]] = 1;
     }
   }
   var abilName = getPokemonAbility(pokemon.baseName);
@@ -3047,6 +3048,7 @@ function createPlayerPokemon(pokemon) {
     dreamAbility: dreamAbil, dreamAbilityName: dreamAbil ? dreamAbil.name : null,
     happiness: pokemon.happiness || 0,
     moveLevels: moveLevels,
+    tmMoves: pokemon.tmMoves || [],
     maxFp: typeof calcMaxFp !== "undefined" ? calcMaxFp(pokemon.currentLevel) : 100 + pokemon.currentLevel * 3,
     currentFp: typeof calcMaxFp !== "undefined" ? calcMaxFp(pokemon.currentLevel) : 100 + pokemon.currentLevel * 3
   };
@@ -4644,6 +4646,8 @@ function updateArenaUI() {
 
   var moveBtns = $("playerMoveBtns");
   moveBtns.innerHTML = "";
+  var isTmMove = {};
+  if (pp.tmMoves) { pp.tmMoves.forEach(function(tm){ isTmMove[tm] = true; }); }
   for (var i = 0; i < pp.moves.length; i++) {
     var m = pp.moves[i];
     var details = getMoveDetails(m);
@@ -4658,8 +4662,9 @@ function updateArenaUI() {
     btn.setAttribute("data-move", m);
     btn.style.borderLeft = "4px solid " + color;
     var lvBadge = mvLv > 0 ? " <span class='move-lv-badge'>Lv." + mvLv + "</span>" : "";
+    var tmBadge = isTmMove[m] ? " <span class='move-tm-badge' style='font-size:9px;color:#8e44ad;font-weight:700;'>TM</span>" : "";
     var pwDisplay = details.category !== "變化" ? "Pw" + boostedPower + (mvLv > 0 ? "<small style='color:#888;font-size:9px;'>("+mvPower+")</small>" : "") : "變化";
-    btn.innerHTML = "<span class='move-name-row'>" + m + lvBadge + " <span class='fp-cost" + (hasFp ? "" : " insufficient") + "'>FP" + fpCost + "</span></span>";
+    btn.innerHTML = "<span class='move-name-row'>" + m + lvBadge + tmBadge + " <span class='fp-cost" + (hasFp ? "" : " insufficient") + "'>FP" + fpCost + "</span></span>";
     btn.innerHTML += " <small style='color:"+color+";font-size:10px;'>("+details.type+"/"+details.category+"/"+pwDisplay+")</small>";
     btn.onclick = (function(moveName) { return function() { performAttack(moveName, true); }; })(m);
     if (battleState.turnLock || battleState.battleOver || pp.currentHp <= 0 || ep.currentHp <= 0 || !hasFp) btn.disabled = true;
@@ -9394,8 +9399,11 @@ function renderSkillTree() {
         if (isLearned) {
           var ndLevel = (pkmn.learnedMoves && pkmn.learnedMoves[ndName] && pkmn.learnedMoves[ndName].level) || 0;
           var ndMaxLv = typeof getMaxMoveLevel !== "undefined" ? getMaxMoveLevel(nd.tier || 1) : 5;
+          var isTm = pkmn.tmMoves && pkmn.tmMoves.indexOf(ndName) !== -1;
           canvasHtml += " <small style='color:#8e44ad;'>Lv." + ndLevel + "/" + ndMaxLv + "</small>";
-          if (ndLevel < ndMaxLv) {
+          if (isTm) {
+            canvasHtml += " <span style='color:#8e44ad;font-size:9px;font-weight:700;'>TM</span>";
+          } else if (ndLevel < ndMaxLv) {
             canvasHtml += " <button class='st-upgrade-btn' data-node='1' onclick='event.stopPropagation();sfx.click();upgradeMoveInSkillTree(\"" + ndName + "\")' style='background:#8e44ad;color:white;border:none;border-radius:6px;padding:1px 6px;font-size:10px;cursor:pointer;'>⬆+1</button>";
           } else {
             canvasHtml += " <span style='color:#27ae60;font-size:10px;font-weight:700;'>MAX</span>";
@@ -9480,6 +9488,11 @@ function renderSkillTree() {
 
 function renderEquipEditor(pkmn) {
   var learnedKeys = Object.keys(pkmn.learnedMoves || {});
+  var tmKeys = pkmn.tmMoves || [];
+  var allMoveKeys = [];
+  var tmSet = {};
+  learnedKeys.forEach(function(k){ if (allMoveKeys.indexOf(k) === -1) allMoveKeys.push(k); });
+  tmKeys.forEach(function(k){ if (allMoveKeys.indexOf(k) === -1) { allMoveKeys.push(k); tmSet[k] = true; } });
   var equipped = pkmn.equippedMoves || [];
   var eqHtml = "";
   eqHtml += "<div style='margin-top:10px;border-top:2px dashed #ddd;padding-top:8px;'>";
@@ -9488,17 +9501,19 @@ function renderEquipEditor(pkmn) {
   eqHtml += "<button class='st-sp-btn' style='background:#8e44ad;color:white;font-size:11px;' onclick=\"toggleEquipEditor()\">" + (_showEquipEditor ? "收起 ▲" : "編輯 ✏️") + "</button>";
   eqHtml += "</div>";
   eqHtml += "<div id='stEquipEditor' style='display:" + (_showEquipEditor ? "block" : "none") + ";'>";
-  if (learnedKeys.length === 0) {
+  if (allMoveKeys.length === 0) {
     eqHtml += "<div style='font-size:12px;color:#999;padding:4px 0;'>尚未學習任何招式</div>";
   } else {
     eqHtml += "<div style='font-size:11px;color:#888;margin-bottom:4px;'>勾選欲攜帶的招式（最多 6 招）：</div>";
-    for (var ei = 0; ei < learnedKeys.length; ei++) {
-      var mn = learnedKeys[ei];
+    for (var ei = 0; ei < allMoveKeys.length; ei++) {
+      var mn = allMoveKeys[ei];
+      var isTm = tmSet[mn];
       var isEq = equipped.indexOf(mn) !== -1;
       var canSelect = !isEq && equipped.length >= 6;
       eqHtml += "<label style='display:flex;align-items:center;gap:6px;padding:3px 6px;border-radius:4px;font-size:12px;cursor:" + (canSelect ? "not-allowed" : "pointer") + ";background:" + (isEq ? "#eafaf1" : "transparent") + ";margin:2px 0;'>";
       eqHtml += "<input type='checkbox' " + (isEq ? "checked" : "") + " " + (canSelect ? "disabled" : "") + " onchange=\"toggleEquipMove('" + mn + "', this.checked)\" style='accent-color:#8e44ad;'>";
-      eqHtml += mn + " <small style='color:#666;'>Lv." + ((pkmn.learnedMoves[mn] && pkmn.learnedMoves[mn].level) || 0) + "</small>";
+      eqHtml += mn + " <small style='color:#666;'>Lv." + ((pkmn.learnedMoves && pkmn.learnedMoves[mn] && pkmn.learnedMoves[mn].level) || 1) + "</small>";
+      if (isTm) eqHtml += " <span style='color:#8e44ad;font-size:9px;font-weight:700;'>TM</span>";
       eqHtml += "</label>";
     }
   }
@@ -9660,6 +9675,7 @@ function upgradeMoveInSkillTree(moveName) {
   for (var ri = 0; ri < roster.length; ri++) { if (roster[ri].id === _skillTreePkmnId) { pkmn = roster[ri]; break; } }
   if (!pkmn) return;
   if (!pkmn.learnedMoves || !pkmn.learnedMoves[moveName]) return;
+  if (pkmn.tmMoves && pkmn.tmMoves.indexOf(moveName) !== -1) { toast("TM 招式無法升級"); return; }
   var sp = pkmn.skillPoints || 0;
   if (sp < 1) { toast("SP 不足，無法升級"); return; }
   var lv = pkmn.learnedMoves[moveName].level || 0;
