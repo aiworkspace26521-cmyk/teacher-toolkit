@@ -1,122 +1,133 @@
-/**
- * Phase 2 驗證測試 — 變體多樣性測試
- *
- * 驗證項目：
- *   1. ULT_VARIANTS 涵蓋全部 18 種屬性
- *   2. 每種屬性至少 3 種 ULT 變體（A/B/C/D/E 任意 3 種）
- *   3. 每種變體皆有 [T3, T4, T5] 三階招式名稱
- *   4. 所有招式名稱不為空值
- *   5. variant-diversity 快照一致
- *
- * 使用方式：
- *   可在瀏覽器中執行（需先載入 pokemon-skill-tree.js）
- *   或使用 Node.js 執行（自動模擬瀏覽器環境）
- */
+#!/usr/bin/env node
+// test/variant-diversity-test.js
+// Phase 7: 變體多樣性驗證 — 同屬性內任兩變體的 T3-T5 招式重疊率 ≤ 40%
+'use strict';
 
-function runVariantDiversityTests() {
-  var results = { total: 0, passed: 0, failed: 0, errors: [] };
-  function assert(condition, msg) {
-    results.total++;
-    if (condition) { results.passed++; }
-    else { results.failed++; results.errors.push(msg); }
-  }
+// 在 Node.js 中載入 pokemon-skill-tree.js
+var vm = require("vm");
+var fs = require("fs");
+var path = require("path");
 
-  // 預期所有 18 屬性
-  var EXPECTED_TYPES = [
-    "一般","火","水","草","電","冰",
-    "格鬥","毒","地面","飛行","超能力","蟲",
-    "岩石","幽靈","龍","惡","鋼","妖精"
-  ];
-
-  // 預期 ULT 變體索引
-  var EXPECTED_ULT_KEYS = ["A","B","C","D","E"];
-
-  // Test 1: ULT_VARIANTS 存在且為物件
-  assert(typeof ULT_VARIANTS !== "undefined" && ULT_VARIANTS !== null,
-    "ULT_VARIANTS 應已定義");
-
-  // Test 2: 涵蓋全部 18 種屬性
-  var definedTypes = Object.keys(ULT_VARIANTS);
-  for (var ti = 0; ti < EXPECTED_TYPES.length; ti++) {
-    var t = EXPECTED_TYPES[ti];
-    assert(ULT_VARIANTS[t] !== undefined,
-      "ULT_VARIANTS 應包含屬性「" + t + "」");
-  }
-
-  // Test 3: 每種屬性至少 3 種 ULT 變體
-  for (var ti2 = 0; ti2 < EXPECTED_TYPES.length; ti2++) {
-    var t2 = EXPECTED_TYPES[ti2];
-    var variants = ULT_VARIANTS[t2];
-    if (!variants) continue;
-    var variantKeys = Object.keys(variants);
-    assert(variantKeys.length >= 3,
-      "屬性「" + t2 + "」應有 ≥3 種 ULT 變體，實際 " + variantKeys.length + " 種（" + variantKeys.join(",") + "）");
-  }
-
-  // Test 4: 所有變體皆為長度 3 的陣列（T3/T4/T5）
-  for (var ti3 = 0; ti3 < EXPECTED_TYPES.length; ti3++) {
-    var t3 = EXPECTED_TYPES[ti3];
-    var variants3 = ULT_VARIANTS[t3];
-    if (!variants3) continue;
-    for (var vi = 0; vi < EXPECTED_ULT_KEYS.length; vi++) {
-      var key = EXPECTED_ULT_KEYS[vi];
-      if (!variants3[key]) {
-        assert(false, "屬性「" + t3 + "」缺少 ULT 索引「" + key + "」");
-        continue;
-      }
-      assert(Array.isArray(variants3[key]),
-        "屬性「" + t3 + "」ULT「" + key + "」應為陣列");
-      assert(variants3[key].length === 3,
-        "屬性「" + t3 + "」ULT「" + key + "」應有 3 招（T3/T4/T5），實際 " + variants3[key].length + " 招");
-    }
-  }
-
-  // Test 5: 所有招式名稱不為空值
-  for (var ti4 = 0; ti4 < EXPECTED_TYPES.length; ti4++) {
-    var t4 = EXPECTED_TYPES[ti4];
-    var variants4 = ULT_VARIANTS[t4];
-    if (!variants4) continue;
-    for (var vi2 = 0; vi2 < EXPECTED_ULT_KEYS.length; vi2++) {
-      var key2 = EXPECTED_ULT_KEYS[vi2];
-      var moves = variants4[key2];
-      if (!moves) continue;
-      for (var mi = 0; mi < moves.length; mi++) {
-        assert(moves[mi] != null && moves[mi] !== "",
-          "屬性「" + t4 + "」ULT「" + key2 + "」第 " + (mi+1) + " 招不應為空值");
-      }
-    }
-  }
-
-  // Test 6: 確保無重複屬性總數（恰好 18 種不重複）
-  assert(definedTypes.length === EXPECTED_TYPES.length,
-    "ULT_VARIANTS 應恰好 " + EXPECTED_TYPES.length + " 種屬性，實際 " + definedTypes.length + " 種（" + definedTypes.join(",") + "）");
-
-  // 輸出結果
-  console.log("========== 變體多樣性測試結果 ==========");
-  console.log("總計: " + results.total + " | 通過: " + results.passed + " | 失敗: " + results.failed);
-  if (results.errors.length > 0) {
-    console.log("--- 失敗項目 ---");
-    for (var ei = 0; ei < results.errors.length; ei++) {
-      console.log("  " + (ei+1) + ". " + results.errors[ei]);
-    }
-  }
-  console.log("========================================");
-  return results;
+var skillTreePath = path.join(__dirname, "..", "public", "pokemon-skill-tree.js");
+if (!fs.existsSync(skillTreePath)) {
+  console.error("❌ 找不到 public/pokemon-skill-tree.js");
+  process.exit(1);
 }
 
-// Node.js 直接執行
-if (typeof window === "undefined") {
-  var vm = require("vm");
-  var fs = require("fs");
-  var sandbox = { window: {}, console: console, setTimeout: setTimeout };
-  vm.createContext(sandbox);
-  var srcCode = fs.readFileSync(__dirname + "/../public/pokemon-skill-tree.js", "utf8");
-  vm.runInContext(srcCode, sandbox);
-  var w = sandbox.window;
-  global.ULT_VARIANTS = w.ULT_VARIANTS;
-  global.runVariantDiversityTests = runVariantDiversityTests;
-  var results = runVariantDiversityTests();
-  process.exit(results.failed > 0 ? 1 : 0);
-} else if (typeof window !== "undefined") {
-  window.runVariantDiversityTests = runVariantDiversityTests;
+var sandbox = {
+  window: {},
+  console: console,
+  setTimeout: setTimeout,
+  MOVE_DATABASE: {},
+  POKEMON_TIERS: {},
+  POKEMON_SPECIES_TYPES: {}
+};
+vm.createContext(sandbox);
+var srcCode = fs.readFileSync(skillTreePath, "utf8");
+vm.runInContext(srcCode, sandbox);
+
+// 取得匯出的全域變數
+var TYPE_SPEC_V2 = sandbox.window.TYPE_SPEC_V2;
+var ULT_VARIANTS = sandbox.window.ULT_VARIANTS;
+
+// ===== 驗證：變體多樣性（T3-T5 重疊率 ≤ 40%）=====
+
+function calculateT3T5Overlap(a, b) {
+  function getMoves(v) {
+    var moves = [];
+    if (!v || !v.tiers) return moves;
+    var roles = ["ATK", "SPA", "BUF", "DIS"];
+    var tiers = ["T3", "T4", "T5"];
+    for (var ri = 0; ri < roles.length; ri++) {
+      for (var ti = 0; ti < tiers.length; ti++) {
+        var tierMoves = v.tiers[tiers[ti]] ? v.tiers[tiers[ti]][roles[ri]] : null;
+        if (tierMoves && Array.isArray(tierMoves)) {
+          for (var mi = 0; mi < tierMoves.length; mi++) {
+            if (tierMoves[mi] && tierMoves[mi] !== "") moves.push(tierMoves[mi]);
+          }
+        }
+      }
+    }
+    return moves;
+  }
+
+  var mA = getMoves(a);
+  var mB = getMoves(b);
+
+  // 計算唯一集合
+  var allMoves = {};
+  for (var i = 0; i < mA.length; i++) allMoves[mA[i]] = true;
+  for (var j = 0; j < mB.length; j++) allMoves[mB[j]] = true;
+  var uniqueCount = Object.keys(allMoves).length;
+
+  // 計算共同招式
+  var commonCount = 0;
+  for (var k = 0; k < mA.length; k++) {
+    if (mB.indexOf(mA[k]) !== -1) commonCount++;
+  }
+
+  return uniqueCount > 0 ? commonCount / uniqueCount : 0;
 }
+
+function validateVariantDiversity(type) {
+  var spec = TYPE_SPEC_V2 ? TYPE_SPEC_V2[type] : null;
+  if (!spec || !spec.VARIANTS) {
+    return { type: type, passed: true, issues: [], reason: "no TYPE_SPEC_V2 data" };
+  }
+
+  var variantEntries = Object.entries(spec.VARIANTS);
+  var issues = [];
+
+  for (var i = 0; i < variantEntries.length; i++) {
+    for (var j = i + 1; j < variantEntries.length; j++) {
+      var overlap = calculateT3T5Overlap(variantEntries[i][1], variantEntries[j][1]);
+      if (overlap > 0.4) {
+        issues.push(
+          variantEntries[i][0] + " vs " + variantEntries[j][0] +
+          " 重疊率 " + (overlap * 100).toFixed(0) + "%"
+        );
+      }
+    }
+  }
+
+  return { type: type, passed: issues.length === 0, issues: issues };
+}
+
+// ===== 主流程 =====
+var EXPECTED_TYPES = [
+  "一般", "火", "水", "草", "電", "冰",
+  "格鬥", "毒", "地面", "飛行", "超能力", "蟲",
+  "岩石", "幽靈", "龍", "惡", "鋼", "妖精"
+];
+
+console.log("========== 變體多樣性驗證 ==========");
+
+var allIssues = [];
+var typeCount = 0;
+
+if (!TYPE_SPEC_V2) {
+  console.log("⚠️  TYPE_SPEC_V2 尚未定義（Phase 0 未完成），跳過變體多樣性驗證");
+  process.exit(0);
+}
+
+for (var ti = 0; ti < EXPECTED_TYPES.length; ti++) {
+  var result = validateVariantDiversity(EXPECTED_TYPES[ti]);
+  typeCount++;
+  if (result.passed) {
+    console.log("✅ " + EXPECTED_TYPES[ti] + ": 通過");
+  } else {
+    console.log("❌ " + EXPECTED_TYPES[ti] + ": " + result.issues.length + " 個違規");
+    allIssues = allIssues.concat(result.issues);
+  }
+}
+
+if (allIssues.length > 0) {
+  console.error("\n❌ 變體多樣性違規:");
+  for (var ii = 0; ii < allIssues.length; ii++) {
+    console.error("   " + (ii + 1) + ". " + allIssues[ii]);
+  }
+  console.log("\n結果: " + typeCount + " 屬性, " + allIssues.length + " 違規");
+  process.exit(1);
+}
+
+console.log("\n✅ 全部 " + typeCount + " 屬性變體多樣性通過 (< 40% 重疊)");

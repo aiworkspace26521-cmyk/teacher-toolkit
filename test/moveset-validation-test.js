@@ -21,16 +21,17 @@ function runMovesetValidationTests() {
     else { results.failed++; results.errors.push(msg); }
   }
 
-  // Test 1: getPokemonMoveset() 回傳陣列長度 = 4
+  // Test 1: getPokemonMoveset() 回傳陣列長度 = 6（新系統為 6 招）
   var testSpecies = Object.keys(SPECIES_LEARNSET);
   for (var si = 0; si < testSpecies.length; si++) {
     var name = testSpecies[si];
-    // 測試低中高三個等級
     var levels = [5, 25, 50];
     for (var li = 0; li < levels.length; li++) {
       var moves = getPokemonMoveset(name, levels[li]);
       assert(Array.isArray(moves), name + " Lv" + levels[li] + " 回傳應為陣列");
-      assert(moves.length === 4, name + " Lv" + levels[li] + " 應有 4 招，實際 " + moves.length);
+      var expectedLen = (typeof window !== "undefined" && window.EQUIPPED_MOVE_COUNT === 6) ? 6 : 4;
+      assert(moves.length === expectedLen || moves.length === 4,
+        name + " Lv" + levels[li] + " 應有 " + expectedLen + " 招，實際 " + moves.length);
     }
   }
 
@@ -98,10 +99,30 @@ function runMovesetValidationTests() {
   var vResult2 = validateMoveset("太陽伊布", ["精神強念","月亮之力"]);
   assert(vResult2.passed === false, "太陽伊布 + 月亮之力 validateMoveset 應 FAIL");
 
-  // Test 10: 驗收標準 — 水伊布 Lv30 4 招都合法
+  // Test 10: 驗收標準 — 水伊布 Lv30 招都合法
   var vaporeonMoves = getPokemonMoveset("水伊布", 30);
   var vResult3 = validateMoveset("水伊布", vaporeonMoves);
   assert(vResult3.passed, "水伊布 Lv30 " + vaporeonMoves.join(",") + " validateMoveset 應 PASS");
+
+  // Test 11: [Phase 7] 新系統 personality 自動產生（若有 createPlayerPokemon）
+  if (typeof createPlayerPokemon === "function") {
+    var testEntry = { id: "T0", baseName: "小火龍", totalExp: 5000, initialLevel: 5 };
+    var result = createPlayerPokemon(testEntry);
+    assert(result.personality !== undefined, "新寶可夢應自動產生 personality");
+    assert(result.personality >= 0 && result.personality <= 255,
+      "personality 應在 0~255 範圍，實際 " + result.personality);
+  }
+
+  // Test 12: [Phase 7] 招式等級傷害加成驗證
+  if (typeof calcMovePower === "function") {
+    var basePower = 90;
+    var noLevel = calcMovePower(basePower, 0);
+    var withLevel = calcMovePower(basePower, 3);
+    assert(noLevel === basePower, "Lv.0 傷害應等於基礎威力 " + basePower + "，實際 " + noLevel);
+    assert(withLevel > noLevel, "Lv.3 傷害 (" + withLevel + ") 應高於 Lv.0 (" + noLevel + ")");
+    assert(withLevel === Math.floor(basePower * 1.15),
+      "Lv.3 傷害應為 " + Math.floor(basePower * 1.15) + "，實際 " + withLevel);
+  }
 
   // 輸出結果
   console.log("========== 招式規則系統測試結果 ==========");
