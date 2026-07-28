@@ -1,0 +1,257 @@
+- generic [ref=f3e2] [box=372,-1130,520,1932]:
+  - generic [ref=f3e3] [box=376,-1126,512,90]:
+    - heading "📊 KPI 學習管理系統" [level=1] [ref=f3e4] [box=396,-1108,472,29]
+    - generic [ref=f3e5] [box=396,-1076,472,17]: ⚡ 每日任務 × 成就系統 × 獎勵商店 × 道館對戰 × 聯盟賽
+  - generic [ref=f3e6] [box=376,-1035,512,1834]:
+    - combobox [ref=f3e7] [cursor=pointer] [box=391,-1020,482,56]:
+      - option "👉 選擇訓練家登入" [box=0,0,0,0]
+      - option "👦 Neil" [box=0,0,0,0]
+      - option "👧 Emma" [box=0,0,0,0]
+      - option "👦 Lawrence" [box=0,0,0,0]
+      - option "👑 管理員" [selected] [box=0,0,0,0]
+    - generic [ref=f3e9] [box=391,-954,482,140]:
+      - heading "👑 系統管理面板" [level=3] [ref=f3e10] [box=406,-940,453,26]
+      - generic [ref=f3e11] [box=406,-906,453,25]:
+        - generic [ref=f3e12] [box=406,-903,86,19]: ⏱️ 模擬進度：
+        - combobox [ref=f3e13] [box=500,-906,87,25]:
+          - option "第 1 月" [selected] [box=0,0,0,0]
+          - option "第 2 月" [box=0,0,0,0]
+          - option "第 3 月" [box=0,0,0,0]
+          - option "第 4 月" [box=0,0,0,0]
+          - option "第 5 月" [box=0,0,0,0]
+          - option "第 6 月" [box=0,0,0,0]
+          - option "第 7 月" [box=0,0,0,0]
+          - option "第 8 月" [box=0,0,0,0]
+          - option "第 9 月" [box=0,0,0,0]
+          - option "第 10 月" [box=0,0,0,0]
+        - combobox [ref=f3e14] [box=595,-906,111,25]:
+          - option "W1 一般週" [box=0,0,0,0]
+          - option "W2 道館週" [box=0,0,0,0]
+          - option "W3 訓練週" [box=0,0,0,0]
+          - option "W4 Boss 週" [selected] [box=0,0,0,0]
+      - generic [ref=f3e15] [box=406,-873,453,35]:
+        - button "💰 +500 幣" [ref=f3e16] [cursor=pointer] [box=406,-873,146,35]
+        - button "🏅 +4 徽章" [ref=f3e17] [cursor=pointer] [box=560,-873,146,35]
+        - button "✨ +2000 EXP" [ref=f3e18] [cursor=pointer] [box=713,-872,146,33]
+    - generic [ref=f3e19] [box=391,-803,483,44]: 👑 Boss 週 — 魔王降臨！四天王等待挑戰！
+    - generic [ref=f3e20] [box=391,-749,482,1520]:
+      - heading "🏆 學習 KPI 儀表板" [level=3] [ref=f3e21] [box=409,-731,447,21]
+      - generic [ref=f3e22] [box=409,-702,447,62]:
+        - generic [ref=f3e23] [box=419,-692,427,17]:
+          - generic [ref=f3e24] [box=424,-692,92,17]: 🏅 聯盟徽章進度
+          - generic [ref=f3e25] [box=793,-692,48,17]: 城都地區
+        - generic [box=419,-671,427,0]:
+          - generic "小剛 - 尼比道館" [box=611,-671,0,0]
+          - generic "小霞 - 華藍道館" [box=617,-671,0,0]
+          - generic "馬志士 - 枯葉道館" [box=623,-671,0,0]
+          - generic "莉佳 - 玉虹道館" [box=629,-671,0,0]
+          - generic "阿速 - 桔梗道館" [box=635,-671,0,0]
+          - generic "阿筆 - 檜皮道館" [box=641,-671,0,0]
+          - generic "小茜 - 滿金道館" [box=647,-671,0,0]
+          - generic "松葉 - 圓朱道館" [box=653,-671,0,0]
+        - generic [ref=f3e26] [box=419,-666,427,16]: "歷史總計: 4 枚"
+      - generic [ref=f3e27] [box=409,-630,447,74]:
+        - generic [ref=f3e28] [box=409,-630,106,74]:
+          - text: 最高等級
+          - generic [ref=f3e29] [box=416,-599,92,30]: Lv.23
+        - generic [ref=f3e30] [box=523,-630,106,74]:
+          - text: 聯盟幣
+          - generic [ref=f3e31] [box=530,-599,92,30]: "263"
+        - generic [ref=f3e32] [box=636,-630,106,74]:
+          - text: 徽章數
+          - generic [ref=f3e33] [box=643,-599,92,30]: "4"
+        - generic [ref=f3e34] [box=750,-630,106,74]:
+          - text: 🔥 連續天數
+          - generic [ref=f3e35] [box=757,-599,92,31]: 1 天
+      - generic [ref=f3e36] [box=409,-544,447,25]: 👑 Boss 週
+      - generic [ref=f3e37] [box=409,-513,447,105]: ⚔️ 下個道館挑戰🦅 桔梗道館👤 館主 阿速 | 屬性 飛行 | 波次 3 連戰📊 本週道館 0/1
+      - generic [ref=f3e39] [box=530,-402,205,18]:
+        - checkbox "🌱 簡單模式（敵方等級 ×0.75）" [ref=f3e40] [box=530,-401,13,13]
+        - text: 🌱 簡單模式（敵方等級 ×0.75）
+      - generic [ref=f3e41] [box=409,-378,447,68]:
+        - generic [ref=f3e42] [box=417,-370,18,52]: 🌍
+        - button "關都" [ref=f3e43] [cursor=pointer] [box=441,-370,47,52]
+        - button "城都" [ref=f3e44] [cursor=pointer] [box=494,-370,45,52]
+        - button "豐緣" [ref=f3e45] [cursor=pointer] [box=545,-370,45,52]
+        - button "神奧" [ref=f3e46] [cursor=pointer] [box=596,-370,45,52]
+        - button "合眾" [ref=f3e47] [cursor=pointer] [box=648,-370,45,52]
+        - button "卡洛斯" [ref=f3e48] [cursor=pointer] [box=699,-370,45,52]
+        - button "阿羅拉" [ref=f3e49] [cursor=pointer] [box=751,-370,45,52]
+        - button "伽勒爾" [ref=f3e50] [cursor=pointer] [box=802,-370,45,52]
+      - generic [ref=f3e233] [box=409,-294,447,216]:
+        - heading "管理員控制台" [level=4] [ref=f3e234] [box=421,-282,423,23]
+        - generic [ref=f3e235] [box=421,-251,423,122]:
+          - button "全員 +100 EXP" [ref=f3e236] [box=421,-251,119,35]
+          - button "全員 +50 金幣" [ref=f3e237] [box=548,-251,111,35]
+          - button "重置全員進度" [ref=f3e238] [box=667,-251,108,35]
+          - button "道館編輯器" [ref=f3e239] [box=421,-208,95,35]
+          - button "🗑️ 清除快取" [ref=f3e240] [box=524,-208,103,35]
+          - button "📥 匯出 CSV" [ref=f3e241] [box=635,-208,108,35]
+          - button "📊 班級分析" [ref=f3e242] [box=421,-164,103,35]
+        - generic [ref=f3e243] [box=421,-121,423,31]:
+          - generic [ref=f3e244] [box=421,-115,112,19]: 📅 批量事件注入：
+          - combobox [ref=f3e245] [box=541,-118,94,25]:
+            - option "選擇學生..." [selected] [box=0,0,0,0]
+            - option "Neil" [box=0,0,0,0]
+            - option "Emma" [box=0,0,0,0]
+            - option "Lawrence" [box=0,0,0,0]
+            - option "test" [box=0,0,0,0]
+          - spinbutton [ref=f3e246] [box=643,-118,60,25]: "7"
+          - text: 天
+          - button "🚀 批量注入" [ref=f3e247] [cursor=pointer] [box=735,-121,99,31]
+      - button "✅ Done" [disabled] [ref=f3e67] [box=409,-68,447,57]
+      - generic [ref=f3e68] [box=409,0,447,213]:
+        - button "🔧 寶可夢管理" [active] [ref=f3e69] [cursor=pointer] [box=409,0,144,47]
+        - button "📖 全國圖鑑" [ref=f3e70] [cursor=pointer] [box=561,0,144,47]
+        - button "📖 弱勢圖鑑" [ref=f3e71] [cursor=pointer] [box=712,0,144,47]
+        - button "⚔️ 路人戰 (5/5)" [ref=f3e72] [cursor=pointer] [box=409,55,144,47]
+        - button "⚔️ 道館戰" [ref=f3e73] [cursor=pointer] [box=561,55,144,47]
+        - button "🆚 宿敵" [ref=f3e74] [cursor=pointer] [box=712,55,144,47]
+        - button "🤝 交換" [ref=f3e75] [cursor=pointer] [box=409,110,144,47]
+        - button "🛒 商城" [ref=f3e76] [cursor=pointer] [box=561,110,144,47]
+        - button "🏆 獎盃櫃" [ref=f3e77] [cursor=pointer] [box=712,110,144,47]
+        - button "🏆 PvP天梯" [ref=f3e78] [cursor=pointer] [box=409,166,144,47]
+        - button "🏟️ 關都聯盟" [ref=f3e79] [cursor=pointer] [box=561,166,144,47]
+        - button "📊 聯盟排名" [ref=f3e80] [cursor=pointer] [box=712,166,144,47]
+      - generic [ref=f3e81] [box=409,229,447,525]:
+        - heading "🏅 每日/每週任務" [level=3] [ref=f3e82] [box=423,243,419,21]
+        - generic [ref=f3e83] [box=423,272,419,17]:
+          - generic [ref=f3e84] [box=423,272,148,17]: ⏱️ 每日重置：重置 3h 21m
+          - generic [ref=f3e85] [box=704,272,138,17]: ⏱️ 每週重置：重置 5d 3h
+        - generic [ref=f3e86] [box=423,297,419,215]:
+          - generic [ref=f3e248] [box=423,297,419,50]:
+            - generic [ref=f3e249] [box=434,309,24,26]: ⭐
+            - generic [ref=f3e250] [box=466,305,205,35]:
+              - generic [ref=f3e251] [box=466,305,205,19]: 每日登入
+              - generic [ref=f3e252] [box=466,323,205,16]: 登入系統並查看儀表板 (+15 EXP, +3 幣)
+            - generic [ref=f3e253] [box=679,314,96,15]: 12/1
+            - button "領取" [ref=f3e257] [cursor=pointer] [box=783,309,48,25]
+          - generic [ref=f3e258] [box=423,352,419,50]:
+            - generic [ref=f3e259] [box=434,364,24,26]: ⭐
+            - generic [ref=f3e260] [box=466,360,205,35]:
+              - generic [ref=f3e261] [box=466,360,205,19]: 提交任務
+              - generic [ref=f3e262] [box=466,378,205,16]: 提交今日學習任務 (+40 EXP, +10 幣)
+            - generic [ref=f3e263] [box=679,369,96,15]: 2/1
+            - button "領取" [ref=f3e267] [cursor=pointer] [box=783,364,48,25]
+          - generic [ref=f3e268] [box=423,407,419,50]:
+            - generic [ref=f3e269] [box=434,419,24,26]: ⚔️
+            - generic [ref=f3e270] [box=466,415,193,35]:
+              - generic [ref=f3e271] [box=466,415,193,19]: 對戰練習
+              - generic [ref=f3e272] [box=466,433,193,16]: 進行 3 場路人戰 (+30 EXP, +5 幣)
+            - generic [ref=f3e273] [box=667,424,96,15]: 0/3
+            - button "進行中" [disabled] [ref=f3e276] [box=771,419,60,25]
+          - generic [ref=f3e277] [box=423,462,419,50]:
+            - generic [ref=f3e278] [box=434,474,24,26]: ⭐
+            - generic [ref=f3e279] [box=466,470,205,35]:
+              - generic [ref=f3e280] [box=466,470,205,19]: 捕捉收集
+              - generic [ref=f3e281] [box=466,488,205,16]: 捕捉 1 隻寶可夢 (+25 EXP, +5 幣)
+            - generic [ref=f3e282] [box=679,479,96,15]: 2/1
+            - button "領取" [ref=f3e286] [cursor=pointer] [box=783,474,48,25]
+        - generic [ref=f3e127] [box=423,525,419,215]:
+          - generic [ref=f3e287] [box=423,525,419,50]:
+            - generic [ref=f3e288] [box=434,537,24,26]: 🏛️
+            - generic [ref=f3e289] [box=466,532,193,35]:
+              - generic [ref=f3e290] [box=466,532,193,19]: 道館挑戰者
+              - generic [ref=f3e291] [box=466,551,193,16]: 道館戰獲勝 3 次 (+150 EXP, +30 幣)
+            - generic [ref=f3e292] [box=667,542,96,15]: 0/3
+            - button "進行中" [disabled] [ref=f3e295] [box=771,537,60,25]
+          - generic [ref=f3e296] [box=423,580,419,50]:
+            - generic [ref=f3e297] [box=434,592,24,26]: 🎯
+            - generic [ref=f3e298] [box=466,587,193,35]:
+              - generic [ref=f3e299] [box=466,587,193,19]: 大量捕捉
+              - generic [ref=f3e300] [box=466,606,193,16]: 捕捉 5 隻寶可夢 (+100 EXP, +25 幣)
+            - generic [ref=f3e301] [box=667,597,96,15]: 2/5
+            - button "進行中" [disabled] [ref=f3e305] [box=771,592,60,25]
+          - generic [ref=f3e306] [box=423,635,419,50]:
+            - generic [ref=f3e307] [box=434,647,24,26]: ⚔️
+            - generic [ref=f3e308] [box=466,642,193,35]:
+              - generic [ref=f3e309] [box=466,642,193,19]: 戰鬥狂人
+              - generic [ref=f3e310] [box=466,661,193,16]: 進行 10 場戰鬥 (+80 EXP, +20 幣)
+            - generic [ref=f3e311] [box=667,652,96,15]: 0/10
+            - button "進行中" [disabled] [ref=f3e314] [box=771,647,60,25]
+          - generic [ref=f3e315] [box=423,690,419,50]:
+            - generic [ref=f3e316] [box=434,701,24,27]: 🆚
+            - generic [ref=f3e317] [box=466,697,193,35]:
+              - generic [ref=f3e318] [box=466,697,193,19]: 宿敵對決
+              - generic [ref=f3e319] [box=466,716,193,16]: PvP 對戰 2 次 (+60 EXP, +15 幣)
+            - generic [ref=f3e320] [box=667,707,96,15]: 0/2
+            - button "進行中" [disabled] [ref=f3e323] [box=771,702,60,25]
+  - generic [ref=f3e166] [box=382,46,500,518]:
+    - heading "🔧 寶可夢管理" [level=3] [ref=f3e167] [box=401,65,447,27]
+    - generic [ref=f3e168] [cursor=pointer] [box=838,62,13,22]: ×
+    - generic [ref=f3e169] [box=401,91,447,23]:
+      - generic [ref=f3e170] [box=401,95,156,17]: 點擊兩張卡片即可交換位置。
+      - button "⚡ 裝備/招式學習" [ref=f3e171] [cursor=pointer] [box=733,91,115,23]
+    - generic [ref=f3e172] [box=401,125,447,1234]:
+      - generic [ref=f3e331] [box=401,125,447,43]:
+        - textbox "🔍 搜尋寶可夢名稱..." [ref=f3e332] [box=401,125,183,43]
+        - combobox [ref=f3e333] [box=590,125,85,43]:
+          - option "全部屬性" [selected] [box=0,0,0,0]
+          - option "一般" [box=0,0,0,0]
+          - option "火" [box=0,0,0,0]
+          - option "水" [box=0,0,0,0]
+          - option "草" [box=0,0,0,0]
+          - option "電" [box=0,0,0,0]
+          - option "冰" [box=0,0,0,0]
+          - option "格鬥" [box=0,0,0,0]
+          - option "毒" [box=0,0,0,0]
+          - option "地面" [box=0,0,0,0]
+          - option "飛行" [box=0,0,0,0]
+          - option "超能力" [box=0,0,0,0]
+          - option "蟲" [box=0,0,0,0]
+          - option "岩石" [box=0,0,0,0]
+          - option "幽靈" [box=0,0,0,0]
+          - option "龍" [box=0,0,0,0]
+          - option "鋼" [box=0,0,0,0]
+          - option "妖精" [box=0,0,0,0]
+          - option "惡" [box=0,0,0,0]
+        - combobox [ref=f3e334] [box=681,125,115,43]:
+          - option "預設排序" [selected] [box=0,0,0,0]
+          - option "⬇ 等級" [box=0,0,0,0]
+          - option "⬇ 能力值總和" [box=0,0,0,0]
+          - option "⬆ 名稱" [box=0,0,0,0]
+        - button "⚖️ 比較" [ref=f3e335] [cursor=pointer] [box=803,125,45,43]
+      - generic [ref=f3e336] [box=401,175,447,150]:
+        - heading "🎒 持有道具" [level=4] [ref=f3e337] [box=401,175,447,20]
+        - generic [ref=f3e338] [box=401,201,447,74]:
+          - generic [ref=f3e339] [box=401,201,90,22]: 💊 好傷藥 x0
+          - generic [ref=f3e340] [box=495,201,90,22]: 💊 全滿藥 x0
+          - generic [ref=f3e341] [box=588,201,90,22]: 💊 活力塊 x0
+          - generic [ref=f3e342] [box=682,201,102,22]: 💊 元氣藥塊 x0
+          - generic [ref=f3e343] [box=401,227,102,22]: 🍬 神奇糖果 x0
+          - generic [ref=f3e344] [box=507,227,90,22]: 🍊 橙橙果 x0
+          - generic [ref=f3e345] [box=600,227,90,22]: 🍒 奇異果 x0
+          - generic [ref=f3e346] [box=694,227,90,22]: 🍇 木子果 x0
+          - generic [ref=f3e347] [box=401,253,90,22]: 🫐 抗性果 x0
+        - generic [ref=f3e348] [box=401,283,447,24]:
+          - text: "持有裝備:"
+          - generic [ref=f3e349] [box=615,285,74,20]: ✨ 妖精之石
+      - generic [ref=f3e350] [box=401,337,447,267]:
+        - heading "📋 隊伍 (Party)" [level=4] [ref=f3e351] [box=401,337,447,23]
+        - generic [ref=f3e352] [cursor=pointer] [box=401,368,447,33]: 🐾 水伊布 (水) Lv.23 🔔 ❤️ 2/120 📊
+        - generic [ref=f3e353] [cursor=pointer] [box=401,409,447,33]: ⭐ 月亮伊布 (惡) Lv.17 📊
+        - generic [ref=f3e354] [cursor=pointer] [box=401,449,447,33]: 空位
+        - generic [ref=f3e355] [cursor=pointer] [box=401,490,447,33]: 空位
+        - generic [ref=f3e356] [cursor=pointer] [box=401,531,447,33]: 空位
+        - generic [ref=f3e357] [cursor=pointer] [box=401,571,447,33]: 空位
+      - generic [ref=f3e358] [box=401,604,447,755]:
+        - heading "💾 電腦 (PC Box)" [level=4] [ref=f3e359] [box=401,604,447,23]
+        - generic [ref=f3e360] [cursor=pointer] [box=401,635,447,33]: 空位
+        - generic [ref=f3e361] [cursor=pointer] [box=401,675,447,33]: 空位
+        - generic [ref=f3e362] [cursor=pointer] [box=401,716,447,33]: 空位
+        - generic [ref=f3e363] [cursor=pointer] [box=401,757,447,33]: 空位
+        - generic [ref=f3e364] [cursor=pointer] [box=401,797,447,33]: 空位
+        - generic [ref=f3e365] [cursor=pointer] [box=401,838,447,33]: 空位
+        - generic [ref=f3e366] [cursor=pointer] [box=401,879,447,33]: 空位
+        - generic [ref=f3e367] [cursor=pointer] [box=401,919,447,33]: 空位
+        - generic [ref=f3e368] [cursor=pointer] [box=401,960,447,33]: 空位
+        - generic [ref=f3e369] [cursor=pointer] [box=401,1001,447,33]: 空位
+        - generic [ref=f3e370] [cursor=pointer] [box=401,1041,447,33]: 空位
+        - generic [ref=f3e371] [cursor=pointer] [box=401,1082,447,33]: 空位
+        - generic [ref=f3e372] [cursor=pointer] [box=401,1123,447,33]: 空位
+        - generic [ref=f3e373] [cursor=pointer] [box=401,1163,447,33]: 空位
+        - generic [ref=f3e374] [cursor=pointer] [box=401,1204,447,33]: 空位
+        - generic [ref=f3e375] [cursor=pointer] [box=401,1245,447,33]: 空位
+        - generic [ref=f3e376] [cursor=pointer] [box=401,1285,447,33]: 空位
+        - generic [ref=f3e377] [cursor=pointer] [box=401,1326,447,33]: 空位
+    - button "關閉" [ref=f3e221] [cursor=pointer] [box=401,1374,447,39]
