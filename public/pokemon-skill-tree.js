@@ -373,11 +373,29 @@ function generateSkillTree(speciesName, types, atkStat, spaStat) {
 
 // ========== 公開 API ==========
 
-function getSkillTree(speciesName, types, atkStat, spaStat) {
+function getSkillTree(speciesName, types, atkStat, spaStat, extra) {
   if (SPECIES_SKILL_TREE[speciesName]) {
     return JSON.parse(JSON.stringify(SPECIES_SKILL_TREE[speciesName]));
   }
-  return generateSkillTree(speciesName, types || ["一般"], atkStat || 50, spaStat || 50);
+  var primaryType = (types && types.length > 0) ? types[0] : "一般";
+  var type2 = (types && types.length > 1) ? types[1] : null;
+  var pokemon = {
+    baseName: speciesName,
+    name: speciesName,
+    primaryType: primaryType,
+    type2: type2,
+    stats: { atk: atkStat || 50, spa: spaStat || 50, spd: 50, def: 50, spDef: 50 },
+    personality: extra && extra.personality ? extra.personality : Math.floor(Math.random() * 65535),
+    ability: extra && extra.ability ? extra.ability : null,
+    isLegendary: extra && extra.isLegendary ? true : false
+  };
+  var variantName = selectVariant(pokemon);
+  if (!variantName) return generateSkillTree(speciesName, types || ["一般"], atkStat || 50, spaStat || 50);
+  var tree = buildTreeFromVariant(pokemon, primaryType, variantName);
+  if (!tree) return generateSkillTree(speciesName, types || ["一般"], atkStat || 50, spaStat || 50);
+  tree._variantName = variantName;
+  tree._ult = selectUltVariant(pokemon, primaryType, variantName);
+  return tree;
 }
 
 function getTreeTypeLabel(treeType) {
@@ -572,6 +590,7 @@ const TYPE_SPEC_V2 = {
       },
       "天氣主導型": {
         theme: "晴天戰術、日照加成",
+        tags: ["weather"],
         preferredStats: { ATK: 0.9, SPA: 1.1, SPD: 1, DEF: 0.9 },
         ultMapping: "D",
         tiers: {
@@ -714,6 +733,7 @@ const TYPE_SPEC_V2 = {
       },
       "天氣加速型": {
         theme: "晴天、日光束戰術",
+        tags: ["weather"],
         preferredStats: { ATK: 0.9, SPA: 1.1, SPD: 1, DEF: 0.9 },
         ultMapping: "A",
         tiers: {
@@ -856,6 +876,7 @@ const TYPE_SPEC_V2 = {
       },
       "天氣雪崩型": {
         theme: "冰雹、天氣",
+        tags: ["weather"],
         preferredStats: { ATK: 0.9, SPA: 1.1, SPD: 1, DEF: 0.9 },
         ultMapping: "D",
         tiers: {
@@ -1039,6 +1060,7 @@ const TYPE_SPEC_V2 = {
       },
       "沙暴天氣型": {
         theme: "沙暴、岩石",
+        tags: ["weather"],
         preferredStats: { ATK: 1, SPA: 1, SPD: 0.9, DEF: 1 },
         ultMapping: "B",
         tiers: {
@@ -1152,6 +1174,7 @@ const TYPE_SPEC_V2 = {
       },
       "天氣控場型": {
         theme: "雨天/順風",
+        tags: ["weather"],
         preferredStats: { ATK: 0.9, SPA: 1.1, SPD: 1, DEF: 0.9 },
         ultMapping: "D",
         tiers: {
@@ -1323,6 +1346,7 @@ const TYPE_SPEC_V2 = {
       },
       "沙暴防禦型": {
         theme: "沙暴、特防",
+        tags: ["weather"],
         preferredStats: { ATK: 0.9, SPA: 0.8, SPD: 0.7, DEF: 1.3 },
         ultMapping: "B",
         tiers: {
@@ -1359,6 +1383,7 @@ const TYPE_SPEC_V2 = {
       },
       "天氣加速型": {
         theme: "沙暴+速攻",
+        tags: ["weather"],
         preferredStats: { ATK: 1, SPA: 0.9, SPD: 1.2, DEF: 0.8 },
         ultMapping: "B",
         tiers: {
@@ -1501,6 +1526,7 @@ const TYPE_SPEC_V2 = {
       },
       "傳說威壓型": {
         theme: "傳說、時空之力",
+        tags: ["legendary"],
         preferredStats: { ATK: 1.1, SPA: 1.1, SPD: 1, DEF: 0.9 },
         ultMapping: "D",
         tiers: {
@@ -1566,6 +1592,7 @@ const TYPE_SPEC_V2 = {
       },
       "雙刀暗黑型": {
         theme: "暗黑洞、傳說",
+        tags: ["legendary"],
         preferredStats: { ATK: 1.1, SPA: 1.1, SPD: 0.9, DEF: 0.8 },
         ultMapping: "D",
         tiers: {
@@ -1631,6 +1658,7 @@ const TYPE_SPEC_V2 = {
       },
       "雙刀鋼鐵型": {
         theme: "靈活、傳說",
+        tags: ["legendary"],
         preferredStats: { ATK: 1.1, SPA: 1.1, SPD: 0.9, DEF: 0.8 },
         ultMapping: "A",
         tiers: {
@@ -1881,6 +1909,181 @@ const TYPE_MOVE_LIBRARY = {
   }
 };
 
+// ========== Phase 1: 核心選擇演算法 ==========
+
+// 副屬性偏移評分
+function getType2Affinity(type2, variant) {
+  if (!type2) return 0;
+  var map = {
+    "格鬥": { "物理強攻型": 20, "近戰強攻型": 20, "子彈連擊型": 15 },
+    "幽靈": { "干擾消耗型": 20, "干擾擴散型": 20, "特攻噬魂型": 15, "特攻溶解型": 15 },
+    "地面": { "地震強攻型": 15, "沙暴天氣型": 15 },
+    "飛行": { "速攻燃燒型": 20, "速攻擾亂型": 20, "速攻壓制型": 20, "天氣控場型": 15 },
+    "鋼":   { "防禦坦克型": 20, "鋼鐵防壁型": 20, "子彈連擊型": 15, "鐵壁坦克型": 15 },
+    "水":   { "防禦坦克型": 15, "防禦回復型": 15, "防禦冰牆型": 15 },
+    "火":   { "物理猛攻型": 15, "特攻轟炸型": 15, "天氣主導型": 15 },
+    "草":   { "回復續航型": 20, "粉末干擾型": 15 },
+    "電":   { "速攻壓制型": 20, "麻痺干擾型": 20 },
+    "超能力":{ "精神強念型": 20, "場地控制型": 20 },
+    "冰":   { "特攻雪暴型": 20, "天氣雪崩型": 20 },
+    "蟲":   { "急速連擊型": 15, "蝶舞強化型": 15 },
+    "岩石": { "鐵壁坦克型": 15, "沙暴防禦型": 15 },
+    "惡":   { "先制偷襲型": 20, "干擾陰謀型": 20, "咬碎強攻型": 15 },
+    "妖精": { "防禦回復型": 15, "魅力干擾型": 15, "月亮強攻型": 15 },
+    "龍":   { "逆鱗強攻型": 20, "龍舞強化型": 20, "雙刀均衡型": 15 },
+    "毒":   { "中毒消耗型": 15, "干擾擴散型": 15 },
+  };
+  return (map[type2] && map[type2][variant.theme]) || 0;
+}
+
+function hasWeatherAbility(ability) {
+  return ["乾旱", "毛毛雨", "降雪", "揚沙", "日照"].includes(ability);
+}
+
+// 確定性隨機（seeded PRNG）
+function seededRandom(seed) {
+  var t = seed | 0;
+  return function() {
+    t = (t + 0x6D2B79F5) | 0;
+    var m = Math.imul(t ^ (t >>> 15), 1 | t);
+    m = (m + Math.imul(m ^ (m >>> 7), 61 | m)) ^ m;
+    return ((m ^ (m >>> 14)) >>> 0) / 4294967296;
+  };
+}
+
+function selectFromPool(pool, seed) {
+  if (!pool || pool.length === 0) return null;
+  if (pool.length === 1) return pool[0];
+  var rng = seededRandom(seed);
+  return pool[Math.floor(rng() * pool.length)];
+}
+
+// 變體選擇演算法（計分制）
+function selectVariant(pokemon) {
+  var type = pokemon.primaryType;
+  var typeSpec = TYPE_SPEC_V2[type];
+  if (!typeSpec) return null;
+  var variants = typeSpec.VARIANTS;
+  var stats = pokemon.stats || { atk: 50, spa: 50, spd: 50, def: 50, spDef: 50 };
+  var personality = pokemon.personality || 0;
+  var scores = {};
+  var idx = 0;
+  for (var name in variants) {
+    if (!variants.hasOwnProperty(name)) continue;
+    var variant = variants[name];
+    var score = 0;
+    score += (stats.atk / 255) * (variant.preferredStats.ATK || 1.0) * 40;
+    score += (stats.spa / 255) * (variant.preferredStats.SPA || 1.0) * 40;
+    score += (stats.spd / 255) * (variant.preferredStats.SPD || 1.0) * 20;
+    score += ((stats.def + stats.spDef) / 510) * (variant.preferredStats.DEF || 1.0) * 20;
+    score += getType2Affinity(pokemon.type2, variant);
+    if (pokemon.ability && hasWeatherAbility(pokemon.ability) && variant.tags && variant.tags.indexOf("weather") >= 0) {
+      score += 30;
+    }
+    if (pokemon.isLegendary && variant.tags && variant.tags.indexOf("legendary") >= 0) {
+      score += 40;
+    }
+    var seed = personality * 100 + idx;
+    var noise = (seededRandom(seed)() * 6) - 3;
+    scores[name] = score + noise;
+    idx++;
+  }
+  var best = null, bestScore = -Infinity;
+  for (var n in scores) {
+    if (!scores.hasOwnProperty(n)) continue;
+    if (scores[n] > bestScore) { bestScore = scores[n]; best = n; }
+  }
+  return best;
+}
+
+// 從變體建立招式樹
+function buildTreeFromVariant(pokemon, type, variantName) {
+  var typeSpec = TYPE_SPEC_V2[type];
+  if (!typeSpec || !typeSpec.VARIANTS[variantName]) return null;
+  var variant = typeSpec.VARIANTS[variantName];
+  var tiers = variant.tiers;
+  var tree = {};
+  var roles = ["ATK", "SPA", "BUF", "DIS"];
+  var tierNames = ["T1", "T2", "T3", "T4", "T5"];
+  for (var ri = 0; ri < roles.length; ri++) {
+    var role = roles[ri];
+    tree[role] = {};
+    for (var ti = 0; ti < tierNames.length; ti++) {
+      var t = tierNames[ti];
+      var pool = tiers[t][role];
+      if (!pool || pool.length === 0) {
+        tree[role][t] = null;
+      } else if (pool.length === 1) {
+        tree[role][t] = pool[0];
+      } else {
+        var seed = (pokemon.personality || 0) * 10000 + ti * 100 + ri;
+        tree[role][t] = selectFromPool(pool, seed);
+      }
+    }
+  }
+  // T5 備援補位
+  var T5_FALLBACK = {
+    ATK: ["終極衝擊"], SPA: ["破壞光線"],
+    BUF: ["睡覺", "腹鼓"], DIS: ["滅亡之歌"]
+  };
+  for (var r = 0; r < roles.length; r++) {
+    var roleName = roles[r];
+    if (!tree[roleName]["T5"] && T5_FALLBACK[roleName]) {
+      tree[roleName]["T5"] = T5_FALLBACK[roleName][0];
+    }
+  }
+  return tree;
+}
+
+// ULT 變體選擇
+function selectUltVariant(pokemon, type, variantName) {
+  var typeSpec = TYPE_SPEC_V2[type];
+  if (!typeSpec || !typeSpec.VARIANTS[variantName]) return null;
+  var variant = typeSpec.VARIANTS[variantName];
+  var ultIndex = variant.ultMapping;
+  var ULT_SUFFIX_MAP = {
+    "A": { suffix: "制裁", category: "物理型" },
+    "B": { suffix: "終結", category: "特攻型" },
+    "C": { suffix: "極致", category: "速攻型" },
+    "D": { suffix: "裁決", category: "防禦型" },
+    "E": { suffix: "傳說", category: "傳說型" }
+  };
+  var ultInfo = ULT_SUFFIX_MAP[ultIndex] || { suffix: "制裁", category: "物理型" };
+  var typeName = type;
+  var t5Name = typeName + "·" + (pokemon.baseName || pokemon.name || "寶可夢") + ultInfo.suffix;
+  if (pokemon.isLegendary) {
+    var SIGNATURE_MOVES = {
+      "噴火龍": "火系·噴火龍制裁",
+      "烈空坐": "龍系·烈空坐裁決",
+      "固拉多": "地面·固拉多裁決",
+      "蓋歐卡": "水系·蓋歐卡裁決",
+    };
+    if (SIGNATURE_MOVES[pokemon.baseName]) {
+      t5Name = SIGNATURE_MOVES[pokemon.baseName];
+    }
+  }
+  return {
+    index: ultIndex,
+    suffix: ultInfo.suffix,
+    category: ultInfo.category,
+    t5Name: t5Name
+  };
+}
+
+// T5 三層優先級選招
+function resolveT5Move(type, role, variant) {
+  var T5Sigs = TYPE_T5_SIGNATURES[type];
+  if (T5Sigs && T5Sigs[role] && T5Sigs[role].length > 0) {
+    return T5Sigs[role][0];
+  }
+  var FALLBACK = {
+    ATK: ["終極衝擊"], SPA: ["破壞光線"],
+    BUF: ["睡覺", "腹鼓"], DIS: ["滅亡之歌"]
+  };
+  if (FALLBACK[role]) return FALLBACK[role][0];
+  return null;
+}
+
 // ========== 匯出 ==========
 window.SPECIES_SKILL_TREE = SPECIES_SKILL_TREE;
 window.getSkillTree = getSkillTree;
@@ -1891,6 +2094,11 @@ window.getMaxMoveLevel = getMaxMoveLevel;
 window.calcMovePower = calcMovePower;
 window.calcMaxFp = calcMaxFp;
 window.getTreeSpThreshold = getTreeSpThreshold;
+window.selectVariant = selectVariant;
+window.seededRandom = seededRandom;
+window.buildTreeFromVariant = buildTreeFromVariant;
+window.selectUltVariant = selectUltVariant;
+window.resolveT5Move = resolveT5Move;
 window.TIER_FP_COST = TIER_FP_COST;
 window.BUF_FP_COST = BUF_FP_COST;
 window.DIS_FP_COST = DIS_FP_COST;
