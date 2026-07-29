@@ -2692,6 +2692,35 @@ function getPokemonTier(raw) {
 }
 
 function generateLearnset(raw, types, tier) {
+  // [變體優先] 嘗試使用 TYPE_SPEC_V2 變體系統
+  var primaryType = types[0];
+  var typeSpec = (typeof TYPE_SPEC_V2 !== "undefined") ? TYPE_SPEC_V2[primaryType] : null;
+  if (typeSpec) {
+    var tierStats = { atk: 50, spa: 50, spd: 50, def: 50, spDef: 50, hp: 50 };
+    if (tier === "傳說") { tierStats = { atk: 120, spa: 120, spd: 100, def: 100, spDef: 100, hp: 100 }; }
+    else if (tier === "稀有") { tierStats = { atk: 85, spa: 85, spd: 75, def: 75, spDef: 75, hp: 75 }; }
+    var dummyPkm = {
+      baseName: raw, primaryType: primaryType,
+      type2: types.length > 1 ? types[1] : null,
+      stats: tierStats,
+      personality: Math.floor(Math.random() * 256)
+    };
+    try {
+      var vName = selectVariant(dummyPkm);
+      if (vName && typeSpec.VARIANTS[vName]) {
+        var variant = typeSpec.VARIANTS[vName];
+        var vPool = [];
+        var roles = ["ATK", "SPA", "BUF", "DIS"], tKeys = ["T1","T2","T3","T4","T5"];
+        for (var ri = 0; ri < roles.length; ri++) {
+          for (var ti = 0; ti < tKeys.length; ti++) {
+            var moves = variant.tiers[tKeys[ti]][roles[ri]];
+            if (moves) { for (var mi = 0; mi < moves.length; mi++) { if (vPool.indexOf(moves[mi]) === -1) vPool.push(moves[mi]); } }
+          }
+        }
+        if (vPool.length >= 6) { SPECIES_LEARNSET[raw] = vPool; return vPool; }
+      }
+    } catch(e) { /* fallback */ }
+  }
   var pool = [];
   // 1. STAB 本系招
   for (var ti = 0; ti < types.length; ti++) {
@@ -3050,7 +3079,8 @@ function createPlayerPokemon(pokemon) {
     moveLevels: moveLevels,
     tmMoves: pokemon.tmMoves || [],
     maxFp: typeof calcMaxFp !== "undefined" ? calcMaxFp(pokemon.currentLevel) : 100 + pokemon.currentLevel * 3,
-    currentFp: typeof calcMaxFp !== "undefined" ? calcMaxFp(pokemon.currentLevel) : 100 + pokemon.currentLevel * 3
+    currentFp: typeof calcMaxFp !== "undefined" ? calcMaxFp(pokemon.currentLevel) : 100 + pokemon.currentLevel * 3,
+    personality: pokemon.personality !== undefined ? pokemon.personality : Math.floor(Math.random() * 256)
   };
 }
 

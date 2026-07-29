@@ -1842,6 +1842,20 @@ function generateSkillTree(speciesName, types, atkStat, spaStat) {
   };
 }
 
+function generateSpeciesSkillTree(speciesName, types, tier) {
+  var typeSpec = types && types[0] && TYPE_SPEC_V2[types[0]];
+  if (!typeSpec) return generateSkillTree(speciesName, types, 80, 80);
+  var dummyPkm = { species: speciesName, types: types, tier: tier || 3, personality: Math.random() };
+  var variant = selectVariant(dummyPkm, types, typeSpec);
+  if (!variant) return generateSkillTree(speciesName, types, 80, 80);
+  var tree = buildTreeFromVariant(variant, types);
+  var result = { types: types, stages: [0, 1, 2, 3, 4, 5], label: variant.label, trees: {} };
+  Object.keys(tree).forEach(function(k) { result.trees[k] = buildNodesFromVariantTree(tree[k], k); });
+  var ultNode = buildUltNodes(variant, types, tier || 3);
+  if (ultNode) result.trees.ult = ultNode;
+  return result;
+}
+
 // ========== 公開 API ==========
 
 function getSkillTree(speciesName, types, atkStat, spaStat, pokemon) {
