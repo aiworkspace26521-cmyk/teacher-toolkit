@@ -27,13 +27,22 @@ vm.runInContext(srcCode, sandbox);
 
 var TYPE_SPEC_V2 = sandbox.window.TYPE_SPEC_V2;
 var TYPE_T5_SIGNATURES = sandbox.window.TYPE_T5_SIGNATURES;
+var resolveT5Move = sandbox.window.resolveT5Move;
 
-var UNIVERSAL_FALLBACK = ["終極衝擊", "破壞光線", "睡覺", "腹鼓", "滅亡之歌"];
+var FALLBACK_ATK = ["終極衝擊"];
+var FALLBACK_SPA = ["破壞光線"];
 
 console.log("========== T5 備援依賴驗證 ==========");
+console.log("角色範圍: ATK/SPA (BUF/DIS 使用最佳萬用招為正常設計)");
+console.log("測試方式: 使用 resolveT5Move() 三層優先級(本系簽名→副屬性→萬用)");
 
 if (!TYPE_SPEC_V2) {
   console.log("⚠️  TYPE_SPEC_V2 尚未定義（Phase 0 未完成），跳過 T5 備援驗證");
+  process.exit(0);
+}
+
+if (typeof resolveT5Move !== "function") {
+  console.log("⚠️  resolveT5Move 尚未定義（Phase 1 未完成），跳過 T5 備援驗證");
   process.exit(0);
 }
 
@@ -50,19 +59,25 @@ for (var type in TYPE_SPEC_V2) {
 
   for (var vName in spec.VARIANTS) {
     var variant = spec.VARIANTS[vName];
-    var roles = ["ATK", "SPA", "BUF", "DIS"];
+    var roles = ["ATK", "SPA"];
 
     for (var ri = 0; ri < roles.length; ri++) {
-      var t5Moves = variant.tiers && variant.tiers.T5 ? variant.tiers.T5[roles[ri]] : null;
-      if (t5Moves && Array.isArray(t5Moves)) {
-        for (var mi = 0; mi < t5Moves.length; mi++) {
-          if (UNIVERSAL_FALLBACK.indexOf(t5Moves[mi]) !== -1) {
-            fallbackCount++;
-            typeFallback++;
-          }
-          totalT5++;
-          typeTotal++;
+      var role = roles[ri];
+      var t5Moves = variant.tiers && variant.tiers.T5 ? variant.tiers.T5[role] : null;
+
+      // 使用 resolveT5Move 解析實際選招結果
+      var dummyPkm = { type2: null };
+      var resolvedMove = resolveT5Move(type, role, variant, dummyPkm);
+
+      if (resolvedMove) {
+        var fallbackList = role === "ATK" ? FALLBACK_ATK : FALLBACK_SPA;
+        var isFallback = fallbackList.indexOf(resolvedMove) !== -1;
+        if (isFallback) {
+          fallbackCount++;
+          typeFallback++;
         }
+        totalT5++;
+        typeTotal++;
       }
     }
   }

@@ -2099,7 +2099,19 @@ function resolveT5Move(type, role, variant, pokemon) {
 
 function selectByVariantAffinity(signature, variant) {
   if (!signature || signature.length === 0) return null;
-  return signature[0];
+  if (signature.length === 1) return signature[0];
+  if (!variant) return signature[0];
+  // 用變體名稱做確定性分散：依據角色權重（preferredStats）或名稱 hash
+  var seed = 0;
+  if (variant.preferredStats) {
+    seed = Math.round((variant.preferredStats.ATK || 1.0) * 100) ^
+           Math.round((variant.preferredStats.SPA || 1.0) * 97) ^
+           Math.round((variant.preferredStats.SPD || 1.0) * 53);
+  } else {
+    seed = (variant.ultMapping || "C").charCodeAt(0);
+  }
+  var idx = Math.abs(seed) % signature.length;
+  return signature[idx];
 }
 
 // 1.4 ULT 變體選擇
