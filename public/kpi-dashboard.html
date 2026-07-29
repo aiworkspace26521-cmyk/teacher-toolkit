@@ -9307,9 +9307,9 @@ function renderSkillTree() {
   var maxFp = typeof calcMaxFp !== "undefined" ? calcMaxFp(pkmn.currentLevel || pkmn.level || 5) : 0;
 
   var headerName = "🌳 <strong>" + pkmn.baseName + "</strong>";
+  headerName += " <button class='st-sp-btn' style='background:#95a5a6;color:white;font-size:11px;padding:1px 8px;margin-left:4px;' onclick='sfx.click();openSkillTreePkmnSelector()'>🔄 切換</button>";
   if (treeVariant) headerName += " <span class='st-variant-name'>· " + treeVariant + "</span>";
   headerName += " Lv." + (pkmn.currentLevel || 5) + " | 階層上限: T" + maxTier;
-  headerName += " <button class='st-sp-btn' style='background:#95a5a6;color:white;font-size:11px;padding:1px 8px;margin-left:6px;' onclick='sfx.click();openSkillTreePkmnSelector()'>🔄 切換</button>";
   $("skillTreeHeader").innerHTML = headerName;
   $("stSpAmount").innerHTML = sp;
   $("stTotalSpDisplay").innerHTML = " | 已獲: " + totalSp;

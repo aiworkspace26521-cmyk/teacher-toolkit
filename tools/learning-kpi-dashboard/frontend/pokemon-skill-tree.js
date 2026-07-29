@@ -1890,9 +1890,18 @@ function buildNodesFromVariantTree(variantTree, role) {
   var nodes = [];
   var tierMap = { T1: 1, T2: 2, T3: 3, T4: 4, T5: 5 };
   var prevNames = [];
+  var FALLBACK_MOVES = {
+    ATK: ["撞擊", "電光一閃", "劈開", "捨身衝撞", "終極衝擊"],
+    SPA: ["覺醒力量", "高速星星", "巨聲", "破壞光線"],
+    BUF: ["叫聲", "影子分身", "劍舞", "替身", "睡覺"],
+    DIS: ["瞪眼", "吼叫", "清除之煙", "滅亡之歌"]
+  };
   for (var i = 0; i < tierKeys.length; i++) {
     var t = tierKeys[i];
     var move = variantTree[roleKey] ? variantTree[roleKey][t] : null;
+    if (!move && FALLBACK_MOVES[role] && FALLBACK_MOVES[role][i]) {
+      move = FALLBACK_MOVES[role][i];
+    }
     if (move) {
       var prereqs = prevNames.length > 0 ? [prevNames[prevNames.length - 1]] : [];
       nodes.push({ tier: tierMap[t], name: move, spCost: tierMap[t], prereqs: prereqs });
@@ -1903,16 +1912,38 @@ function buildNodesFromVariantTree(variantTree, role) {
 }
 
 function buildUltNodes(variantTree, pokemon, types) {
-  var ultVariant = selectUltVariant(pokemon, (types && types[0]) || pokemon.primaryType, "物理強攻型");
+  var primaryType = (types && types[0]) || pokemon.primaryType || "一般";
+  var variantName = pokemon && pokemon.baseName && TYPE_SPEC_V2[primaryType]
+    ? selectVariant(pokemon) : "物理強攻型";
+  var ultVariant = selectUltVariant(pokemon, primaryType, variantName || "物理強攻型");
+  var ULT_TIER_MOVES = {
+    "一般": { T1: "撞擊", T2: "高速星星", T3: "巨聲", T4: "捨身衝撞" },
+    "火":   { T1: "火花", T2: "噴射火焰", T3: "大字爆", T4: "熱風" },
+    "水":   { T1: "水槍", T2: "水之波動", T3: "衝浪", T4: "水炮" },
+    "草":   { T1: "藤鞭", T2: "魔法葉", T3: "能量球", T4: "飛葉風暴" },
+    "電":   { T1: "電擊", T2: "十萬伏特", T3: "打雷", T4: "伏特交換" },
+    "冰":   { T1: "冰凍之風", T2: "冰凍光束", T3: "暴風雪", T4: "冰柱墜擊" },
+    "格鬥": { T1: "碎岩", T2: "空手劈", T3: "十字劈", T4: "近身戰" },
+    "毒":   { T1: "溶解液", T2: "污泥炸彈", T3: "污泥波", T4: "毒液衝擊" },
+    "地面": { T1: "潑沙", T2: "重踏", T3: "挖洞", T4: "地震" },
+    "飛行": { T1: "啄", T2: "翅膀攻擊", T3: "燕返", T4: "勇鳥猛攻" },
+    "超能力": { T1: "念力", T2: "幻象光線", T3: "精神強念", T4: "預知未來" },
+    "蟲":   { T1: "連斬", T2: "蟲咬", T3: "十字剪", T4: "急速折返" },
+    "岩石": { T1: "落石", T2: "岩石封鎖", T3: "岩崩", T4: "尖石攻擊" },
+    "幽靈": { T1: "暗影拳", T2: "暗影爪", T3: "暗影球", T4: "禍不單行" },
+    "龍":   { T1: "龍息", T2: "龍之波動", T3: "龍之俯衝", T4: "逆鱗" },
+    "惡":   { T1: "咬住", T2: "出奇一擊", T3: "咬碎", T4: "暗襲要害" },
+    "鋼":   { T1: "金屬爪", T2: "鐵頭", T3: "彗星拳", T4: "重磅衝撞" },
+    "妖精": { T1: "妖精之風", T2: "魅惑之聲", T3: "月亮之力", T4: "魔法閃耀" }
+  };
+  var typeMoves = ULT_TIER_MOVES[primaryType] || ULT_TIER_MOVES["一般"];
   var nodes = [];
-  nodes.push({ tier: 1, name: "高速星星", spCost: 1, prereqs: [] });
-  nodes.push({ tier: 2, name: "覺醒力量", spCost: 2, prereqs: ["高速星星"] });
-  var t3Move = "泰山壓頂";
-  var t4Move = "地球上投";
+  nodes.push({ tier: 1, name: typeMoves.T1, spCost: 1, prereqs: [] });
+  nodes.push({ tier: 2, name: typeMoves.T2, spCost: 2, prereqs: [typeMoves.T1] });
+  nodes.push({ tier: 3, name: typeMoves.T3, spCost: 3, prereqs: [typeMoves.T2] });
+  nodes.push({ tier: 4, name: typeMoves.T4, spCost: 4, prereqs: [typeMoves.T3] });
   var t5Move = ultVariant.t5Name || "終極衝擊";
-  nodes.push({ tier: 3, name: t3Move, spCost: 3, prereqs: ["覺醒力量"] });
-  nodes.push({ tier: 4, name: t4Move, spCost: 4, prereqs: [t3Move] });
-  nodes.push({ tier: 5, name: t5Move, spCost: 5, prereqs: [t4Move] });
+  nodes.push({ tier: 5, name: t5Move, spCost: 5, prereqs: [typeMoves.T4] });
   return nodes;
 }
 
