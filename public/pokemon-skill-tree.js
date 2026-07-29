@@ -2101,7 +2101,6 @@ function selectByVariantAffinity(signature, variant) {
   if (!signature || signature.length === 0) return null;
   if (signature.length === 1) return signature[0];
   if (!variant) return signature[0];
-  // 用變體名稱做確定性分散：依據角色權重（preferredStats）或名稱 hash
   var seed = 0;
   if (variant.preferredStats) {
     seed = Math.round((variant.preferredStats.ATK || 1.0) * 100) ^
