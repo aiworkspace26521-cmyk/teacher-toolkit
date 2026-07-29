@@ -51,6 +51,21 @@ jobs:
       - name: Run EVO_STAGE_MAP chain audit
         run: node tools/learning-kpi-dashboard/test/evo-stage-audit.js
 
+  variant-validation:
+    name: Variant Validation (Phase 7)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - name: Run variant diversity test
+        run: node test/variant-diversity-test.js
+      - name: Run T5 fallback test
+        run: node test/t5-fallback-test.js
+      - name: Run variant consistency test
+        run: node test/variant-consistency-test.js
+
   e2e-smoke:
     name: E2E Smoke Tests
     runs-on: ubuntu-latest
