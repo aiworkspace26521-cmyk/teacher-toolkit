@@ -1890,18 +1890,9 @@ function buildNodesFromVariantTree(variantTree, role) {
   var nodes = [];
   var tierMap = { T1: 1, T2: 2, T3: 3, T4: 4, T5: 5 };
   var prevNames = [];
-  var FALLBACK_MOVES = {
-    ATK: ["撞擊", "電光一閃", "劈開", "捨身衝撞", "終極衝擊"],
-    SPA: ["覺醒力量", "高速星星", "巨聲", "破壞光線"],
-    BUF: ["叫聲", "影子分身", "劍舞", "替身", "睡覺"],
-    DIS: ["瞪眼", "吼叫", "清除之煙", "滅亡之歌"]
-  };
   for (var i = 0; i < tierKeys.length; i++) {
     var t = tierKeys[i];
     var move = variantTree[roleKey] ? variantTree[roleKey][t] : null;
-    if (!move && FALLBACK_MOVES[role] && FALLBACK_MOVES[role][i]) {
-      move = FALLBACK_MOVES[role][i];
-    }
     if (move) {
       var prereqs = prevNames.length > 0 ? [prevNames[prevNames.length - 1]] : [];
       nodes.push({ tier: tierMap[t], name: move, spCost: tierMap[t], prereqs: prereqs });
@@ -1937,13 +1928,20 @@ function buildUltNodes(variantTree, pokemon, types) {
     "妖精": { T1: "妖精之風", T2: "魅惑之聲", T3: "月亮之力", T4: "魔法閃耀" }
   };
   var typeMoves = ULT_TIER_MOVES[primaryType] || ULT_TIER_MOVES["一般"];
+  var preferredRole = (variantTree && variantTree.spa) ? "spa" : "atk";
   var nodes = [];
-  nodes.push({ tier: 1, name: typeMoves.T1, spCost: 1, prereqs: [] });
-  nodes.push({ tier: 2, name: typeMoves.T2, spCost: 2, prereqs: [typeMoves.T1] });
-  nodes.push({ tier: 3, name: typeMoves.T3, spCost: 3, prereqs: [typeMoves.T2] });
-  nodes.push({ tier: 4, name: typeMoves.T4, spCost: 4, prereqs: [typeMoves.T3] });
+  var lastMove = null;
+  for (var ui = 1; ui <= 4; ui++) {
+    var tierKey = "T" + ui;
+    var moveName = variantTree && variantTree[preferredRole] && variantTree[preferredRole][tierKey]
+      ? variantTree[preferredRole][tierKey]
+      : typeMoves[tierKey];
+    var prereqs = lastMove ? [lastMove] : [];
+    nodes.push({ tier: ui, name: moveName, spCost: ui, prereqs: prereqs });
+    lastMove = moveName;
+  }
   var t5Move = ultVariant.t5Name || "終極衝擊";
-  nodes.push({ tier: 5, name: t5Move, spCost: 5, prereqs: [typeMoves.T4] });
+  nodes.push({ tier: 5, name: t5Move, spCost: 5, prereqs: [lastMove] });
   return nodes;
 }
 

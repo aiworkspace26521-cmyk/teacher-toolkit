@@ -1262,7 +1262,6 @@ async function recalculateStudentState(studentId, events) {
         }
         state.roster[pid8].learnedMoves = {};
       }
-      state.memoryCapsules = Math.max(0, (state.memoryCapsules||0) - 1);
     }
     var currentIterLevel = 5;
     for (var k3 in state.roster) { var l = calcLevelAndExp(state.roster[k3].totalExp, state.roster[k3].initialLevel).level; if (l > currentIterLevel) currentIterLevel = l; }
@@ -1287,12 +1286,12 @@ async function recalculateStudentState(studentId, events) {
     }
     p.skillPoints = Math.max(0, p.totalSpEarned - investedSp);
     // 進化階段決定技能樹最高可用階層
-    p.maxTreeTier = p.evoStage >= 2 ? 5 : (p.evoStage >= 1 ? 4 : 3);
+    p.maxTreeTier = (p.evoStage >= 2 || (p.evoStage >= 1 && FINAL_FORM_SET[p.baseName])) ? 5 : (p.evoStage >= 1 ? 4 : 3);
     if (typeof EVO_STAGE_MAP !== "undefined") {
       var rawName = p.baseName.replace(/^[^\w\u4e00-\u9fff]+\s*/u,"").replace(/\s*\([^)]*\).*$/,"");
       var mapStage = EVO_STAGE_MAP[rawName];
       if (mapStage !== undefined) p.evoStage = mapStage;
-      p.maxTreeTier = p.evoStage >= 2 ? 5 : (p.evoStage >= 1 ? 4 : 3);
+      p.maxTreeTier = (p.evoStage >= 2 || (p.evoStage >= 1 && FINAL_FORM_SET[p.baseName])) ? 5 : (p.evoStage >= 1 ? 4 : 3);
     }
     // 合併親密度到 roster
     if (happinessToday[p.id]) {
@@ -2241,7 +2240,29 @@ var EVO_STAGE_MAP = (function(){
   m["黑夜魔靈"] = 2;
   m["羅絲雷朵"] = 2;
   m["劈斧螳螂"] = 2;
+  m["幸福蛋"] = 2;
+  // 拉魯拉絲→奇魯莉安→沙奈朵/艾路雷朵: 艾路雷朵 is stage 2 (split from line 2237)
+  // 雷丘: 皮丘→皮卡丘→雷丘, chain idx 2 → stage 2
+  m["雷丘"] = 2;
+  m["阿羅拉雷丘"] = 2;
   return m;
+})();
+var FINAL_FORM_SET = (function(){
+  var s = {};
+  for (var t in POKEMON_TIERS) {
+    for (var i = 0; i < POKEMON_TIERS[t].length; i++) {
+      var pf = POKEMON_TIERS[t][i];
+      s[pf.name] = true;
+    }
+  }
+  // remove any species that has evolutions → they're not final
+  for (var t in POKEMON_TIERS) {
+    for (var i = 0; i < POKEMON_TIERS[t].length; i++) {
+      var pf = POKEMON_TIERS[t][i];
+      if (pf.evolutions || pf.eevee) { delete s[pf.name]; }
+    }
+  }
+  return s;
 })();
 // GYM LEADERS — 8 地區 × 4 館主 = 32 道館 (VER2.2)
 var GYM_LEADERS = [
@@ -7873,7 +7894,7 @@ async function buyItem(itemId, cost, itemName) {
     else if (itemId === "maxPotion") globalData.maxPotions = (globalData.maxPotions || 0) + 1;
     else if (itemId === "maxRevive") globalData.maxRevives = (globalData.maxRevives || 0) + 1;
     else if (itemId === "oranBerry") globalData.oranBerries = (globalData.oranBerries || 0) + 1;
-    else if (itemId === "memoryCapsule") globalData.memoryCapsules = (globalData.memoryCapsules || 0) + 1;
+    else if (itemId === "memoryCapsule") { /* count handled by event replay */ }
     else if (itemId === "cheriBerry") globalData.cheriBerries = (globalData.cheriBerries || 0) + 1;
     else if (itemId === "lumBerry") globalData.lumBerries = (globalData.lumBerries || 0) + 1;
     else if (itemId === "chilanBerry") globalData.chilanBerries = (globalData.chilanBerries || 0) + 1;
@@ -9302,14 +9323,13 @@ function renderSkillTree() {
     for (var sk in pkmn.skillTree) { if (pkmn.skillTree[sk]) investedSp += (pkmn.skillTree[sk].sp || 0); }
   }
   var maxTier = pkmn.maxTreeTier || 3;
-  if (_skillTreeActiveTab === "ult") maxTier = 5;
   var treeVariant = tree.variant || "";
   var maxFp = typeof calcMaxFp !== "undefined" ? calcMaxFp(pkmn.currentLevel || pkmn.level || 5) : 0;
 
   var headerName = "🌳 <strong>" + pkmn.baseName + "</strong>";
-  headerName += " <button class='st-sp-btn' style='background:#95a5a6;color:white;font-size:11px;padding:1px 8px;margin-left:4px;' onclick='sfx.click();openSkillTreePkmnSelector()'>🔄 切換</button>";
   if (treeVariant) headerName += " <span class='st-variant-name'>· " + treeVariant + "</span>";
   headerName += " Lv." + (pkmn.currentLevel || 5) + " | 階層上限: T" + maxTier;
+  headerName += " <button class='st-sp-btn' style='background:#95a5a6;color:white;font-size:11px;padding:1px 8px;margin-left:4px;' onclick='sfx.click();openSkillTreePkmnSelector()'>🔄 切換</button>";
   $("skillTreeHeader").innerHTML = headerName;
   $("stSpAmount").innerHTML = sp;
   $("stTotalSpDisplay").innerHTML = " | 已獲: " + totalSp;
@@ -9677,7 +9697,7 @@ function learnSkillTreeNode(nodeName) {
   var types = (typeof POKEMON_SPECIES_TYPES !== "undefined") ? POKEMON_SPECIES_TYPES[pkmn.baseName] : ["一般"];
   var atkStat = pkmn.atk || 50;
   var spaStat = pkmn.spatk || 50;
-  var treeData = typeof getSkillTree !== "undefined" ? getSkillTree(pkmn.baseName, types, atkStat, spaStat) : null;
+  var treeData = typeof getSkillTree !== "undefined" ? getSkillTree(pkmn.baseName, types, atkStat, spaStat, pkmn) : null;
   var treeTypes = ["atk","spa","buf","dis","ult"];
   var treeNode = null;
   for (var ti = 0; ti < treeTypes.length; ti++) {
