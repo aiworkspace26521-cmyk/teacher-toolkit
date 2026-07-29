@@ -1262,6 +1262,7 @@ async function recalculateStudentState(studentId, events) {
         }
         state.roster[pid8].learnedMoves = {};
       }
+      state.memoryCapsules = Math.max(0, (state.memoryCapsules||0) - 1);
     }
     var currentIterLevel = 5;
     for (var k3 in state.roster) { var l = calcLevelAndExp(state.roster[k3].totalExp, state.roster[k3].initialLevel).level; if (l > currentIterLevel) currentIterLevel = l; }
@@ -9301,12 +9302,14 @@ function renderSkillTree() {
     for (var sk in pkmn.skillTree) { if (pkmn.skillTree[sk]) investedSp += (pkmn.skillTree[sk].sp || 0); }
   }
   var maxTier = pkmn.maxTreeTier || 3;
+  if (_skillTreeActiveTab === "ult") maxTier = 5;
   var treeVariant = tree.variant || "";
   var maxFp = typeof calcMaxFp !== "undefined" ? calcMaxFp(pkmn.currentLevel || pkmn.level || 5) : 0;
 
   var headerName = "🌳 <strong>" + pkmn.baseName + "</strong>";
   if (treeVariant) headerName += " <span class='st-variant-name'>· " + treeVariant + "</span>";
   headerName += " Lv." + (pkmn.currentLevel || 5) + " | 階層上限: T" + maxTier;
+  headerName += " <button class='st-sp-btn' style='background:#95a5a6;color:white;font-size:11px;padding:1px 8px;margin-left:6px;' onclick='sfx.click();openSkillTreePkmnSelector()'>🔄 切換</button>";
   $("skillTreeHeader").innerHTML = headerName;
   $("stSpAmount").innerHTML = sp;
   $("stTotalSpDisplay").innerHTML = " | 已獲: " + totalSp;
@@ -9481,7 +9484,6 @@ function renderSkillTree() {
     canvasHtml += "<button class='st-sp-btn' style='background:#27ae60;color:white;flex:1;' onclick='sfx.click();allocateSp(\"" + _skillTreeActiveTab + "\")'>⬆ 投入 1 SP</button>";
   }
   canvasHtml += "<button class='st-sp-btn' style='background:#3498db;color:white;flex:1;' onclick='sfx.click();allocateSpBulk(\"" + _skillTreeActiveTab + "\")'>⬆⬆ 最大投入</button>";
-  canvasHtml += "<button class='st-sp-btn' style='background:#95a5a6;color:white;' onclick='sfx.click();openSkillTreePkmnSelector()'>🔄 切換</button>";
   canvasHtml += "</div>";
   if (!canAllocate && sp > 0 && currentTierVal >= 5) {
     canvasHtml += "<div style='font-size:12px;color:#27ae60;text-align:center;margin-top:6px;'>✅ 此系已達最高階層 T5</div>";

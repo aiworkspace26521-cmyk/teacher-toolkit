@@ -559,6 +559,7 @@ async function recalculateStudentState(studentId) {
           }
           state.roster[pid8].learnedMoves = {};
         }
+        state.memoryCapsules = Math.max(0, (state.memoryCapsules||0) - 1);
       }
 
     let currentIterLevel = 5;
