@@ -24,6 +24,1477 @@ var ULT_MOVE_RENAME = {
   "打雷": "萬雷轟"
 };
 
+var TYPE_SPEC_V2 = {
+"一般": {
+    theme: "萬能中庸，招式樸素直接",
+    UNIVERSAL_MOVES: {},
+    VARIANTS: {
+      "物理強攻型": {
+        theme: "高物攻、壓制",
+        preferredStats: { ATK: 1.2, SPA: 0.8, SPD: 1.0, DEF: 1.0 },
+        ultMapping: "A",
+        tiers: {
+          T1: { ATK: ["撞擊"], SPA: ["覺醒力量"], BUF: ["變硬"], DIS: ["叫聲"] },
+          T2: { ATK: ["泰山壓頂"], SPA: ["高速星星"], BUF: ["影子分身"], DIS: ["瞪眼"] },
+          T3: { ATK: ["劈開"], SPA: [], BUF: ["劍舞"], DIS: ["清除之煙"] },
+          T4: { ATK: ["捨身衝撞"], SPA: ["巨聲"], BUF: ["替身"], DIS: ["吼叫"] },
+          T5: { ATK: ["終極衝擊"], SPA: [], BUF: ["腹鼓"], DIS: [] }
+        }
+      },
+      "特攻轟炸型": {
+        theme: "高特攻、轟炸",
+        preferredStats: { ATK: 0.8, SPA: 1.2, SPD: 1.0, DEF: 1.0 },
+        ultMapping: "B",
+        tiers: {
+          T1: { ATK: [], SPA: ["高速星星"], BUF: ["叫聲"], DIS: ["瞪眼"] },
+          T2: { ATK: ["摔打"], SPA: ["巨聲"], BUF: ["高速移動"], DIS: [] },
+          T3: { ATK: [], SPA: ["三角攻擊"], BUF: ["冥想"], DIS: ["怪異之光"] },
+          T4: { ATK: [], SPA: ["破壞光線"], BUF: ["替身"], DIS: ["電磁波"] },
+          T5: { ATK: [], SPA: ["破壞光線"], BUF: ["睡覺"], DIS: [] }
+        }
+      },
+      "速攻擾亂型": {
+        theme: "先制、速度壓制",
+        preferredStats: { ATK: 1.0, SPA: 1.0, SPD: 1.3, DEF: 1.0 },
+        ultMapping: "C",
+        tiers: {
+          T1: { ATK: ["電光一閃"], SPA: [], BUF: ["搖尾巴"], DIS: ["瞪眼"] },
+          T2: { ATK: ["摔打"], SPA: ["高速星星"], BUF: ["高速移動"], DIS: ["清除之煙"] },
+          T3: { ATK: ["劈開"], SPA: [], BUF: ["替身"], DIS: ["黑霧"] },
+          T4: { ATK: ["捨身衝撞"], SPA: [], BUF: ["守住"], DIS: ["吼叫"] },
+          T5: { ATK: ["終極衝擊"], SPA: [], BUF: ["睡覺"], DIS: [] }
+        }
+      },
+      "防禦回復型": {
+        theme: "坦克、續航",
+        preferredStats: { ATK: 1.0, SPA: 1.0, SPD: 1.0, DEF: 1.3 },
+        ultMapping: "D",
+        tiers: {
+          T1: { ATK: [], SPA: [], BUF: ["變硬"], DIS: ["叫聲"] },
+          T2: { ATK: ["摔打"], SPA: ["高速星星"], BUF: ["鐵壁"], DIS: [] },
+          T3: { ATK: [], SPA: ["巨聲"], BUF: ["瞬間失憶"], DIS: ["劇毒"] },
+          T4: { ATK: ["泰山壓頂"], SPA: ["破壞光線"], BUF: ["替身"], DIS: ["吹飛"] },
+          T5: { ATK: [], SPA: [], BUF: ["睡覺"], DIS: ["滅亡之歌"] }
+        }
+      },
+      "雙刀均衡型": {
+        theme: "靈活、適應",
+        preferredStats: { ATK: 1.1, SPA: 1.1, SPD: 1.0, DEF: 1.0 },
+        ultMapping: "C",
+        tiers: {
+          T1: { ATK: ["撞擊"], SPA: ["高速星星"], BUF: ["搖尾巴"], DIS: ["瞪眼"] },
+          T2: { ATK: ["電光一閃"], SPA: ["巨聲"], BUF: ["影子分身"], DIS: [] },
+          T3: { ATK: ["摔打"], SPA: [], BUF: ["劍舞"], DIS: ["黑霧"] },
+          T4: { ATK: ["捨身衝撞"], SPA: ["破壞光線"], BUF: ["替身"], DIS: ["吼叫"] },
+          T5: { ATK: ["終極衝擊"], SPA: [], BUF: ["腹鼓"], DIS: [] }
+        }
+      }
+    }
+  },
+
+  "火": {
+    theme: "高攻擊、燃燒特化、天氣主導",
+    UNIVERSAL_MOVES: {},
+    VARIANTS: {
+      "物理猛攻型": {
+        theme: "物攻壓制、燃燒附帶",
+        preferredStats: { ATK: 1.2, SPA: 0.8, SPD: 1.0, DEF: 1.0 },
+        ultMapping: "A",
+        tiers: {
+          T1: { ATK: ["火花"], SPA: ["叫聲"], BUF: ["叫聲"], DIS: [] },
+          T2: { ATK: ["火焰拳"], SPA: ["魔法火焰"], BUF: ["影子分身"], DIS: ["煙幕"] },
+          T3: { ATK: ["火焰踢"], SPA: [], BUF: ["劍舞"], DIS: [] },
+          T4: { ATK: ["閃焰衝鋒"], SPA: ["大字爆"], BUF: ["大晴天"], DIS: ["鬼火"] },
+          T5: { ATK: ["V熱焰"], SPA: [], BUF: ["腹鼓"], DIS: [] }
+        }
+      },
+      "特攻轟炸型": {
+        theme: "特攻轟炸、範圍",
+        preferredStats: { ATK: 0.8, SPA: 1.2, SPD: 1.0, DEF: 1.0 },
+        ultMapping: "B",
+        tiers: {
+          T1: { ATK: ["火花"], SPA: ["火花"], BUF: ["搖尾巴"], DIS: [] },
+          T2: { ATK: [], SPA: ["噴射火焰"], BUF: ["高速移動"], DIS: ["火焰旋渦"] },
+          T3: { ATK: ["火焰拳"], SPA: ["大字爆"], BUF: ["冥想"], DIS: ["怪異之光"] },
+          T4: { ATK: [], SPA: ["熱風"], BUF: ["守住"], DIS: ["清除之煙"] },
+          T5: { ATK: [], SPA: ["焚焰放射"], BUF: ["睡覺"], DIS: ["滅亡之歌"] }
+        }
+      },
+      "速攻燃燒型": {
+        theme: "速度壓制、先制",
+        preferredStats: { ATK: 1.0, SPA: 1.0, SPD: 1.3, DEF: 1.0 },
+        ultMapping: "C",
+        tiers: {
+          T1: { ATK: ["火花"], SPA: [], BUF: ["瞪眼"], DIS: [] },
+          T2: { ATK: ["火焰牙"], SPA: ["魔法火焰"], BUF: ["高速移動"], DIS: ["吼叫"] },
+          T3: { ATK: ["閃焰衝鋒"], SPA: [], BUF: ["替身"], DIS: ["鬼火"] },
+          T4: { ATK: ["雷電牙"], SPA: ["大字爆"], BUF: ["守住"], DIS: ["吹飛"] },
+          T5: { ATK: ["終極衝擊"], SPA: [], BUF: ["睡覺"], DIS: [] }
+        }
+      },
+      "防禦反擊型": {
+        theme: "坦克、反傷",
+        preferredStats: { ATK: 1.0, SPA: 1.0, SPD: 1.0, DEF: 1.3 },
+        ultMapping: "A",
+        tiers: {
+          T1: { ATK: ["火花"], SPA: ["火花"], BUF: ["變硬"], DIS: [] },
+          T2: { ATK: ["火焰拳"], SPA: ["魔法火焰"], BUF: ["鐵壁"], DIS: ["煙幕"] },
+          T3: { ATK: [], SPA: ["噴射火焰"], BUF: ["健美"], DIS: ["清除之煙"] },
+          T4: { ATK: ["泰山壓頂"], SPA: ["大字爆"], BUF: ["守住"], DIS: ["鬼火"] },
+          T5: { ATK: ["大爆炸"], SPA: [], BUF: ["睡覺"], DIS: ["滅亡之歌"] }
+        }
+      },
+      "雙刀混合型": {
+        theme: "靈活、全方面",
+        preferredStats: { ATK: 1.1, SPA: 1.1, SPD: 1.0, DEF: 1.0 },
+        ultMapping: "C",
+        tiers: {
+          T1: { ATK: ["火花"], SPA: ["火花"], BUF: ["叫聲"], DIS: [] },
+          T2: { ATK: ["火焰拳"], SPA: ["噴射火焰"], BUF: ["影子分身"], DIS: ["煙幕"] },
+          T3: { ATK: ["火焰踢"], SPA: ["大字爆"], BUF: ["劍舞"], DIS: [] },
+          T4: { ATK: ["閃焰衝鋒"], SPA: ["熱風"], BUF: ["替身"], DIS: ["吼叫"] },
+          T5: { ATK: ["V熱焰"], SPA: [], BUF: ["腹鼓"], DIS: [] }
+        }
+      },
+      "天氣主導型": {
+        theme: "晴天戰術、日照加成",
+        preferredStats: { ATK: 1.0, SPA: 1.0, SPD: 1.0, DEF: 1.0 },
+        ultMapping: "D",
+        tiers: {
+          T1: { ATK: [], SPA: ["火花"], BUF: ["叫聲"], DIS: [] },
+          T2: { ATK: ["火焰牙"], SPA: ["噴射火焰"], BUF: ["大晴天"], DIS: ["火焰旋渦"] },
+          T3: { ATK: [], SPA: ["大字爆"], BUF: ["替身"], DIS: ["鬼火"] },
+          T4: { ATK: [], SPA: ["熱風"], BUF: ["守住"], DIS: ["吹飛"] },
+          T5: { ATK: ["終極衝擊"], SPA: ["滅世爆焰"], BUF: ["睡覺"], DIS: [] }
+        }
+      },
+      "干擾消耗型": {
+        theme: "燃燒、混亂疊加",
+        preferredStats: { ATK: 1.0, SPA: 1.0, SPD: 1.0, DEF: 1.0 },
+        ultMapping: "E",
+        tiers: {
+          T1: { ATK: [], SPA: ["火花"], BUF: [], DIS: ["煙幕"] },
+          T2: { ATK: [], SPA: ["噴射火焰"], BUF: ["替身"], DIS: ["鬼火"] },
+          T3: { ATK: ["火焰拳"], SPA: ["大字爆"], BUF: [], DIS: ["怪異之光"] },
+          T4: { ATK: [], SPA: ["熱風"], BUF: ["守住"], DIS: ["清除之煙"] },
+          T5: { ATK: [], SPA: ["破壞光線"], BUF: ["睡覺"], DIS: ["滅亡之歌"] }
+        }
+      }
+    }
+  },
+
+  "水": {
+    theme: "防禦回復、潮濕干擾、天氣輔助",
+    UNIVERSAL_MOVES: {},
+    VARIANTS: {
+      "物理強攻型": {
+        theme: "物攻壓制、冰牙輔助",
+        preferredStats: { ATK: 1.2, SPA: 0.8, SPD: 1.0, DEF: 1.0 },
+        ultMapping: "A",
+        tiers: {
+          T1: { ATK: ["水槍"], SPA: [], BUF: ["叫聲"], DIS: ["瞪眼"] },
+          T2: { ATK: ["噴射拳"], SPA: ["水之波動"], BUF: ["龍之舞"], DIS: [] },
+          T3: { ATK: ["攀瀑"], SPA: [], BUF: ["劍舞"], DIS: [] },
+          T4: { ATK: ["水之尾"], SPA: ["衝浪"], BUF: ["鐵壁"], DIS: ["冰凍牙"] },
+          T5: { ATK: ["終極衝擊"], SPA: [], BUF: ["腹鼓"], DIS: [] }
+        }
+      },
+      "特攻壓制型": {
+        theme: "特攻轟炸、續航",
+        preferredStats: { ATK: 0.8, SPA: 1.2, SPD: 1.0, DEF: 1.0 },
+        ultMapping: "B",
+        tiers: {
+          T1: { ATK: [], SPA: ["水槍"], BUF: ["搖尾巴"], DIS: ["叫聲"] },
+          T2: { ATK: [], SPA: ["水之波動"], BUF: ["影子分身"], DIS: ["黑霧"] },
+          T3: { ATK: [], SPA: ["熱水"], BUF: ["冥想"], DIS: ["浸水"] },
+          T4: { ATK: ["摔打"], SPA: ["水炮"], BUF: ["瞬間失憶"], DIS: [] },
+          T5: { ATK: [], SPA: ["衝浪"], BUF: ["睡覺"], DIS: ["滅亡之歌"] }
+        }
+      },
+      "速攻擾亂型": {
+        theme: "先制、變化",
+        preferredStats: { ATK: 1.0, SPA: 1.0, SPD: 1.3, DEF: 1.0 },
+        ultMapping: "C",
+        tiers: {
+          T1: { ATK: ["水槍"], SPA: ["水槍"], BUF: [], DIS: ["叫聲"] },
+          T2: { ATK: ["噴射拳"], SPA: ["水之波動"], BUF: ["高速移動"], DIS: ["玩水"] },
+          T3: { ATK: [], SPA: ["熱水"], BUF: ["替身"], DIS: [] },
+          T4: { ATK: ["水之尾"], SPA: ["衝浪"], BUF: ["守住"], DIS: ["吹飛"] },
+          T5: { ATK: ["終極衝擊"], SPA: [], BUF: ["睡覺"], DIS: [] }
+        }
+      },
+      "防禦坦克型": {
+        theme: "鐵壁、回復",
+        preferredStats: { ATK: 1.0, SPA: 1.0, SPD: 1.0, DEF: 1.3 },
+        ultMapping: "A",
+        tiers: {
+          T1: { ATK: [], SPA: ["水槍"], BUF: ["縮入殼中"], DIS: ["叫聲"] },
+          T2: { ATK: ["泰山壓頂"], SPA: ["水之波動"], BUF: ["鐵壁"], DIS: ["玩水"] },
+          T3: { ATK: [], SPA: ["熱水"], BUF: ["瞬間失憶"], DIS: [] },
+          T4: { ATK: ["捨身衝撞"], SPA: ["水炮"], BUF: ["水流環"], DIS: ["劇毒"] },
+          T5: { ATK: [], SPA: [], BUF: ["睡覺"], DIS: ["滅亡之歌"] }
+        }
+      },
+      "雙刀技巧型": {
+        theme: "靈活、適應",
+        preferredStats: { ATK: 1.1, SPA: 1.1, SPD: 1.0, DEF: 1.0 },
+        ultMapping: "C",
+        tiers: {
+          T1: { ATK: ["水槍"], SPA: ["水槍"], BUF: ["叫聲"], DIS: ["瞪眼"] },
+          T2: { ATK: ["噴射拳"], SPA: ["水之波動"], BUF: ["劍舞"], DIS: [] },
+          T3: { ATK: ["攀瀑"], SPA: ["濁流"], BUF: ["替身"], DIS: [] },
+          T4: { ATK: ["水之尾"], SPA: ["衝浪"], BUF: ["守住"], DIS: ["吼叫"] },
+          T5: { ATK: ["終極衝擊"], SPA: ["水炮"], BUF: ["睡覺"], DIS: [] }
+        }
+      }
+    }
+  },
+
+  "草": {
+    theme: "回復續航、粉末干擾、天氣主導",
+    UNIVERSAL_MOVES: {},
+    VARIANTS: {
+      "物理強攻型": {
+        theme: "木角、物攻壓制",
+        preferredStats: { ATK: 1.2, SPA: 0.8, SPD: 1.0, DEF: 1.0 },
+        ultMapping: "A",
+        tiers: {
+          T1: { ATK: ["藤鞭"], SPA: [], BUF: ["叫聲"], DIS: [] },
+          T2: { ATK: ["飛葉快刀"], SPA: ["能量球"], BUF: ["生長"], DIS: ["麻痺粉"] },
+          T3: { ATK: ["木角"], SPA: [], BUF: ["劍舞"], DIS: [] },
+          T4: { ATK: ["日光刃"], SPA: ["日光束"], BUF: ["替身"], DIS: ["吼叫"] },
+          T5: { ATK: ["木槌"], SPA: [], BUF: ["腹鼓"], DIS: [] }
+        }
+      },
+      "特攻消耗型": {
+        theme: "特攻轟炸、持續傷",
+        preferredStats: { ATK: 0.8, SPA: 1.2, SPD: 1.0, DEF: 1.0 },
+        ultMapping: "B",
+        tiers: {
+          T1: { ATK: [], SPA: ["藤鞭"], BUF: ["叫聲"], DIS: ["毒粉"] },
+          T2: { ATK: [], SPA: ["魔法葉"], BUF: ["生長"], DIS: ["麻痺粉"] },
+          T3: { ATK: ["種子炸彈"], SPA: ["能量球"], BUF: ["光合作用"], DIS: ["寄生種子"] },
+          T4: { ATK: [], SPA: ["飛葉風暴"], BUF: ["芳香治療"], DIS: ["清除之煙"] },
+          T5: { ATK: [], SPA: ["萬葉裁決"], BUF: ["睡覺"], DIS: [] }
+        }
+      },
+      "回復續航型": {
+        theme: "光合治療、坦克",
+        preferredStats: { ATK: 1.0, SPA: 1.0, SPD: 1.0, DEF: 1.3 },
+        ultMapping: "B",
+        tiers: {
+          T1: { ATK: [], SPA: ["藤鞭"], BUF: ["叫聲"], DIS: ["毒粉"] },
+          T2: { ATK: [], SPA: ["魔法葉"], BUF: ["生長"], DIS: ["睡眠粉"] },
+          T3: { ATK: ["木角"], SPA: ["能量球"], BUF: ["光合作用"], DIS: ["寄生種子"] },
+          T4: { ATK: [], SPA: ["日光束"], BUF: ["替身"], DIS: ["吼叫"] },
+          T5: { ATK: [], SPA: [], BUF: ["睡覺"], DIS: ["滅亡之歌"] }
+        }
+      },
+      "粉末干擾型": {
+        theme: "睡眠、毒粉控制",
+        preferredStats: { ATK: 1.0, SPA: 1.0, SPD: 1.3, DEF: 1.0 },
+        ultMapping: "C",
+        tiers: {
+          T1: { ATK: ["藤鞭"], SPA: [], BUF: [], DIS: ["毒粉"] },
+          T2: { ATK: [], SPA: ["魔法葉"], BUF: ["影子分身"], DIS: ["麻痺粉"] },
+          T3: { ATK: ["種子炸彈"], SPA: ["能量球"], BUF: ["替身"], DIS: ["睡眠粉"] },
+          T4: { ATK: ["木槌"], SPA: [], BUF: ["守住"], DIS: ["清除之煙"] },
+          T5: { ATK: [], SPA: ["破壞光線"], BUF: ["睡覺"], DIS: [] }
+        }
+      },
+      "天氣加速型": {
+        theme: "晴天、日光束戰術",
+        preferredStats: { ATK: 1.0, SPA: 1.0, SPD: 1.0, DEF: 1.0 },
+        ultMapping: "A",
+        tiers: {
+          T1: { ATK: ["藤鞭"], SPA: [], BUF: ["叫聲"], DIS: [] },
+          T2: { ATK: ["飛葉快刀"], SPA: ["能量球"], BUF: ["高速移動"], DIS: ["麻痺粉"] },
+          T3: { ATK: ["種子炸彈"], SPA: ["打草結"], BUF: ["大晴天"], DIS: [] },
+          T4: { ATK: ["日光刃"], SPA: ["飛葉風暴"], BUF: ["替身"], DIS: ["吼叫"] },
+          T5: { ATK: ["終極衝擊"], SPA: ["日光束"], BUF: ["腹鼓"], DIS: [] }
+        }
+      },
+      "均衡雙刀型": {
+        theme: "靈活、全方面",
+        preferredStats: { ATK: 1.1, SPA: 1.1, SPD: 1.0, DEF: 1.0 },
+        ultMapping: "C",
+        tiers: {
+          T1: { ATK: ["藤鞭"], SPA: ["藤鞭"], BUF: ["叫聲"], DIS: [] },
+          T2: { ATK: ["飛葉快刀"], SPA: ["魔法葉"], BUF: ["劍舞"], DIS: ["寄生種子"] },
+          T3: { ATK: ["木角"], SPA: ["能量球"], BUF: ["光合作用"], DIS: [] },
+          T4: { ATK: ["木槌"], SPA: ["飛葉風暴"], BUF: ["替身"], DIS: ["吼叫"] },
+          T5: { ATK: ["終極衝擊"], SPA: [], BUF: ["睡覺"], DIS: [] }
+        }
+      }
+    }
+  },
+
+  "電": {
+    theme: "速度特化、麻痺干擾、高速壓制",
+    UNIVERSAL_MOVES: {},
+    VARIANTS: {
+      "閃電強攻型": {
+        theme: "物攻壓制、電氣",
+        preferredStats: { ATK: 1.2, SPA: 0.8, SPD: 1.0, DEF: 1.0 },
+        ultMapping: "A",
+        tiers: {
+          T1: { ATK: ["電擊"], SPA: [], BUF: ["叫聲"], DIS: [] },
+          T2: { ATK: ["雷電拳"], SPA: ["電球"], BUF: ["充電"], DIS: ["電磁波"] },
+          T3: { ATK: ["瘋狂伏特"], SPA: [], BUF: ["替身"], DIS: [] },
+          T4: { ATK: ["閃電強襲"], SPA: ["打雷"], BUF: ["守住"], DIS: ["吼叫"] },
+          T5: { ATK: ["終極衝擊"], SPA: [], BUF: ["腹鼓"], DIS: [] }
+        }
+      },
+      "特攻轟炸型": {
+        theme: "特攻壓制、範圍",
+        preferredStats: { ATK: 0.8, SPA: 1.2, SPD: 1.0, DEF: 1.0 },
+        ultMapping: "B",
+        tiers: {
+          T1: { ATK: [], SPA: ["電擊"], BUF: ["搖尾巴"], DIS: [] },
+          T2: { ATK: [], SPA: ["十萬伏特"], BUF: ["高速移動"], DIS: ["電磁波"] },
+          T3: { ATK: [], SPA: ["放電"], BUF: ["充電"], DIS: ["怪異電波"] },
+          T4: { ATK: [], SPA: ["打雷"], BUF: ["替身"], DIS: [] },
+          T5: { ATK: [], SPA: ["萬雷轟"], BUF: ["睡覺"], DIS: ["滅亡之歌"] }
+        }
+      },
+      "速攻壓制型": {
+        theme: "先制、速度壓制",
+        preferredStats: { ATK: 1.0, SPA: 1.0, SPD: 1.3, DEF: 1.0 },
+        ultMapping: "C",
+        tiers: {
+          T1: { ATK: ["電擊"], SPA: ["電擊"], BUF: ["搖尾巴"], DIS: [] },
+          T2: { ATK: ["雷電拳"], SPA: ["電球"], BUF: ["高速移動"], DIS: ["電磁波"] },
+          T3: { ATK: ["瘋狂伏特"], SPA: [], BUF: ["替身"], DIS: [] },
+          T4: { ATK: ["閃電強襲"], SPA: ["伏特交換"], BUF: ["守住"], DIS: ["吼叫"] },
+          T5: { ATK: ["終極衝擊"], SPA: [], BUF: ["睡覺"], DIS: [] }
+        }
+      },
+      "麻痺干擾型": {
+        theme: "麻痺控場、消耗",
+        preferredStats: { ATK: 1.0, SPA: 1.0, SPD: 1.0, DEF: 1.0 },
+        ultMapping: "C",
+        tiers: {
+          T1: { ATK: [], SPA: ["電擊"], BUF: [], DIS: ["電磁波"] },
+          T2: { ATK: ["雷電拳"], SPA: ["電球"], BUF: ["電磁漂浮"], DIS: ["綁緊"] },
+          T3: { ATK: ["瘋狂伏特"], SPA: ["放電"], BUF: ["替身"], DIS: ["怪異電波"] },
+          T4: { ATK: [], SPA: ["打雷"], BUF: ["守住"], DIS: ["吼叫"] },
+          T5: { ATK: [], SPA: ["電磁炮"], BUF: ["睡覺"], DIS: [] }
+        }
+      },
+      "雙刀混合型": {
+        theme: "靈活、適應",
+        preferredStats: { ATK: 1.1, SPA: 1.1, SPD: 1.0, DEF: 1.0 },
+        ultMapping: "B",
+        tiers: {
+          T1: { ATK: ["電擊"], SPA: ["電擊"], BUF: ["叫聲"], DIS: [] },
+          T2: { ATK: ["雷電拳"], SPA: ["十萬伏特"], BUF: ["電磁漂浮"], DIS: ["電磁波"] },
+          T3: { ATK: ["瘋狂伏特"], SPA: ["放電"], BUF: ["充電"], DIS: [] },
+          T4: { ATK: ["雷電牙"], SPA: ["光澤電炮"], BUF: ["替身"], DIS: ["怪異電波"] },
+          T5: { ATK: [], SPA: ["轟雷"], BUF: ["睡覺"], DIS: [] }
+        }
+      },
+      "防禦電磁型": {
+        theme: "坦克、漂浮",
+        preferredStats: { ATK: 1.0, SPA: 1.0, SPD: 1.0, DEF: 1.3 },
+        ultMapping: "A",
+        tiers: {
+          T1: { ATK: [], SPA: ["電擊"], BUF: ["叫聲"], DIS: [] },
+          T2: { ATK: ["雷電拳"], SPA: ["電球"], BUF: ["電磁漂浮"], DIS: ["電磁波"] },
+          T3: { ATK: [], SPA: ["十萬伏特"], BUF: ["鐵壁"], DIS: [] },
+          T4: { ATK: ["雷電牙"], SPA: ["打雷"], BUF: ["守住"], DIS: ["金屬音"] },
+          T5: { ATK: [], SPA: ["萬雷轟"], BUF: ["睡覺"], DIS: [] }
+        }
+      }
+    }
+  },
+
+  "冰": {
+    theme: "冰凍控制、氣候主導、緩速壓制",
+    UNIVERSAL_MOVES: {},
+    VARIANTS: {
+      "冰錐強攻型": {
+        theme: "物攻、冰凍牙",
+        preferredStats: { ATK: 1.2, SPA: 0.8, SPD: 1.0, DEF: 1.0 },
+        ultMapping: "A",
+        tiers: {
+          T1: { ATK: ["冰礫"], SPA: [], BUF: ["瞪眼"], DIS: [] },
+          T2: { ATK: ["冰凍拳"], SPA: [], BUF: ["影子分身"], DIS: ["★冰霜陷阱"] },
+          T3: { ATK: ["冰錐"], SPA: [], BUF: ["劍舞"], DIS: ["冰凍之風"] },
+          T4: { ATK: ["冰柱墜擊"], SPA: ["冰凍光束"], BUF: ["替身"], DIS: [] },
+          T5: { ATK: ["終極衝擊"], SPA: [], BUF: ["腹鼓"], DIS: [] }
+        }
+      },
+      "特攻雪暴型": {
+        theme: "特攻、暴風雪",
+        preferredStats: { ATK: 0.8, SPA: 1.2, SPD: 1.0, DEF: 1.0 },
+        ultMapping: "B",
+        tiers: {
+          T1: { ATK: [], SPA: ["冰凍之風"], BUF: ["搖尾巴"], DIS: [] },
+          T2: { ATK: ["冰凍牙"], SPA: ["冰凍光束"], BUF: ["雪景"], DIS: [] },
+          T3: { ATK: [], SPA: ["暴風雪"], BUF: ["替身"], DIS: ["★雪崩詛咒"] },
+          T4: { ATK: ["冰柱墜擊"], SPA: ["暴風雪"], BUF: ["守住"], DIS: ["吼叫"] },
+          T5: { ATK: [], SPA: ["破壞光線"], BUF: ["睡覺"], DIS: [] }
+        }
+      },
+      "防禦冰牆型": {
+        theme: "坦克、極光幕",
+        preferredStats: { ATK: 1.0, SPA: 1.0, SPD: 1.0, DEF: 1.3 },
+        ultMapping: "C",
+        tiers: {
+          T1: { ATK: [], SPA: ["冰凍之風"], BUF: ["變硬"], DIS: ["叫聲"] },
+          T2: { ATK: ["冰凍牙"], SPA: ["冰凍光束"], BUF: ["鐵壁"], DIS: [] },
+          T3: { ATK: [], SPA: ["暴風雪"], BUF: ["極光幕"], DIS: ["冰凍之風"] },
+          T4: { ATK: ["冰柱墜擊"], SPA: [], BUF: ["替身"], DIS: ["唱歌"] },
+          T5: { ATK: [], SPA: [], BUF: ["睡覺"], DIS: ["滅亡之歌"] }
+        }
+      },
+      "天氣雪崩型": {
+        theme: "冰雹、天氣",
+        preferredStats: { ATK: 1.0, SPA: 1.0, SPD: 1.0, DEF: 1.0 },
+        ultMapping: "D",
+        tiers: {
+          T1: { ATK: ["冰礫"], SPA: ["冰凍之風"], BUF: [], DIS: ["瞪眼"] },
+          T2: { ATK: [], SPA: ["冰凍光束"], BUF: ["冰雹"], DIS: ["★冰霜陷阱"] },
+          T3: { ATK: ["冰錐"], SPA: ["暴風雪"], BUF: ["劍舞"], DIS: [] },
+          T4: { ATK: ["冰柱墜擊"], SPA: ["暴風雪"], BUF: ["守住"], DIS: ["吼叫"] },
+          T5: { ATK: [], SPA: [], BUF: ["睡覺"], DIS: ["滅亡之歌"] }
+        }
+      },
+      "速攻先制型": {
+        theme: "先制、冰礫",
+        preferredStats: { ATK: 1.0, SPA: 1.0, SPD: 1.3, DEF: 1.0 },
+        ultMapping: "A",
+        tiers: {
+          T1: { ATK: ["冰礫"], SPA: [], BUF: ["叫聲"], DIS: [] },
+          T2: { ATK: ["冰凍拳"], SPA: ["冰凍光束"], BUF: ["高速移動"], DIS: [] },
+          T3: { ATK: ["冰柱針"], SPA: [], BUF: ["替身"], DIS: ["冰凍之風"] },
+          T4: { ATK: ["冰柱墜擊"], SPA: ["暴風雪"], BUF: ["守住"], DIS: ["吹飛"] },
+          T5: { ATK: ["終極衝擊"], SPA: [], BUF: ["腹鼓"], DIS: [] }
+        }
+      }
+    }
+  },
+
+  "格鬥": {
+    theme: "近戰壓制、戰技強化、會心特化",
+    UNIVERSAL_MOVES: {},
+    VARIANTS: {
+      "近戰強攻型": {
+        theme: "近身戰、高物攻",
+        preferredStats: { ATK: 1.2, SPA: 0.8, SPD: 1.0, DEF: 1.0 },
+        ultMapping: "A",
+        tiers: {
+          T1: { ATK: ["碎岩"], SPA: [], BUF: ["瞪眼"], DIS: [] },
+          T2: { ATK: ["空手劈"], SPA: [], BUF: ["影子分身"], DIS: ["挑釁"] },
+          T3: { ATK: ["十字劈"], SPA: ["真氣彈"], BUF: ["健美"], DIS: [] },
+          T4: { ATK: ["近身戰"], SPA: [], BUF: ["鐵壁"], DIS: ["清除之煙"] },
+          T5: { ATK: ["終極衝擊"], SPA: [], BUF: ["腹鼓"], DIS: [] }
+        }
+      },
+      "子彈連擊型": {
+        theme: "先制、連續技",
+        preferredStats: { ATK: 1.2, SPA: 0.8, SPD: 1.0, DEF: 1.0 },
+        ultMapping: "B",
+        tiers: {
+          T1: { ATK: ["碎岩"], SPA: [], BUF: ["叫聲"], DIS: [] },
+          T2: { ATK: ["子彈拳"], SPA: ["吸收拳"], BUF: ["高速移動"], DIS: ["挑釁"] },
+          T3: { ATK: ["音速拳"], SPA: ["波導彈"], BUF: ["劍舞"], DIS: [] },
+          T4: { ATK: ["飛膝踢"], SPA: [], BUF: ["替身"], DIS: ["清除之煙"] },
+          T5: { ATK: ["終極衝擊"], SPA: [], BUF: ["睡覺"], DIS: [] }
+        }
+      },
+      "速攻先制型": {
+        theme: "音速拳、先制",
+        preferredStats: { ATK: 1.0, SPA: 1.0, SPD: 1.3, DEF: 1.0 },
+        ultMapping: "C",
+        tiers: {
+          T1: { ATK: ["碎岩"], SPA: [], BUF: ["叫聲"], DIS: [] },
+          T2: { ATK: ["音速拳"], SPA: ["真氣彈"], BUF: ["高速移動"], DIS: [] },
+          T3: { ATK: ["飛膝踢"], SPA: [], BUF: ["劍舞"], DIS: ["挑釁"] },
+          T4: { ATK: ["近身戰"], SPA: [], BUF: ["替身"], DIS: ["吹飛"] },
+          T5: { ATK: ["終極衝擊"], SPA: [], BUF: ["睡覺"], DIS: [] }
+        }
+      },
+      "防禦硬漢型": {
+        theme: "坦克、反擊",
+        preferredStats: { ATK: 1.0, SPA: 1.0, SPD: 1.0, DEF: 1.3 },
+        ultMapping: "A",
+        tiers: {
+          T1: { ATK: ["碎岩"], SPA: [], BUF: ["變硬"], DIS: ["瞪眼"] },
+          T2: { ATK: ["空手劈"], SPA: [], BUF: ["鐵壁"], DIS: [] },
+          T3: { ATK: ["吸取拳"], SPA: ["真氣彈"], BUF: ["健美"], DIS: ["清除之煙"] },
+          T4: { ATK: ["地獄翻滾"], SPA: [], BUF: ["替身"], DIS: ["吼叫"] },
+          T5: { ATK: ["終極衝擊"], SPA: [], BUF: ["睡覺"], DIS: [] }
+        }
+      },
+      "雙刀武術型": {
+        theme: "波導、適應",
+        preferredStats: { ATK: 1.1, SPA: 1.1, SPD: 1.0, DEF: 1.0 },
+        ultMapping: "B",
+        tiers: {
+          T1: { ATK: ["碎岩"], SPA: [], BUF: ["瞪眼"], DIS: [] },
+          T2: { ATK: ["空手劈"], SPA: ["真氣彈"], BUF: ["劍舞"], DIS: [] },
+          T3: { ATK: ["十字劈"], SPA: ["波導彈"], BUF: ["健美"], DIS: ["挑釁"] },
+          T4: { ATK: ["近身戰"], SPA: [], BUF: ["替身"], DIS: ["清除之煙"] },
+          T5: { ATK: ["終極衝擊"], SPA: ["破壞光線"], BUF: ["腹鼓"], DIS: [] }
+        }
+      },
+      "指導輔助型": {
+        theme: "團隊、強化",
+        preferredStats: { ATK: 1.0, SPA: 1.0, SPD: 1.0, DEF: 1.0 },
+        ultMapping: "C",
+        tiers: {
+          T1: { ATK: ["碎岩"], SPA: [], BUF: ["叫聲"], DIS: [] },
+          T2: { ATK: ["空手劈"], SPA: [], BUF: ["影子分身"], DIS: ["挑釁"] },
+          T3: { ATK: ["吸取拳"], SPA: ["波導彈"], BUF: ["指導"], DIS: [] },
+          T4: { ATK: ["近身戰"], SPA: [], BUF: ["劍舞"], DIS: ["吹飛"] },
+          T5: { ATK: ["終極衝擊"], SPA: [], BUF: ["睡覺"], DIS: [] }
+        }
+      }
+    }
+  },
+
+  "毒": {
+    theme: "中毒消耗、持續傷害、干擾主導",
+    UNIVERSAL_MOVES: {},
+    VARIANTS: {
+      "劇毒猛攻型": {
+        theme: "物攻、毒附帶",
+        preferredStats: { ATK: 1.2, SPA: 0.8, SPD: 1.0, DEF: 1.0 },
+        ultMapping: "A",
+        tiers: {
+          T1: { ATK: ["毒針"], SPA: [], BUF: ["叫聲"], DIS: ["毒粉"] },
+          T2: { ATK: ["毒擊"], SPA: ["溶解液"], BUF: ["影子分身"], DIS: [] },
+          T3: { ATK: ["十字毒刃"], SPA: [], BUF: ["劍舞"], DIS: [] },
+          T4: { ATK: ["垃圾射擊"], SPA: ["污泥炸彈"], BUF: ["替身"], DIS: ["劇毒"] },
+          T5: { ATK: ["終極衝擊"], SPA: [], BUF: ["腹鼓"], DIS: [] }
+        }
+      },
+      "特攻溶解型": {
+        theme: "特攻、污泥波",
+        preferredStats: { ATK: 0.8, SPA: 1.2, SPD: 1.0, DEF: 1.0 },
+        ultMapping: "B",
+        tiers: {
+          T1: { ATK: [], SPA: ["溶解液"], BUF: ["叫聲"], DIS: ["毒粉"] },
+          T2: { ATK: ["毒擊"], SPA: ["污泥炸彈"], BUF: ["溶化"], DIS: [] },
+          T3: { ATK: [], SPA: ["污泥波"], BUF: ["替身"], DIS: ["劇毒"] },
+          T4: { ATK: ["垃圾射擊"], SPA: ["毒液衝擊"], BUF: ["守住"], DIS: ["清除之煙"] },
+          T5: { ATK: [], SPA: ["破壞光線"], BUF: ["睡覺"], DIS: [] }
+        }
+      },
+      "中毒消耗型": {
+        theme: "持續傷害、坦克",
+        preferredStats: { ATK: 1.0, SPA: 1.0, SPD: 1.0, DEF: 1.3 },
+        ultMapping: "B",
+        tiers: {
+          T1: { ATK: [], SPA: ["溶解液"], BUF: [], DIS: ["毒粉"] },
+          T2: { ATK: ["毒擊"], SPA: ["污泥炸彈"], BUF: ["影子分身"], DIS: ["麻痺粉"] },
+          T3: { ATK: ["十字毒刃"], SPA: ["污泥波"], BUF: ["替身"], DIS: ["劇毒"] },
+          T4: { ATK: [], SPA: ["毒液衝擊"], BUF: ["守住"], DIS: ["清除之煙"] },
+          T5: { ATK: [], SPA: ["破壞光線"], BUF: ["睡覺"], DIS: ["滅亡之歌"] }
+        }
+      },
+      "干擾擴散型": {
+        theme: "劇毒、吹飛控場",
+        preferredStats: { ATK: 1.0, SPA: 1.0, SPD: 1.0, DEF: 1.0 },
+        ultMapping: "C",
+        tiers: {
+          T1: { ATK: [], SPA: ["溶解液"], BUF: [], DIS: ["毒粉"] },
+          T2: { ATK: ["毒擊"], SPA: ["污泥炸彈"], BUF: ["黑霧"], DIS: ["清除之煙"] },
+          T3: { ATK: [], SPA: ["污泥波"], BUF: ["溶化"], DIS: ["劇毒"] },
+          T4: { ATK: ["垃圾射擊"], SPA: [], BUF: ["守住"], DIS: ["吹飛"] },
+          T5: { ATK: [], SPA: ["破壞光線"], BUF: ["睡覺"], DIS: ["滅亡之歌"] }
+        }
+      },
+      "物理連毒型": {
+        theme: "連擊、高速",
+        preferredStats: { ATK: 1.0, SPA: 1.0, SPD: 1.3, DEF: 1.0 },
+        ultMapping: "A",
+        tiers: {
+          T1: { ATK: ["毒針"], SPA: [], BUF: ["叫聲"], DIS: [] },
+          T2: { ATK: ["毒擊"], SPA: ["溶解液"], BUF: ["高速移動"], DIS: ["毒粉"] },
+          T3: { ATK: ["十字毒刃"], SPA: [], BUF: ["劍舞"], DIS: ["清除之煙"] },
+          T4: { ATK: ["垃圾射擊"], SPA: ["污泥炸彈"], BUF: ["替身"], DIS: ["吼叫"] },
+          T5: { ATK: ["終極衝擊"], SPA: [], BUF: ["腹鼓"], DIS: [] }
+        }
+      }
+    }
+  },
+
+  "地面": {
+    theme: "地震壓制、岩石破碎、沙暴主導",
+    UNIVERSAL_MOVES: {},
+    VARIANTS: {
+      "地震強攻型": {
+        theme: "物攻、地震",
+        preferredStats: { ATK: 1.2, SPA: 0.8, SPD: 1.0, DEF: 1.0 },
+        ultMapping: "A",
+        tiers: {
+          T1: { ATK: ["潑沙"], SPA: [], BUF: ["瞪眼"], DIS: [] },
+          T2: { ATK: ["重踏"], SPA: ["泥巴射擊"], BUF: ["影子分身"], DIS: ["玩沙"] },
+          T3: { ATK: ["挖洞"], SPA: ["大地之力"], BUF: ["劍舞"], DIS: [] },
+          T4: { ATK: ["地震"], SPA: [], BUF: ["替身"], DIS: ["吼叫"] },
+          T5: { ATK: ["終極衝擊"], SPA: [], BUF: ["腹鼓"], DIS: [] }
+        }
+      },
+      "沙暴天氣型": {
+        theme: "沙暴、岩石",
+        preferredStats: { ATK: 1.0, SPA: 1.0, SPD: 1.0, DEF: 1.0 },
+        ultMapping: "B",
+        tiers: {
+          T1: { ATK: ["潑沙"], SPA: [], BUF: ["瞪眼"], DIS: [] },
+          T2: { ATK: ["重踏"], SPA: ["泥巴炸彈"], BUF: ["沙暴"], DIS: [] },
+          T3: { ATK: ["直衝鑽"], SPA: ["大地之力"], BUF: ["岩石打磨"], DIS: ["吼叫"] },
+          T4: { ATK: ["地震"], SPA: ["熱沙大地"], BUF: ["鐵壁"], DIS: ["吹飛"] },
+          T5: { ATK: ["終極衝擊"], SPA: [], BUF: ["睡覺"], DIS: [] }
+        }
+      },
+      "防禦坦克型": {
+        theme: "鐵壁、坦克",
+        preferredStats: { ATK: 1.0, SPA: 1.0, SPD: 1.0, DEF: 1.3 },
+        ultMapping: "A",
+        tiers: {
+          T1: { ATK: ["潑沙"], SPA: [], BUF: ["變硬"], DIS: ["瞪眼"] },
+          T2: { ATK: ["重踏"], SPA: ["泥巴射擊"], BUF: ["鐵壁"], DIS: [] },
+          T3: { ATK: ["挖洞"], SPA: ["大地之力"], BUF: ["健美"], DIS: ["吼叫"] },
+          T4: { ATK: ["地震"], SPA: [], BUF: ["岩石打磨"], DIS: ["吹飛"] },
+          T5: { ATK: ["終極衝擊"], SPA: [], BUF: ["睡覺"], DIS: ["滅亡之歌"] }
+        }
+      },
+      "物理連擊型": {
+        theme: "直衝鑽、連擊",
+        preferredStats: { ATK: 1.0, SPA: 1.0, SPD: 1.3, DEF: 1.0 },
+        ultMapping: "C",
+        tiers: {
+          T1: { ATK: ["潑沙"], SPA: [], BUF: ["叫聲"], DIS: [] },
+          T2: { ATK: ["重踏"], SPA: ["泥巴射擊"], BUF: ["高速移動"], DIS: ["玩沙"] },
+          T3: { ATK: ["直衝鑽"], SPA: ["大地之力"], BUF: ["健美"], DIS: [] },
+          T4: { ATK: ["地震"], SPA: [], BUF: ["替身"], DIS: ["吼叫"] },
+          T5: { ATK: ["終極衝擊"], SPA: [], BUF: ["腹鼓"], DIS: [] }
+        }
+      },
+      "雙刀震盪型": {
+        theme: "靈活、大地之力",
+        preferredStats: { ATK: 1.1, SPA: 1.1, SPD: 1.0, DEF: 1.0 },
+        ultMapping: "C",
+        tiers: {
+          T1: { ATK: ["潑沙"], SPA: ["泥巴射擊"], BUF: ["叫聲"], DIS: [] },
+          T2: { ATK: ["重踏"], SPA: ["大地之力"], BUF: ["影子分身"], DIS: ["玩沙"] },
+          T3: { ATK: ["挖洞"], SPA: ["泥巴炸彈"], BUF: ["替身"], DIS: ["吼叫"] },
+          T4: { ATK: ["地震"], SPA: ["熱沙大地"], BUF: ["守住"], DIS: ["吹飛"] },
+          T5: { ATK: [], SPA: ["震滅"], BUF: ["睡覺"], DIS: [] }
+        }
+      }
+    }
+  },
+"飛行": {
+    theme: "速度壓制、空中打擊、天氣輔助",
+    UNIVERSAL_MOVES: {},
+    VARIANTS: {
+      "勇鳥猛攻型": {
+        theme: "物攻、勇鳥猛攻",
+        preferredStats: { ATK: 1.2, SPA: 0.8, SPD: 1.0, DEF: 1.0 },
+        ultMapping: "A",
+        tiers: {
+          T1: { ATK: ["啄"], SPA: [], BUF: ["叫聲"], DIS: ["瞪眼"] },
+          T2: { ATK: ["翅膀攻擊"], SPA: [], BUF: ["影子分身"], DIS: [] },
+          T3: { ATK: ["燕返"], SPA: [], BUF: ["劍舞"], DIS: ["清除之煙"] },
+          T4: { ATK: ["啄鑽"], SPA: ["熱風"], BUF: ["替身"], DIS: ["吼叫"] },
+          T5: { ATK: ["勇鳥猛攻"], SPA: [], BUF: ["腹鼓"], DIS: [] }
+        }
+      },
+      "特攻風暴型": {
+        theme: "特攻、暴風",
+        preferredStats: { ATK: 0.8, SPA: 1.2, SPD: 1.0, DEF: 1.0 },
+        ultMapping: "B",
+        tiers: {
+          T1: { ATK: [], SPA: ["起風"], BUF: ["叫聲"], DIS: ["瞪眼"] },
+          T2: { ATK: ["翅膀攻擊"], SPA: ["空氣之刃"], BUF: ["高速移動"], DIS: ["超音波"] },
+          T3: { ATK: ["雜技"], SPA: ["空氣斬"], BUF: ["替身"], DIS: ["清除之煙"] },
+          T4: { ATK: [], SPA: ["熱風"], BUF: ["守住"], DIS: ["吼叫"] },
+          T5: { ATK: [], SPA: ["暴風"], BUF: ["睡覺"], DIS: [] }
+        }
+      },
+      "速攻飛行型": {
+        theme: "先制、速度",
+        preferredStats: { ATK: 1.0, SPA: 1.0, SPD: 1.3, DEF: 1.0 },
+        ultMapping: "C",
+        tiers: {
+          T1: { ATK: ["啄"], SPA: [], BUF: ["叫聲"], DIS: [] },
+          T2: { ATK: ["翅膀攻擊"], SPA: ["起風"], BUF: ["高速移動"], DIS: ["瞪眼"] },
+          T3: { ATK: ["燕返"], SPA: [], BUF: ["替身"], DIS: [] },
+          T4: { ATK: ["雜技"], SPA: ["空氣斬"], BUF: ["守住"], DIS: ["吹飛"] },
+          T5: { ATK: ["勇鳥猛攻"], SPA: [], BUF: ["睡覺"], DIS: [] }
+        }
+      },
+      "防禦順風型": {
+        theme: "坦克、輔助",
+        preferredStats: { ATK: 1.0, SPA: 1.0, SPD: 1.0, DEF: 1.3 },
+        ultMapping: "B",
+        tiers: {
+          T1: { ATK: ["啄"], SPA: [], BUF: ["變硬"], DIS: ["瞪眼"] },
+          T2: { ATK: ["翅膀攻擊"], SPA: [], BUF: ["鐵壁"], DIS: ["吼叫"] },
+          T3: { ATK: ["啄鑽"], SPA: ["空氣斬"], BUF: ["順風"], DIS: ["清除之煙"] },
+          T4: { ATK: ["勇鳥猛攻"], SPA: [], BUF: ["替身"], DIS: ["吹飛"] },
+          T5: { ATK: ["終極衝擊"], SPA: [], BUF: ["睡覺"], DIS: ["滅亡之歌"] }
+        }
+      },
+      "先制啄擊型": {
+        theme: "先制、連擊",
+        preferredStats: { ATK: 1.0, SPA: 1.0, SPD: 1.0, DEF: 1.0 },
+        ultMapping: "C",
+        tiers: {
+          T1: { ATK: ["啄"], SPA: [], BUF: ["叫聲"], DIS: ["瞪眼"] },
+          T2: { ATK: ["啄食"], SPA: [], BUF: ["影子分身"], DIS: ["超音波"] },
+          T3: { ATK: ["燕返"], SPA: ["空氣斬"], BUF: ["劍舞"], DIS: [] },
+          T4: { ATK: ["啄鑽"], SPA: [], BUF: ["替身"], DIS: ["催眠術"] },
+          T5: { ATK: ["終極衝擊"], SPA: [], BUF: ["睡覺"], DIS: [] }
+        }
+      },
+      "天氣控場型": {
+        theme: "雨天/順風",
+        preferredStats: { ATK: 1.0, SPA: 1.0, SPD: 1.0, DEF: 1.0 },
+        ultMapping: "D",
+        tiers: {
+          T1: { ATK: [], SPA: ["起風"], BUF: ["叫聲"], DIS: [] },
+          T2: { ATK: ["翅膀攻擊"], SPA: ["空氣之刃"], BUF: ["順風"], DIS: ["吼叫"] },
+          T3: { ATK: [], SPA: ["空氣斬"], BUF: ["替身"], DIS: ["清除之煙"] },
+          T4: { ATK: ["啄鑽"], SPA: ["熱風"], BUF: ["守住"], DIS: ["吹飛"] },
+          T5: { ATK: ["終極衝擊"], SPA: ["暴風"], BUF: ["睡覺"], DIS: [] }
+        }
+      }
+    }
+  },
+
+  "超能力": {
+    theme: "精神控制、特殊打擊、場地主導",
+    UNIVERSAL_MOVES: {},
+    VARIANTS: {
+      "精神強念型": {
+        theme: "特攻、念力壓制",
+        preferredStats: { ATK: 0.8, SPA: 1.2, SPD: 1.0, DEF: 1.0 },
+        ultMapping: "A",
+        tiers: {
+          T1: { ATK: [], SPA: ["念力"], BUF: ["叫聲"], DIS: ["瞪眼"] },
+          T2: { ATK: ["意念頭錘"], SPA: ["幻象光線"], BUF: ["影子分身"], DIS: ["奇異之光"] },
+          T3: { ATK: [], SPA: ["精神強念"], BUF: ["冥想"], DIS: [] },
+          T4: { ATK: ["精神利刃"], SPA: ["預知未來"], BUF: ["替身"], DIS: ["電磁波"] },
+          T5: { ATK: [], SPA: ["極限精神"], BUF: ["睡覺"], DIS: ["滅亡之歌"] }
+        }
+      },
+      "場地控制型": {
+        theme: "精神場地、輔助",
+        preferredStats: { ATK: 1.0, SPA: 1.0, SPD: 1.0, DEF: 1.0 },
+        ultMapping: "B",
+        tiers: {
+          T1: { ATK: [], SPA: ["念力"], BUF: ["搖尾巴"], DIS: [] },
+          T2: { ATK: ["意念頭錘"], SPA: ["幻象光線"], BUF: ["精神場地"], DIS: ["奇異之光"] },
+          T3: { ATK: [], SPA: ["精神強念"], BUF: ["冥想"], DIS: ["反射壁"] },
+          T4: { ATK: [], SPA: ["預知未來"], BUF: ["替身"], DIS: ["光牆"] },
+          T5: { ATK: [], SPA: ["精神擊破"], BUF: ["睡覺"], DIS: [] }
+        }
+      },
+      "防禦回復型": {
+        theme: "自我再生、光牆",
+        preferredStats: { ATK: 1.0, SPA: 1.0, SPD: 1.0, DEF: 1.3 },
+        ultMapping: "C",
+        tiers: {
+          T1: { ATK: [], SPA: ["念力"], BUF: ["變硬"], DIS: ["叫聲"] },
+          T2: { ATK: ["意念頭錘"], SPA: ["幻象光線"], BUF: ["光牆"], DIS: ["奇異之光"] },
+          T3: { ATK: [], SPA: ["精神強念"], BUF: ["瞬間失憶"], DIS: ["反射壁"] },
+          T4: { ATK: ["精神利刃"], SPA: [], BUF: ["替身"], DIS: ["劇毒"] },
+          T5: { ATK: [], SPA: [], BUF: ["睡覺"], DIS: ["滅亡之歌"] }
+        }
+      },
+      "空間扭曲型": {
+        theme: "戲法空間、速控",
+        preferredStats: { ATK: 1.0, SPA: 1.0, SPD: 1.0, DEF: 1.0 },
+        ultMapping: "B",
+        tiers: {
+          T1: { ATK: [], SPA: ["念力"], BUF: ["叫聲"], DIS: ["瞪眼"] },
+          T2: { ATK: ["意念頭錘"], SPA: ["幻象光線"], BUF: ["戲法空間"], DIS: ["奇異之光"] },
+          T3: { ATK: [], SPA: ["精神強念"], BUF: ["替身"], DIS: ["催眠術"] },
+          T4: { ATK: [], SPA: ["預知未來"], BUF: ["守住"], DIS: ["吼叫"] },
+          T5: { ATK: [], SPA: ["破壞光線"], BUF: ["睡覺"], DIS: [] }
+        }
+      },
+      "干擾戰術型": {
+        theme: "反射壁、雙牆",
+        preferredStats: { ATK: 1.0, SPA: 1.0, SPD: 1.0, DEF: 1.0 },
+        ultMapping: "C",
+        tiers: {
+          T1: { ATK: [], SPA: ["念力"], BUF: [], DIS: ["叫聲"] },
+          T2: { ATK: ["精神利刃"], SPA: ["幻象光線"], BUF: ["替身"], DIS: ["奇異之光"] },
+          T3: { ATK: [], SPA: ["精神強念"], BUF: ["冥想"], DIS: ["電磁波"] },
+          T4: { ATK: [], SPA: ["預知未來"], BUF: ["守住"], DIS: ["吼叫"] },
+          T5: { ATK: [], SPA: ["破壞光線"], BUF: ["睡覺"], DIS: [] }
+        }
+      },
+      "雙刀均衡型": {
+        theme: "意念頭錘、適應",
+        preferredStats: { ATK: 1.1, SPA: 1.1, SPD: 1.0, DEF: 1.0 },
+        ultMapping: "A",
+        tiers: {
+          T1: { ATK: ["念力"], SPA: ["念力"], BUF: ["叫聲"], DIS: ["瞪眼"] },
+          T2: { ATK: ["意念頭錘"], SPA: ["幻象光線"], BUF: ["劍舞"], DIS: [] },
+          T3: { ATK: ["精神利刃"], SPA: ["精神強念"], BUF: ["替身"], DIS: ["奇異之光"] },
+          T4: { ATK: ["意念頭錘"], SPA: ["預知未來"], BUF: ["守住"], DIS: ["吼叫"] },
+          T5: { ATK: ["終極衝擊"], SPA: [], BUF: ["睡覺"], DIS: [] }
+        }
+      }
+    }
+  },
+
+  "蟲": {
+    theme: "連擊壓制、急速干擾、進化戰術",
+    UNIVERSAL_MOVES: {},
+    VARIANTS: {
+      "急速連擊型": {
+        theme: "連擊、高速",
+        preferredStats: { ATK: 1.0, SPA: 1.0, SPD: 1.3, DEF: 1.0 },
+        ultMapping: "B",
+        tiers: {
+          T1: { ATK: ["連斬"], SPA: [], BUF: ["叫聲"], DIS: ["吐絲"] },
+          T2: { ATK: ["蟲咬"], SPA: [], BUF: ["高速移動"], DIS: [] },
+          T3: { ATK: ["十字剪"], SPA: ["信號光束"], BUF: ["劍舞"], DIS: ["麻痺粉"] },
+          T4: { ATK: ["急速折返"], SPA: [], BUF: ["替身"], DIS: ["吼叫"] },
+          T5: { ATK: ["終極衝擊"], SPA: [], BUF: ["腹鼓"], DIS: [] }
+        }
+      },
+      "蝶舞強化型": {
+        theme: "強化、特攻",
+        preferredStats: { ATK: 0.8, SPA: 1.2, SPD: 1.0, DEF: 1.0 },
+        ultMapping: "C",
+        tiers: {
+          T1: { ATK: [], SPA: ["蟲咬"], BUF: ["叫聲"], DIS: ["吐絲"] },
+          T2: { ATK: ["蟲咬"], SPA: ["信號光束"], BUF: ["蝶舞"], DIS: ["麻痺粉"] },
+          T3: { ATK: ["猛撲"], SPA: ["蟲鳴"], BUF: ["替身"], DIS: ["睡眠粉"] },
+          T4: { ATK: [], SPA: ["蟲鳴"], BUF: ["守住"], DIS: ["毒粉"] },
+          T5: { ATK: [], SPA: ["破壞光線"], BUF: ["睡覺"], DIS: [] }
+        }
+      },
+      "物理坦克型": {
+        theme: "物攻、防禦",
+        preferredStats: { ATK: 1.2, SPA: 0.8, SPD: 1.0, DEF: 1.0 },
+        ultMapping: "A",
+        tiers: {
+          T1: { ATK: ["連斬"], SPA: [], BUF: ["變硬"], DIS: ["瞪眼"] },
+          T2: { ATK: ["蟲咬"], SPA: [], BUF: ["鐵壁"], DIS: [] },
+          T3: { ATK: ["猛撲"], SPA: ["信號光束"], BUF: ["健美"], DIS: ["麻痺粉"] },
+          T4: { ATK: ["十字剪"], SPA: [], BUF: ["替身"], DIS: ["吼叫"] },
+          T5: { ATK: ["終極衝擊"], SPA: [], BUF: ["睡覺"], DIS: [] }
+        }
+      },
+      "特攻蟲鳴型": {
+        theme: "特攻、蟲鳴",
+        preferredStats: { ATK: 0.8, SPA: 1.2, SPD: 1.0, DEF: 1.0 },
+        ultMapping: "B",
+        tiers: {
+          T1: { ATK: [], SPA: ["蟲咬"], BUF: ["叫聲"], DIS: ["吐絲"] },
+          T2: { ATK: [], SPA: ["信號光束"], BUF: ["影子分身"], DIS: ["麻痺粉"] },
+          T3: { ATK: ["猛撲"], SPA: ["蟲鳴"], BUF: ["替身"], DIS: ["睡眠粉"] },
+          T4: { ATK: [], SPA: ["蟲鳴"], BUF: ["守住"], DIS: ["清除之煙"] },
+          T5: { ATK: [], SPA: ["破壞光線"], BUF: ["睡覺"], DIS: [] }
+        }
+      },
+      "干擾吐絲型": {
+        theme: "網、緩速控場",
+        preferredStats: { ATK: 1.0, SPA: 1.0, SPD: 1.0, DEF: 1.0 },
+        ultMapping: "C",
+        tiers: {
+          T1: { ATK: ["連斬"], SPA: [], BUF: [], DIS: ["吐絲"] },
+          T2: { ATK: ["蟲咬"], SPA: ["信號光束"], BUF: ["高速移動"], DIS: ["黏黏網"] },
+          T3: { ATK: ["猛撲"], SPA: [], BUF: ["替身"], DIS: ["毒針"] },
+          T4: { ATK: ["十字剪"], SPA: ["蟲鳴"], BUF: ["守住"], DIS: ["吼叫"] },
+          T5: { ATK: ["終極衝擊"], SPA: [], BUF: ["睡覺"], DIS: [] }
+        }
+      }
+    }
+  },
+
+  "岩石": {
+    theme: "堅硬防禦、岩石壓制、沙暴主導",
+    UNIVERSAL_MOVES: {},
+    VARIANTS: {
+      "石刃強攻型": {
+        theme: "物攻、尖石",
+        preferredStats: { ATK: 1.2, SPA: 0.8, SPD: 1.0, DEF: 1.0 },
+        ultMapping: "A",
+        tiers: {
+          T1: { ATK: ["落石"], SPA: [], BUF: ["瞪眼"], DIS: [] },
+          T2: { ATK: ["岩石封鎖"], SPA: ["原始之力"], BUF: ["影子分身"], DIS: ["隱形岩"] },
+          T3: { ATK: ["岩崩"], SPA: [], BUF: ["劍舞"], DIS: [] },
+          T4: { ATK: ["尖石攻擊"], SPA: ["力量寶石"], BUF: ["替身"], DIS: ["吼叫"] },
+          T5: { ATK: ["雙刃頭錘"], SPA: [], BUF: ["腹鼓"], DIS: [] }
+        }
+      },
+      "沙暴防禦型": {
+        theme: "沙暴、特防",
+        preferredStats: { ATK: 1.0, SPA: 1.0, SPD: 1.0, DEF: 1.0 },
+        ultMapping: "B",
+        tiers: {
+          T1: { ATK: ["落石"], SPA: [], BUF: ["變硬"], DIS: ["瞪眼"] },
+          T2: { ATK: ["岩石封鎖"], SPA: ["原始之力"], BUF: ["沙暴"], DIS: [] },
+          T3: { ATK: ["岩崩"], SPA: ["力量寶石"], BUF: ["鐵壁"], DIS: ["吼叫"] },
+          T4: { ATK: ["尖石攻擊"], SPA: [], BUF: ["替身"], DIS: ["吹飛"] },
+          T5: { ATK: ["終極衝擊"], SPA: [], BUF: ["睡覺"], DIS: ["滅亡之歌"] }
+        }
+      },
+      "鐵壁坦克型": {
+        theme: "防禦、鐵壁",
+        preferredStats: { ATK: 1.0, SPA: 1.0, SPD: 1.0, DEF: 1.3 },
+        ultMapping: "A",
+        tiers: {
+          T1: { ATK: ["落石"], SPA: [], BUF: ["變硬"], DIS: ["叫聲"] },
+          T2: { ATK: ["岩石封鎖"], SPA: ["原始之力"], BUF: ["鐵壁"], DIS: [] },
+          T3: { ATK: ["岩崩"], SPA: [], BUF: ["岩石打磨"], DIS: ["隱形岩"] },
+          T4: { ATK: ["尖石攻擊"], SPA: ["力量寶石"], BUF: ["替身"], DIS: ["劇毒"] },
+          T5: { ATK: [], SPA: [], BUF: ["睡覺"], DIS: ["滅亡之歌"] }
+        }
+      },
+      "暴力推土型": {
+        theme: "岩石炮、重壓",
+        preferredStats: { ATK: 1.2, SPA: 0.8, SPD: 1.0, DEF: 1.0 },
+        ultMapping: "C",
+        tiers: {
+          T1: { ATK: ["落石"], SPA: [], BUF: ["瞪眼"], DIS: [] },
+          T2: { ATK: ["岩石封鎖"], SPA: [], BUF: ["高速移動"], DIS: ["吼叫"] },
+          T3: { ATK: ["岩崩"], SPA: ["原始之力"], BUF: ["劍舞"], DIS: [] },
+          T4: { ATK: ["尖石攻擊"], SPA: [], BUF: ["替身"], DIS: ["吹飛"] },
+          T5: { ATK: ["岩石炮"], SPA: [], BUF: ["睡覺"], DIS: [] }
+        }
+      },
+      "天氣加速型": {
+        theme: "沙暴+速攻",
+        preferredStats: { ATK: 1.0, SPA: 1.0, SPD: 1.3, DEF: 1.0 },
+        ultMapping: "B",
+        tiers: {
+          T1: { ATK: ["落石"], SPA: [], BUF: ["叫聲"], DIS: ["瞪眼"] },
+          T2: { ATK: ["岩石封鎖"], SPA: ["原始之力"], BUF: ["沙暴"], DIS: ["岩石打磨"] },
+          T3: { ATK: ["岩崩"], SPA: [], BUF: ["高速移動"], DIS: [] },
+          T4: { ATK: ["尖石攻擊"], SPA: ["力量寶石"], BUF: ["替身"], DIS: ["吼叫"] },
+          T5: { ATK: ["終極衝擊"], SPA: [], BUF: ["睡覺"], DIS: [] }
+        }
+      }
+    }
+  },
+
+  "幽靈": {
+    theme: "詛咒消耗、迴避擾亂、先制打擊",
+    UNIVERSAL_MOVES: {},
+    VARIANTS: {
+      "暗影潛襲型": {
+        theme: "潛靈、物攻",
+        preferredStats: { ATK: 1.2, SPA: 0.8, SPD: 1.0, DEF: 1.0 },
+        ultMapping: "A",
+        tiers: {
+          T1: { ATK: ["暗影拳"], SPA: [], BUF: ["叫聲"], DIS: ["瞪眼"] },
+          T2: { ATK: ["暗影爪"], SPA: ["黑夜魔影"], BUF: ["影子分身"], DIS: ["奇異之光"] },
+          T3: { ATK: ["潛靈奇襲"], SPA: ["暗影球"], BUF: ["劍舞"], DIS: [] },
+          T4: { ATK: ["暗影爪"], SPA: ["禍不單行"], BUF: ["替身"], DIS: ["詛咒"] },
+          T5: { ATK: ["終極衝擊"], SPA: [], BUF: ["腹鼓"], DIS: [] }
+        }
+      },
+      "特攻噬魂型": {
+        theme: "暗影球、特攻",
+        preferredStats: { ATK: 0.8, SPA: 1.2, SPD: 1.0, DEF: 1.0 },
+        ultMapping: "B",
+        tiers: {
+          T1: { ATK: [], SPA: ["驚嚇"], BUF: ["叫聲"], DIS: ["瞪眼"] },
+          T2: { ATK: ["暗影爪"], SPA: ["黑夜魔影"], BUF: ["影子分身"], DIS: ["奇異之光"] },
+          T3: { ATK: [], SPA: ["暗影球"], BUF: ["替身"], DIS: ["禍不單行"] },
+          T4: { ATK: ["潛靈奇襲"], SPA: ["暗影球"], BUF: ["守住"], DIS: ["清除之煙"] },
+          T5: { ATK: [], SPA: ["深淵暗影"], BUF: ["睡覺"], DIS: ["滅亡之歌"] }
+        }
+      },
+      "詛咒消耗型": {
+        theme: "詛咒、分擔痛楚",
+        preferredStats: { ATK: 1.0, SPA: 1.0, SPD: 1.0, DEF: 1.3 },
+        ultMapping: "C",
+        tiers: {
+          T1: { ATK: [], SPA: ["驚嚇"], BUF: ["變硬"], DIS: ["叫聲"] },
+          T2: { ATK: ["暗影拳"], SPA: ["黑夜魔影"], BUF: ["影子分身"], DIS: ["奇異之光"] },
+          T3: { ATK: ["暗影爪"], SPA: ["暗影球"], BUF: ["詛咒"], DIS: ["分擔痛楚"] },
+          T4: { ATK: [], SPA: ["禍不單行"], BUF: ["替身"], DIS: ["劇毒"] },
+          T5: { ATK: [], SPA: [], BUF: ["睡覺"], DIS: ["滅亡之歌"] }
+        }
+      },
+      "同命干擾型": {
+        theme: "同命、劍舞",
+        preferredStats: { ATK: 1.0, SPA: 1.0, SPD: 1.3, DEF: 1.0 },
+        ultMapping: "A",
+        tiers: {
+          T1: { ATK: ["暗影拳"], SPA: [], BUF: ["叫聲"], DIS: ["瞪眼"] },
+          T2: { ATK: ["暗影爪"], SPA: ["黑夜魔影"], BUF: ["高速移動"], DIS: ["奇異之光"] },
+          T3: { ATK: ["潛靈奇襲"], SPA: ["暗影球"], BUF: ["劍舞"], DIS: ["同命"] },
+          T4: { ATK: ["暗影爪"], SPA: ["禍不單行"], BUF: ["替身"], DIS: ["吹飛"] },
+          T5: { ATK: ["終極衝擊"], SPA: [], BUF: ["睡覺"], DIS: [] }
+        }
+      },
+      "替身戰術型": {
+        theme: "替身、保護",
+        preferredStats: { ATK: 1.0, SPA: 1.0, SPD: 1.0, DEF: 1.0 },
+        ultMapping: "C",
+        tiers: {
+          T1: { ATK: ["暗影拳"], SPA: [], BUF: [], DIS: ["叫聲"] },
+          T2: { ATK: ["暗影爪"], SPA: ["黑夜魔影"], BUF: ["替身"], DIS: ["奇異之光"] },
+          T3: { ATK: ["潛靈奇襲"], SPA: ["暗影球"], BUF: ["劍舞"], DIS: [] },
+          T4: { ATK: ["暗影爪"], SPA: ["禍不單行"], BUF: ["守住"], DIS: ["清除之煙"] },
+          T5: { ATK: ["終極衝擊"], SPA: [], BUF: ["睡覺"], DIS: [] }
+        }
+      }
+    }
+  },
+
+  "龍": {
+    theme: "龍舞強化、逆鱗爆發、傳說威壓",
+    UNIVERSAL_MOVES: {},
+    VARIANTS: {
+      "逆鱗強攻型": {
+        theme: "物攻、龍舞",
+        preferredStats: { ATK: 1.2, SPA: 0.8, SPD: 1.0, DEF: 1.0 },
+        ultMapping: "A",
+        tiers: {
+          T1: { ATK: ["龍爪"], SPA: [], BUF: ["瞪眼"], DIS: [] },
+          T2: { ATK: ["龍尾"], SPA: ["龍息"], BUF: ["龍舞"], DIS: [] },
+          T3: { ATK: ["龍之俯衝"], SPA: ["龍之波動"], BUF: ["劍舞"], DIS: ["吼叫"] },
+          T4: { ATK: ["逆鱗"], SPA: [], BUF: ["替身"], DIS: ["吹飛"] },
+          T5: { ATK: ["龍神逆鱗"], SPA: [], BUF: ["腹鼓"], DIS: [] }
+        }
+      },
+      "龍舞強化型": {
+        theme: "龍舞+物攻兼顧",
+        preferredStats: { ATK: 1.2, SPA: 0.8, SPD: 1.0, DEF: 1.0 },
+        ultMapping: "C",
+        tiers: {
+          T1: { ATK: ["龍爪"], SPA: [], BUF: ["叫聲"], DIS: ["瞪眼"] },
+          T2: { ATK: ["龍尾"], SPA: ["龍息"], BUF: ["龍舞"], DIS: [] },
+          T3: { ATK: ["龍之俯衝"], SPA: ["龍之波動"], BUF: ["替身"], DIS: [] },
+          T4: { ATK: ["逆鱗"], SPA: [], BUF: ["劍舞"], DIS: ["吼叫"] },
+          T5: { ATK: ["終極衝擊"], SPA: [], BUF: ["睡覺"], DIS: [] }
+        }
+      },
+      "特攻龍星型": {
+        theme: "特攻、龍星群",
+        preferredStats: { ATK: 0.8, SPA: 1.2, SPD: 1.0, DEF: 1.0 },
+        ultMapping: "B",
+        tiers: {
+          T1: { ATK: [], SPA: ["龍息"], BUF: ["叫聲"], DIS: ["瞪眼"] },
+          T2: { ATK: ["龍爪"], SPA: ["龍之波動"], BUF: ["影子分身"], DIS: ["奇異之光"] },
+          T3: { ATK: [], SPA: ["巨聲"], BUF: ["冥想"], DIS: [] },
+          T4: { ATK: ["龍尾"], SPA: ["龍星群"], BUF: ["替身"], DIS: ["吼叫"] },
+          T5: { ATK: [], SPA: ["龍星殞落"], BUF: ["睡覺"], DIS: ["滅亡之歌"] }
+        }
+      },
+      "雙刀均衡型": {
+        theme: "龍爪+龍波動",
+        preferredStats: { ATK: 1.1, SPA: 1.1, SPD: 1.0, DEF: 1.0 },
+        ultMapping: "C",
+        tiers: {
+          T1: { ATK: ["龍爪"], SPA: ["龍息"], BUF: ["叫聲"], DIS: ["瞪眼"] },
+          T2: { ATK: ["龍尾"], SPA: ["龍之波動"], BUF: ["劍舞"], DIS: [] },
+          T3: { ATK: ["龍之俯衝"], SPA: ["巨聲"], BUF: ["替身"], DIS: ["吼叫"] },
+          T4: { ATK: ["逆鱗"], SPA: ["龍星群"], BUF: ["守住"], DIS: ["吹飛"] },
+          T5: { ATK: ["終極衝擊"], SPA: [], BUF: ["睡覺"], DIS: [] }
+        }
+      },
+      "防禦反擊型": {
+        theme: "坦克、龍尾",
+        preferredStats: { ATK: 1.0, SPA: 1.0, SPD: 1.0, DEF: 1.3 },
+        ultMapping: "A",
+        tiers: {
+          T1: { ATK: ["龍爪"], SPA: [], BUF: ["變硬"], DIS: ["叫聲"] },
+          T2: { ATK: ["龍尾"], SPA: ["龍息"], BUF: ["鐵壁"], DIS: [] },
+          T3: { ATK: [], SPA: ["龍之波動"], BUF: ["替身"], DIS: ["吼叫"] },
+          T4: { ATK: ["龍之俯衝"], SPA: ["巨聲"], BUF: ["守住"], DIS: ["吹飛"] },
+          T5: { ATK: [], SPA: [], BUF: ["睡覺"], DIS: ["滅亡之歌"] }
+        }
+      },
+      "傳說威壓型": {
+        theme: "傳說、時空之力",
+        preferredStats: { ATK: 1.0, SPA: 1.0, SPD: 1.0, DEF: 1.0 },
+        ultMapping: "D",
+        tiers: {
+          T1: { ATK: ["龍爪"], SPA: ["龍息"], BUF: ["叫聲"], DIS: ["瞪眼"] },
+          T2: { ATK: ["龍尾"], SPA: ["龍之波動"], BUF: ["劍舞"], DIS: [] },
+          T3: { ATK: ["龍之俯衝"], SPA: ["巨聲"], BUF: ["冥想"], DIS: ["吼叫"] },
+          T4: { ATK: ["逆鱗"], SPA: ["時空咆哮"], BUF: ["替身"], DIS: ["吹飛"] },
+          T5: { ATK: ["終極衝擊"], SPA: ["破壞光線"], BUF: ["睡覺"], DIS: [] }
+        }
+      }
+    }
+  },
+
+  "惡": {
+    theme: "陰謀詭計、先制偷襲、心理壓制",
+    UNIVERSAL_MOVES: {},
+    VARIANTS: {
+      "咬碎強攻型": {
+        theme: "物攻、咬碎",
+        preferredStats: { ATK: 1.2, SPA: 0.8, SPD: 1.0, DEF: 1.0 },
+        ultMapping: "A",
+        tiers: {
+          T1: { ATK: ["咬住"], SPA: [], BUF: ["瞪眼"], DIS: [] },
+          T2: { ATK: ["出奇一擊"], SPA: ["大聲咆哮"], BUF: ["影子分身"], DIS: ["挑釁"] },
+          T3: { ATK: ["咬碎"], SPA: ["惡之波動"], BUF: ["劍舞"], DIS: [] },
+          T4: { ATK: ["暗襲要害"], SPA: [], BUF: ["替身"], DIS: ["吼叫"] },
+          T5: { ATK: ["終極衝擊"], SPA: [], BUF: ["腹鼓"], DIS: [] }
+        }
+      },
+      "詭計特攻型": {
+        theme: "特攻、陰謀",
+        preferredStats: { ATK: 0.8, SPA: 1.2, SPD: 1.0, DEF: 1.0 },
+        ultMapping: "B",
+        tiers: {
+          T1: { ATK: [], SPA: ["大聲咆哮"], BUF: ["叫聲"], DIS: ["瞪眼"] },
+          T2: { ATK: ["出奇一擊"], SPA: ["惡之波動"], BUF: ["詭計"], DIS: ["挑釁"] },
+          T3: { ATK: ["暗襲要害"], SPA: ["惡之波動"], BUF: ["替身"], DIS: ["臨別禮物"] },
+          T4: { ATK: [], SPA: ["惡之波動"], BUF: ["守住"], DIS: ["吼叫"] },
+          T5: { ATK: [], SPA: ["深淵波動"], BUF: ["睡覺"], DIS: [] }
+        }
+      },
+      "先制偷襲型": {
+        theme: "突襲、先制",
+        preferredStats: { ATK: 1.0, SPA: 1.0, SPD: 1.3, DEF: 1.0 },
+        ultMapping: "C",
+        tiers: {
+          T1: { ATK: ["咬住"], SPA: [], BUF: ["叫聲"], DIS: ["瞪眼"] },
+          T2: { ATK: ["出奇一擊"], SPA: ["大聲咆哮"], BUF: ["高速移動"], DIS: ["挑釁"] },
+          T3: { ATK: ["暗襲要害"], SPA: [], BUF: ["劍舞"], DIS: ["突襲"] },
+          T4: { ATK: ["咬碎"], SPA: ["惡之波動"], BUF: ["替身"], DIS: ["吼叫"] },
+          T5: { ATK: ["終極衝擊"], SPA: [], BUF: ["睡覺"], DIS: [] }
+        }
+      },
+      "干擾陰謀型": {
+        theme: "挑釁、臨別禮物",
+        preferredStats: { ATK: 1.0, SPA: 1.0, SPD: 1.0, DEF: 1.0 },
+        ultMapping: "B",
+        tiers: {
+          T1: { ATK: [], SPA: ["大聲咆哮"], BUF: [], DIS: ["叫聲"] },
+          T2: { ATK: ["暗襲要害"], SPA: ["惡之波動"], BUF: ["詭計"], DIS: ["挑釁"] },
+          T3: { ATK: [], SPA: ["惡之波動"], BUF: ["替身"], DIS: ["臨別禮物"] },
+          T4: { ATK: ["咬碎"], SPA: [], BUF: ["守住"], DIS: ["清除之煙"] },
+          T5: { ATK: [], SPA: ["破壞光線"], BUF: ["睡覺"], DIS: [] }
+        }
+      },
+      "雙刀暗黑型": {
+        theme: "暗黑洞、傳說",
+        preferredStats: { ATK: 1.1, SPA: 1.1, SPD: 1.0, DEF: 1.0 },
+        ultMapping: "D",
+        tiers: {
+          T1: { ATK: ["咬住"], SPA: ["大聲咆哮"], BUF: ["叫聲"], DIS: ["瞪眼"] },
+          T2: { ATK: ["出奇一擊"], SPA: ["惡之波動"], BUF: ["劍舞"], DIS: ["挑釁"] },
+          T3: { ATK: ["暗襲要害"], SPA: ["惡之波動"], BUF: ["詭計"], DIS: [] },
+          T4: { ATK: ["咬碎"], SPA: ["惡之波動"], BUF: ["替身"], DIS: ["吼叫"] },
+          T5: { ATK: ["終極衝擊"], SPA: ["破壞光線"], BUF: ["睡覺"], DIS: ["滅亡之歌"] }
+        }
+      }
+    }
+  },
+
+  "鋼": {
+    theme: "鋼鐵防壁、磁場干擾、子彈連擊",
+    UNIVERSAL_MOVES: {},
+    VARIANTS: {
+      "鐵頭強攻型": {
+        theme: "物攻、鐵頭",
+        preferredStats: { ATK: 1.2, SPA: 0.8, SPD: 1.0, DEF: 1.0 },
+        ultMapping: "A",
+        tiers: {
+          T1: { ATK: ["金屬爪"], SPA: [], BUF: ["瞪眼"], DIS: [] },
+          T2: { ATK: ["鐵頭"], SPA: ["加農光炮"], BUF: ["影子分身"], DIS: ["金屬音"] },
+          T3: { ATK: ["彗星拳"], SPA: [], BUF: ["劍舞"], DIS: [] },
+          T4: { ATK: ["重磅衝撞"], SPA: ["光澤電炮"], BUF: ["替身"], DIS: ["吼叫"] },
+          T5: { ATK: ["流星拳"], SPA: [], BUF: ["腹鼓"], DIS: [] }
+        }
+      },
+      "鋼鐵防壁型": {
+        theme: "防禦、鐵壁",
+        preferredStats: { ATK: 1.0, SPA: 1.0, SPD: 1.0, DEF: 1.3 },
+        ultMapping: "C",
+        tiers: {
+          T1: { ATK: ["金屬爪"], SPA: [], BUF: ["變硬"], DIS: ["叫聲"] },
+          T2: { ATK: ["鐵頭"], SPA: ["加農光炮"], BUF: ["鐵壁"], DIS: [] },
+          T3: { ATK: ["陀螺球"], SPA: [], BUF: ["健美"], DIS: ["吼叫"] },
+          T4: { ATK: ["重磅衝撞"], SPA: ["光澤電炮"], BUF: ["替身"], DIS: ["劇毒"] },
+          T5: { ATK: [], SPA: [], BUF: ["睡覺"], DIS: ["滅亡之歌"] }
+        }
+      },
+      "子彈連擊型": {
+        theme: "先制、子彈拳",
+        preferredStats: { ATK: 1.0, SPA: 1.0, SPD: 1.3, DEF: 1.0 },
+        ultMapping: "B",
+        tiers: {
+          T1: { ATK: ["金屬爪"], SPA: [], BUF: ["叫聲"], DIS: ["瞪眼"] },
+          T2: { ATK: ["子彈拳"], SPA: ["加農光炮"], BUF: ["高速移動"], DIS: [] },
+          T3: { ATK: ["彗星拳"], SPA: [], BUF: ["劍舞"], DIS: ["金屬音"] },
+          T4: { ATK: ["鐵頭"], SPA: ["光澤電炮"], BUF: ["替身"], DIS: ["吼叫"] },
+          T5: { ATK: ["終極衝擊"], SPA: [], BUF: ["睡覺"], DIS: [] }
+        }
+      },
+      "磁場干擾型": {
+        theme: "金屬音、電磁",
+        preferredStats: { ATK: 1.0, SPA: 1.0, SPD: 1.0, DEF: 1.0 },
+        ultMapping: "B",
+        tiers: {
+          T1: { ATK: [], SPA: ["電擊"], BUF: ["叫聲"], DIS: ["電磁波"] },
+          T2: { ATK: ["金屬爪"], SPA: ["加農光炮"], BUF: ["電磁漂浮"], DIS: ["金屬音"] },
+          T3: { ATK: [], SPA: ["光澤電炮"], BUF: ["充電"], DIS: ["吼叫"] },
+          T4: { ATK: ["鐵頭"], SPA: ["打雷"], BUF: ["替身"], DIS: ["清除之煙"] },
+          T5: { ATK: [], SPA: ["鋼鐵加農"], BUF: ["睡覺"], DIS: [] }
+        }
+      },
+      "雙刀鋼鐵型": {
+        theme: "靈活、傳說",
+        preferredStats: { ATK: 1.1, SPA: 1.1, SPD: 1.0, DEF: 1.0 },
+        ultMapping: "A",
+        tiers: {
+          T1: { ATK: ["金屬爪"], SPA: [], BUF: ["叫聲"], DIS: ["瞪眼"] },
+          T2: { ATK: ["鐵頭"], SPA: ["加農光炮"], BUF: ["鐵壁"], DIS: ["電磁波"] },
+          T3: { ATK: ["彗星拳"], SPA: ["光澤電炮"], BUF: ["劍舞"], DIS: [] },
+          T4: { ATK: ["重磅衝撞"], SPA: ["打雷"], BUF: ["替身"], DIS: ["吼叫"] },
+          T5: { ATK: ["流星拳"], SPA: [], BUF: ["睡覺"], DIS: [] }
+        }
+      }
+    }
+  },
+
+  "妖精": {
+    theme: "魅力干擾、魔法閃耀、治癒輔助",
+    UNIVERSAL_MOVES: {},
+    VARIANTS: {
+      "月亮強攻型": {
+        theme: "特攻、月亮之力",
+        preferredStats: { ATK: 0.8, SPA: 1.2, SPD: 1.0, DEF: 1.0 },
+        ultMapping: "A",
+        tiers: {
+          T1: { ATK: [], SPA: ["妖精之風"], BUF: ["叫聲"], DIS: ["瞪眼"] },
+          T2: { ATK: ["吸取吻"], SPA: ["魅惑之聲"], BUF: ["影子分身"], DIS: ["天使之吻"] },
+          T3: { ATK: [], SPA: ["月亮之力"], BUF: ["冥想"], DIS: [] },
+          T4: { ATK: ["嬉鬧"], SPA: ["魔法閃耀"], BUF: ["替身"], DIS: ["吼叫"] },
+          T5: { ATK: [], SPA: ["妖精爆裂"], BUF: ["睡覺"], DIS: [] }
+        }
+      },
+      "物理嬉鬧型": {
+        theme: "物攻、嬉鬧",
+        preferredStats: { ATK: 1.2, SPA: 0.8, SPD: 1.0, DEF: 1.0 },
+        ultMapping: "B",
+        tiers: {
+          T1: { ATK: ["拍擊"], SPA: [], BUF: ["搖尾巴"], DIS: ["叫聲"] },
+          T2: { ATK: ["吸取吻"], SPA: ["妖精之風"], BUF: ["影子分身"], DIS: ["天使之吻"] },
+          T3: { ATK: ["嬉鬧"], SPA: ["魅惑之聲"], BUF: ["劍舞"], DIS: [] },
+          T4: { ATK: ["泰山壓頂"], SPA: ["魔法閃耀"], BUF: ["替身"], DIS: ["吼叫"] },
+          T5: { ATK: ["終極衝擊"], SPA: [], BUF: ["腹鼓"], DIS: [] }
+        }
+      },
+      "特攻魔法型": {
+        theme: "魔法閃耀、範圍",
+        preferredStats: { ATK: 0.8, SPA: 1.2, SPD: 1.0, DEF: 1.0 },
+        ultMapping: "C",
+        tiers: {
+          T1: { ATK: [], SPA: ["妖精之風"], BUF: ["叫聲"], DIS: ["瞪眼"] },
+          T2: { ATK: ["吸取吻"], SPA: ["魅惑之聲"], BUF: ["高速移動"], DIS: ["天使之吻"] },
+          T3: { ATK: [], SPA: ["月亮之力"], BUF: ["冥想"], DIS: [] },
+          T4: { ATK: ["嬉鬧"], SPA: ["魔法閃耀"], BUF: ["替身"], DIS: ["清除之煙"] },
+          T5: { ATK: [], SPA: ["月光爆破"], BUF: ["睡覺"], DIS: [] }
+        }
+      },
+      "防禦回復型": {
+        theme: "薄霧場地、治癒",
+        preferredStats: { ATK: 1.0, SPA: 1.0, SPD: 1.0, DEF: 1.3 },
+        ultMapping: "B",
+        tiers: {
+          T1: { ATK: [], SPA: ["妖精之風"], BUF: ["變硬"], DIS: ["叫聲"] },
+          T2: { ATK: ["吸取吻"], SPA: ["魅惑之聲"], BUF: ["薄霧場地"], DIS: ["天使之吻"] },
+          T3: { ATK: [], SPA: ["月亮之力"], BUF: ["瞬間失憶"], DIS: ["治癒波動"] },
+          T4: { ATK: ["嬉鬧"], SPA: ["魔法閃耀"], BUF: ["替身"], DIS: ["劇毒"] },
+          T5: { ATK: [], SPA: [], BUF: ["睡覺"], DIS: ["滅亡之歌"] }
+        }
+      },
+      "魅力干擾型": {
+        theme: "撒嬌、魅惑",
+        preferredStats: { ATK: 1.0, SPA: 1.0, SPD: 1.3, DEF: 1.0 },
+        ultMapping: "C",
+        tiers: {
+          T1: { ATK: [], SPA: ["妖精之風"], BUF: ["搖尾巴"], DIS: ["叫聲"] },
+          T2: { ATK: ["吸取吻"], SPA: ["魅惑之聲"], BUF: ["替身"], DIS: ["天使之吻"] },
+          T3: { ATK: ["嬉鬧"], SPA: ["月亮之力"], BUF: ["冥想"], DIS: ["撒嬌"] },
+          T4: { ATK: [], SPA: ["魔法閃耀"], BUF: ["守住"], DIS: ["吼叫"] },
+          T5: { ATK: [], SPA: ["破壞光線"], BUF: ["睡覺"], DIS: [] }
+        }
+      }
+    }
+  }
+};
+
+var TYPE_T5_SIGNATURES = {
+  "一般": { ATK: ["終極衝擊"], SPA: ["破壞光線"], BUF: ["腹鼓"], DIS: ["滅亡之歌"] },
+  "火":   { ATK: ["V熱焰"], SPA: ["焚焰放射","滅世爆焰"], BUF: ["腹鼓"], DIS: ["滅亡之歌"] },
+  "水":   { ATK: ["攀瀑·極","怒濤衝鋒"], SPA: ["極巨水炮","深海漩渦"], BUF: ["水流環·極"], DIS: ["絕對零度"] },
+  "草":   { ATK: ["木槌·大木","輝煌綠葉"], SPA: ["萬葉裁決","日光束·極"], BUF: ["光合再生"], DIS: ["腐蝕孢子"] },
+  "電":   { ATK: ["電氣猛攻"], SPA: ["萬雷轟","磁能炮"], BUF: ["電磁屏障"], DIS: ["靜電場·極"] },
+  "冰":   { ATK: ["冰柱墜擊"], SPA: ["絕對零度","極寒風暴"], BUF: ["冰川甲"], DIS: ["永凍之風"] },
+  "格鬥": { ATK: ["真·近身戰","氣魄拳"], SPA: ["真波導彈"], BUF: ["戰意高昂"], DIS: ["威嚇粉碎"] },
+  "毒":   { ATK: ["毒垃圾雨"], SPA: ["劇毒擴散","溶解泥彈"], BUF: ["毒液護甲"], DIS: ["瘴氣瀰漫"] },
+  "地面": { ATK: ["震滅","地龍鑽"], SPA: ["蓋亞能量","灼熱流沙"], BUF: ["地殼裝甲"], DIS: ["流沙地獄"] },
+  "飛行": { ATK: ["神鳥猛攻"], SPA: ["天翔風暴","真空刃"], BUF: ["順風·極"], DIS: ["暴風眼"] },
+  "超能力":{ ATK: ["意念爆破"], SPA: ["心靈風暴","極限精神"], BUF: ["精神屏障"], DIS: ["重力場"] },
+  "蟲":   { ATK: ["巨角衝撞"], SPA: ["蟲群風暴","顫音共鳴"], BUF: ["蟲蛻重生"], DIS: ["黏稠蛛網"] },
+  "岩石": { ATK: ["尖石隕落","雙刃撞擊"], SPA: ["隕石爆破","原始能量"], BUF: ["岩石護甲"], DIS: ["沙塵暴"] },
+  "幽靈": { ATK: ["暗影強襲"], SPA: ["深淵暗影","魂火"], BUF: ["靈魂分擔"], DIS: ["詛咒連鎖"] },
+  "龍":   { ATK: ["龍神爪","龍神逆鱗"], SPA: ["龍星殞落","時空崩壞"], BUF: ["龍之鼓舞"], DIS: ["龍之詛咒·極"] },
+  "惡":   { ATK: ["暗黑亂舞","深淵突刺"], SPA: ["深淵波動","絕望制裁"], BUF: ["暗黑契約"], DIS: ["絕望告別"] },
+  "鋼":   { ATK: ["流星拳","鋼鐵重壓"], SPA: ["鋼鐵加農","磁軌炮"], BUF: ["合金裝甲"], DIS: ["磁場崩壞"] },
+  "妖精": { ATK: ["妖精狂歡"], SPA: ["妖精爆裂","月光爆破"], BUF: ["妖精領域"], DIS: ["魅惑漩渦"] }
+};
+
+var ARCHETYPE_TEMPLATES = {
+  "物理強攻型": {
+    theme: "高物攻、壓制",
+    preferredStats: { ATK: 1.3, SPA: 0.7, SPD: 0.9, DEF: 0.9 },
+    ultMapping: "A",
+    slots: {
+      T1: { ATK: "type_basic_atk", SPA: null, BUF: "type_common_buf", DIS: "type_basic_dis" },
+      T2: { ATK: "type_medium_atk", SPA: "type_coverage_spa", BUF: "screening", DIS: null },
+      T3: { ATK: "type_strong_atk", SPA: null, BUF: "swords_dance", DIS: "screech" },
+      T4: { ATK: "type_top_atk", SPA: "type_strong_spa", BUF: "substitute", DIS: "roar" },
+      T5: { ATK: "type_finisher_atk", SPA: null, BUF: "belly_drum", DIS: null }
+    }
+  },
+  "特攻轟炸型": {
+    theme: "高特攻、轟炸",
+    preferredStats: { ATK: 0.7, SPA: 1.3, SPD: 1.0, DEF: 0.8 },
+    ultMapping: "B",
+    slots: {
+      T1: { ATK: null, SPA: "type_basic_spa", BUF: "type_basic_buf", DIS: "type_basic_dis" },
+      T2: { ATK: "type_coverage_atk", SPA: "type_medium_spa", BUF: "speed_boost", DIS: null },
+      T3: { ATK: null, SPA: "type_strong_spa", BUF: "calm_mind", DIS: "confuse_ray" },
+      T4: { ATK: "self_boom", SPA: "type_top_spa", BUF: "protect", DIS: "thunder_wave" },
+      T5: { ATK: null, SPA: "type_finisher_spa", BUF: "rest", DIS: null }
+    }
+  },
+  "速攻擾亂型": {
+    theme: "先制、速度壓制",
+    preferredStats: { ATK: 1.0, SPA: 0.9, SPD: 1.3, DEF: 0.7 },
+    ultMapping: "C",
+    slots: {
+      T1: { ATK: "quick_atk", SPA: null, BUF: "tail_wag", DIS: "leer" },
+      T2: { ATK: "type_medium_atk", SPA: null, BUF: "agility", DIS: "type_early_disrupt" },
+      T3: { ATK: "type_strong_atk", SPA: null, BUF: "substitute", DIS: "haze" },
+      T4: { ATK: "type_top_atk", SPA: null, BUF: "protect", DIS: "whirlwind" },
+      T5: { ATK: "universal_finisher_atk", SPA: null, BUF: "rest", DIS: null }
+    }
+  },
+  "防禦坦克型": {
+    theme: "坦克、續航",
+    preferredStats: { ATK: 0.8, SPA: 0.7, SPD: 0.7, DEF: 1.3 },
+    ultMapping: "D",
+    slots: {
+      T1: { ATK: null, SPA: null, BUF: "harden", DIS: "growl" },
+      T2: { ATK: "type_coverage_atk", SPA: "type_basic_spa", BUF: "iron_defense", DIS: null },
+      T3: { ATK: null, SPA: "type_medium_spa", BUF: "amnesia", DIS: "toxic" },
+      T4: { ATK: "type_top_atk", SPA: "type_strong_spa", BUF: "protect", DIS: "whirlwind" },
+      T5: { ATK: null, SPA: null, BUF: "rest", DIS: "perish_song" }
+    }
+  },
+  "雙刀均衡型": {
+    theme: "靈活、適應",
+    preferredStats: { ATK: 1.1, SPA: 1.1, SPD: 0.9, DEF: 0.8 },
+    ultMapping: "C",
+    slots: {
+      T1: { ATK: "type_basic_atk", SPA: "type_basic_spa", BUF: "tail_wag", DIS: "leer" },
+      T2: { ATK: "quick_atk", SPA: "type_medium_spa", BUF: "double_team", DIS: null },
+      T3: { ATK: "type_medium_atk", SPA: null, BUF: "swords_dance", DIS: "haze" },
+      T4: { ATK: "type_strong_atk", SPA: "type_strong_spa", BUF: "substitute", DIS: "roar" },
+      T5: { ATK: "universal_finisher_atk", SPA: null, BUF: "belly_drum", DIS: null }
+    }
+  },
+  "天氣主導型": {
+    theme: "天氣、日照加成",
+    preferredStats: { ATK: 0.9, SPA: 1.1, SPD: 1.0, DEF: 0.9 },
+    ultMapping: "D",
+    slots: {
+      T1: { ATK: null, SPA: "type_basic_spa", BUF: "growl", DIS: null },
+      T2: { ATK: "type_medium_atk", SPA: "type_medium_spa", BUF: "weather_summon", DIS: "type_weather_disrupt" },
+      T3: { ATK: null, SPA: "type_strong_spa", BUF: "substitute", DIS: "will_o_wisp" },
+      T4: { ATK: null, SPA: "type_top_spa", BUF: "protect", DIS: "whirlwind" },
+      T5: { ATK: "universal_finisher_atk", SPA: "type_finisher_spa", BUF: "rest", DIS: null }
+    }
+  },
+  "干擾消耗型": {
+    theme: "燃燒、混亂疊加",
+    preferredStats: { ATK: 0.7, SPA: 1.1, SPD: 1.0, DEF: 1.0 },
+    ultMapping: "E",
+    slots: {
+      T1: { ATK: null, SPA: null, BUF: null, DIS: "smokescreen" },
+      T2: { ATK: null, SPA: "type_medium_spa", BUF: "substitute", DIS: "will_o_wisp" },
+      T3: { ATK: "type_strong_atk", SPA: "type_strong_spa", BUF: null, DIS: "confuse_ray" },
+      T4: { ATK: null, SPA: "type_top_spa", BUF: "protect", DIS: "haze" },
+      T5: { ATK: null, SPA: "universal_finisher_spa", BUF: "rest", DIS: "perish_song" }
+    }
+  }
+};
+
+var TYPE_MOVE_LIBRARY = {
+  "火": {
+    type_basic_atk:      ["火花"],
+    type_basic_spa:      ["火花"],
+    type_basic_buf:      ["叫聲"],
+    type_basic_dis:      ["煙幕"],
+    type_medium_atk:     ["火焰拳"],
+    type_medium_spa:     ["魔法火焰", "噴射火焰"],
+    type_strong_atk:     ["火焰踢", "火焰牙"],
+    type_strong_spa:     ["大字爆", "熱風"],
+    type_top_atk:        ["閃焰衝鋒"],
+    type_top_spa:        ["大字爆", "過熱"],
+    type_finisher_atk:   ["V熱焰"],
+    type_finisher_spa:   ["焚焰放射", "滅世爆焰"],
+    type_coverage_atk:   ["雷電牙", "劈開"],
+    type_coverage_spa:   ["覺醒力量"],
+    type_early_disrupt:  ["火焰旋渦"],
+    type_weather_disrupt:["鬼火"],
+    weather_summon:      ["大晴天"],
+  },
+  "水": {
+    type_basic_atk:      ["水槍"],
+    type_basic_spa:      ["水槍"],
+    type_basic_buf:      ["叫聲"],
+    type_basic_dis:      ["玩水"],
+    type_medium_atk:     ["噴射拳"],
+    type_medium_spa:     ["水之波動"],
+    type_strong_atk:     ["攀瀑"],
+    type_strong_spa:     ["熱水"],
+    type_top_atk:        ["水之尾"],
+    type_top_spa:        ["水炮", "衝浪"],
+    type_finisher_atk:   ["攀瀑·極", "噴射拳·改"],
+    type_finisher_spa:   ["極巨水炮", "深海漩渦"],
+    type_coverage_atk:   ["冰凍牙", "泰山壓頂"],
+    type_coverage_spa:   ["冰凍光束"],
+    type_early_disrupt:  ["黑霧"],
+    type_weather_disrupt:["冰雹前置"],
+    weather_summon:      ["祈雨"],
+  },
+  "草": {
+    type_basic_atk:      ["藤鞭"],
+    type_basic_spa:      ["藤鞭"],
+    type_basic_buf:      ["叫聲"],
+    type_basic_dis:      ["毒粉"],
+    type_medium_atk:     ["飛葉快刀"],
+    type_medium_spa:     ["魔法葉"],
+    type_strong_atk:     ["種子炸彈", "木角"],
+    type_strong_spa:     ["能量球", "打草結"],
+    type_top_atk:        ["日光刃", "木槌"],
+    type_top_spa:        ["飛葉風暴", "日光束"],
+    type_finisher_atk:   ["木槌·大木", "輝煌綠葉"],
+    type_finisher_spa:   ["萬葉裁決", "日光束·極"],
+    type_coverage_atk:   ["地震"],
+    type_coverage_spa:   ["覺醒力量"],
+    type_early_disrupt:  ["麻痺粉"],
+    type_weather_disrupt:["睡眠粉"],
+    weather_summon:      ["大晴天"],
+  }
+};
+
 // ========== 手工設計技能樹 ==========
 
 var SPECIES_SKILL_TREE = {};
@@ -371,13 +1842,78 @@ function generateSkillTree(speciesName, types, atkStat, spaStat) {
   };
 }
 
+function generateSpeciesSkillTree(speciesName, types, tier) {
+  var typeSpec = types && types[0] && TYPE_SPEC_V2[types[0]];
+  if (!typeSpec) return generateSkillTree(speciesName, types, 80, 80);
+  var dummyPkm = { species: speciesName, types: types, tier: tier || 3, personality: Math.random() };
+  var variant = selectVariant(dummyPkm, types, typeSpec);
+  if (!variant) return generateSkillTree(speciesName, types, 80, 80);
+  var tree = buildTreeFromVariant(variant, types);
+  var result = { types: types, stages: [0, 1, 2, 3, 4, 5], label: variant.label, trees: {} };
+  Object.keys(tree).forEach(function(k) { result.trees[k] = buildNodesFromVariantTree(tree[k], k); });
+  var ultNode = buildUltNodes(variant, types, tier || 3);
+  if (ultNode) result.trees.ult = ultNode;
+  return result;
+}
+
 // ========== 公開 API ==========
 
-function getSkillTree(speciesName, types, atkStat, spaStat) {
+function getSkillTree(speciesName, types, atkStat, spaStat, pokemon) {
+  // 新系統：如果傳入完整 pokemon 物件且該屬性有 TYPE_SPEC_V2 定義
+  if (pokemon && pokemon.primaryType && TYPE_SPEC_V2[pokemon.primaryType]) {
+    var vName = selectVariant(pokemon);
+    if (vName) {
+      var variantTree = buildTreeFromVariant(pokemon, pokemon.primaryType, vName);
+      return {
+        types: types || [pokemon.primaryType],
+        stages: [0, 1, 2],
+        trees: {
+          atk: { label: "攻擊系", nodes: buildNodesFromVariantTree(variantTree, "ATK"), passives: [{ tier: 2, effect: "物理傷害 +3%" }, { tier: 4, effect: "會心率 +5%" }] },
+          spa: { label: "特攻系", nodes: buildNodesFromVariantTree(variantTree, "SPA"), passives: [{ tier: 2, effect: "特攻 +3%" }, { tier: 4, effect: "屬性加成 +5%" }] },
+          buf: { label: "強化系", nodes: buildNodesFromVariantTree(variantTree, "BUF"), passives: [{ tier: 2, effect: "回復量 +10%" }, { tier: 4, effect: "被提升效果 +5%" }] },
+          dis: { label: "干擾系", nodes: buildNodesFromVariantTree(variantTree, "DIS"), passives: [{ tier: 2, effect: "狀態命中 +5%" }, { tier: 4, effect: "對手弱化 +5%" }] },
+          ult: { label: "奧義系", nodes: buildUltNodes(variantTree, pokemon, types), passives: [{ tier: 3, effect: "奧義威力 +10%" }] }
+        }
+      };
+    }
+  }
+  // 舊系統：手工設計優先，無則自動生成
   if (SPECIES_SKILL_TREE[speciesName]) {
     return JSON.parse(JSON.stringify(SPECIES_SKILL_TREE[speciesName]));
   }
   return generateSkillTree(speciesName, types || ["一般"], atkStat || 50, spaStat || 50);
+}
+
+function buildNodesFromVariantTree(variantTree, role) {
+  var roleKey = role;
+  var tierKeys = ["T1", "T2", "T3", "T4", "T5"];
+  var nodes = [];
+  var tierMap = { T1: 1, T2: 2, T3: 3, T4: 4, T5: 5 };
+  var prevNames = [];
+  for (var i = 0; i < tierKeys.length; i++) {
+    var t = tierKeys[i];
+    var move = variantTree[roleKey] ? variantTree[roleKey][t] : null;
+    if (move) {
+      var prereqs = prevNames.length > 0 ? [prevNames[prevNames.length - 1]] : [];
+      nodes.push({ tier: tierMap[t], name: move, spCost: tierMap[t], prereqs: prereqs });
+      prevNames = [move];
+    }
+  }
+  return nodes;
+}
+
+function buildUltNodes(variantTree, pokemon, types) {
+  var ultVariant = selectUltVariant(pokemon, (types && types[0]) || pokemon.primaryType, "物理強攻型");
+  var nodes = [];
+  nodes.push({ tier: 1, name: "高速星星", spCost: 1, prereqs: [] });
+  nodes.push({ tier: 2, name: "覺醒力量", spCost: 2, prereqs: ["高速星星"] });
+  var t3Move = "泰山壓頂";
+  var t4Move = "地球上投";
+  var t5Move = ultVariant.t5Name || "終極衝擊";
+  nodes.push({ tier: 3, name: t3Move, spCost: 3, prereqs: ["覺醒力量"] });
+  nodes.push({ tier: 4, name: t4Move, spCost: 4, prereqs: [t3Move] });
+  nodes.push({ tier: 5, name: t5Move, spCost: 5, prereqs: [t4Move] });
+  return nodes;
 }
 
 function getTreeTypeLabel(treeType) {
@@ -419,6 +1955,177 @@ function getTreeSpThreshold(tier) {
   return TIER_SP_THRESHOLD[tier] || 0;
 }
 
+// ========== Phase 1: 核心選擇演算法 ==========
+
+// 1.2 確定性隨機
+function seededRandom(seed) {
+  var t = seed | 0;
+  return function() {
+    t = (t + 0x6D2B79F5) | 0;
+    var m = Math.imul(t ^ (t >>> 15), 1 | t);
+    m = (m + Math.imul(m ^ (m >>> 7), 61 | m)) ^ m;
+    return ((m ^ (m >>> 14)) >>> 0) / 4294967296;
+  };
+}
+
+function selectFromPool(pool, seed) {
+  if (!pool || pool.length === 0) return null;
+  if (pool.length === 1) return pool[0];
+  var rng = seededRandom(seed);
+  return pool[Math.floor(rng() * pool.length)];
+}
+
+// 副屬性偏移表
+var TYPE2_AFFINITY_MAP = {
+  "格鬥": { physical: 20, melee: 20 },
+  "幽靈": { disrupt: 20, special: 20 },
+  "地面": { physical: 15, weather: 15 },
+  "飛行": { speed: 20, weather: 20 },
+  "鋼":   { defense: 20, bullet: 20 },
+  "水":   { defense: 15, recovery: 15 },
+  "火":   { offense: 15, weather: 15 },
+  "草":   { recovery: 20, consume: 20 },
+  "電":   { speed: 20, disrupt: 20 },
+  "超能力": { special: 20, field: 20 },
+  "冰":   { special: 20, weather: 20 },
+  "蟲":   { combo: 15, boost: 15 },
+  "岩石": { defense: 15, sandstorm: 15 },
+  "惡":   { priority: 20, disrupt: 20 },
+  "妖精": { defense: 15, disrupt: 15 },
+  "龍":   { offense: 20, dance: 20 },
+  "毒":   { consume: 15, disrupt: 15 },
+  "一般": { balanced: 0 }
+};
+
+function getType2Affinity(type2, variant) {
+  if (!type2 || !TYPE2_AFFINITY_MAP[type2]) return 0;
+  var affinity = TYPE2_AFFINITY_MAP[type2];
+  var vname = variant.theme || "";
+  for (var key in affinity) {
+    if (vname.indexOf(key) >= 0 || variant.tags && variant.tags.indexOf(key) >= 0) {
+      return affinity[key];
+    }
+  }
+  return 0;
+}
+
+function hasWeatherAbility(ability) {
+  if (!ability) return false;
+  var weatherAbilities = ["乾旱", "揚沙", "降雨", "降雪", "始源之海", "終結之地"];
+  return weatherAbilities.indexOf(ability) >= 0;
+}
+
+// 1.1 變體選擇演算法
+function selectVariant(pokemon) {
+  var type = pokemon.primaryType;
+  var typeSpec = TYPE_SPEC_V2[type];
+  if (!typeSpec) return null;
+  var variants = typeSpec.VARIANTS;
+  var stats = pokemon.stats || { atk: 50, spa: 50, spd: 50, def: 50, spDef: 50 };
+  var scores = {};
+  var idx = 0;
+  for (var name in variants) {
+    if (variants.hasOwnProperty(name)) {
+      var variant = variants[name];
+      var score = 0;
+      score += (stats.atk / 255) * (variant.preferredStats.ATK || 1.0) * 40;
+      score += (stats.spa / 255) * (variant.preferredStats.SPA || 1.0) * 40;
+      score += (stats.spd / 255) * (variant.preferredStats.SPD || 1.0) * 20;
+      score += ((stats.def + stats.spDef) / 510) * (variant.preferredStats.DEF || 1.0) * 20;
+      score += getType2Affinity(pokemon.type2, variant);
+      if (pokemon.ability && hasWeatherAbility(pokemon.ability) && variant.tags && variant.tags.indexOf("weather") >= 0) score += 30;
+      var seed = (pokemon.personality || 0) * 100 + idx;
+      var noise = (seededRandom(seed)() * 6) - 3;
+      scores[name] = score + noise;
+      idx++;
+    }
+  }
+  var best = null, bestScore = -Infinity;
+  for (var n in scores) {
+    if (scores[n] > bestScore) { bestScore = scores[n]; best = n; }
+  }
+  return best;
+}
+
+// 1.3 招式樹生成
+function buildTreeFromVariant(pokemon, type, variantName) {
+  var variant = TYPE_SPEC_V2[type].VARIANTS[variantName];
+  var tiers = variant.tiers;
+  var tree = {};
+  var roles = ["ATK", "SPA", "BUF", "DIS"];
+  for (var ri = 0; ri < roles.length; ri++) {
+    var role = roles[ri];
+    tree[role] = {};
+    var tierLabels = ["T1", "T2", "T3", "T4", "T5"];
+    for (var ti = 0; ti < tierLabels.length; ti++) {
+      var t = tierLabels[ti];
+      var pool = tiers[t][role];
+      if (pool.length === 0) {
+        tree[role][t] = null;
+      } else if (pool.length === 1) {
+        tree[role][t] = pool[0];
+      } else {
+        var seed = (pokemon.id || 0) * 100000 + (pokemon.personality || 0) * 1000 + ti * 10 + ri;
+        tree[role][t] = selectFromPool(pool, seed);
+      }
+    }
+  }
+  var T5_FALLBACK = { ATK: ["終極衝擊"], SPA: ["破壞光線"], BUF: ["睡覺", "腹鼓"], DIS: ["滅亡之歌"] };
+  for (ri = 0; ri < roles.length; ri++) {
+    role = roles[ri];
+    if (!tree[role].T5 && T5_FALLBACK[role]) {
+      tree[role].T5 = selectFromPool(T5_FALLBACK[role], seed || 0);
+    }
+  }
+  return tree;
+}
+
+// 1.5 T5 招式解析
+function resolveT5Move(type, role, variant, pokemon) {
+  var sig = TYPE_T5_SIGNATURES[type];
+  var signature = sig ? sig[role] : null;
+  if (signature && signature.length > 0) {
+    if (signature.length === 1) return signature[0];
+    return selectByVariantAffinity(signature, variant);
+  }
+  var subType = pokemon && pokemon.type2;
+  if (subType && TYPE_T5_SIGNATURES[subType]) {
+    var subSig = TYPE_T5_SIGNATURES[subType][role];
+    if (subSig && subSig.length > 0) return subSig[0];
+  }
+  var FALLBACK = { ATK: ["終極衝擊"], SPA: ["破壞光線"], BUF: ["睡覺", "腹鼓"], DIS: ["滅亡之歌"] };
+  return selectFromPool(FALLBACK[role], 0);
+}
+
+function selectByVariantAffinity(signature, variant) {
+  if (!signature || signature.length === 0) return null;
+  return signature[0];
+}
+
+// 1.4 ULT 變體選擇
+function selectUltVariant(pokemon, type, variantName) {
+  var variant = TYPE_SPEC_V2[type].VARIANTS[variantName];
+  if (variant.ultMapping) {
+    var ultIndex = variant.ultMapping;
+    var ultVariants = {
+      "A": { label: "制裁", suffix: "制裁" },
+      "B": { label: "終結", suffix: "終結" },
+      "C": { label: "極致", suffix: "極致" },
+      "D": { label: "裁決", suffix: "裁決" },
+      "E": { label: "傳說", suffix: "神聖" }
+    };
+    var uv = ultVariants[ultIndex] || ultVariants["C"];
+    var typeLabel = type;
+    var speciesLabel = pokemon && pokemon.baseName ? "·" + pokemon.baseName : "";
+    return {
+      index: ultIndex,
+      label: uv.label,
+      t5Name: typeLabel + "系" + speciesLabel + uv.suffix
+    };
+  }
+  return { index: "C", label: "極致", t5Name: "極致衝擊" };
+}
+
 // ========== 初始化 ==========
 // 如果 MOVE_DATABASE 已載入，為所有非傳說寶可夢生成技能樹
 if (typeof POKEMON_TIERS !== "undefined" && typeof POKEMON_SPECIES_TYPES !== "undefined") {
@@ -456,5 +2163,16 @@ window.TIER_FP_COST = TIER_FP_COST;
 window.BUF_FP_COST = BUF_FP_COST;
 window.DIS_FP_COST = DIS_FP_COST;
 window.ULT_FP_COST = ULT_FP_COST;
+// Phase 0 exports
+window.TYPE_SPEC_V2 = TYPE_SPEC_V2;
+window.TYPE_T5_SIGNATURES = TYPE_T5_SIGNATURES;
+window.ARCHETYPE_TEMPLATES = ARCHETYPE_TEMPLATES;
+window.TYPE_MOVE_LIBRARY = TYPE_MOVE_LIBRARY;
+// Phase 1 exports
+window.selectVariant = selectVariant;
+window.buildTreeFromVariant = buildTreeFromVariant;
+window.resolveT5Move = resolveT5Move;
+window.selectUltVariant = selectUltVariant;
+window.seededRandom = seededRandom;
 
 })();
