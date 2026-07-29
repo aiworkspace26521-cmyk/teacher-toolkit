@@ -992,7 +992,7 @@ async function recalculateStudentState(studentId, events) {
     hasChampionCloak: false, hasAmuletCoin: false,
     hasQuickClaw: false, hasFocusLens: false, hasShellBell: false, hasLifeOrb: false, hasAssaultVest: false,
     hasFocusSash: false, hasEjectButton: false, hasRockyHelmet: false, hasWeaknessPolicy: false,
-    oranBerries: 0, cheriBerries: 0, lumBerries: 0, chilanBerries: 0,
+    memoryCapsules: 0, oranBerries: 0, cheriBerries: 0, lumBerries: 0, chilanBerries: 0,
     tms: {},
     todayStatus: "PENDING", daysSinceLastBadge: 0, simpleMode: false,
     lastBadgeTime: null, firstLogTime: null,
@@ -1063,6 +1063,7 @@ async function recalculateStudentState(studentId, events) {
       if (safeNote.indexOf("\u5947\u7570\u679C") !== -1) state.cheriBerries = (state.cheriBerries||0) + 1;
       if (safeNote.indexOf("\u6728\u5B50\u679C") !== -1) state.lumBerries = (state.lumBerries||0) + 1;
       if (safeNote.indexOf("\u6297\u6027\u679C") !== -1) state.chilanBerries = (state.chilanBerries||0) + 1;
+      if (safeNote.indexOf("\u56DE\u61B6\u81A0\u56CA") !== -1) state.memoryCapsules = (state.memoryCapsules||0) + 1;
       if (safeNote.indexOf("\u6C23\u52E2\u62AB\u5E36") !== -1) state.hasFocusSash = true;
       if (safeNote.indexOf("\u9003\u812B\u6309\u9215") !== -1) state.hasEjectButton = true;
       if (safeNote.indexOf("\u51F8\u51F8\u982D\u76D4") !== -1) state.hasRockyHelmet = true;
@@ -9278,10 +9279,19 @@ function renderSkillTree() {
   for (var ri = 0; ri < roster.length; ri++) { if (roster[ri].id === _skillTreePkmnId) { pkmn = roster[ri]; break; } }
   if (!pkmn) { $("skillTreeHeader").innerHTML = "找不到寶可夢"; return; }
 
-  var types = (typeof POKEMON_SPECIES_TYPES !== "undefined") ? POKEMON_SPECIES_TYPES[pkmn.baseName] : ["一般"];
+  var rawName = typeof getRawName === "function" ? getRawName(pkmn.baseName) : pkmn.baseName;
+  var types = (typeof POKEMON_SPECIES_TYPES !== "undefined") ? POKEMON_SPECIES_TYPES[rawName] : ["一般"];
+  if (!types || types.length === 0) types = ["一般"];
   var atkStat = pkmn.atk || 50;
   var spaStat = pkmn.spatk || 50;
-  var tree = typeof getSkillTree !== "undefined" ? getSkillTree(pkmn.baseName, types, atkStat, spaStat) : null;
+  var pkmnStats = typeof getPokemonStats === "function" ? getPokemonStats(rawName, pkmn.currentLevel || 5) : { atk: atkStat, spa: spaStat, spd: 50, def: 50, spDef: 50, hp: 50 };
+  var tree = typeof getSkillTree !== "undefined" ? getSkillTree(pkmn.baseName, types, atkStat, spaStat, {
+    baseName: rawName,
+    primaryType: types[0],
+    type2: types.length > 1 ? types[1] : null,
+    stats: pkmnStats,
+    personality: pkmn.personality || Math.floor(Math.random() * 256)
+  }) : null;
   if (!tree) { $("skillTreeBody").innerHTML = "暫無技能樹資料"; return; }
 
   var sp = pkmn.skillPoints || 0;

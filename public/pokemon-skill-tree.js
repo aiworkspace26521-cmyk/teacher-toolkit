@@ -1890,9 +1890,18 @@ function buildNodesFromVariantTree(variantTree, role) {
   var nodes = [];
   var tierMap = { T1: 1, T2: 2, T3: 3, T4: 4, T5: 5 };
   var prevNames = [];
+  var FALLBACK_MOVES = {
+    ATK: ["撞擊", "電光一閃", "劈開", "捨身衝撞", "終極衝擊"],
+    SPA: ["覺醒力量", "高速星星", "巨聲", "破壞光線"],
+    BUF: ["叫聲", "影子分身", "劍舞", "替身", "睡覺"],
+    DIS: ["瞪眼", "吼叫", "清除之煙", "滅亡之歌"]
+  };
   for (var i = 0; i < tierKeys.length; i++) {
     var t = tierKeys[i];
     var move = variantTree[roleKey] ? variantTree[roleKey][t] : null;
+    if (!move && FALLBACK_MOVES[role] && FALLBACK_MOVES[role][i]) {
+      move = FALLBACK_MOVES[role][i];
+    }
     if (move) {
       var prereqs = prevNames.length > 0 ? [prevNames[prevNames.length - 1]] : [];
       nodes.push({ tier: tierMap[t], name: move, spCost: tierMap[t], prereqs: prereqs });
