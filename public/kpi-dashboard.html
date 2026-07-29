@@ -4391,8 +4391,12 @@ async function endBattle(playerWon) {
       var legName = battleState.legendaryName || "傳說寶可夢";
       $("resultMessage").innerHTML = "💀 " + legName + " 逃走了... 下次再挑戰！";
       $("resultRewards").innerHTML = "";
+      var legSource = pendingLegendary ? pendingLegendary.source : null;
       pendingLegendary = null;
       $("resultConfirmBtn").textContent = "✅ 確認";
+      if (legSource === "submit") {
+        globalData.todayStatus = "SUBMITTED";
+      }
     } else {
       $("resultMessage").innerHTML = "💀 全軍覆沒... 對戰失敗！";
       $("resultRewards").innerHTML = "";
@@ -9788,13 +9792,13 @@ function updateFpUI() {
   if (!battleState) return;
   var pp = battleState.playerPokemon;
   var ep = battleState.enemy;
-  if (pp.maxFp !== undefined) {
+  if (pp && pp.maxFp !== undefined) {
     var fpPct = Math.round(pp.currentFp / pp.maxFp * 100);
     $("playerFpBar").style.width = fpPct + "%";
     $("playerFpText").innerHTML = pp.currentFp + "/" + pp.maxFp;
     $("playerFpIndicator").innerHTML = "FP " + pp.currentFp + "/" + pp.maxFp;
   }
-  if (ep.maxFp !== undefined && $("enemyFpBarBg")) {
+  if (ep && ep.maxFp !== undefined && $("enemyFpBarBg")) {
     $("enemyFpBarBg").style.display = "block";
     $("enemyFpLabel").style.display = "flex";
     var efpPct = Math.round(ep.currentFp / ep.maxFp * 100);
