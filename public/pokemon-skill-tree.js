@@ -89,6 +89,44 @@ var TYPE_SPEC_V2 = {
           T5: { ATK: ["終極衝擊"], SPA: [], BUF: ["腹鼓"], DIS: [] }
         }
       }
+    ,
+      "隊醫輔助型": {
+        theme: "治療回復、狀態輔助、團隊支援",
+        preferredStats: { ATK: 0.5, SPA: 0.8, SPD: 0.9, DEF: 1.3 },
+        ultMapping: "E",
+        tiers: {
+        "T1": {
+          ATK: [],
+          SPA: [],
+          BUF: ["搖尾巴"],
+          DIS: ["叫聲"]
+        },
+        "T2": {
+          ATK: [],
+          SPA: ["高速星星"],
+          BUF: ["影子分身"],
+          DIS: []
+        },
+        "T3": {
+          ATK: [],
+          SPA: ["巨聲"],
+          BUF: ["睡覺"],
+          DIS: ["黑霧"]
+        },
+        "T4": {
+          ATK: ["電光一閃"],
+          SPA: ["三角攻擊"],
+          BUF: ["替身"],
+          DIS: ["電磁波"]
+        },
+        "T5": {
+          ATK: [],
+          SPA: ["破壞光線"],
+          BUF: ["守住"],
+          DIS: ["滅亡之歌"]
+        }
+        }
+      }
     }
   },
 
@@ -180,6 +218,44 @@ var TYPE_SPEC_V2 = {
           T5: { ATK: [], SPA: ["破壞光線"], BUF: ["睡覺"], DIS: ["滅亡之歌"] }
         }
       }
+    ,
+      "隊醫輔助型": {
+        theme: "治療回復、狀態輔助、團隊支援",
+        preferredStats: { ATK: 0.5, SPA: 0.8, SPD: 0.9, DEF: 1.3 },
+        ultMapping: "E",
+        tiers: {
+        "T1": {
+          ATK: [],
+          SPA: [],
+          BUF: ["搖尾巴"],
+          DIS: ["叫聲"]
+        },
+        "T2": {
+          ATK: [],
+          SPA: ["火花"],
+          BUF: ["影子分身"],
+          DIS: []
+        },
+        "T3": {
+          ATK: [],
+          SPA: ["魔法火焰", "噴射火焰"],
+          BUF: ["睡覺"],
+          DIS: ["黑霧"]
+        },
+        "T4": {
+          ATK: ["雷電牙", "劈開"],
+          SPA: ["大字爆", "熱風"],
+          BUF: ["替身"],
+          DIS: ["電磁波"]
+        },
+        "T5": {
+          ATK: [],
+          SPA: ["大字爆", "過熱"],
+          BUF: ["守住"],
+          DIS: ["滅亡之歌"]
+        }
+        }
+      }
     }
   },
 
@@ -245,6 +321,44 @@ var TYPE_SPEC_V2 = {
           T3: { ATK: ["攀瀑"], SPA: ["濁流"], BUF: ["替身"], DIS: [] },
           T4: { ATK: ["水之尾"], SPA: ["衝浪"], BUF: ["守住"], DIS: ["吼叫"] },
           T5: { ATK: ["終極衝擊"], SPA: ["水炮"], BUF: ["睡覺"], DIS: [] }
+        }
+      }
+    ,
+      "隊醫輔助型": {
+        theme: "治療回復、狀態輔助、團隊支援",
+        preferredStats: { ATK: 0.5, SPA: 0.8, SPD: 0.9, DEF: 1.3 },
+        ultMapping: "E",
+        tiers: {
+        "T1": {
+          ATK: [],
+          SPA: [],
+          BUF: ["搖尾巴"],
+          DIS: ["叫聲"]
+        },
+        "T2": {
+          ATK: [],
+          SPA: ["水槍"],
+          BUF: ["影子分身"],
+          DIS: []
+        },
+        "T3": {
+          ATK: [],
+          SPA: ["水之波動"],
+          BUF: ["睡覺"],
+          DIS: ["黑霧"]
+        },
+        "T4": {
+          ATK: ["冰凍牙", "泰山壓頂"],
+          SPA: ["熱水"],
+          BUF: ["替身"],
+          DIS: ["電磁波"]
+        },
+        "T5": {
+          ATK: [],
+          SPA: ["水炮", "衝浪"],
+          BUF: ["守住"],
+          DIS: ["滅亡之歌"]
+        }
         }
       }
     }
@@ -326,6 +440,44 @@ var TYPE_SPEC_V2 = {
           T5: { ATK: ["終極衝擊"], SPA: [], BUF: ["睡覺"], DIS: [] }
         }
       }
+    ,
+      "隊醫輔助型": {
+        theme: "治療回復、狀態輔助、團隊支援",
+        preferredStats: { ATK: 0.5, SPA: 0.8, SPD: 0.9, DEF: 1.3 },
+        ultMapping: "E",
+        tiers: {
+        "T1": {
+          ATK: [],
+          SPA: [],
+          BUF: ["搖尾巴"],
+          DIS: ["叫聲"]
+        },
+        "T2": {
+          ATK: [],
+          SPA: ["藤鞭"],
+          BUF: ["影子分身"],
+          DIS: []
+        },
+        "T3": {
+          ATK: [],
+          SPA: ["魔法葉"],
+          BUF: ["睡覺"],
+          DIS: ["黑霧"]
+        },
+        "T4": {
+          ATK: ["地震"],
+          SPA: ["能量球", "打草結"],
+          BUF: ["替身"],
+          DIS: ["電磁波"]
+        },
+        "T5": {
+          ATK: [],
+          SPA: ["飛葉風暴", "日光束"],
+          BUF: ["守住"],
+          DIS: ["滅亡之歌"]
+        }
+        }
+      }
     }
   },
 
@@ -405,6 +557,44 @@ var TYPE_SPEC_V2 = {
           T5: { ATK: [], SPA: ["萬雷轟"], BUF: ["睡覺"], DIS: [] }
         }
       }
+    ,
+      "隊醫輔助型": {
+        theme: "治療回復、狀態輔助、團隊支援",
+        preferredStats: { ATK: 0.5, SPA: 0.8, SPD: 0.9, DEF: 1.3 },
+        ultMapping: "E",
+        tiers: {
+        "T1": {
+          ATK: [],
+          SPA: [],
+          BUF: ["搖尾巴"],
+          DIS: ["叫聲"]
+        },
+        "T2": {
+          ATK: [],
+          SPA: ["電擊"],
+          BUF: ["影子分身"],
+          DIS: []
+        },
+        "T3": {
+          ATK: [],
+          SPA: ["電球"],
+          BUF: ["睡覺"],
+          DIS: ["黑霧"]
+        },
+        "T4": {
+          ATK: ["雷電牙"],
+          SPA: ["十萬伏特", "放電"],
+          BUF: ["替身"],
+          DIS: ["電磁波"]
+        },
+        "T5": {
+          ATK: [],
+          SPA: ["打雷", "伏特交換"],
+          BUF: ["守住"],
+          DIS: ["滅亡之歌"]
+        }
+        }
+      }
     }
   },
 
@@ -470,6 +660,44 @@ var TYPE_SPEC_V2 = {
           T3: { ATK: ["冰柱針"], SPA: [], BUF: ["替身"], DIS: ["冰凍之風"] },
           T4: { ATK: ["冰柱墜擊"], SPA: ["暴風雪"], BUF: ["守住"], DIS: ["吹飛"] },
           T5: { ATK: ["終極衝擊"], SPA: [], BUF: ["腹鼓"], DIS: [] }
+        }
+      }
+    ,
+      "隊醫輔助型": {
+        theme: "治療回復、狀態輔助、團隊支援",
+        preferredStats: { ATK: 0.5, SPA: 0.8, SPD: 0.9, DEF: 1.3 },
+        ultMapping: "E",
+        tiers: {
+        "T1": {
+          ATK: [],
+          SPA: [],
+          BUF: ["搖尾巴"],
+          DIS: ["叫聲"]
+        },
+        "T2": {
+          ATK: [],
+          SPA: ["冰凍之風"],
+          BUF: ["影子分身"],
+          DIS: []
+        },
+        "T3": {
+          ATK: [],
+          SPA: ["冰凍光束"],
+          BUF: ["睡覺"],
+          DIS: ["黑霧"]
+        },
+        "T4": {
+          ATK: ["冰凍牙"],
+          SPA: ["暴風雪"],
+          BUF: ["替身"],
+          DIS: ["電磁波"]
+        },
+        "T5": {
+          ATK: [],
+          SPA: ["暴風雪"],
+          BUF: ["守住"],
+          DIS: ["滅亡之歌"]
+        }
         }
       }
     }
@@ -551,6 +779,44 @@ var TYPE_SPEC_V2 = {
           T5: { ATK: ["終極衝擊"], SPA: [], BUF: ["睡覺"], DIS: [] }
         }
       }
+    ,
+      "隊醫輔助型": {
+        theme: "治療回復、狀態輔助、團隊支援",
+        preferredStats: { ATK: 0.5, SPA: 0.8, SPD: 0.9, DEF: 1.3 },
+        ultMapping: "E",
+        tiers: {
+        "T1": {
+          ATK: [],
+          SPA: [],
+          BUF: ["搖尾巴"],
+          DIS: ["叫聲"]
+        },
+        "T2": {
+          ATK: [],
+          SPA: ["真氣彈"],
+          BUF: ["影子分身"],
+          DIS: []
+        },
+        "T3": {
+          ATK: [],
+          SPA: ["吸收拳"],
+          BUF: ["睡覺"],
+          DIS: ["黑霧"]
+        },
+        "T4": {
+          ATK: ["子彈拳", "音速拳"],
+          SPA: ["波導彈"],
+          BUF: ["替身"],
+          DIS: ["電磁波"]
+        },
+        "T5": {
+          ATK: [],
+          SPA: ["真氣彈"],
+          BUF: ["守住"],
+          DIS: ["滅亡之歌"]
+        }
+        }
+      }
     }
   },
 
@@ -618,6 +884,44 @@ var TYPE_SPEC_V2 = {
           T5: { ATK: ["終極衝擊"], SPA: [], BUF: ["腹鼓"], DIS: [] }
         }
       }
+    ,
+      "隊醫輔助型": {
+        theme: "治療回復、狀態輔助、團隊支援",
+        preferredStats: { ATK: 0.5, SPA: 0.8, SPD: 0.9, DEF: 1.3 },
+        ultMapping: "E",
+        tiers: {
+        "T1": {
+          ATK: [],
+          SPA: [],
+          BUF: ["搖尾巴"],
+          DIS: ["叫聲"]
+        },
+        "T2": {
+          ATK: [],
+          SPA: ["溶解液"],
+          BUF: ["影子分身"],
+          DIS: []
+        },
+        "T3": {
+          ATK: [],
+          SPA: ["污泥炸彈"],
+          BUF: ["睡覺"],
+          DIS: ["黑霧"]
+        },
+        "T4": {
+          ATK: ["毒突"],
+          SPA: ["污泥波"],
+          BUF: ["替身"],
+          DIS: ["電磁波"]
+        },
+        "T5": {
+          ATK: [],
+          SPA: ["毒液衝擊"],
+          BUF: ["守住"],
+          DIS: ["滅亡之歌"]
+        }
+        }
+      }
     }
   },
 
@@ -683,6 +987,44 @@ var TYPE_SPEC_V2 = {
           T3: { ATK: ["挖洞"], SPA: ["泥巴炸彈"], BUF: ["替身"], DIS: ["吼叫"] },
           T4: { ATK: ["地震"], SPA: ["熱沙大地"], BUF: ["守住"], DIS: ["吹飛"] },
           T5: { ATK: [], SPA: ["震滅"], BUF: ["睡覺"], DIS: [] }
+        }
+      }
+    ,
+      "隊醫輔助型": {
+        theme: "治療回復、狀態輔助、團隊支援",
+        preferredStats: { ATK: 0.5, SPA: 0.8, SPD: 0.9, DEF: 1.3 },
+        ultMapping: "E",
+        tiers: {
+        "T1": {
+          ATK: [],
+          SPA: [],
+          BUF: ["搖尾巴"],
+          DIS: ["叫聲"]
+        },
+        "T2": {
+          ATK: [],
+          SPA: ["泥巴射擊"],
+          BUF: ["影子分身"],
+          DIS: []
+        },
+        "T3": {
+          ATK: [],
+          SPA: ["泥巴炸彈"],
+          BUF: ["睡覺"],
+          DIS: ["黑霧"]
+        },
+        "T4": {
+          ATK: ["直衝鑽"],
+          SPA: ["大地之力"],
+          BUF: ["替身"],
+          DIS: ["電磁波"]
+        },
+        "T5": {
+          ATK: [],
+          SPA: ["熱沙大地"],
+          BUF: ["守住"],
+          DIS: ["滅亡之歌"]
+        }
         }
       }
     }
@@ -761,6 +1103,44 @@ var TYPE_SPEC_V2 = {
           T3: { ATK: [], SPA: ["空氣斬"], BUF: ["替身"], DIS: ["清除之煙"] },
           T4: { ATK: ["啄鑽"], SPA: ["熱風"], BUF: ["守住"], DIS: ["吹飛"] },
           T5: { ATK: ["終極衝擊"], SPA: ["暴風"], BUF: ["睡覺"], DIS: [] }
+        }
+      }
+    ,
+      "隊醫輔助型": {
+        theme: "治療回復、狀態輔助、團隊支援",
+        preferredStats: { ATK: 0.5, SPA: 0.8, SPD: 0.9, DEF: 1.3 },
+        ultMapping: "E",
+        tiers: {
+        "T1": {
+          ATK: [],
+          SPA: [],
+          BUF: ["搖尾巴"],
+          DIS: ["叫聲"]
+        },
+        "T2": {
+          ATK: [],
+          SPA: ["起風"],
+          BUF: ["影子分身"],
+          DIS: []
+        },
+        "T3": {
+          ATK: [],
+          SPA: ["空氣之刃"],
+          BUF: ["睡覺"],
+          DIS: ["黑霧"]
+        },
+        "T4": {
+          ATK: ["雜技"],
+          SPA: ["空氣斬"],
+          BUF: ["替身"],
+          DIS: ["電磁波"]
+        },
+        "T5": {
+          ATK: [],
+          SPA: ["熱風"],
+          BUF: ["守住"],
+          DIS: ["滅亡之歌"]
+        }
         }
       }
     }
@@ -842,6 +1222,44 @@ var TYPE_SPEC_V2 = {
           T5: { ATK: ["終極衝擊"], SPA: [], BUF: ["睡覺"], DIS: [] }
         }
       }
+    ,
+      "隊醫輔助型": {
+        theme: "治療回復、狀態輔助、團隊支援",
+        preferredStats: { ATK: 0.5, SPA: 0.8, SPD: 0.9, DEF: 1.3 },
+        ultMapping: "E",
+        tiers: {
+        "T1": {
+          ATK: [],
+          SPA: [],
+          BUF: ["搖尾巴"],
+          DIS: ["叫聲"]
+        },
+        "T2": {
+          ATK: [],
+          SPA: ["念力"],
+          BUF: ["影子分身"],
+          DIS: []
+        },
+        "T3": {
+          ATK: [],
+          SPA: ["幻象光線"],
+          BUF: ["睡覺"],
+          DIS: ["黑霧"]
+        },
+        "T4": {
+          ATK: ["精神利刃"],
+          SPA: ["精神強念"],
+          BUF: ["替身"],
+          DIS: ["電磁波"]
+        },
+        "T5": {
+          ATK: [],
+          SPA: ["預知未來"],
+          BUF: ["守住"],
+          DIS: ["滅亡之歌"]
+        }
+        }
+      }
     }
   },
 
@@ -907,6 +1325,44 @@ var TYPE_SPEC_V2 = {
           T3: { ATK: ["猛撲"], SPA: [], BUF: ["替身"], DIS: ["毒針"] },
           T4: { ATK: ["十字剪"], SPA: ["蟲鳴"], BUF: ["守住"], DIS: ["吼叫"] },
           T5: { ATK: ["終極衝擊"], SPA: [], BUF: ["睡覺"], DIS: [] }
+        }
+      }
+    ,
+      "隊醫輔助型": {
+        theme: "治療回復、狀態輔助、團隊支援",
+        preferredStats: { ATK: 0.5, SPA: 0.8, SPD: 0.9, DEF: 1.3 },
+        ultMapping: "E",
+        tiers: {
+        "T1": {
+          ATK: [],
+          SPA: [],
+          BUF: ["搖尾巴"],
+          DIS: ["叫聲"]
+        },
+        "T2": {
+          ATK: [],
+          SPA: ["蟲咬"],
+          BUF: ["影子分身"],
+          DIS: []
+        },
+        "T3": {
+          ATK: [],
+          SPA: ["信號光束"],
+          BUF: ["睡覺"],
+          DIS: ["黑霧"]
+        },
+        "T4": {
+          ATK: ["猛撲"],
+          SPA: ["蟲鳴"],
+          BUF: ["替身"],
+          DIS: ["電磁波"]
+        },
+        "T5": {
+          ATK: [],
+          SPA: ["蟲鳴"],
+          BUF: ["守住"],
+          DIS: ["滅亡之歌"]
+        }
         }
       }
     }
@@ -976,6 +1432,44 @@ var TYPE_SPEC_V2 = {
           T5: { ATK: ["終極衝擊"], SPA: [], BUF: ["睡覺"], DIS: [] }
         }
       }
+    ,
+      "隊醫輔助型": {
+        theme: "治療回復、狀態輔助、團隊支援",
+        preferredStats: { ATK: 0.5, SPA: 0.8, SPD: 0.9, DEF: 1.3 },
+        ultMapping: "E",
+        tiers: {
+        "T1": {
+          ATK: [],
+          SPA: [],
+          BUF: ["搖尾巴"],
+          DIS: ["叫聲"]
+        },
+        "T2": {
+          ATK: [],
+          SPA: ["原始之力"],
+          BUF: ["影子分身"],
+          DIS: []
+        },
+        "T3": {
+          ATK: [],
+          SPA: ["原始之力"],
+          BUF: ["睡覺"],
+          DIS: ["黑霧"]
+        },
+        "T4": {
+          ATK: ["岩石爆擊"],
+          SPA: ["力量寶石"],
+          BUF: ["替身"],
+          DIS: ["電磁波"]
+        },
+        "T5": {
+          ATK: [],
+          SPA: ["力量寶石"],
+          BUF: ["守住"],
+          DIS: ["滅亡之歌"]
+        }
+        }
+      }
     }
   },
 
@@ -1041,6 +1535,44 @@ var TYPE_SPEC_V2 = {
           T3: { ATK: ["潛靈奇襲"], SPA: ["暗影球"], BUF: ["劍舞"], DIS: [] },
           T4: { ATK: ["暗影爪"], SPA: ["禍不單行"], BUF: ["守住"], DIS: ["清除之煙"] },
           T5: { ATK: ["終極衝擊"], SPA: [], BUF: ["睡覺"], DIS: [] }
+        }
+      }
+    ,
+      "隊醫輔助型": {
+        theme: "治療回復、狀態輔助、團隊支援",
+        preferredStats: { ATK: 0.5, SPA: 0.8, SPD: 0.9, DEF: 1.3 },
+        ultMapping: "E",
+        tiers: {
+        "T1": {
+          ATK: [],
+          SPA: [],
+          BUF: ["搖尾巴"],
+          DIS: ["叫聲"]
+        },
+        "T2": {
+          ATK: [],
+          SPA: ["驚嚇"],
+          BUF: ["影子分身"],
+          DIS: []
+        },
+        "T3": {
+          ATK: [],
+          SPA: ["黑夜魔影"],
+          BUF: ["睡覺"],
+          DIS: ["黑霧"]
+        },
+        "T4": {
+          ATK: ["影子偷襲"],
+          SPA: ["暗影球"],
+          BUF: ["替身"],
+          DIS: ["電磁波"]
+        },
+        "T5": {
+          ATK: [],
+          SPA: ["禍不單行"],
+          BUF: ["守住"],
+          DIS: ["滅亡之歌"]
+        }
         }
       }
     }
@@ -1122,6 +1654,44 @@ var TYPE_SPEC_V2 = {
           T5: { ATK: ["終極衝擊"], SPA: ["破壞光線"], BUF: ["睡覺"], DIS: [] }
         }
       }
+    ,
+      "隊醫輔助型": {
+        theme: "治療回復、狀態輔助、團隊支援",
+        preferredStats: { ATK: 0.5, SPA: 0.8, SPD: 0.9, DEF: 1.3 },
+        ultMapping: "E",
+        tiers: {
+        "T1": {
+          ATK: [],
+          SPA: [],
+          BUF: ["搖尾巴"],
+          DIS: ["叫聲"]
+        },
+        "T2": {
+          ATK: [],
+          SPA: ["龍息"],
+          BUF: ["影子分身"],
+          DIS: []
+        },
+        "T3": {
+          ATK: [],
+          SPA: ["龍之波動"],
+          BUF: ["睡覺"],
+          DIS: ["黑霧"]
+        },
+        "T4": {
+          ATK: ["龍尾"],
+          SPA: ["巨聲"],
+          BUF: ["替身"],
+          DIS: ["電磁波"]
+        },
+        "T5": {
+          ATK: [],
+          SPA: ["龍星群"],
+          BUF: ["守住"],
+          DIS: ["滅亡之歌"]
+        }
+        }
+      }
     }
   },
 
@@ -1187,6 +1757,44 @@ var TYPE_SPEC_V2 = {
           T3: { ATK: ["暗襲要害"], SPA: ["惡之波動"], BUF: ["詭計"], DIS: [] },
           T4: { ATK: ["咬碎"], SPA: ["惡之波動"], BUF: ["替身"], DIS: ["吼叫"] },
           T5: { ATK: ["終極衝擊"], SPA: ["破壞光線"], BUF: ["睡覺"], DIS: ["滅亡之歌"] }
+        }
+      }
+    ,
+      "隊醫輔助型": {
+        theme: "治療回復、狀態輔助、團隊支援",
+        preferredStats: { ATK: 0.5, SPA: 0.8, SPD: 0.9, DEF: 1.3 },
+        ultMapping: "E",
+        tiers: {
+        "T1": {
+          ATK: [],
+          SPA: [],
+          BUF: ["搖尾巴"],
+          DIS: ["叫聲"]
+        },
+        "T2": {
+          ATK: [],
+          SPA: ["大聲咆哮"],
+          BUF: ["影子分身"],
+          DIS: []
+        },
+        "T3": {
+          ATK: [],
+          SPA: ["惡之波動"],
+          BUF: ["睡覺"],
+          DIS: ["黑霧"]
+        },
+        "T4": {
+          ATK: ["突襲"],
+          SPA: ["惡之波動"],
+          BUF: ["替身"],
+          DIS: ["電磁波"]
+        },
+        "T5": {
+          ATK: [],
+          SPA: ["惡之波動"],
+          BUF: ["守住"],
+          DIS: ["滅亡之歌"]
+        }
         }
       }
     }
@@ -1256,6 +1864,44 @@ var TYPE_SPEC_V2 = {
           T5: { ATK: ["流星拳"], SPA: [], BUF: ["睡覺"], DIS: [] }
         }
       }
+    ,
+      "隊醫輔助型": {
+        theme: "治療回復、狀態輔助、團隊支援",
+        preferredStats: { ATK: 0.5, SPA: 0.8, SPD: 0.9, DEF: 1.3 },
+        ultMapping: "E",
+        tiers: {
+        "T1": {
+          ATK: [],
+          SPA: [],
+          BUF: ["搖尾巴"],
+          DIS: ["叫聲"]
+        },
+        "T2": {
+          ATK: [],
+          SPA: ["加農光炮"],
+          BUF: ["影子分身"],
+          DIS: []
+        },
+        "T3": {
+          ATK: [],
+          SPA: ["加農光炮"],
+          BUF: ["睡覺"],
+          DIS: ["黑霧"]
+        },
+        "T4": {
+          ATK: ["子彈拳"],
+          SPA: ["光澤電炮"],
+          BUF: ["替身"],
+          DIS: ["電磁波"]
+        },
+        "T5": {
+          ATK: [],
+          SPA: ["光澤電炮"],
+          BUF: ["守住"],
+          DIS: ["滅亡之歌"]
+        }
+        }
+      }
     }
   },
 
@@ -1321,6 +1967,44 @@ var TYPE_SPEC_V2 = {
           T3: { ATK: ["嬉鬧"], SPA: ["月亮之力"], BUF: ["冥想"], DIS: ["撒嬌"] },
           T4: { ATK: [], SPA: ["魔法閃耀"], BUF: ["守住"], DIS: ["吼叫"] },
           T5: { ATK: [], SPA: ["破壞光線"], BUF: ["睡覺"], DIS: [] }
+        }
+      }
+    ,
+      "隊醫輔助型": {
+        theme: "治療回復、狀態輔助、團隊支援",
+        preferredStats: { ATK: 0.5, SPA: 0.8, SPD: 0.9, DEF: 1.3 },
+        ultMapping: "E",
+        tiers: {
+        "T1": {
+          ATK: [],
+          SPA: [],
+          BUF: ["搖尾巴"],
+          DIS: ["叫聲"]
+        },
+        "T2": {
+          ATK: [],
+          SPA: ["妖精之風"],
+          BUF: ["影子分身"],
+          DIS: []
+        },
+        "T3": {
+          ATK: [],
+          SPA: ["魅惑之聲"],
+          BUF: ["睡覺"],
+          DIS: ["黑霧"]
+        },
+        "T4": {
+          ATK: ["吸取吻"],
+          SPA: ["月亮之力"],
+          BUF: ["替身"],
+          DIS: ["電磁波"]
+        },
+        "T5": {
+          ATK: [],
+          SPA: ["魔法閃耀"],
+          BUF: ["守住"],
+          DIS: ["滅亡之歌"]
+        }
         }
       }
     }
@@ -1433,16 +2117,16 @@ var ARCHETYPE_TEMPLATES = {
       T5: { ATK: null, SPA: "universal_finisher_spa", BUF: "rest", DIS: "perish_song" }
     }
   },
-  "反擊防禦型": {
-    theme: "受傷害反擊、鐵壁反打",
-    preferredStats: { ATK: 1.0, SPA: 0.7, SPD: 0.7, DEF: 1.3 },
-    ultMapping: "A",
+  "隊醫輔助型": {
+    theme: "治療回復、狀態輔助、團隊支援",
+    preferredStats: { ATK: 0.5, SPA: 0.8, SPD: 0.9, DEF: 1.3 },
+    ultMapping: "E",
     slots: {
-      T1: { ATK: "type_basic_atk", SPA: null, BUF: "harden", DIS: "leer" },
-      T2: { ATK: "type_medium_atk", SPA: null, BUF: "iron_defense", DIS: null },
-      T3: { ATK: "type_strong_atk", SPA: "type_coverage_spa", BUF: "substitute", DIS: "roar" },
-      T4: { ATK: "type_top_atk", SPA: null, BUF: "protect", DIS: "whirlwind" },
-      T5: { ATK: "type_finisher_atk", SPA: null, BUF: "rest", DIS: "perish_song" }
+      T1: { ATK: null, SPA: null, BUF: "tail_wag", DIS: "growl" },
+      T2: { ATK: null, SPA: "type_basic_spa", BUF: "double_team", DIS: null },
+      T3: { ATK: null, SPA: "type_medium_spa", BUF: "rest", DIS: "haze" },
+      T4: { ATK: "type_coverage_atk", SPA: "type_strong_spa", BUF: "substitute", DIS: "thunder_wave" },
+      T5: { ATK: null, SPA: "type_top_spa", BUF: "protect", DIS: "perish_song" }
     }
   }
 };
@@ -2382,6 +3066,7 @@ function buildTreeFromVariant(pokemon, type, variantName) {
   var tiers = variant.tiers;
   var tree = {};
   var roles = ["ATK", "SPA", "BUF", "DIS"];
+  var fallbackSeed = (pokemon.id || 0) * 100000 + (pokemon.personality || 0) * 1000 + 9999;
   for (var ri = 0; ri < roles.length; ri++) {
     var role = roles[ri];
     tree[role] = {};
@@ -2403,7 +3088,7 @@ function buildTreeFromVariant(pokemon, type, variantName) {
   for (ri = 0; ri < roles.length; ri++) {
     role = roles[ri];
     if (!tree[role].T5 && T5_FALLBACK[role]) {
-      tree[role].T5 = selectFromPool(T5_FALLBACK[role], seed || 0);
+      tree[role].T5 = selectFromPool(T5_FALLBACK[role], fallbackSeed + ri);
     }
   }
   return tree;
