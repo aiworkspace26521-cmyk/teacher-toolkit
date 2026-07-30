@@ -9702,10 +9702,11 @@ function learnSkillTreeNode(nodeName) {
   var treeTypes = ["atk","spa","buf","dis","ult"];
   var treeNode = null;
   var foundTreeType = "spa";
-  for (var ti = 0; ti < treeTypes.length; ti++) {
-    if (treeData && treeData.trees[treeTypes[ti]]) {
-      for (var nj = 0; nj < treeData.trees[treeTypes[ti]].nodes.length; nj++) {
-        if (treeData.trees[treeTypes[ti]].nodes[nj].name === nodeName) { treeNode = treeData.trees[treeTypes[ti]].nodes[nj]; foundTreeType = treeTypes[ti]; break; }
+  var searchOrder = [_skillTreeActiveTab].concat(treeTypes.filter(function(tt){ return tt !== _skillTreeActiveTab; }));
+  for (var ti = 0; ti < searchOrder.length; ti++) {
+    if (treeData && treeData.trees[searchOrder[ti]]) {
+      for (var nj = 0; nj < treeData.trees[searchOrder[ti]].nodes.length; nj++) {
+        if (treeData.trees[searchOrder[ti]].nodes[nj].name === nodeName) { treeNode = treeData.trees[searchOrder[ti]].nodes[nj]; foundTreeType = searchOrder[ti]; break; }
       }
     }
     if (treeNode) break;
@@ -9760,12 +9761,32 @@ function upgradeMoveInSkillTree(moveName) {
   if (lv >= maxLv) { toast("已達最高等級"); return; }
   pkmn.learnedMoves[moveName].level = lv + 1;
   pkmn.skillPoints = (pkmn.skillPoints || 0) - 1;
+  var types = (typeof POKEMON_SPECIES_TYPES !== "undefined") ? POKEMON_SPECIES_TYPES[pkmn.baseName] : ["一般"];
+  var atkStat = pkmn.atk || 50;
+  var spaStat = pkmn.spatk || 50;
+  var ugTreeData = typeof getSkillTree !== "undefined" ? getSkillTree(pkmn.baseName, types, atkStat, spaStat, pkmn) : null;
+  var ugTreeTypes = ["atk","spa","buf","dis","ult"];
+  var ugFoundType = "spa";
+  var ugSearchOrder = [_skillTreeActiveTab].concat(ugTreeTypes.filter(function(tt){ return tt !== _skillTreeActiveTab; }));
+  for (var uti = 0; uti < ugSearchOrder.length; uti++) {
+    if (ugTreeData && ugTreeData.trees[ugSearchOrder[uti]]) {
+      for (var unj = 0; unj < ugTreeData.trees[ugSearchOrder[uti]].nodes.length; unj++) {
+        if (ugTreeData.trees[ugSearchOrder[uti]].nodes[unj].name === moveName) { ugFoundType = ugSearchOrder[uti]; break; }
+      }
+    }
+    if (ugFoundType !== "spa") break;
+  }
+  if (!pkmn.skillTree) pkmn.skillTree = { atk: { sp: 0, tier: 1 }, spa: { sp: 0, tier: 1 }, buf: { sp: 0, tier: 1 }, dis: { sp: 0, tier: 1 }, ult: { sp: 0, tier: 1 } };
+  if (!pkmn.skillTree[ugFoundType]) pkmn.skillTree[ugFoundType] = { sp: 0, tier: 1 };
+  pkmn.skillTree[ugFoundType].sp = (pkmn.skillTree[ugFoundType].sp || 0) + 1;
+  pkmn.skillTree[ugFoundType].tier = getTreeTier(pkmn.skillTree[ugFoundType]);
   _skillTreeDirty = true;
   sfx.levelup();
   renderSkillTree();
   saveSkillTreeState();
   if (typeof saveEventToFirestore !== "undefined") {
     saveEventToFirestore({ studentId: globalData.studentId, action: "MOVE_UPGRADE", score: 0, expGained: 0, coinsGained: 0, badgeChange: 0, note: _skillTreePkmnId + ":" + moveName + ":" + (lv + 1) });
+    saveEventToFirestore({ studentId: globalData.studentId, action: "SP_ALLOCATE", score: 0, expGained: 0, coinsGained: 0, badgeChange: 0, note: _skillTreePkmnId + ":" + ugFoundType + ":1" });
   }
   toast("⬆ " + moveName + " 升級至 SP" + (lv + 1) + "！");
 }
