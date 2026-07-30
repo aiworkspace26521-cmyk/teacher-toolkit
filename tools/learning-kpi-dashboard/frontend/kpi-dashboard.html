@@ -2260,7 +2260,7 @@ var FINAL_FORM_SET = (function(){
   for (var t in POKEMON_TIERS) {
     for (var i = 0; i < POKEMON_TIERS[t].length; i++) {
       var pf = POKEMON_TIERS[t][i];
-      if (pf.evolutions || pf.eevee) { delete s[pf.name]; }
+      if (pf.evolutions) { delete s[pf.name]; }
     }
   }
   return s;

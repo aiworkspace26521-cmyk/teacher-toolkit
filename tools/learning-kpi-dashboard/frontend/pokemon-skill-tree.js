@@ -1928,7 +1928,7 @@ function buildUltNodes(variantTree, pokemon, types) {
     "妖精": { T1: "妖精之風", T2: "魅惑之聲", T3: "月亮之力", T4: "魔法閃耀" }
   };
   var typeMoves = ULT_TIER_MOVES[primaryType] || ULT_TIER_MOVES["一般"];
-  var preferredRole = (variantTree && variantTree.spa) ? "spa" : "atk";
+  var preferredRole = (variantTree && variantTree.SPA) ? "SPA" : "ATK";
   var nodes = [];
   var lastMove = null;
   for (var ui = 1; ui <= 4; ui++) {
