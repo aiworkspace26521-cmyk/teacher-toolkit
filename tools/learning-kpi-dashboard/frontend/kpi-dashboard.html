@@ -1261,6 +1261,7 @@ async function recalculateStudentState(studentId, events) {
           }
         }
         state.roster[pid8].learnedMoves = {};
+        state.memoryCapsules = Math.max(0, (state.memoryCapsules || 0) - 1);
       }
     }
     var currentIterLevel = 5;
@@ -9467,7 +9468,7 @@ function renderSkillTree() {
           var ndLevel = (pkmn.learnedMoves && pkmn.learnedMoves[ndName] && pkmn.learnedMoves[ndName].level) || 0;
           var ndMaxLv = typeof getMaxMoveLevel !== "undefined" ? getMaxMoveLevel(nd.tier || 1) : 5;
           var isTm = pkmn.tmMoves && pkmn.tmMoves.indexOf(ndName) !== -1;
-          canvasHtml += " <small style='color:#8e44ad;'>Lv." + ndLevel + "/" + ndMaxLv + "</small>";
+          canvasHtml += " <small style='color:#8e44ad;'>SP" + ndLevel + "/" + ndMaxLv + "</small>";
           if (isTm) {
             canvasHtml += " <span style='color:#8e44ad;font-size:9px;font-weight:700;'>TM</span><span style='color:#999;font-size:9px;margin-left:3px;'>不可升級</span>";
           } else if (ndLevel < ndMaxLv) {
@@ -9529,7 +9530,7 @@ function renderSkillTree() {
         var canUpgrade = lv < maxLv && sp >= 1;
         previewHtml += "<div style='display:flex;justify-content:space-between;align-items:center;font-size:12px;padding:2px 0;border-bottom:1px dashed #eee;'>";
         previewHtml += "<span>✅ " + lm + " <small style='color:#8e44ad;'>FP" + fpCost + "</small></span>";
-        previewHtml += "<span style='color:#666;'>Lv." + lv + "/" + maxLv;
+        previewHtml += "<span style='color:#666;'>SP" + lv + "/" + maxLv;
         if (canUpgrade) {
           previewHtml += " <button class='st-upgrade-btn' style='background:#8e44ad;color:white;' onclick='sfx.click();upgradeMoveInSkillTree(\"" + lm + "\")'>⬆+1</button>";
         } else if (lv >= maxLv) {
@@ -9578,7 +9579,7 @@ function renderEquipEditor(pkmn) {
       var canSelect = !isEq && equipped.length >= 6;
       eqHtml += "<label style='display:flex;align-items:center;gap:6px;padding:3px 6px;border-radius:4px;font-size:12px;cursor:" + (canSelect ? "not-allowed" : "pointer") + ";background:" + (isEq ? "#eafaf1" : "transparent") + ";margin:2px 0;'>";
       eqHtml += "<input type='checkbox' " + (isEq ? "checked" : "") + " " + (canSelect ? "disabled" : "") + " onchange=\"toggleEquipMove('" + mn + "', this.checked)\" style='accent-color:#8e44ad;'>";
-      eqHtml += mn + " <small style='color:#666;'>Lv." + ((pkmn.learnedMoves && pkmn.learnedMoves[mn] && pkmn.learnedMoves[mn].level) || 1) + "</small>";
+      eqHtml += mn + " <small style='color:#666;'>SP" + ((pkmn.learnedMoves && pkmn.learnedMoves[mn] && pkmn.learnedMoves[mn].level) || 1) + "</small>";
       if (isTm) eqHtml += " <span style='color:#8e44ad;font-size:9px;font-weight:700;'>TM</span>";
       eqHtml += "</label>";
     }
@@ -9700,10 +9701,11 @@ function learnSkillTreeNode(nodeName) {
   var treeData = typeof getSkillTree !== "undefined" ? getSkillTree(pkmn.baseName, types, atkStat, spaStat, pkmn) : null;
   var treeTypes = ["atk","spa","buf","dis","ult"];
   var treeNode = null;
+  var foundTreeType = "spa";
   for (var ti = 0; ti < treeTypes.length; ti++) {
     if (treeData && treeData.trees[treeTypes[ti]]) {
       for (var nj = 0; nj < treeData.trees[treeTypes[ti]].nodes.length; nj++) {
-        if (treeData.trees[treeTypes[ti]].nodes[nj].name === nodeName) { treeNode = treeData.trees[treeTypes[ti]].nodes[nj]; break; }
+        if (treeData.trees[treeTypes[ti]].nodes[nj].name === nodeName) { treeNode = treeData.trees[treeTypes[ti]].nodes[nj]; foundTreeType = treeTypes[ti]; break; }
       }
     }
     if (treeNode) break;
@@ -9724,14 +9726,22 @@ function learnSkillTreeNode(nodeName) {
   }
   pkmn.learnedMoves[nodeName] = { level: 1, learnedAt: Date.now(), tier: treeNode ? (treeNode.tier || 1) : 1 };
   pkmn.skillPoints = (pkmn.skillPoints || 0) - cost;
+  if (!pkmn.skillTree) pkmn.skillTree = { atk: { sp: 0, tier: 1 }, spa: { sp: 0, tier: 1 }, buf: { sp: 0, tier: 1 }, dis: { sp: 0, tier: 1 }, ult: { sp: 0, tier: 1 } };
+  if (!pkmn.skillTree[foundTreeType]) pkmn.skillTree[foundTreeType] = { sp: 0, tier: 1 };
+  var tierBefore = pkmn.skillTree[foundTreeType].tier || 1;
+  pkmn.skillTree[foundTreeType].sp = (pkmn.skillTree[foundTreeType].sp || 0) + 1;
+  pkmn.skillTree[foundTreeType].tier = getTreeTier(pkmn.skillTree[foundTreeType]);
   _skillTreeDirty = true;
   sfx.levelup();
   renderSkillTree();
   saveSkillTreeState();
   if (typeof saveEventToFirestore !== "undefined") {
-    saveEventToFirestore({ studentId: globalData.studentId, action: "MOVE_LEARN", score: 0, expGained: 0, coinsGained: 0, badgeChange: 0, note: _skillTreePkmnId + ":" + nodeName + ":tier" + (treeNode ? (treeNode.tier || 1) : 1) + ":" + (treeNode ? (treeNode.treeType || "spa") : "spa") });
+    saveEventToFirestore({ studentId: globalData.studentId, action: "MOVE_LEARN", score: 0, expGained: 0, coinsGained: 0, badgeChange: 0, note: _skillTreePkmnId + ":" + nodeName + ":tier" + (treeNode ? (treeNode.tier || 1) : 1) + ":" + foundTreeType });
+    saveEventToFirestore({ studentId: globalData.studentId, action: "SP_ALLOCATE", score: 0, expGained: 0, coinsGained: 0, badgeChange: 0, note: _skillTreePkmnId + ":" + foundTreeType + ":1" });
   }
-  toast("✅ " + pkmn.baseName + " 學會了 " + nodeName + "！");
+  var tierAfter = pkmn.skillTree[foundTreeType].tier || 1;
+  if (tierAfter > tierBefore) toast("✅ " + pkmn.baseName + " 學會了 " + nodeName + "！已投入 T" + tierAfter + " (" + pkmn.skillTree[foundTreeType].sp + " SP)");
+  else toast("✅ " + pkmn.baseName + " 學會了 " + nodeName + "！");
 }
 
 function upgradeMoveInSkillTree(moveName) {
@@ -9757,18 +9767,25 @@ function upgradeMoveInSkillTree(moveName) {
   if (typeof saveEventToFirestore !== "undefined") {
     saveEventToFirestore({ studentId: globalData.studentId, action: "MOVE_UPGRADE", score: 0, expGained: 0, coinsGained: 0, badgeChange: 0, note: _skillTreePkmnId + ":" + moveName + ":" + (lv + 1) });
   }
-  toast("⬆ " + moveName + " 升級至 Lv." + (lv + 1) + "！");
+  toast("⬆ " + moveName + " 升級至 SP" + (lv + 1) + "！");
 }
 
 function resetActiveSkillTree() {
   if (!_skillTreePkmnId) return;
   globalData.memoryCapsules = globalData.memoryCapsules || 0;
   if (globalData.memoryCapsules < 1) { toast("💊 需要 1 個回憶膠囊才能重置技能樹！"); return; }
-  if (!window._skillTreeSkipConfirm && !confirm("確定重置此寶可夢的整棵技能樹？所有已投入 SP 將全部返還。（消耗 💊 回憶膠囊 ×1，目前擁有: " + globalData.memoryCapsules + "）")) return;
   var roster = globalData.roster || [];
   var pkmn = null;
   for (var ri = 0; ri < roster.length; ri++) { if (roster[ri].id === _skillTreePkmnId) { pkmn = roster[ri]; break; } }
   if (!pkmn) return;
+  var hasInvested = false;
+  if (pkmn.skillTree) {
+    for (var ck in pkmn.skillTree) { if (pkmn.skillTree[ck] && (pkmn.skillTree[ck].sp || 0) > 0) { hasInvested = true; break; } }
+  }
+  if (!hasInvested && (!pkmn.learnedMoves || Object.keys(pkmn.learnedMoves).length === 0)) {
+    toast("此寶可夢的技能樹尚未投入任何 SP，無需重置"); return;
+  }
+  if (!window._skillTreeSkipConfirm && !confirm("確定重置此寶可夢的整棵技能樹？所有已投入 SP 將全部返還。（消耗 💊 回憶膠囊 ×1，目前擁有: " + globalData.memoryCapsules + "）")) return;
   if (pkmn.skillTree) {
     var refundSp = 0;
     for (var sk in pkmn.skillTree) {
