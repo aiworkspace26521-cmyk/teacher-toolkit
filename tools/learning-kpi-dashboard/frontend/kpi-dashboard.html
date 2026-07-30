@@ -1287,12 +1287,15 @@ async function recalculateStudentState(studentId, events) {
     }
     p.skillPoints = Math.max(0, p.totalSpEarned - investedSp);
     // 進化階段決定技能樹最高可用階層
-    p.maxTreeTier = (p.evoStage >= 2 || (p.evoStage >= 1 && FINAL_FORM_SET[p.baseName])) ? 5 : (p.evoStage >= 1 ? 4 : 3);
+    var rawName = p.baseName.replace(/^[^\w\u4e00-\u9fff]+\s*/u,"").replace(/\s*\([^)]*\).*$/,"");
+    var aliasName = (typeof EEVEELUTION_IBU !== "undefined" && EEVEELUTION_IBU[rawName]) ? EEVEELUTION_IBU[rawName] : rawName;
+    var isFinalForm = FINAL_FORM_SET[p.baseName] || FINAL_FORM_SET[rawName] || FINAL_FORM_SET[aliasName];
+    p.maxTreeTier = (p.evoStage >= 2 || (p.evoStage >= 1 && isFinalForm)) ? 5 : (p.evoStage >= 1 ? 4 : 3);
     if (typeof EVO_STAGE_MAP !== "undefined") {
-      var rawName = p.baseName.replace(/^[^\w\u4e00-\u9fff]+\s*/u,"").replace(/\s*\([^)]*\).*$/,"");
-      var mapStage = EVO_STAGE_MAP[rawName];
+      var mapStage = EVO_STAGE_MAP[rawName] || EVO_STAGE_MAP[aliasName];
       if (mapStage !== undefined) p.evoStage = mapStage;
-      p.maxTreeTier = (p.evoStage >= 2 || (p.evoStage >= 1 && FINAL_FORM_SET[p.baseName])) ? 5 : (p.evoStage >= 1 ? 4 : 3);
+      isFinalForm = FINAL_FORM_SET[p.baseName] || FINAL_FORM_SET[rawName] || FINAL_FORM_SET[aliasName];
+      p.maxTreeTier = (p.evoStage >= 2 || (p.evoStage >= 1 && isFinalForm)) ? 5 : (p.evoStage >= 1 ? 4 : 3);
     }
     // 合併親密度到 roster
     if (happinessToday[p.id]) {
