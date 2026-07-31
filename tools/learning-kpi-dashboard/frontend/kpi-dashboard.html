@@ -9316,7 +9316,7 @@ function renderSkillTree() {
     primaryType: types[0],
     type2: types.length > 1 ? types[1] : null,
     stats: pkmnStats,
-    personality: pkmn.personality || Math.floor(Math.random() * 256)
+    personality: pkmn.personality !== undefined ? pkmn.personality : Math.floor(Math.random() * 256)
   }) : null;
   if (!tree) { $("skillTreeBody").innerHTML = "暫無技能樹資料"; return; }
 

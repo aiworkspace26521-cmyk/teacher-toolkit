@@ -3035,6 +3035,9 @@ function selectVariant(pokemon) {
   if (!typeSpec) return null;
   var variants = typeSpec.VARIANTS;
   var stats = pokemon.stats || { atk: 50, spa: 50, spd: 50, def: 50, spDef: 50 };
+  if (stats.spa === undefined && stats.spatk !== undefined) {
+    stats = { hp: stats.hp, atk: stats.atk, def: stats.def, spa: stats.spatk, spd: stats.speed, spDef: stats.spdef };
+  }
   var scores = {};
   var idx = 0;
   for (var name in variants) {
