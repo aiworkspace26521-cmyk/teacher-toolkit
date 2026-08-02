@@ -9333,6 +9333,7 @@ function renderSkillTree() {
   var headerName = "🌳 <strong>" + pkmn.baseName + "</strong>";
   if (treeVariant) headerName += " <span class='st-variant-name'>· " + treeVariant + "</span>";
   headerName += " Lv." + (pkmn.currentLevel || 5) + " | 階層上限: T" + maxTier;
+  if (maxFp) headerName += " | FP上限: " + maxFp;
   headerName += " <button class='st-sp-btn' style='background:#95a5a6;color:white;font-size:11px;padding:1px 8px;margin-left:4px;' onclick='sfx.click();openSkillTreePkmnSelector()'>🔄 切換</button>";
   $("skillTreeHeader").innerHTML = headerName;
   $("stSpAmount").innerHTML = sp;

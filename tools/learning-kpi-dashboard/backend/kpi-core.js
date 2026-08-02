@@ -606,7 +606,10 @@ async function recalculateStudentState(studentId) {
     }
     p.skillPoints = Math.max(0, p.totalSpEarned - investedSp);
     // 進化階段決定技能樹最高可用階層
-    p.maxTreeTier = p.evoStage >= 2 ? 5 : (p.evoStage >= 1 ? 4 : 3);
+    // C1: 若已進化為最終型態（例：石之進化至仙子伊布），階層上限亦解鎖至 T5，
+    //     與前端 kpi-dashboard.html 的 FINAL_FORM_SET 判斷對齊。
+    var rawP = _getRawName(p.baseName || "");
+    p.maxTreeTier = (p.evoStage >= 2 || (p.evoStage >= 1 && !EVO_CHAIN_MAP[rawP])) ? 5 : (p.evoStage >= 1 ? 4 : 3);
     if (state._happinessEvents && state._happinessEvents[p.id]) {
       p.happiness = (p.happiness || 0) + state._happinessEvents[p.id];
     } else {
