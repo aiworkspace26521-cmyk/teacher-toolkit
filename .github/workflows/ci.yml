@@ -65,6 +65,8 @@ jobs:
         run: node test/t5-fallback-test.js
       - name: Run variant consistency test
         run: node test/variant-consistency-test.js
+      - name: Run variant tree integrity test
+        run: node test/variant-tree-integrity-test.js
 
   e2e-smoke:
     name: E2E Smoke Tests

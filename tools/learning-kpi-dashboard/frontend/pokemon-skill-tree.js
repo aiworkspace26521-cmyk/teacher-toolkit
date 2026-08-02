@@ -48,8 +48,8 @@ var TYPE_SPEC_V2 = {
         tiers: {
           T1: { ATK: [], SPA: ["高速星星"], BUF: ["叫聲"], DIS: ["瞪眼"] },
           T2: { ATK: ["摔打"], SPA: ["巨聲"], BUF: ["高速移動"], DIS: [] },
-          T3: { ATK: [], SPA: ["三角攻擊"], BUF: ["冥想"], DIS: ["怪異之光"] },
-          T4: { ATK: [], SPA: ["破壞光線"], BUF: ["替身"], DIS: ["電磁波"] },
+          T3: { ATK: [], SPA: ["覺醒力量"], BUF: ["冥想"], DIS: ["怪異之光"] },
+          T4: { ATK: [], SPA: ["三角攻擊"], BUF: ["替身"], DIS: ["電磁波"] },
           T5: { ATK: [], SPA: ["破壞光線"], BUF: ["睡覺"], DIS: [] }
         }
       },
@@ -84,9 +84,9 @@ var TYPE_SPEC_V2 = {
         tiers: {
           T1: { ATK: ["撞擊"], SPA: ["高速星星"], BUF: ["搖尾巴"], DIS: ["瞪眼"] },
           T2: { ATK: ["電光一閃"], SPA: ["巨聲"], BUF: ["影子分身"], DIS: [] },
-          T3: { ATK: ["摔打"], SPA: [], BUF: ["劍舞"], DIS: ["黑霧"] },
+          T3: { ATK: ["摔打"], SPA: ["三角攻擊"], BUF: ["劍舞"], DIS: ["黑霧"] },
           T4: { ATK: ["捨身衝撞"], SPA: ["破壞光線"], BUF: ["替身"], DIS: ["吼叫"] },
-          T5: { ATK: ["終極衝擊"], SPA: [], BUF: ["腹鼓"], DIS: [] }
+          T5: { ATK: ["終極衝擊"], SPA: ["哈欠"], BUF: ["腹鼓"], DIS: [] }
         }
       }
     ,
@@ -250,7 +250,7 @@ var TYPE_SPEC_V2 = {
         },
         "T5": {
           ATK: [],
-          SPA: ["大字爆", "過熱"],
+          SPA: ["火焰球"],
           BUF: ["守住"],
           DIS: ["滅亡之歌"]
         }
@@ -622,7 +622,7 @@ var TYPE_SPEC_V2 = {
           T1: { ATK: [], SPA: ["冰凍之風"], BUF: ["搖尾巴"], DIS: [] },
           T2: { ATK: ["冰凍牙"], SPA: ["冰凍光束"], BUF: ["雪景"], DIS: [] },
           T3: { ATK: [], SPA: ["暴風雪"], BUF: ["替身"], DIS: ["★雪崩詛咒"] },
-          T4: { ATK: ["冰柱墜擊"], SPA: ["暴風雪"], BUF: ["守住"], DIS: ["吼叫"] },
+          T4: { ATK: ["冰柱墜擊"], SPA: ["冷凍光束"], BUF: ["守住"], DIS: ["吼叫"] },
           T5: { ATK: [], SPA: ["破壞光線"], BUF: ["睡覺"], DIS: [] }
         }
       },
@@ -646,7 +646,7 @@ var TYPE_SPEC_V2 = {
           T1: { ATK: ["冰礫"], SPA: ["冰凍之風"], BUF: [], DIS: ["瞪眼"] },
           T2: { ATK: [], SPA: ["冰凍光束"], BUF: ["冰雹"], DIS: ["★冰霜陷阱"] },
           T3: { ATK: ["冰錐"], SPA: ["暴風雪"], BUF: ["劍舞"], DIS: [] },
-          T4: { ATK: ["冰柱墜擊"], SPA: ["暴風雪"], BUF: ["守住"], DIS: ["吼叫"] },
+          T4: { ATK: ["冰柱墜擊"], SPA: ["冷凍光束"], BUF: ["守住"], DIS: ["吼叫"] },
           T5: { ATK: [], SPA: [], BUF: ["睡覺"], DIS: ["滅亡之歌"] }
         }
       },
@@ -694,7 +694,7 @@ var TYPE_SPEC_V2 = {
         },
         "T5": {
           ATK: [],
-          SPA: ["暴風雪"],
+          SPA: ["冷凍光束"],
           BUF: ["守住"],
           DIS: ["滅亡之歌"]
         }
@@ -811,7 +811,7 @@ var TYPE_SPEC_V2 = {
         },
         "T5": {
           ATK: [],
-          SPA: ["真氣彈"],
+          SPA: ["真波導彈"],
           BUF: ["守住"],
           DIS: ["滅亡之歌"]
         }
@@ -1218,7 +1218,7 @@ var TYPE_SPEC_V2 = {
           T1: { ATK: ["念力"], SPA: ["念力"], BUF: ["叫聲"], DIS: ["瞪眼"] },
           T2: { ATK: ["意念頭錘"], SPA: ["幻象光線"], BUF: ["劍舞"], DIS: [] },
           T3: { ATK: ["精神利刃"], SPA: ["精神強念"], BUF: ["替身"], DIS: ["奇異之光"] },
-          T4: { ATK: ["意念頭錘"], SPA: ["預知未來"], BUF: ["守住"], DIS: ["吼叫"] },
+          T4: { ATK: ["意念爆破"], SPA: ["預知未來"], BUF: ["守住"], DIS: ["吼叫"] },
           T5: { ATK: ["終極衝擊"], SPA: [], BUF: ["睡覺"], DIS: [] }
         }
       }
@@ -1287,7 +1287,7 @@ var TYPE_SPEC_V2 = {
           T1: { ATK: [], SPA: ["蟲咬"], BUF: ["叫聲"], DIS: ["吐絲"] },
           T2: { ATK: ["蟲咬"], SPA: ["信號光束"], BUF: ["蝶舞"], DIS: ["麻痺粉"] },
           T3: { ATK: ["猛撲"], SPA: ["蟲鳴"], BUF: ["替身"], DIS: ["睡眠粉"] },
-          T4: { ATK: [], SPA: ["蟲鳴"], BUF: ["守住"], DIS: ["毒粉"] },
+          T4: { ATK: [], SPA: ["蟲群風暴"], BUF: ["守住"], DIS: ["毒粉"] },
           T5: { ATK: [], SPA: ["破壞光線"], BUF: ["睡覺"], DIS: [] }
         }
       },
@@ -1311,7 +1311,7 @@ var TYPE_SPEC_V2 = {
           T1: { ATK: [], SPA: ["蟲咬"], BUF: ["叫聲"], DIS: ["吐絲"] },
           T2: { ATK: [], SPA: ["信號光束"], BUF: ["影子分身"], DIS: ["麻痺粉"] },
           T3: { ATK: ["猛撲"], SPA: ["蟲鳴"], BUF: ["替身"], DIS: ["睡眠粉"] },
-          T4: { ATK: [], SPA: ["蟲鳴"], BUF: ["守住"], DIS: ["清除之煙"] },
+          T4: { ATK: [], SPA: ["顫音共鳴"], BUF: ["守住"], DIS: ["清除之煙"] },
           T5: { ATK: [], SPA: ["破壞光線"], BUF: ["睡覺"], DIS: [] }
         }
       },
@@ -1359,7 +1359,7 @@ var TYPE_SPEC_V2 = {
         },
         "T5": {
           ATK: [],
-          SPA: ["蟲鳴"],
+          SPA: ["蟲群風暴"],
           BUF: ["守住"],
           DIS: ["滅亡之歌"]
         }
@@ -1452,7 +1452,7 @@ var TYPE_SPEC_V2 = {
         },
         "T3": {
           ATK: [],
-          SPA: ["原始之力"],
+          SPA: ["原始能量"],
           BUF: ["睡覺"],
           DIS: ["黑霧"]
         },
@@ -1464,7 +1464,7 @@ var TYPE_SPEC_V2 = {
         },
         "T5": {
           ATK: [],
-          SPA: ["力量寶石"],
+          SPA: ["隕石爆破"],
           BUF: ["守住"],
           DIS: ["滅亡之歌"]
         }
@@ -1485,7 +1485,7 @@ var TYPE_SPEC_V2 = {
           T1: { ATK: ["暗影拳"], SPA: [], BUF: ["叫聲"], DIS: ["瞪眼"] },
           T2: { ATK: ["暗影爪"], SPA: ["黑夜魔影"], BUF: ["影子分身"], DIS: ["奇異之光"] },
           T3: { ATK: ["潛靈奇襲"], SPA: ["暗影球"], BUF: ["劍舞"], DIS: [] },
-          T4: { ATK: ["暗影爪"], SPA: ["禍不單行"], BUF: ["替身"], DIS: ["詛咒"] },
+          T4: { ATK: ["縫影"], SPA: ["禍不單行"], BUF: ["替身"], DIS: ["詛咒"] },
           T5: { ATK: ["終極衝擊"], SPA: [], BUF: ["腹鼓"], DIS: [] }
         }
       },
@@ -1497,7 +1497,7 @@ var TYPE_SPEC_V2 = {
           T1: { ATK: [], SPA: ["驚嚇"], BUF: ["叫聲"], DIS: ["瞪眼"] },
           T2: { ATK: ["暗影爪"], SPA: ["黑夜魔影"], BUF: ["影子分身"], DIS: ["奇異之光"] },
           T3: { ATK: [], SPA: ["暗影球"], BUF: ["替身"], DIS: ["禍不單行"] },
-          T4: { ATK: ["潛靈奇襲"], SPA: ["暗影球"], BUF: ["守住"], DIS: ["清除之煙"] },
+          T4: { ATK: ["潛靈奇襲"], SPA: ["禍不單行"], BUF: ["守住"], DIS: ["清除之煙"] },
           T5: { ATK: [], SPA: ["深淵暗影"], BUF: ["睡覺"], DIS: ["滅亡之歌"] }
         }
       },
@@ -1521,7 +1521,7 @@ var TYPE_SPEC_V2 = {
           T1: { ATK: ["暗影拳"], SPA: [], BUF: ["叫聲"], DIS: ["瞪眼"] },
           T2: { ATK: ["暗影爪"], SPA: ["黑夜魔影"], BUF: ["高速移動"], DIS: ["奇異之光"] },
           T3: { ATK: ["潛靈奇襲"], SPA: ["暗影球"], BUF: ["劍舞"], DIS: ["同命"] },
-          T4: { ATK: ["暗影爪"], SPA: ["禍不單行"], BUF: ["替身"], DIS: ["吹飛"] },
+          T4: { ATK: ["暗影偷襲"], SPA: ["禍不單行"], BUF: ["替身"], DIS: ["吹飛"] },
           T5: { ATK: ["終極衝擊"], SPA: [], BUF: ["睡覺"], DIS: [] }
         }
       },
@@ -1533,7 +1533,7 @@ var TYPE_SPEC_V2 = {
           T1: { ATK: ["暗影拳"], SPA: [], BUF: [], DIS: ["叫聲"] },
           T2: { ATK: ["暗影爪"], SPA: ["黑夜魔影"], BUF: ["替身"], DIS: ["奇異之光"] },
           T3: { ATK: ["潛靈奇襲"], SPA: ["暗影球"], BUF: ["劍舞"], DIS: [] },
-          T4: { ATK: ["暗影爪"], SPA: ["禍不單行"], BUF: ["守住"], DIS: ["清除之煙"] },
+          T4: { ATK: ["影子偷襲"], SPA: ["禍不單行"], BUF: ["守住"], DIS: ["清除之煙"] },
           T5: { ATK: ["終極衝擊"], SPA: [], BUF: ["睡覺"], DIS: [] }
         }
       }
@@ -1718,8 +1718,8 @@ var TYPE_SPEC_V2 = {
         tiers: {
           T1: { ATK: [], SPA: ["大聲咆哮"], BUF: ["叫聲"], DIS: ["瞪眼"] },
           T2: { ATK: ["出奇一擊"], SPA: ["惡之波動"], BUF: ["詭計"], DIS: ["挑釁"] },
-          T3: { ATK: ["暗襲要害"], SPA: ["惡之波動"], BUF: ["替身"], DIS: ["臨別禮物"] },
-          T4: { ATK: [], SPA: ["惡之波動"], BUF: ["守住"], DIS: ["吼叫"] },
+          T3: { ATK: ["暗襲要害"], SPA: ["暗黑洞"], BUF: ["替身"], DIS: ["臨別禮物"] },
+          T4: { ATK: [], SPA: ["絕望制裁"], BUF: ["守住"], DIS: ["吼叫"] },
           T5: { ATK: [], SPA: ["深淵波動"], BUF: ["睡覺"], DIS: [] }
         }
       },
@@ -1742,7 +1742,7 @@ var TYPE_SPEC_V2 = {
         tiers: {
           T1: { ATK: [], SPA: ["大聲咆哮"], BUF: [], DIS: ["叫聲"] },
           T2: { ATK: ["暗襲要害"], SPA: ["惡之波動"], BUF: ["詭計"], DIS: ["挑釁"] },
-          T3: { ATK: [], SPA: ["惡之波動"], BUF: ["替身"], DIS: ["臨別禮物"] },
+          T3: { ATK: [], SPA: ["暗黑洞"], BUF: ["替身"], DIS: ["臨別禮物"] },
           T4: { ATK: ["咬碎"], SPA: [], BUF: ["守住"], DIS: ["清除之煙"] },
           T5: { ATK: [], SPA: ["破壞光線"], BUF: ["睡覺"], DIS: [] }
         }
@@ -1754,8 +1754,8 @@ var TYPE_SPEC_V2 = {
         tiers: {
           T1: { ATK: ["咬住"], SPA: ["大聲咆哮"], BUF: ["叫聲"], DIS: ["瞪眼"] },
           T2: { ATK: ["出奇一擊"], SPA: ["惡之波動"], BUF: ["劍舞"], DIS: ["挑釁"] },
-          T3: { ATK: ["暗襲要害"], SPA: ["惡之波動"], BUF: ["詭計"], DIS: [] },
-          T4: { ATK: ["咬碎"], SPA: ["惡之波動"], BUF: ["替身"], DIS: ["吼叫"] },
+          T3: { ATK: ["暗襲要害"], SPA: ["暗黑洞"], BUF: ["詭計"], DIS: [] },
+          T4: { ATK: ["咬碎"], SPA: ["絕望制裁"], BUF: ["替身"], DIS: ["吼叫"] },
           T5: { ATK: ["終極衝擊"], SPA: ["破壞光線"], BUF: ["睡覺"], DIS: ["滅亡之歌"] }
         }
       }
@@ -1785,13 +1785,13 @@ var TYPE_SPEC_V2 = {
         },
         "T4": {
           ATK: ["突襲"],
-          SPA: ["惡之波動"],
+          SPA: ["暗黑洞"],
           BUF: ["替身"],
           DIS: ["電磁波"]
         },
         "T5": {
           ATK: [],
-          SPA: ["惡之波動"],
+          SPA: ["絕望制裁"],
           BUF: ["守住"],
           DIS: ["滅亡之歌"]
         }
@@ -1884,7 +1884,7 @@ var TYPE_SPEC_V2 = {
         },
         "T3": {
           ATK: [],
-          SPA: ["加農光炮"],
+          SPA: ["磁軌炮"],
           BUF: ["睡覺"],
           DIS: ["黑霧"]
         },
@@ -1896,7 +1896,7 @@ var TYPE_SPEC_V2 = {
         },
         "T5": {
           ATK: [],
-          SPA: ["光澤電炮"],
+          SPA: ["鋼鐵加農"],
           BUF: ["守住"],
           DIS: ["滅亡之歌"]
         }
@@ -2012,7 +2012,7 @@ var TYPE_SPEC_V2 = {
 };
 
 var TYPE_T5_SIGNATURES = {
-  "一般": { ATK: ["終極衝擊"], SPA: ["破壞光線"], BUF: ["腹鼓"], DIS: ["滅亡之歌"] },
+  "一般": { ATK: ["百萬噸重拳"], SPA: ["三角攻擊", "巨聲"], BUF: ["腹鼓"], DIS: ["滅亡之歌"] },
   "火":   { ATK: ["V熱焰"], SPA: ["焚焰放射","滅世爆焰"], BUF: ["腹鼓"], DIS: ["滅亡之歌"] },
   "水":   { ATK: ["攀瀑·極","怒濤衝鋒"], SPA: ["極巨水炮","深海漩渦"], BUF: ["水流環·極"], DIS: ["絕對零度"] },
   "草":   { ATK: ["木槌·大木","輝煌綠葉"], SPA: ["萬葉裁決","日光束·極"], BUF: ["光合再生"], DIS: ["腐蝕孢子"] },
@@ -2920,6 +2920,15 @@ function buildUltNodes(variantTree, pokemon, types) {
     var moveName = variantTree && variantTree[preferredRole] && variantTree[preferredRole][tierKey]
       ? variantTree[preferredRole][tierKey]
       : typeMoves[tierKey];
+    if (moveName === lastMove) {
+      var otherRole = preferredRole === "SPA" ? "ATK" : "SPA";
+      var altMove = variantTree && variantTree[otherRole] ? variantTree[otherRole][tierKey] : null;
+      if (altMove && altMove !== lastMove) {
+        moveName = altMove;
+      } else {
+        continue;
+      }
+    }
     var prereqs = lastMove ? [lastMove] : [];
     nodes.push({ tier: ui, name: moveName, spCost: ui, prereqs: prereqs });
     lastMove = moveName;
@@ -3090,11 +3099,30 @@ function buildTreeFromVariant(pokemon, type, variantName) {
   var T5_FALLBACK = { ATK: ["終極衝擊"], SPA: ["破壞光線"], BUF: ["睡覺", "腹鼓"], DIS: ["滅亡之歌"] };
   for (ri = 0; ri < roles.length; ri++) {
     role = roles[ri];
-    if (!tree[role].T5 && T5_FALLBACK[role]) {
-      tree[role].T5 = selectFromPool(T5_FALLBACK[role], fallbackSeed + ri);
+    if (!tree[role].T5) {
+      tree[role].T5 = resolveT5ForTree(type, role, tree[role], fallbackSeed + ri, T5_FALLBACK);
     }
   }
   return tree;
+}
+
+function resolveT5ForTree(type, role, roleTree, seed, fallback) {
+  var used = [];
+  for (var t = 1; t <= 4; t++) {
+    var mv = roleTree["T" + t];
+    if (mv) used.push(mv);
+  }
+  var sig = TYPE_T5_SIGNATURES[type] ? TYPE_T5_SIGNATURES[type][role] : null;
+  if (sig) {
+    for (var si = 0; si < sig.length; si++) {
+      if (used.indexOf(sig[si]) === -1) return sig[si];
+    }
+  }
+  var fb = (fallback && fallback[role]) || [];
+  for (var fj = 0; fj < fb.length; fj++) {
+    if (used.indexOf(fb[fj]) === -1) return fb[fj];
+  }
+  return fb[0] || (sig && sig[0]) || null;
 }
 
 // 1.5 T5 招式解析

@@ -94,9 +94,11 @@ var rate = totalT5 > 0 ? fallbackCount / totalT5 : 0;
 
 // 印出各屬性明細
 console.log("\n各屬性 T5 備援率:");
+var failedTypes = [];
 for (var ri2 = 0; ri2 < typeResults.length; ri2++) {
   var tr = typeResults[ri2];
   var icon = tr.rate < 0.2 ? "✅" : (tr.rate < 0.4 ? "⚠️" : "❌");
+  if (tr.rate >= 0.4) failedTypes.push(tr.type + " " + (tr.rate * 100).toFixed(1) + "%");
   console.log(
     "  " + icon + " " + tr.type +
     ": " + (tr.rate * 100).toFixed(1) + "%" +
@@ -111,4 +113,9 @@ if (rate >= 0.2) {
   process.exit(1);
 }
 
-console.log("\n✅ T5 備援率通過 (< 20%)");
+if (failedTypes.length > 0) {
+  console.error("\n❌ 單屬性 T5 備援率超過 40%: " + failedTypes.join("、"));
+  process.exit(1);
+}
+
+console.log("\n✅ T5 備援率通過 (< 20% 總計，單屬性 < 40%)");
