@@ -238,6 +238,13 @@ function _fixEvoNameAfterCap(cleanName, initLv) {
   return cleanName;
 }
 
+function stablePersonality(seed) {
+  const s = String(seed);
+  let h = 0;
+  for (let i = 0; i < s.length; i++) { h = ((h << 5) - h + s.charCodeAt(i)) | 0; }
+  return Math.abs(h) % 256;
+}
+
 async function recalculateStudentState(studentId) {
   const events = await getStudentEvents(studentId);
   if (events.length === 0) return null;
@@ -266,7 +273,7 @@ async function recalculateStudentState(studentId) {
     todayBattles: 0,
     weekGymWins: 0,
     monthLeagueWins: 0,
-    roster: { P0: { id: 'P0', baseName: '🐾 伊布 (一般系)', totalExp: 0, initialLevel: 5, catchDate: '初始夥伴', heldItem: '', skillTree: { atk: { sp: 0, tier: 1 }, spa: { sp: 0, tier: 1 }, buf: { sp: 0, tier: 1 }, dis: { sp: 0, tier: 1 }, ult: { sp: 0, tier: 1 } }, learnedMoves: {}, equippedMoves: [], skillPoints: 0, totalSpEarned: 0, evoStage: 0, bonusSp: 0, personality: Math.floor(Math.random() * 256) } },
+    roster: { P0: { id: 'P0', baseName: '🐾 伊布 (一般系)', totalExp: 0, initialLevel: 5, catchDate: '初始夥伴', heldItem: '', skillTree: { atk: { sp: 0, tier: 1 }, spa: { sp: 0, tier: 1 }, buf: { sp: 0, tier: 1 }, dis: { sp: 0, tier: 1 }, ult: { sp: 0, tier: 1 } }, learnedMoves: {}, equippedMoves: [], skillPoints: 0, totalSpEarned: 0, evoStage: 0, bonusSp: 0, personality: stablePersonality(studentId + ':P0:伊布') } },
     submitStreak: 0,
     oranBerries: 0, cheriBerries: 0, lumBerries: 0, chilanBerries: 0,
     hasFocusSash: false, hasEjectButton: false, hasRockyHelmet: false, hasWeaknessPolicy: false,
@@ -414,7 +421,7 @@ async function recalculateStudentState(studentId) {
           catchDate: `${rowDate.getFullYear()}/${(rowDate.getMonth() + 1).toString().padStart(2, '0')}/${rowDate.getDate().toString().padStart(2, '0')}`,
       heldItem: '',
       skillTree: { atk: { sp: 0, tier: 1 }, spa: { sp: 0, tier: 1 }, buf: { sp: 0, tier: 1 }, dis: { sp: 0, tier: 1 }, ult: { sp: 0, tier: 1 } },
-      learnedMoves: {}, equippedMoves: [], skillPoints: 0, totalSpEarned: 0, evoStage: 0, bonusSp: 0, personality: Math.floor(Math.random() * 256)
+      learnedMoves: {}, equippedMoves: [], skillPoints: 0, totalSpEarned: 0, evoStage: 0, bonusSp: 0, personality: stablePersonality(studentId + ':' + pid + ':' + fixedName.replace(/^[^\w\u4e00-\u9fff]+\s*/u,"").replace(/\s*\(.*\)/,""))
     };
   }
     } else if (rowAction === '道具裝備') {
@@ -456,7 +463,7 @@ async function recalculateStudentState(studentId) {
               catchDate: `${rowDate.getFullYear()}/${(rowDate.getMonth() + 1).toString().padStart(2, '0')}/${rowDate.getDate().toString().padStart(2, '0')}`,
               heldItem: '',
               skillTree: { atk: { sp: 0, tier: 1 }, spa: { sp: 0, tier: 1 }, buf: { sp: 0, tier: 1 }, dis: { sp: 0, tier: 1 }, ult: { sp: 0, tier: 1 } },
-               learnedMoves: {}, equippedMoves: [], skillPoints: 0, totalSpEarned: 0, evoStage: 0, bonusSp: 0, personality: Math.floor(Math.random() * 256)
+               learnedMoves: {}, equippedMoves: [], skillPoints: 0, totalSpEarned: 0, evoStage: 0, bonusSp: 0, personality: stablePersonality(studentId + ':' + bossId + ':' + bossName.replace(/^[^\w\u4e00-\u9fff]+\s*/u,"").replace(/\s*\(.*\)/,""))
             };
           }
       }
@@ -594,7 +601,7 @@ async function recalculateStudentState(studentId) {
     p.expProgress = lvlInfo.expProgress;
     p.expNeeded = lvlInfo.expNeeded;
     // Data Migration — 舊資料自動補上缺失欄位
-    if (p.personality === undefined || p.personality === null) p.personality = Math.floor(Math.random() * 256);
+    if (p.personality === undefined || p.personality === null) p.personality = stablePersonality(studentId + ':' + k + ':' + (p.baseName || '').replace(/^[^\w\u4e00-\u9fff]+\s*/u,"").replace(/\s*\(.*\)/,""));
     if (p.bonusSp === undefined) p.bonusSp = 0;
     // SP 計算：每級+5 + 進化獎勵，已投入 = 五系 skillTree.sp 總和
     p.totalSpEarned = Math.max(0, (p.currentLevel - (p.initialLevel || 5)) * 5 + (p.bonusSp || 0));

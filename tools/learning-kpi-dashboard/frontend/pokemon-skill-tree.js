@@ -102,7 +102,7 @@ var TYPE_SPEC_V2 = {
         preferredStats: { ATK: 1.2, SPA: 0.8, SPD: 1.0, DEF: 1.0 },
         ultMapping: "A",
         tiers: {
-          T1: { ATK: ["火花"], SPA: ["叫聲"], BUF: ["叫聲"], DIS: [] },
+          T1: { ATK: ["火花"], SPA: ["噴射火焰"], BUF: ["叫聲"], DIS: [] },
           T2: { ATK: ["火焰拳"], SPA: ["魔法火焰"], BUF: ["影子分身"], DIS: ["煙幕"] },
           T3: { ATK: ["火焰踢"], SPA: [], BUF: ["劍舞"], DIS: [] },
           T4: { ATK: ["閃焰衝鋒"], SPA: ["大字爆"], BUF: ["大晴天"], DIS: ["鬼火"] },
@@ -114,7 +114,7 @@ var TYPE_SPEC_V2 = {
         preferredStats: { ATK: 0.8, SPA: 1.2, SPD: 1.0, DEF: 1.0 },
         ultMapping: "B",
         tiers: {
-          T1: { ATK: ["火花"], SPA: ["火花"], BUF: ["搖尾巴"], DIS: [] },
+          T1: { ATK: ["火焰牙"], SPA: ["火花"], BUF: ["搖尾巴"], DIS: [] },
           T2: { ATK: [], SPA: ["噴射火焰"], BUF: ["高速移動"], DIS: ["火焰旋渦"] },
           T3: { ATK: ["火焰拳"], SPA: ["大字爆"], BUF: ["冥想"], DIS: ["怪異之光"] },
           T4: { ATK: [], SPA: ["熱風"], BUF: ["守住"], DIS: ["清除之煙"] },
@@ -138,7 +138,7 @@ var TYPE_SPEC_V2 = {
         preferredStats: { ATK: 1.0, SPA: 1.0, SPD: 1.0, DEF: 1.3 },
         ultMapping: "A",
         tiers: {
-          T1: { ATK: ["火花"], SPA: ["火花"], BUF: ["變硬"], DIS: [] },
+          T1: { ATK: ["火焰牙"], SPA: ["火花"], BUF: ["變硬"], DIS: [] },
           T2: { ATK: ["火焰拳"], SPA: ["魔法火焰"], BUF: ["鐵壁"], DIS: ["煙幕"] },
           T3: { ATK: [], SPA: ["噴射火焰"], BUF: ["健美"], DIS: ["清除之煙"] },
           T4: { ATK: ["泰山壓頂"], SPA: ["大字爆"], BUF: ["守住"], DIS: ["鬼火"] },
@@ -150,7 +150,7 @@ var TYPE_SPEC_V2 = {
         preferredStats: { ATK: 1.1, SPA: 1.1, SPD: 1.0, DEF: 1.0 },
         ultMapping: "C",
         tiers: {
-          T1: { ATK: ["火花"], SPA: ["火花"], BUF: ["叫聲"], DIS: [] },
+          T1: { ATK: ["火焰牙"], SPA: ["火花"], BUF: ["叫聲"], DIS: [] },
           T2: { ATK: ["火焰拳"], SPA: ["噴射火焰"], BUF: ["影子分身"], DIS: ["煙幕"] },
           T3: { ATK: ["火焰踢"], SPA: ["大字爆"], BUF: ["劍舞"], DIS: [] },
           T4: { ATK: ["閃焰衝鋒"], SPA: ["熱風"], BUF: ["替身"], DIS: ["吼叫"] },
@@ -218,7 +218,7 @@ var TYPE_SPEC_V2 = {
         preferredStats: { ATK: 1.0, SPA: 1.0, SPD: 1.3, DEF: 1.0 },
         ultMapping: "C",
         tiers: {
-          T1: { ATK: ["水槍"], SPA: ["水槍"], BUF: [], DIS: ["叫聲"] },
+          T1: { ATK: ["貝殼刃"], SPA: ["水槍"], BUF: [], DIS: ["叫聲"] },
           T2: { ATK: ["噴射拳"], SPA: ["水之波動"], BUF: ["高速移動"], DIS: ["玩水"] },
           T3: { ATK: [], SPA: ["熱水"], BUF: ["替身"], DIS: [] },
           T4: { ATK: ["水之尾"], SPA: ["衝浪"], BUF: ["守住"], DIS: ["吹飛"] },
@@ -242,7 +242,7 @@ var TYPE_SPEC_V2 = {
         preferredStats: { ATK: 1.1, SPA: 1.1, SPD: 1.0, DEF: 1.0 },
         ultMapping: "C",
         tiers: {
-          T1: { ATK: ["水槍"], SPA: ["水槍"], BUF: ["叫聲"], DIS: ["瞪眼"] },
+          T1: { ATK: ["貝殼刃"], SPA: ["水槍"], BUF: ["叫聲"], DIS: ["瞪眼"] },
           T2: { ATK: ["噴射拳"], SPA: ["水之波動"], BUF: ["劍舞"], DIS: [] },
           T3: { ATK: ["攀瀑"], SPA: ["濁流"], BUF: ["替身"], DIS: [] },
           T4: { ATK: ["水之尾"], SPA: ["衝浪"], BUF: ["守住"], DIS: ["吼叫"] },
@@ -322,7 +322,7 @@ var TYPE_SPEC_V2 = {
         preferredStats: { ATK: 1.1, SPA: 1.1, SPD: 1.0, DEF: 1.0 },
         ultMapping: "C",
         tiers: {
-          T1: { ATK: ["藤鞭"], SPA: ["藤鞭"], BUF: ["叫聲"], DIS: [] },
+          T1: { ATK: ["藤鞭"], SPA: ["吸收"], BUF: ["叫聲"], DIS: [] },
           T2: { ATK: ["飛葉快刀"], SPA: ["魔法葉"], BUF: ["劍舞"], DIS: ["寄生種子"] },
           T3: { ATK: ["木角"], SPA: ["能量球"], BUF: ["光合作用"], DIS: [] },
           T4: { ATK: ["木槌"], SPA: ["飛葉風暴"], BUF: ["替身"], DIS: ["吼叫"] },
@@ -366,7 +366,7 @@ var TYPE_SPEC_V2 = {
         preferredStats: { ATK: 1.0, SPA: 1.0, SPD: 1.3, DEF: 1.0 },
         ultMapping: "C",
         tiers: {
-          T1: { ATK: ["電擊"], SPA: ["電擊"], BUF: ["搖尾巴"], DIS: [] },
+          T1: { ATK: ["閃電踢"], SPA: ["電擊"], BUF: ["搖尾巴"], DIS: [] },
           T2: { ATK: ["雷電拳"], SPA: ["電球"], BUF: ["高速移動"], DIS: ["電磁波"] },
           T3: { ATK: ["瘋狂伏特"], SPA: [], BUF: ["替身"], DIS: [] },
           T4: { ATK: ["閃電強襲"], SPA: ["伏特交換"], BUF: ["守住"], DIS: ["吼叫"] },
@@ -390,7 +390,7 @@ var TYPE_SPEC_V2 = {
         preferredStats: { ATK: 1.1, SPA: 1.1, SPD: 1.0, DEF: 1.0 },
         ultMapping: "B",
         tiers: {
-          T1: { ATK: ["電擊"], SPA: ["電擊"], BUF: ["叫聲"], DIS: [] },
+          T1: { ATK: ["閃電踢"], SPA: ["電擊"], BUF: ["叫聲"], DIS: [] },
           T2: { ATK: ["雷電拳"], SPA: ["十萬伏特"], BUF: ["電磁漂浮"], DIS: ["電磁波"] },
           T3: { ATK: ["瘋狂伏特"], SPA: ["放電"], BUF: ["充電"], DIS: [] },
           T4: { ATK: ["雷電牙"], SPA: ["光澤電炮"], BUF: ["替身"], DIS: ["怪異電波"] },
@@ -448,7 +448,7 @@ var TYPE_SPEC_V2 = {
         tiers: {
           T1: { ATK: [], SPA: ["冰凍之風"], BUF: ["變硬"], DIS: ["叫聲"] },
           T2: { ATK: ["冰凍牙"], SPA: ["冰凍光束"], BUF: ["鐵壁"], DIS: [] },
-          T3: { ATK: [], SPA: ["暴風雪"], BUF: ["極光幕"], DIS: ["冰凍之風"] },
+          T3: { ATK: [], SPA: ["暴風雪"], BUF: ["極光幕"], DIS: ["冰雹"] },
           T4: { ATK: ["冰柱墜擊"], SPA: [], BUF: ["替身"], DIS: ["唱歌"] },
           T5: { ATK: [], SPA: [], BUF: ["睡覺"], DIS: ["滅亡之歌"] }
         }
@@ -845,7 +845,7 @@ var TYPE_SPEC_V2 = {
         preferredStats: { ATK: 1.1, SPA: 1.1, SPD: 1.0, DEF: 1.0 },
         ultMapping: "A",
         tiers: {
-          T1: { ATK: ["念力"], SPA: ["念力"], BUF: ["叫聲"], DIS: ["瞪眼"] },
+          T1: { ATK: ["念力"], SPA: ["輔助力量"], BUF: ["叫聲"], DIS: ["瞪眼"] },
           T2: { ATK: ["意念頭錘"], SPA: ["幻象光線"], BUF: ["劍舞"], DIS: [] },
           T3: { ATK: ["精神利刃"], SPA: ["精神強念"], BUF: ["替身"], DIS: ["奇異之光"] },
           T4: { ATK: ["意念爆破"], SPA: ["預知未來"], BUF: ["守住"], DIS: ["吼叫"] },
@@ -877,7 +877,7 @@ var TYPE_SPEC_V2 = {
         preferredStats: { ATK: 0.8, SPA: 1.2, SPD: 1.0, DEF: 1.0 },
         ultMapping: "C",
         tiers: {
-          T1: { ATK: [], SPA: ["蟲咬"], BUF: ["叫聲"], DIS: ["吐絲"] },
+          T1: { ATK: [], SPA: ["蟲之抵抗"], BUF: ["叫聲"], DIS: ["吐絲"] },
           T2: { ATK: ["蟲咬"], SPA: ["信號光束"], BUF: ["蝶舞"], DIS: ["麻痺粉"] },
           T3: { ATK: ["猛撲"], SPA: ["蟲鳴"], BUF: ["替身"], DIS: ["睡眠粉"] },
           T4: { ATK: [], SPA: ["蟲群風暴"], BUF: ["守住"], DIS: ["毒粉"] },
@@ -1015,7 +1015,7 @@ var TYPE_SPEC_V2 = {
         tiers: {
           T1: { ATK: [], SPA: ["驚嚇"], BUF: ["叫聲"], DIS: ["瞪眼"] },
           T2: { ATK: ["暗影爪"], SPA: ["黑夜魔影"], BUF: ["影子分身"], DIS: ["奇異之光"] },
-          T3: { ATK: [], SPA: ["暗影球"], BUF: ["替身"], DIS: ["禍不單行"] },
+          T3: { ATK: [], SPA: ["暗影球"], BUF: ["替身"], DIS: ["催眠術"] },
           T4: { ATK: ["潛靈奇襲"], SPA: ["禍不單行"], BUF: ["守住"], DIS: ["清除之煙"] },
           T5: { ATK: [], SPA: ["深淵暗影"], BUF: ["睡覺"], DIS: ["滅亡之歌"] }
         }
@@ -2234,23 +2234,66 @@ function buildUltNodes(variantTree, pokemon, types) {
     "妖精": { T1: "妖精之風", T2: "魅惑之聲", T3: "月亮之力", T4: "魔法閃耀" }
   };
   var typeMoves = ULT_TIER_MOVES[primaryType] || ULT_TIER_MOVES["一般"];
-  var preferredRole = (variantTree && variantTree.SPA) ? "SPA" : "ATK";
-  var nodes = [];
-  var lastMove = null;
-  for (var ui = 1; ui <= 4; ui++) {
-    var tierKey = "T" + ui;
-    var moveName = variantTree && variantTree[preferredRole] && variantTree[preferredRole][tierKey]
-      ? variantTree[preferredRole][tierKey]
-      : typeMoves[tierKey];
-    if (moveName === lastMove) {
-      var otherRole = preferredRole === "SPA" ? "ATK" : "SPA";
-      var altMove = variantTree && variantTree[otherRole] ? variantTree[otherRole][tierKey] : null;
-      if (altMove && altMove !== lastMove) {
-        moveName = altMove;
-      } else {
-        continue;
+  // MOVE_DATABASE 存在時才檢查「真實招式」，不存在時視為皆真實
+  var hasDb = (typeof MOVE_DATABASE !== "undefined" && MOVE_DATABASE);
+  function isRealMove(m) { return hasDb ? !!MOVE_DATABASE[m] : true; }
+  // 收集四樹（ATK/SPA/BUF/DIS）已使用的招式，ULT 不得與之重複
+  var usedMoves = {};
+  if (variantTree) {
+    var ultRoles = ["ATK", "SPA", "BUF", "DIS"];
+    for (var uri = 0; uri < ultRoles.length; uri++) {
+      var roleTree = variantTree[ultRoles[uri]];
+      if (!roleTree) continue;
+      for (var ut = 1; ut <= 5; ut++) {
+        var usedMv = roleTree["T" + ut];
+        if (usedMv) usedMoves[usedMv] = true;
       }
     }
+  }
+  // 建立同屬性替補池（真實招式），供 ULT 與四樹衝突或招式不存在時替換
+  var typeBase = TYPE_BASED_MOVES[primaryType] || TYPE_BASED_MOVES["一般"];
+  var altPool = (typeBase.atk || []).concat(typeBase.spa || []).filter(isRealMove);
+  // 跨屬性替補池（真實傷害招），同屬性池用盡時使用
+  var altPoolAny = [];
+  if (hasDb) {
+    for (var altKey in MOVE_DATABASE) {
+      var altDef = MOVE_DATABASE[altKey];
+      if (!altDef || altDef.category === "變化") continue;
+      if (altDef.type === primaryType) {
+        if (altPool.indexOf(altKey) === -1) altPool.push(altKey);
+      } else {
+        if (altPoolAny.indexOf(altKey) === -1) altPoolAny.push(altKey);
+      }
+    }
+  }
+  var nodes = [];
+  var lastMove = null;
+  var chosenUlt = {};
+  function pickSub(notMove) {
+    var pools = [altPool, altPoolAny];
+    for (var pi = 0; pi < pools.length; pi++) {
+      for (var si = 0; si < pools[pi].length; si++) {
+        var cand = pools[pi][si];
+        if (cand !== notMove && !usedMoves[cand] && !chosenUlt[cand]) return cand;
+      }
+    }
+    return null;
+  }
+  for (var ui = 1; ui <= 4; ui++) {
+    var tierKey = "T" + ui;
+    var moveName = typeMoves[tierKey];
+    // 偏好 ULT_TIER_MOVES；若與四樹重複或非真實招式則從替補池挑不重複的真實招
+    if (moveName && (usedMoves[moveName] || !isRealMove(moveName))) {
+      var sub = pickSub(null);
+      if (sub) moveName = sub;
+    }
+    if (!moveName) continue;
+    if (moveName === lastMove) {
+      var altSub = pickSub(lastMove);
+      if (altSub) moveName = altSub;
+    }
+    chosenUlt[moveName] = true;
+    usedMoves[moveName] = true;
     var prereqs = lastMove ? [lastMove] : [];
     nodes.push({ tier: ui, name: moveName, spCost: ui, prereqs: prereqs });
     lastMove = moveName;

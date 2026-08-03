@@ -1126,7 +1126,7 @@ async function recalculateStudentState(studentId, events) {
           }
         }
       }
-      if (!state.roster[pid]) state.roster[pid] = { id: pid, baseName: cleanName, totalExp: 0, initialLevel: initLv, catchDate: rowDate.getFullYear()+"/"+((rowDate.getMonth()+1)+"").padStart(2,"0")+"/"+(rowDate.getDate()+"").padStart(2,"0"), heldItem: "", skillTree: { atk: { sp: 0, tier: 1 }, spa: { sp: 0, tier: 1 }, buf: { sp: 0, tier: 1 }, dis: { sp: 0, tier: 1 }, ult: { sp: 0, tier: 1 } }, learnedMoves: {}, equippedMoves: [], skillPoints: 0, totalSpEarned: 0, evoStage: 0, bonusSp: 0, personality: Math.floor(Math.random() * 256) };
+      if (!state.roster[pid]) state.roster[pid] = { id: pid, baseName: cleanName, totalExp: 0, initialLevel: initLv, catchDate: rowDate.getFullYear()+"/"+((rowDate.getMonth()+1)+"").padStart(2,"0")+"/"+(rowDate.getDate()+"").padStart(2,"0"), heldItem: "", skillTree: { atk: { sp: 0, tier: 1 }, spa: { sp: 0, tier: 1 }, buf: { sp: 0, tier: 1 }, dis: { sp: 0, tier: 1 }, ult: { sp: 0, tier: 1 } }, learnedMoves: {}, equippedMoves: [], skillPoints: 0, totalSpEarned: 0, evoStage: 0, bonusSp: 0, personality: stablePersonality(studentId + ":" + pid + ":" + getRawName(cleanName)) };
     } else if (rowAction === "B" || rowAction === "\u7CD6\u679C\u5347\u7D1A") {
       var pid2 = (safeNote.match(/ID:(P\d+(?:_LEG)?|legacy_\d+)/)||[])[1];
       if (pid2) for (var k in state.roster) {
@@ -1275,7 +1275,7 @@ async function recalculateStudentState(studentId, events) {
     var p = state.roster[k4]; var lvlInfo = calcLevelAndExp(p.totalExp, p.initialLevel);
     p.currentLevel = lvlInfo.level; p.expProgress = lvlInfo.expProgress; p.expNeeded = lvlInfo.expNeeded;
     // Data Migration — 舊資料自動補上缺失欄位
-    if (p.personality === undefined || p.personality === null) p.personality = Math.floor(Math.random() * 256);
+    if (p.personality === undefined || p.personality === null) p.personality = stablePersonality(studentId + ":" + k4 + ":" + getRawName(p.baseName));
     if (p.bonusSp === undefined) p.bonusSp = 0;
     // SP 計算：每級+5 + 進化獎勵，已投入 = 五系 skillTree.sp 總和
     p.totalSpEarned = Math.max(0, (p.currentLevel - (p.initialLevel || 5)) * 5 + (p.bonusSp || 0));
@@ -2087,6 +2087,12 @@ var HELD_ITEMS = {
 };
 var HELD_ITEM_ICONS = {};
 for (var _hi in HELD_ITEMS) HELD_ITEM_ICONS[_hi] = HELD_ITEMS[_hi].icon;
+function stablePersonality(seed) {
+  var s = String(seed);
+  var h = 0;
+  for (var i = 0; i < s.length; i++) { h = ((h << 5) - h + s.charCodeAt(i)) | 0; }
+  return Math.abs(h) % 256;
+}
 function getRawName(baseName) {
   return baseName.replace(/^[^\w\u4e00-\u9fff]+\s*/u,"").replace(/\s*\(.*\)/,"");
 }
@@ -2730,7 +2736,7 @@ function generateLearnset(raw, types, tier) {
       baseName: raw, primaryType: primaryType,
       type2: types.length > 1 ? types[1] : null,
       stats: tierStats,
-      personality: Math.floor(Math.random() * 256)
+      personality: stablePersonality("learnset:" + raw + ":" + types.join("/"))
     };
     try {
       var vName = selectVariant(dummyPkm);
@@ -3107,7 +3113,7 @@ function createPlayerPokemon(pokemon) {
     tmMoves: pokemon.tmMoves || [],
     maxFp: typeof calcMaxFp !== "undefined" ? calcMaxFp(pokemon.currentLevel) : 100 + pokemon.currentLevel * 3,
     currentFp: typeof calcMaxFp !== "undefined" ? calcMaxFp(pokemon.currentLevel) : 100 + pokemon.currentLevel * 3,
-    personality: pokemon.personality !== undefined ? pokemon.personality : Math.floor(Math.random() * 256)
+    personality: pokemon.personality !== undefined ? pokemon.personality : stablePersonality((globalData && globalData.studentId ? globalData.studentId : "?") + ":" + (pokemon.id || "") + ":" + getRawName(pokemon.baseName || ""))
   };
 }
 
@@ -9316,7 +9322,7 @@ function renderSkillTree() {
     primaryType: types[0],
     type2: types.length > 1 ? types[1] : null,
     stats: pkmnStats,
-    personality: pkmn.personality !== undefined ? pkmn.personality : Math.floor(Math.random() * 256)
+    personality: pkmn.personality !== undefined ? pkmn.personality : stablePersonality((globalData && globalData.studentId ? globalData.studentId : "?") + ":" + (pkmn.id || "") + ":" + rawName)
   }) : null;
   if (!tree) { $("skillTreeBody").innerHTML = "暫無技能樹資料"; return; }
 
@@ -9699,7 +9705,8 @@ function learnSkillTreeNode(nodeName) {
   if (!pkmn.learnedMoves) pkmn.learnedMoves = {};
   if (pkmn.learnedMoves[nodeName]) return;
   var sp = pkmn.skillPoints || 0;
-  var types = (typeof POKEMON_SPECIES_TYPES !== "undefined") ? POKEMON_SPECIES_TYPES[pkmn.baseName] : ["一般"];
+  var rawTypesName = typeof getRawName === "function" ? getRawName(pkmn.baseName) : pkmn.baseName;
+  var types = (typeof POKEMON_SPECIES_TYPES !== "undefined") ? POKEMON_SPECIES_TYPES[rawTypesName] : ["一般"];
   var atkStat = pkmn.atk || 50;
   var spaStat = pkmn.spatk || 50;
   var treeData = typeof getSkillTree !== "undefined" ? getSkillTree(pkmn.baseName, types, atkStat, spaStat, pkmn) : null;
@@ -9765,7 +9772,8 @@ function upgradeMoveInSkillTree(moveName) {
   if (lv >= maxLv) { toast("已達最高等級"); return; }
   pkmn.learnedMoves[moveName].level = lv + 1;
   pkmn.skillPoints = (pkmn.skillPoints || 0) - 1;
-  var types = (typeof POKEMON_SPECIES_TYPES !== "undefined") ? POKEMON_SPECIES_TYPES[pkmn.baseName] : ["一般"];
+  var rawTypesName = typeof getRawName === "function" ? getRawName(pkmn.baseName) : pkmn.baseName;
+  var types = (typeof POKEMON_SPECIES_TYPES !== "undefined") ? POKEMON_SPECIES_TYPES[rawTypesName] : ["一般"];
   var atkStat = pkmn.atk || 50;
   var spaStat = pkmn.spatk || 50;
   var ugTreeData = typeof getSkillTree !== "undefined" ? getSkillTree(pkmn.baseName, types, atkStat, spaStat, pkmn) : null;
