@@ -51,12 +51,16 @@ test.describe('Block I Step 10: 任務+成就系統驗證', () => {
   test('10.2 computeQuestProgress calculates progress correctly', async ({ page }) => {
     const progressResult = await page.evaluate(() => {
       const now = new Date();
-      // earlier this week (same week, not today) for weekly-only events
-      const earlier = new Date(now);
-      earlier.setDate(earlier.getDate() - 1);
+      // a timestamp guaranteed to be inside the current week (matching getStartOfWeek's
+      // Monday-based window) but not today, so weekly-only events always count
+      const weekStart = new Date(now);
+      const dow = weekStart.getDay() || 7;
+      weekStart.setHours(0, 0, 0, 0);
+      weekStart.setDate(weekStart.getDate() - dow + 1);
+      const earlier = new Date(weekStart);
+      earlier.setDate(earlier.getDate() + 1);
       if (earlier.toDateString() === now.toDateString()) {
-        // if yesterday is still today (timezone edge), use 2 days ago
-        earlier.setDate(earlier.getDate() - 1);
+        earlier.setDate(earlier.getDate() + 1);
       }
 
       const mockEvents = [
