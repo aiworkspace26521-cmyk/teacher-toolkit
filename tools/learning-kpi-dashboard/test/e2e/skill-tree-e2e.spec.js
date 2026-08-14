@@ -485,24 +485,24 @@ if (result.skipped) { test.skip(); return; }
     expect(fpState.playerFp).toBeGreaterThan(0);
   });
 
-  // ── 4.16: 進化階層上限 ──
-  test('4.16 進化階段決定最高階層上限', async ({ page }) => {
+  // ── 4.16: 進化階層上限（最終型＝無後續進化，與後端 EVO_CHAIN_MAP 一致）──
+  test('4.16 進化階段決定最高階層上限（最終型判斷）', async ({ page }) => {
     const result = await page.evaluate(() => {
       const pkmn = globalData.roster[0];
       if (!pkmn) return { error: 'no roster' };
-      if (typeof pkmn.maxTreeTier === 'undefined') {
-        const stage = pkmn.evoStage || 0;
-        return {
-          evoStage: stage,
-          expectedMaxTier: stage >= 2 ? 5 : (stage >= 1 ? 4 : 3),
-          calculated: 'backwards-compat'
-        };
-      }
+      const rawName = (pkmn.baseName || '').replace(/^[^\w\u4e00-\u9fff]+\s*/u, '').replace(/\s*\([^)]*\).*$/, '');
+      const aliasName = (typeof EEVEELUTION_IBU !== 'undefined' && EEVEELUTION_IBU[rawName]) ? EEVEELUTION_IBU[rawName] : rawName;
+      const hasFurtherEvo = (typeof EVO_HAS_FURTHER !== 'undefined')
+        ? (EVO_HAS_FURTHER[rawName] || EVO_HAS_FURTHER[aliasName] || EVO_HAS_FURTHER[pkmn.baseName])
+        : ((typeof EVO_CHAIN_MAP !== 'undefined') && (EVO_CHAIN_MAP[rawName] || EVO_CHAIN_MAP[aliasName] || EVO_CHAIN_MAP[pkmn.baseName]));
+      const isFinalForm = !hasFurtherEvo;
+      const expectedMaxTier = (pkmn.evoStage >= 2 || (pkmn.evoStage >= 1 && isFinalForm)) ? 5 : (pkmn.evoStage >= 1 ? 4 : 3);
       return {
         evoStage: pkmn.evoStage,
         maxTreeTier: pkmn.maxTreeTier,
-        expectedMaxTier: pkmn.evoStage >= 2 ? 5 : (pkmn.evoStage >= 1 ? 4 : 3),
-        match: pkmn.maxTreeTier === (pkmn.evoStage >= 2 ? 5 : (pkmn.evoStage >= 1 ? 4 : 3))
+        expectedMaxTier,
+        hasFurtherEvo,
+        match: pkmn.maxTreeTier === expectedMaxTier
       };
     });
     expect(result.error).toBeUndefined();

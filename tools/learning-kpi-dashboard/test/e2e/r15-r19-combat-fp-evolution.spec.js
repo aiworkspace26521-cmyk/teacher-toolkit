@@ -248,7 +248,11 @@ test.describe('R19: 進化後階層上限提升', () => {
       if (typeof EVO_STAGE_MAP !== 'undefined') {
         calcStage = EVO_STAGE_MAP[rawName] !== undefined ? EVO_STAGE_MAP[rawName] : 0;
       }
-      var calcTier = calcStage >= 2 ? 5 : (calcStage >= 1 ? 4 : 3);
+      var aliasName = (typeof EEVEELUTION_IBU !== 'undefined' && EEVEELUTION_IBU[rawName]) ? EEVEELUTION_IBU[rawName] : rawName;
+      var hasFurtherEvo = (typeof EVO_HAS_FURTHER !== 'undefined')
+        ? (EVO_HAS_FURTHER[rawName] || EVO_HAS_FURTHER[aliasName] || EVO_HAS_FURTHER[p0.baseName])
+        : ((typeof EVO_CHAIN_MAP !== 'undefined') && (EVO_CHAIN_MAP[rawName] || EVO_CHAIN_MAP[aliasName] || EVO_CHAIN_MAP[p0.baseName]));
+      var calcTier = (calcStage >= 2 || (calcStage >= 1 && !hasFurtherEvo)) ? 5 : (calcStage >= 1 ? 4 : 3);
       return {
         evolved: captured !== null,
         newName: rawName,
@@ -263,19 +267,24 @@ test.describe('R19: 進化後階層上限提升', () => {
     expect(evolveResult.maxTreeTier).toBe(4);
   });
 
-  test('R19c: 每次進化後 maxTreeTier 遵循 evoStage 公式', async ({ page }) => {
+  test('R19c: 進化階段與最終型決定最高階層上限', async ({ page }) => {
     await injectBaseFormRoster(page);
     const result = await page.evaluate(() => {
       const checks = [];
-      for (var stage = 0; stage <= 2; stage++) {
-        var expectedTier = stage >= 2 ? 5 : (stage >= 1 ? 4 : 3);
-        checks.push({ stage: stage, maxTreeTier: expectedTier });
-      }
+      // 未進化: 3
+      checks.push({ label: '未進化', stage: 0, final: false, maxTreeTier: 3 });
+      // 已進化但還有後續進化: 4
+      checks.push({ label: '中階', stage: 1, final: false, maxTreeTier: 4 });
+      // 已進化且最終型: 5
+      checks.push({ label: '最終型', stage: 1, final: true, maxTreeTier: 5 });
+      // 最終階(2): 5
+      checks.push({ label: '最終階', stage: 2, final: true, maxTreeTier: 5 });
       return checks;
     });
     expect(result[0].maxTreeTier).toBe(3);
     expect(result[1].maxTreeTier).toBe(4);
     expect(result[2].maxTreeTier).toBe(5);
+    expect(result[3].maxTreeTier).toBe(5);
   });
 
   test('R19d: 道具進化後 name 改變且 EVO_STAGE_MAP 結果為 stage=1 tier=4', async ({ page }) => {
@@ -305,7 +314,11 @@ test.describe('R19: 進化後階層上限提升', () => {
       showEvoCutscene = origCut;
       var rawName = getRawName(p0.baseName);
       var calcStage = typeof EVO_STAGE_MAP !== 'undefined' && EVO_STAGE_MAP[rawName] !== undefined ? EVO_STAGE_MAP[rawName] : 0;
-      var calcTier = calcStage >= 2 ? 5 : (calcStage >= 1 ? 4 : 3);
+      var aliasName = (typeof EEVEELUTION_IBU !== 'undefined' && EEVEELUTION_IBU[rawName]) ? EEVEELUTION_IBU[rawName] : rawName;
+      var hasFurtherEvo = (typeof EVO_HAS_FURTHER !== 'undefined')
+        ? (EVO_HAS_FURTHER[rawName] || EVO_HAS_FURTHER[aliasName] || EVO_HAS_FURTHER[p0.baseName])
+        : ((typeof EVO_CHAIN_MAP !== 'undefined') && (EVO_CHAIN_MAP[rawName] || EVO_CHAIN_MAP[aliasName] || EVO_CHAIN_MAP[p0.baseName]));
+      var calcTier = (calcStage >= 2 || (calcStage >= 1 && !hasFurtherEvo)) ? 5 : (calcStage >= 1 ? 4 : 3);
       return {
         evolved: captured !== null,
         newName: rawName,
@@ -317,7 +330,7 @@ test.describe('R19: 進化後階層上限提升', () => {
     expect(after.evolved).toBe(true);
     expect(after.newName).toBe('水伊布');
     expect(after.evoStage).toBe(1);
-    expect(after.maxTreeTier).toBe(4);
+    expect(after.maxTreeTier).toBe(5);
   });
 
 });

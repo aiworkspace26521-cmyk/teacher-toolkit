@@ -192,6 +192,20 @@ const EVO_CHAIN_MAP = {
   "多邊獸":["多邊獸Ⅱ","多邊獸Ｚ"]
 };
 
+// EVO_HAS_FURTHER: 「還有後續進化」的完整集合，涵蓋 chain key 與所有非終點中間型
+//（如 妙蛙草→妙蛙花、卡咪龜→水箭龜），讓「最終型＝沒有後續進化」判斷完整一致。
+const EVO_HAS_FURTHER = (function() {
+  const s = {};
+  for (const k of Object.keys(EVO_CHAIN_MAP)) {
+    s[k] = true;
+    const arr = EVO_CHAIN_MAP[k];
+    if (arr && arr.length >= 2) {
+      for (let i = 0; i < arr.length - 1; i++) s[arr[i]] = true;
+    }
+  }
+  return s;
+})();
+
 // EVO_STAGE_OVERRIDES: split evolutions whose chain index ≠ actual stage
 var EVO_STAGE_OVERRIDES = {
   "艾比郎":1,"柯波朗":1,        // 巴爾郎 split — both direct evo
@@ -614,9 +628,9 @@ async function recalculateStudentState(studentId) {
     p.skillPoints = Math.max(0, p.totalSpEarned - investedSp);
     // 進化階段決定技能樹最高可用階層
     // C1: 若已進化為最終型態（例：石之進化至仙子伊布），階層上限亦解鎖至 T5，
-    //     與前端 kpi-dashboard.html 的 FINAL_FORM_SET 判斷對齊。
+    //     與前端 kpi-dashboard.html 的「無後續進化」判斷對齊。
     var rawP = _getRawName(p.baseName || "");
-    p.maxTreeTier = (p.evoStage >= 2 || (p.evoStage >= 1 && !EVO_CHAIN_MAP[rawP])) ? 5 : (p.evoStage >= 1 ? 4 : 3);
+    p.maxTreeTier = (p.evoStage >= 2 || (p.evoStage >= 1 && !EVO_HAS_FURTHER[rawP])) ? 5 : (p.evoStage >= 1 ? 4 : 3);
     if (state._happinessEvents && state._happinessEvents[p.id]) {
       p.happiness = (p.happiness || 0) + state._happinessEvents[p.id];
     } else {
