@@ -9313,6 +9313,25 @@ function selectSkillTreeTab(treeType) {
   renderSkillTree();
 }
 
+function resolveSkillTreeData(pkmn) {
+  if (!pkmn) return null;
+  var rawName = typeof getRawName === "function" ? getRawName(pkmn.baseName) : pkmn.baseName;
+  var types = (typeof POKEMON_SPECIES_TYPES !== "undefined") ? POKEMON_SPECIES_TYPES[rawName] : null;
+  if (!types || types.length === 0) types = ["一般"];
+  var atkStat = pkmn.atk || 50;
+  var spaStat = pkmn.spatk || 50;
+  var pkmnStats = typeof getPokemonStats === "function" ? getPokemonStats(rawName, pkmn.currentLevel || 5) : { atk: atkStat, spa: spaStat, spd: 50, def: 50, spDef: 50, hp: 50 };
+  var lookup = {
+    baseName: rawName,
+    primaryType: types[0],
+    type2: types.length > 1 ? types[1] : null,
+    stats: pkmnStats,
+    personality: pkmn.personality !== undefined ? pkmn.personality : stablePersonality((globalData && globalData.studentId ? globalData.studentId : "?") + ":" + (pkmn.id || "") + ":" + rawName)
+  };
+  var tree = typeof getSkillTree !== "undefined" ? getSkillTree(pkmn.baseName, types, atkStat, spaStat, lookup) : null;
+  return { tree: tree, types: types, atkStat: atkStat, spaStat: spaStat, rawName: rawName };
+}
+
 function renderSkillTree() {
   var roster = globalData.roster || [];
   var pkmn = null;
@@ -9488,7 +9507,7 @@ function renderSkillTree() {
           var ndLevel = (pkmn.learnedMoves && pkmn.learnedMoves[ndName] && pkmn.learnedMoves[ndName].level) || 0;
           var ndMaxLv = typeof getMaxMoveLevel !== "undefined" ? getMaxMoveLevel(nd.tier || 1) : 5;
           var isTm = pkmn.tmMoves && pkmn.tmMoves.indexOf(ndName) !== -1;
-          canvasHtml += " <small style='color:#8e44ad;'>SP" + ndLevel + "/" + ndMaxLv + "</small>";
+          canvasHtml += " <small style='color:#8e44ad;'>Lv." + ndLevel + "/" + ndMaxLv + "</small>";
           if (isTm) {
             canvasHtml += " <span style='color:#8e44ad;font-size:9px;font-weight:700;'>TM</span><span style='color:#999;font-size:9px;margin-left:3px;'>不可升級</span>";
           } else if (ndLevel < ndMaxLv) {
@@ -9550,7 +9569,7 @@ function renderSkillTree() {
         var canUpgrade = lv < maxLv && sp >= 1;
         previewHtml += "<div style='display:flex;justify-content:space-between;align-items:center;font-size:12px;padding:2px 0;border-bottom:1px dashed #eee;'>";
         previewHtml += "<span>✅ " + lm + " <small style='color:#8e44ad;'>FP" + fpCost + "</small></span>";
-        previewHtml += "<span style='color:#666;'>SP" + lv + "/" + maxLv;
+        previewHtml += "<span style='color:#666;'>Lv." + lv + "/" + maxLv;
         if (canUpgrade) {
           previewHtml += " <button class='st-upgrade-btn' style='background:#8e44ad;color:white;' onclick='sfx.click();upgradeMoveInSkillTree(\"" + lm + "\")'>⬆+1</button>";
         } else if (lv >= maxLv) {
@@ -9599,7 +9618,7 @@ function renderEquipEditor(pkmn) {
       var canSelect = !isEq && equipped.length >= 6;
       eqHtml += "<label style='display:flex;align-items:center;gap:6px;padding:3px 6px;border-radius:4px;font-size:12px;cursor:" + (canSelect ? "not-allowed" : "pointer") + ";background:" + (isEq ? "#eafaf1" : "transparent") + ";margin:2px 0;'>";
       eqHtml += "<input type='checkbox' " + (isEq ? "checked" : "") + " " + (canSelect ? "disabled" : "") + " onchange=\"toggleEquipMove('" + mn + "', this.checked)\" style='accent-color:#8e44ad;'>";
-      eqHtml += mn + " <small style='color:#666;'>SP" + ((pkmn.learnedMoves && pkmn.learnedMoves[mn] && pkmn.learnedMoves[mn].level) || 1) + "</small>";
+      eqHtml += mn + " <small style='color:#666;'>Lv." + ((pkmn.learnedMoves && pkmn.learnedMoves[mn] && pkmn.learnedMoves[mn].level) || 1) + "</small>";
       if (isTm) eqHtml += " <span style='color:#8e44ad;font-size:9px;font-weight:700;'>TM</span>";
       eqHtml += "</label>";
     }
@@ -9715,11 +9734,8 @@ function learnSkillTreeNode(nodeName) {
   if (!pkmn.learnedMoves) pkmn.learnedMoves = {};
   if (pkmn.learnedMoves[nodeName]) return;
   var sp = pkmn.skillPoints || 0;
-  var rawTypesName = typeof getRawName === "function" ? getRawName(pkmn.baseName) : pkmn.baseName;
-  var types = (typeof POKEMON_SPECIES_TYPES !== "undefined") ? POKEMON_SPECIES_TYPES[rawTypesName] : ["一般"];
-  var atkStat = pkmn.atk || 50;
-  var spaStat = pkmn.spatk || 50;
-  var treeData = typeof getSkillTree !== "undefined" ? getSkillTree(pkmn.baseName, types, atkStat, spaStat, pkmn) : null;
+  var resolved = resolveSkillTreeData(pkmn);
+  var treeData = resolved ? resolved.tree : null;
   var treeTypes = ["atk","spa","buf","dis","ult"];
   var treeNode = null;
   var foundTreeType = "spa";
@@ -9782,11 +9798,8 @@ function upgradeMoveInSkillTree(moveName) {
   if (lv >= maxLv) { toast("已達最高等級"); return; }
   pkmn.learnedMoves[moveName].level = lv + 1;
   pkmn.skillPoints = (pkmn.skillPoints || 0) - 1;
-  var rawTypesName = typeof getRawName === "function" ? getRawName(pkmn.baseName) : pkmn.baseName;
-  var types = (typeof POKEMON_SPECIES_TYPES !== "undefined") ? POKEMON_SPECIES_TYPES[rawTypesName] : ["一般"];
-  var atkStat = pkmn.atk || 50;
-  var spaStat = pkmn.spatk || 50;
-  var ugTreeData = typeof getSkillTree !== "undefined" ? getSkillTree(pkmn.baseName, types, atkStat, spaStat, pkmn) : null;
+  var ugResolved = resolveSkillTreeData(pkmn);
+  var ugTreeData = ugResolved ? ugResolved.tree : null;
   var ugTreeTypes = ["atk","spa","buf","dis","ult"];
   var ugFoundType = "spa";
   var ugSearchOrder = [_skillTreeActiveTab].concat(ugTreeTypes.filter(function(tt){ return tt !== _skillTreeActiveTab; }));
@@ -9810,7 +9823,7 @@ function upgradeMoveInSkillTree(moveName) {
     saveEventToFirestore({ studentId: globalData.studentId, action: "MOVE_UPGRADE", score: 0, expGained: 0, coinsGained: 0, badgeChange: 0, note: _skillTreePkmnId + ":" + moveName + ":" + (lv + 1) });
     saveEventToFirestore({ studentId: globalData.studentId, action: "SP_ALLOCATE", score: 0, expGained: 0, coinsGained: 0, badgeChange: 0, note: _skillTreePkmnId + ":" + ugFoundType + ":1" });
   }
-  toast("⬆ " + moveName + " 升級至 SP" + (lv + 1) + "！");
+  toast("⬆ " + moveName + " 升級至 Lv." + (lv + 1) + "！");
 }
 
 function resetActiveSkillTree() {
