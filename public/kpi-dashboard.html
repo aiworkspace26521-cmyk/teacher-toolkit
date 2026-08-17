@@ -9767,7 +9767,7 @@ function learnSkillTreeNode(nodeName) {
   if (!pkmn.skillTree) pkmn.skillTree = { atk: { sp: 0, tier: 1 }, spa: { sp: 0, tier: 1 }, buf: { sp: 0, tier: 1 }, dis: { sp: 0, tier: 1 }, ult: { sp: 0, tier: 1 } };
   if (!pkmn.skillTree[foundTreeType]) pkmn.skillTree[foundTreeType] = { sp: 0, tier: 1 };
   var tierBefore = pkmn.skillTree[foundTreeType].tier || 1;
-  pkmn.skillTree[foundTreeType].sp = (pkmn.skillTree[foundTreeType].sp || 0) + 1;
+  pkmn.skillTree[foundTreeType].sp = (pkmn.skillTree[foundTreeType].sp || 0) + cost;
   pkmn.skillTree[foundTreeType].tier = getTreeTier(pkmn.skillTree[foundTreeType]);
   _skillTreeDirty = true;
   sfx.levelup();
@@ -9775,7 +9775,7 @@ function learnSkillTreeNode(nodeName) {
   saveSkillTreeState();
   if (typeof saveEventToFirestore !== "undefined") {
     saveEventToFirestore({ studentId: globalData.studentId, action: "MOVE_LEARN", score: 0, expGained: 0, coinsGained: 0, badgeChange: 0, note: _skillTreePkmnId + ":" + nodeName + ":tier" + (treeNode ? (treeNode.tier || 1) : 1) + ":" + foundTreeType });
-    saveEventToFirestore({ studentId: globalData.studentId, action: "SP_ALLOCATE", score: 0, expGained: 0, coinsGained: 0, badgeChange: 0, note: _skillTreePkmnId + ":" + foundTreeType + ":1" });
+    saveEventToFirestore({ studentId: globalData.studentId, action: "SP_ALLOCATE", score: 0, expGained: 0, coinsGained: 0, badgeChange: 0, note: _skillTreePkmnId + ":" + foundTreeType + ":" + cost });
   }
   var tierAfter = pkmn.skillTree[foundTreeType].tier || 1;
   if (tierAfter > tierBefore) toast("✅ " + pkmn.baseName + " 學會了 " + nodeName + "！已投入 T" + tierAfter + " (" + pkmn.skillTree[foundTreeType].sp + " SP)");
