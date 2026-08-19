@@ -9540,16 +9540,31 @@ function renderSkillTree() {
   // Allocate SP button
   canvasHtml += "<div style='margin-top:10px;display:flex;gap:6px;flex-wrap:wrap;'>";
   var canAllocate = sp >= 1 && currentTierVal < 5 && maxTier > currentTierVal;
-  if (canAllocate) {
-    canvasHtml += "<button class='st-sp-btn' style='background:#27ae60;color:white;flex:1;' onclick='sfx.click();allocateSp(\"" + _skillTreeActiveTab + "\")'>⬆ 投入 1 SP</button>";
+  var anyUpgradable = false;
+  if (activeTree && pkmn.learnedMoves) {
+    for (var ugi = 0; ugi < activeTree.nodes.length; ugi++) {
+      var um = activeTree.nodes[ugi].name;
+      var ul = pkmn.learnedMoves[um];
+      if (!ul) continue;
+      var umLv = ul.level || 0;
+      var umTier = ul.tier || activeTree.nodes[ugi].tier || 1;
+      var umMax = typeof getMaxMoveLevel !== "undefined" ? getMaxMoveLevel(umTier) : 5;
+      var isTm = pkmn.tmMoves && pkmn.tmMoves.indexOf(um) !== -1;
+      if (!isTm && umLv < umMax) { anyUpgradable = true; break; }
+    }
+  }
+  var showInvestBtn = sp >= 1 && (anyUpgradable || canAllocate);
+  if (showInvestBtn) {
+    var investLabel = anyUpgradable ? "⬆ 升級招式" : "⬆ 投入 1 SP";
+    canvasHtml += "<button class='st-sp-btn' style='background:#27ae60;color:white;flex:1;' onclick='sfx.click();upgradeOrInvestSp(\"" + _skillTreeActiveTab + "\")'>" + investLabel + "</button>";
   }
   canvasHtml += "<button class='st-sp-btn' style='background:#3498db;color:white;flex:1;' onclick='sfx.click();allocateSpBulk(\"" + _skillTreeActiveTab + "\")'>⬆⬆ 最大投入</button>";
   canvasHtml += "</div>";
-  if (!canAllocate && sp > 0 && currentTierVal >= 5) {
+  if (!showInvestBtn && sp > 0 && currentTierVal >= 5) {
     canvasHtml += "<div style='font-size:12px;color:#27ae60;text-align:center;margin-top:6px;'>✅ 此系已達最高階層 T5</div>";
-  } else if (!canAllocate && sp === 0) {
+  } else if (!showInvestBtn && sp === 0) {
     canvasHtml += "<div style='font-size:12px;color:#888;text-align:center;margin-top:6px;'>SP 不足 — 升級可獲得 SP</div>";
-  } else if (!canAllocate && currentTierVal >= maxTier) {
+  } else if (!showInvestBtn && currentTierVal >= maxTier) {
     canvasHtml += "<div style='font-size:12px;color:#e67e22;text-align:center;margin-top:6px;'>🔒 需進化才能繼續提升階層</div>";
   }
 
@@ -9723,6 +9738,38 @@ function allocateSpBulk(treeType) {
   if (typeof saveEventToFirestore !== "undefined") {
     saveEventToFirestore({ studentId: globalData.studentId, action: "SP_ALLOCATE", score: 0, expGained: 0, coinsGained: 0, badgeChange: 0, note: _skillTreePkmnId + ":" + treeType + ":" + toAlloc });
   }
+}
+
+function upgradeOrInvestSp(treeType) {
+  if (!_skillTreePkmnId) return;
+  var roster = globalData.roster || [];
+  var pkmn = null;
+  for (var ri = 0; ri < roster.length; ri++) { if (roster[ri].id === _skillTreePkmnId) { pkmn = roster[ri]; break; } }
+  if (!pkmn) return;
+  if (!pkmn.skillTree) pkmn.skillTree = { atk: { sp: 0, tier: 1 }, spa: { sp: 0, tier: 1 }, buf: { sp: 0, tier: 1 }, dis: { sp: 0, tier: 1 }, ult: { sp: 0, tier: 1 } };
+  if (!pkmn.skillTree[treeType]) pkmn.skillTree[treeType] = { sp: 0, tier: 1 };
+  var learnedMoves = pkmn.learnedMoves || {};
+  if (Object.keys(learnedMoves).length > 0 && (pkmn.skillPoints || 0) >= 1) {
+    var ugResolved = resolveSkillTreeData(pkmn);
+    var ugTreeData = ugResolved ? ugResolved.tree : null;
+    var upCandidate = null;
+    if (ugTreeData && ugTreeData.trees[treeType]) {
+      for (var unj2 = 0; unj2 < ugTreeData.trees[treeType].nodes.length; unj2++) {
+        var uNode = ugTreeData.trees[treeType].nodes[unj2];
+        var uL = learnedMoves[uNode.name];
+        if (!uL) continue;
+        var uTier = uL.tier || uNode.tier || 1;
+        var uMax = typeof getMaxMoveLevel !== "undefined" ? getMaxMoveLevel(uTier) : 5;
+        var uIsTm = pkmn.tmMoves && pkmn.tmMoves.indexOf(uNode.name) !== -1;
+        if ((uL.level || 0) < uMax && !uIsTm) { upCandidate = uNode.name; break; }
+      }
+    }
+    if (upCandidate) {
+      upgradeMoveInSkillTree(upCandidate);
+      return;
+    }
+  }
+  allocateSp(treeType);
 }
 
 function learnSkillTreeNode(nodeName) {
