@@ -14,6 +14,15 @@ var DIS_FP_COST = { 1: 3, 2: 5, 3: 10, 4: 15, 5: 25 };
 var ULT_FP_COST = { 1: 10, 2: 20, 3: 35, 4: 50, 5: 80 };
 var MAX_MOVE_LEVEL = { 1: 10, 2: 8, 3: 5, 4: 3, 5: 3 };
 
+// ========== v3.1 SP 經濟常數（Step 1.1） ==========
+// 舊常數（TIER_SP_COST / TIER_SP_THRESHOLD / MAX_MOVE_LEVEL）保留供回滾
+var TIER_SP_COST_V31     = { 1: 1, 2: 2, 3: 3, 4: 4, 5: 5 };      // 節點解鎖（6選1）成本
+var TIER_SP_THRESHOLD_V31 = { 1: 0, 2: 3, 3: 8, 4: 15, 5: 24 };   // 同樹累計SP門檻
+var MAX_MOVE_LEVEL_V31   = { 1: 5, 2: 5, 3: 5, 4: 5, 5: 5 };      // 全階統一 Lv.5
+var MODIFIER_SP_COST     = 3;                                     // 質變成本
+var SECOND_PICK_MULT     = 1.5;                                   // 同階第2招倍率
+var MAX_TOTAL_SP_V31     = 90;                                    // 每寵總量
+
 // ULT 招式新名稱映射（取代舊的 +Pro 規則）
 var ULT_MOVE_RENAME = {
   "噴射火焰": "焚焰放射",
@@ -2584,6 +2593,13 @@ window.TIER_FP_COST = TIER_FP_COST;
 window.BUF_FP_COST = BUF_FP_COST;
 window.DIS_FP_COST = DIS_FP_COST;
 window.ULT_FP_COST = ULT_FP_COST;
+// v3.1 SP 經濟常數（Step 1.1）
+window.TIER_SP_COST_V31 = TIER_SP_COST_V31;
+window.TIER_SP_THRESHOLD_V31 = TIER_SP_THRESHOLD_V31;
+window.MAX_MOVE_LEVEL_V31 = MAX_MOVE_LEVEL_V31;
+window.MODIFIER_SP_COST = MODIFIER_SP_COST;
+window.SECOND_PICK_MULT = SECOND_PICK_MULT;
+window.MAX_TOTAL_SP_V31 = MAX_TOTAL_SP_V31;
 // Phase 0 exports
 window.TYPE_SPEC_V2 = TYPE_SPEC_V2;
 window.TYPE_T5_SIGNATURES = TYPE_T5_SIGNATURES;
