@@ -23,6 +23,25 @@ var MODIFIER_SP_COST     = 3;                                     // 質變成�
 var SECOND_PICK_MULT     = 1.5;                                   // 同階第2招倍率
 var MAX_TOTAL_SP_V31     = 90;                                    // 每寵總量
 
+// ========== v3.1 生理標籤表 SPECIES_TAGS（Step 1.2） ==========
+// 以既有 SPECIES_LEARNSET 的 key（中文名）為索引；未上榜 = 無標籤 = 只能學通用招（安全預設）
+// 形態標籤辭典（v3.0 沿用）：BIPEDAL_CLAW/QUADRUPED_HOOF/QUADRUPED_CLAW/WINGED/SERPENTINE/BEAST/ARMORED/TAIL/HORN/LEGEND
+var SPECIES_TAGS = {
+  "小火龍": { tags: ['BIPEDAL_CLAW', 'TAIL'] },
+  "火恐龍": { tags: ['BIPEDAL_CLAW', 'TAIL'] },
+  "噴火龍": { tags: ['BIPEDAL_CLAW', 'TAIL', 'WINGED'] },
+  "小火馬": { tags: ['QUADRUPED_HOOF'] },
+  "烈焰馬": { tags: ['QUADRUPED_HOOF'] },
+  "席多藍恩": { tags: ['QUADRUPED_CLAW', 'ARMORED'] },
+  "鳳王":   { tags: ['WINGED', 'LEGEND'] },
+  // ...其餘依 3.4 檢查清單批次補完（分族模板，見 Step 5.1 生成器）
+};
+function getSpeciesTags(rawName) {   // 中文名→標籤，找不到回 []（通用招仍可學）
+  var key = (rawName || '').replace(/[（(].*?[)）]/g, '').trim(); // 去括號系名（沿用現行正規化）
+  var rec = SPECIES_TAGS[key] || SPECIES_TAGS[rawName];
+  return rec ? rec.tags : [];
+}
+
 // ULT 招式新名稱映射（取代舊的 +Pro 規則）
 var ULT_MOVE_RENAME = {
   "噴射火焰": "焚焰放射",
@@ -2600,6 +2619,9 @@ window.MAX_MOVE_LEVEL_V31 = MAX_MOVE_LEVEL_V31;
 window.MODIFIER_SP_COST = MODIFIER_SP_COST;
 window.SECOND_PICK_MULT = SECOND_PICK_MULT;
 window.MAX_TOTAL_SP_V31 = MAX_TOTAL_SP_V31;
+// v3.1 生理標籤（Step 1.2）
+window.SPECIES_TAGS = SPECIES_TAGS;
+window.getSpeciesTags = getSpeciesTags;
 // Phase 0 exports
 window.TYPE_SPEC_V2 = TYPE_SPEC_V2;
 window.TYPE_T5_SIGNATURES = TYPE_T5_SIGNATURES;
