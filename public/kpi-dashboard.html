@@ -771,6 +771,14 @@
 
 <div id="toastContainer" style="position:fixed;bottom:20px;left:50%;transform:translateX(-50%);z-index:9999;display:flex;flex-direction:column;gap:6px;pointer-events:none;max-width:90%;"></div>
 <script>
+// v3.1 feature flags (Step 0.1) — 全 false = 現行 v2 行為不變
+window.V31_FLAGS = {
+  ENABLED: false,        // 總開關
+  MORPHOLOGY_FILTER: false,
+  SIX_MOVES_PER_TIER: false,
+  SP_ECONOMY_90: false,
+  LV5_MODIFIER: false,
+};
 function $(id) { return document.getElementById(id); }
 var BATTLE_SPEED = 1; // 1=normal, 2=fast, 0=instant
 var toastQueue = [];
