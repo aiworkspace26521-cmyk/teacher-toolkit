@@ -4,10 +4,10 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>📊 學習 KPI 管理系統 v2.0</title>
-  <script defer src="/__/firebase/12.13.0/firebase-app-compat.js"></script>
-  <script defer src="/__/firebase/12.13.0/firebase-auth-compat.js"></script>
-  <script defer src="/__/firebase/12.13.0/firebase-firestore-compat.js"></script>
-  <script defer src="/__/firebase/init.js?useEmulator=false"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
+  <script src="/__/firebase/init.js?useEmulator=false" onerror="console.warn('Firebase init.js not present, fallback config used')"></script>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;700;900&display=swap" rel="stylesheet">
   <style>
@@ -8369,7 +8369,16 @@ function showEvoCutscene(oldName, newName, callback) {
 // ===== EVENT LISTENERS =====
 document.addEventListener("DOMContentLoaded", function() {
   try {
-    if (typeof firebase !== "undefined" && firebase.app) {
+    if (typeof firebase !== "undefined") {
+      if (!firebase.apps || !firebase.apps.length) {
+        try {
+          firebase.initializeApp({
+            projectId: "opencodefirebase",
+            authDomain: "opencodefirebase.firebaseapp.com",
+            storageBucket: "opencodefirebase.appspot.com"
+          });
+        } catch(eInit) {}
+      }
       db = firebase.firestore();
       var settings = { timestampsInSnapshots: true };
       try { db.settings(settings); } catch(e) {}
