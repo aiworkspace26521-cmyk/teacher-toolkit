@@ -1,4 +1,4 @@
-﻿const admin = require('firebase-admin');
+const admin = require('firebase-admin');
 const { Timestamp } = require('firebase-admin/firestore');
 
 const db = admin.firestore();
@@ -534,17 +534,25 @@ async function recalculateStudentState(studentId) {
           delete state.roster[evt.tradePokemonId];
         }
       } else if (rowAction === 'SP_ALLOCATE') {
-        const spParts = safeNote.match(/^(\S+):(\w+):(\d+)/);
+        const spParts = safeNote.match(/^(\S+):(\w+):(\d+)(?::v31)?/);
         if (spParts && state.roster[spParts[1]]) {
           const pid4 = spParts[1], treeType = spParts[2], spAmt = parseInt(spParts[3]);
+          const isV31 = /:v31$/.test(safeNote);
           if (!state.roster[pid4].skillTree) state.roster[pid4].skillTree = { atk: { sp: 0, tier: 1 }, spa: { sp: 0, tier: 1 }, buf: { sp: 0, tier: 1 }, dis: { sp: 0, tier: 1 }, ult: { sp: 0, tier: 1 } };
           if (!state.roster[pid4].skillTree[treeType]) state.roster[pid4].skillTree[treeType] = { sp: 0, tier: 1 };
           state.roster[pid4].skillTree[treeType].sp += spAmt;
           const totalSp = state.roster[pid4].skillTree[treeType].sp;
-          if (totalSp >= 30) state.roster[pid4].skillTree[treeType].tier = 5;
-          else if (totalSp >= 20) state.roster[pid4].skillTree[treeType].tier = 4;
-          else if (totalSp >= 12) state.roster[pid4].skillTree[treeType].tier = 3;
-          else if (totalSp >= 5) state.roster[pid4].skillTree[treeType].tier = 2;
+          if (isV31) {
+            if (totalSp >= 24) state.roster[pid4].skillTree[treeType].tier = 5;
+            else if (totalSp >= 15) state.roster[pid4].skillTree[treeType].tier = 4;
+            else if (totalSp >= 8)  state.roster[pid4].skillTree[treeType].tier = 3;
+            else if (totalSp >= 3)  state.roster[pid4].skillTree[treeType].tier = 2;
+          } else {
+            if (totalSp >= 30) state.roster[pid4].skillTree[treeType].tier = 5;
+            else if (totalSp >= 20) state.roster[pid4].skillTree[treeType].tier = 4;
+            else if (totalSp >= 12) state.roster[pid4].skillTree[treeType].tier = 3;
+            else if (totalSp >= 5) state.roster[pid4].skillTree[treeType].tier = 2;
+          }
         }
       } else if (rowAction === 'MOVE_LEARN') {
         const mlParts = safeNote.match(/^(\S+):(.+?):tier(\d+)(?::(\w+))?/);

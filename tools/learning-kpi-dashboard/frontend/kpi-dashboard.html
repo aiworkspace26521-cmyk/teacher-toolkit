@@ -1196,6 +1196,27 @@ async function recalculateStudentState(studentId, events) {
         var consumed = consumeMatch[1].trim();
         if (EVO_ITEMS[consumed]) state[consumed] = false;
       }
+    } else if (rowAction === "SP_ALLOCATE") {
+      var spParts = safeNote.match(/^(\S+):(\w+):(\d+)(?::v31)?/);
+      if (spParts && state.roster[spParts[1]]) {
+        var pid4 = spParts[1], treeType = spParts[2], spAmt = parseInt(spParts[3]);
+        var isV31 = /:v31$/.test(safeNote);
+        if (!state.roster[pid4].skillTree) state.roster[pid4].skillTree = { atk: { sp: 0, tier: 1 }, spa: { sp: 0, tier: 1 }, buf: { sp: 0, tier: 1 }, dis: { sp: 0, tier: 1 }, ult: { sp: 0, tier: 1 } };
+        if (!state.roster[pid4].skillTree[treeType]) state.roster[pid4].skillTree[treeType] = { sp: 0, tier: 1 };
+        state.roster[pid4].skillTree[treeType].sp += spAmt;
+        var totalSp = state.roster[pid4].skillTree[treeType].sp;
+        if (isV31) {
+          if (totalSp >= 24) state.roster[pid4].skillTree[treeType].tier = 5;
+          else if (totalSp >= 15) state.roster[pid4].skillTree[treeType].tier = 4;
+          else if (totalSp >= 8)  state.roster[pid4].skillTree[treeType].tier = 3;
+          else if (totalSp >= 3)  state.roster[pid4].skillTree[treeType].tier = 2;
+        } else {
+          if (totalSp >= 30) state.roster[pid4].skillTree[treeType].tier = 5;
+          else if (totalSp >= 20) state.roster[pid4].skillTree[treeType].tier = 4;
+          else if (totalSp >= 12) state.roster[pid4].skillTree[treeType].tier = 3;
+          else if (totalSp >= 5) state.roster[pid4].skillTree[treeType].tier = 2;
+        }
+      }
     } else if (rowAction === "道具裝備") {
       var allHeld = { "expShare":"學習裝置" };
       for (var hi3 in HELD_ITEMS) allHeld[hi3] = HELD_ITEMS[hi3].name;
