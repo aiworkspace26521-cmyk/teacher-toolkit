@@ -40,9 +40,9 @@ function computeQuestProgress(events) {
 
   for (var i = 0; i < events.length; i++) {
     var evt = events[i];
-    var rowDate = evt.timestamp instanceof Timestamp
+    var rowDate = (typeof Timestamp === 'function' && evt.timestamp instanceof Timestamp)
       ? evt.timestamp.toDate()
-      : new Date(evt.timestamp);
+      : (evt.timestamp && typeof evt.timestamp.toDate === 'function' ? evt.timestamp.toDate() : new Date(evt.timestamp));
     var action = String(evt.action || "");
     var safeNote = String(evt.note || "");
 
@@ -259,9 +259,9 @@ function stablePersonality(seed) {
   return Math.abs(h) % 256;
 }
 
-async function recalculateStudentState(studentId) {
-  const events = await getStudentEvents(studentId);
-  if (events.length === 0) return null;
+async function recalculateStudentState(studentId, eventsArr = null) {
+  const events = eventsArr || (await getStudentEvents(studentId));
+  if (!events || events.length === 0) return null;
 
   let state = {
     studentId,
@@ -305,9 +305,9 @@ async function recalculateStudentState(studentId) {
   const startOfMonth = getStartOfMonth(dNow).getTime();
 
   for (const evt of events) {
-    const rowDate = evt.timestamp instanceof Timestamp
+    const rowDate = (typeof Timestamp === 'function' && evt.timestamp instanceof Timestamp)
       ? evt.timestamp.toDate()
-      : new Date(evt.timestamp);
+      : (evt.timestamp && typeof evt.timestamp.toDate === 'function' ? evt.timestamp.toDate() : new Date(evt.timestamp));
     // Seed data type→action mapping for backward compatibility
     if (!evt.action && evt.type) {
       if (evt.type === 'badge') { evt.action = 'system'; evt.badgeChange = (evt.badgeChange || 0) + 1; }
@@ -609,6 +609,19 @@ async function recalculateStudentState(studentId) {
           state.roster[pid8].secondPicks = {};
         }
         state.memoryCapsules = Math.max(0, (state.memoryCapsules||0) - 1);
+      } else if (rowAction === 'V31_MIGRATION') {
+        const migMatch = safeNote.match(/^(\S+):/);
+        const targetPid = (migMatch && state.roster[migMatch[1]]) ? migMatch[1] : (Object.keys(state.roster)[0] || 'P0');
+        if (state.roster[targetPid]) {
+          state.roster[targetPid].v31Migrated = true;
+          if (state.roster[targetPid].learnedMoves) {
+            Object.keys(state.roster[targetPid].learnedMoves).forEach(function(m) {
+              if (typeof state.roster[targetPid].learnedMoves[m] === 'number') {
+                state.roster[targetPid].learnedMoves[m] = { level: state.roster[targetPid].learnedMoves[m] };
+              }
+            });
+          }
+        }
       }
 
     let currentIterLevel = 5;
@@ -619,6 +632,28 @@ async function recalculateStudentState(studentId) {
     state.highestLevel = currentIterLevel;
     if (rowBadges > 0) state.lockedGymLevel = state.highestLevel;
     state.lastEventTimestamp = rowDate.toISOString();
+  }
+
+  const isV31Enabled = (typeof V31_FLAGS !== 'undefined' && V31_FLAGS.ENABLED !== undefined)
+    ? V31_FLAGS.ENABLED
+    : ((typeof window !== 'undefined' && window.V31_FLAGS && window.V31_FLAGS.ENABLED !== undefined) ? window.V31_FLAGS.ENABLED : true);
+
+  if (!isV31Enabled) {
+    for (const pk in state.roster) {
+      delete state.roster[pk].modifiers;
+      delete state.roster[pk].secondPicks;
+      delete state.roster[pk].v31Migrated;
+      if (state.roster[pk].skillTree) {
+        for (const stKey in state.roster[pk].skillTree) {
+          const spVal = state.roster[pk].skillTree[stKey].sp || 0;
+          if (spVal >= 30) state.roster[pk].skillTree[stKey].tier = 5;
+          else if (spVal >= 20) state.roster[pk].skillTree[stKey].tier = 4;
+          else if (spVal >= 12) state.roster[pk].skillTree[stKey].tier = 3;
+          else if (spVal >= 5) state.roster[pk].skillTree[stKey].tier = 2;
+          else state.roster[pk].skillTree[stKey].tier = 1;
+        }
+      }
+    }
   }
 
   state.daysSinceLastBadge = state.lastBadgeTime
