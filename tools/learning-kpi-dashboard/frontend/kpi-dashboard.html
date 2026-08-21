@@ -9960,6 +9960,82 @@ window.countPicks = countPicks;
 window.getTreeTierV31 = getTreeTierV31;
 window.learnSkillTreeNodeV31 = learnSkillTreeNodeV31;
 
+function upgradeMoveInSkillTreeV31(moveName, pkmnOverride) {
+  var pkmnId = typeof _skillTreePkmnId !== 'undefined' ? _skillTreePkmnId : null;
+  var pkmn = pkmnOverride || (pkmnId ? getPkmnById(pkmnId) : null);
+  if (!pkmn) return { success: false, reason: 'NO_POKEMON' };
+  if (!pkmnId && pkmn.id) pkmnId = pkmn.id;
+
+  if (!pkmn.learnedMoves || !pkmn.learnedMoves[moveName]) {
+    if (typeof toast === 'function') toast('尚未學會此招式');
+    return { success: false, reason: 'NOT_LEARNED' };
+  }
+
+  var rec = pkmn.learnedMoves[moveName];
+  if (pkmn.tmMoves && pkmn.tmMoves.indexOf(moveName) !== -1) {
+    if (typeof toast === 'function') toast('TM 招式無法升級');
+    return { success: false, reason: 'TM_MOVE_CANNOT_UPGRADE' };
+  }
+
+  var maxLevel = 5; // v3.1 全階統一 Lv.5
+  if ((rec.level || 1) >= maxLevel) {
+    if (typeof toast === 'function') toast('已達 Lv.5 最高等級');
+    return { success: false, reason: 'MAX_LEVEL_REACHED' };
+  }
+
+  if ((pkmn.skillPoints || 0) < 1) {
+    if (typeof toast === 'function') toast('SP 不足');
+    return { success: false, reason: 'INSUFFICIENT_SP' };
+  }
+
+  rec.level = (rec.level || 1) + 1;
+  pkmn.skillPoints = (pkmn.skillPoints || 0) - 1;
+
+  var role = rec.role || 'ATK';
+  if (!pkmn.skillTree) {
+    pkmn.skillTree = {
+      atk: { sp: 0, tier: 1 }, spa: { sp: 0, tier: 1 }, buf: { sp: 0, tier: 1 }, dis: { sp: 0, tier: 1 }, ult: { sp: 0, tier: 1 },
+      ATK: { sp: 0, tier: 1 }, SPA: { sp: 0, tier: 1 }, BUF: { sp: 0, tier: 1 }, DIS: { sp: 0, tier: 1 }, ULT: { sp: 0, tier: 1 }
+    };
+  }
+  var roleKeyLower = role.toLowerCase();
+  var roleKeyUpper = role.toUpperCase();
+  if (!pkmn.skillTree[roleKeyLower]) pkmn.skillTree[roleKeyLower] = { sp: 0, tier: 1 };
+
+  var treeObj = pkmn.skillTree[roleKeyLower];
+  treeObj.sp = (treeObj.sp || 0) + 1;
+  treeObj.tier = getTreeTierV31(treeObj.sp);
+  pkmn.skillTree[roleKeyUpper] = treeObj;
+
+  if (typeof _skillTreeDirty !== 'undefined') _skillTreeDirty = true;
+  if (typeof sfx !== 'undefined' && sfx.levelup) sfx.levelup();
+  if (typeof renderSkillTree === 'function') renderSkillTree();
+  if (typeof saveSkillTreeState === 'function') saveSkillTreeState();
+
+  if (typeof saveEventToFirestore !== 'undefined' && pkmnId) {
+    saveEventToFirestore({
+      studentId: (typeof globalData !== 'undefined' && globalData) ? globalData.studentId : '?',
+      action: 'MOVE_UPGRADE',
+      score: 0, expGained: 0, coinsGained: 0, badgeChange: 0,
+      note: pkmnId + ':' + moveName + ':' + rec.level
+    });
+    saveEventToFirestore({
+      studentId: (typeof globalData !== 'undefined' && globalData) ? globalData.studentId : '?',
+      action: 'SP_ALLOCATE',
+      score: 0, expGained: 0, coinsGained: 0, badgeChange: 0,
+      note: pkmnId + ':' + role + ':1'
+    });
+  }
+
+  if (typeof toast === 'function') {
+    toast('⬆ ' + moveName + ' 升級至 Lv.' + rec.level + '！');
+  }
+
+  return { success: true, level: rec.level };
+}
+
+window.upgradeMoveInSkillTreeV31 = upgradeMoveInSkillTreeV31;
+
 function learnSkillTreeNode(nodeName) {
   if (!_skillTreePkmnId) return;
   var roster = globalData.roster || [];
