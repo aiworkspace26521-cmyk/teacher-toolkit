@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="zh-TW">
 <head>
   <meta charset="utf-8">
@@ -9487,7 +9487,44 @@ function renderSkillTree() {
     canvasHtml += "</div>";
     canvasHtml += "<div class='st-node-row'>";
 
-    if (isTierLocked) {
+    if (window.V31_FLAGS && window.V31_FLAGS.SIX_MOVES_PER_TIER) {
+      var v31Tree = typeof resolveSkillTreeV31 === "function" ? resolveSkillTreeV31(pkmn) : null;
+      var activeRoleUpper = (_skillTreeActiveTab || "atk").toUpperCase();
+      var tierSixNodes = (v31Tree && v31Tree[activeRoleUpper]) ? v31Tree[activeRoleUpper]["T" + t] : [];
+      if (isTierLocked) {
+        canvasHtml += "<span style='font-size:11px;color:#aaa;'>進化後顯示對應屬性招式</span>";
+      } else if (tierSixNodes && tierSixNodes.length > 0) {
+        for (var s = 0; s < tierSixNodes.length; s++) {
+          var opt = tierSixNodes[s];
+          var optName = opt.name || "?";
+          var isEligibleOpt = opt.eligible !== false;
+          var isPickedOpt = !!(pkmn.learnedMoves && pkmn.learnedMoves[optName]);
+          var optCls = "st-node move-opt";
+          if (!isEligibleOpt) optCls += " locked";
+          else if (isPickedOpt) optCls += " learned";
+          else optCls += " available";
+
+          var optOnClick = "";
+          if (isEligibleOpt && !isPickedOpt && isTierUnlocked && !isTierLocked) {
+            optOnClick = "learnSkillTreeNodeV31('" + optName + "', " + t + ", '" + activeRoleUpper + "')";
+          }
+
+          canvasHtml += "<div class='" + optCls + "' data-move='" + optName + "' onclick='sfx.click();" + optOnClick + "'>";
+          if (!isEligibleOpt) {
+            canvasHtml += "🔒 生理不符：" + optName;
+          } else {
+            canvasHtml += optName;
+            if (isPickedOpt) {
+              canvasHtml += " <b>✓已選</b>";
+              var optRec = pkmn.learnedMoves[optName];
+              var optLv = optRec ? (optRec.level || 1) : 1;
+              canvasHtml += " <small style='color:#8e44ad;'>Lv." + optLv + "/5</small>";
+            }
+          }
+          canvasHtml += "</div>";
+        }
+      }
+    } else if (isTierLocked) {
       canvasHtml += "<span style='font-size:11px;color:#aaa;'>進化後顯示對應屬性招式</span>";
     } else if (tierNodes.length === 0) {
       canvasHtml += "<span style='font-size:11px;color:#ccc;'>—</span>";
@@ -9779,6 +9816,149 @@ function upgradeOrInvestSp(treeType) {
   }
   allocateSp(treeType);
 }
+
+function getPkmnById(id) {
+  var roster = (typeof globalData !== 'undefined' && globalData.roster) || [];
+  for (var ri = 0; ri < roster.length; ri++) {
+    if (roster[ri].id === id) return roster[ri];
+  }
+  return null;
+}
+
+function findChoice(node, moveName) {
+  if (!node || !Array.isArray(node)) return null;
+  for (var i = 0; i < node.length; i++) {
+    if (node[i].name === moveName) return node[i];
+  }
+  return null;
+}
+
+function countPicks(pkmn, role, tier) {
+  if (!pkmn || !pkmn.learnedMoves) return 0;
+  var count = 0;
+  var roleUpper = (role || '').toUpperCase();
+  var roleLower = (role || '').toLowerCase();
+  var keys = Object.keys(pkmn.learnedMoves);
+  for (var i = 0; i < keys.length; i++) {
+    var rec = pkmn.learnedMoves[keys[i]];
+    if (rec && rec.role) {
+      var r = String(rec.role);
+      if ((r.toUpperCase() === roleUpper || r.toLowerCase() === roleLower) && Number(rec.tier) === Number(tier)) {
+        count++;
+      }
+    }
+  }
+  return count;
+}
+
+function getTreeTierV31(sp) {
+  sp = Number(sp) || 0;
+  if (sp >= 24) return 5;
+  if (sp >= 15) return 4;
+  if (sp >= 8)  return 3;
+  if (sp >= 3)  return 2;
+  return 1;
+}
+
+function learnSkillTreeNodeV31(moveName, tier, role, pkmnOverride) {
+  var pkmnId = typeof _skillTreePkmnId !== 'undefined' ? _skillTreePkmnId : null;
+  var pkmn = pkmnOverride || (pkmnId ? getPkmnById(pkmnId) : null);
+  if (!pkmn) return { success: false, reason: 'NO_POKEMON' };
+  if (!pkmnId && pkmn.id) pkmnId = pkmn.id;
+
+  tier = Number(tier) || 1;
+  role = (role || 'ATK').toUpperCase();
+
+  var resolverFn = (typeof resolveSkillTreeV31 === 'function') ? resolveSkillTreeV31 : (typeof window !== 'undefined' && typeof window.resolveSkillTreeV31 === 'function' ? window.resolveSkillTreeV31 : null);
+  if (!resolverFn) return { success: false, reason: 'RESOLVER_MISSING' };
+  var tree = resolverFn(pkmn);
+  var node = (tree && tree[role]) ? tree[role]['T' + tier] : null;
+  var opt = findChoice(node, moveName);
+  if (!opt || !opt.eligible) {
+    if (typeof toast === 'function') toast('該招式與這隻寶可夢的生理特徵不符');
+    return { success: false, reason: 'MORPHOLOGY_MISMATCH' };
+  }
+
+  if (pkmn.learnedMoves && pkmn.learnedMoves[moveName]) {
+    if (typeof toast === 'function') toast('已學會此招式');
+    return { success: false, reason: 'ALREADY_LEARNED' };
+  }
+
+  var baseCostTable = (typeof TIER_SP_COST_V31 !== 'undefined') ? TIER_SP_COST_V31 : { 1: 1, 2: 2, 3: 3, 4: 4, 5: 5 };
+  var mult = (typeof SECOND_PICK_MULT !== 'undefined') ? SECOND_PICK_MULT : 1.5;
+  var base = baseCostTable[tier] || tier;
+  var picks = countPicks(pkmn, role, tier);
+  var cost = picks >= 1 ? Math.ceil(base * mult) : base;
+
+  if ((pkmn.skillPoints || 0) < cost) {
+    if (typeof toast === 'function') toast('SP 不足');
+    return { success: false, reason: 'INSUFFICIENT_SP' };
+  }
+
+  var maxTier = pkmn.maxTreeTier !== undefined ? pkmn.maxTreeTier : 5;
+  if (maxTier < tier) {
+    if (typeof toast === 'function') toast('需要進化才能解鎖 T' + tier);
+    return { success: false, reason: 'EVO_STAGE_LOCKED' };
+  }
+
+  if (!pkmn.learnedMoves) pkmn.learnedMoves = {};
+  pkmn.learnedMoves[moveName] = { level: 1, learnedAt: Date.now(), tier: tier, role: role };
+
+  pkmn.skillPoints = (pkmn.skillPoints || 0) - cost;
+
+  if (!pkmn.skillTree) {
+    pkmn.skillTree = {
+      atk: { sp: 0, tier: 1 }, spa: { sp: 0, tier: 1 }, buf: { sp: 0, tier: 1 }, dis: { sp: 0, tier: 1 }, ult: { sp: 0, tier: 1 },
+      ATK: { sp: 0, tier: 1 }, SPA: { sp: 0, tier: 1 }, BUF: { sp: 0, tier: 1 }, DIS: { sp: 0, tier: 1 }, ULT: { sp: 0, tier: 1 }
+    };
+  }
+  var roleKeyLower = role.toLowerCase();
+  var roleKeyUpper = role.toUpperCase();
+  if (!pkmn.skillTree[roleKeyLower]) pkmn.skillTree[roleKeyLower] = { sp: 0, tier: 1 };
+
+  var treeObj = pkmn.skillTree[roleKeyLower];
+  treeObj.sp = (treeObj.sp || 0) + cost;
+  treeObj.tier = getTreeTierV31(treeObj.sp);
+  pkmn.skillTree[roleKeyUpper] = treeObj;
+
+  if (!pkmn.secondPicks) pkmn.secondPicks = {};
+  if (picks >= 1) {
+    var pickKey = role + ':T' + tier;
+    pkmn.secondPicks[pickKey] = (pkmn.secondPicks[pickKey] || 0) + 1;
+  }
+
+  if (typeof _skillTreeDirty !== 'undefined') _skillTreeDirty = true;
+  if (typeof sfx !== 'undefined' && sfx.levelup) sfx.levelup();
+  if (typeof renderSkillTree === 'function') renderSkillTree();
+  if (typeof saveSkillTreeState === 'function') saveSkillTreeState();
+
+  if (typeof saveEventToFirestore !== 'undefined' && pkmnId) {
+    saveEventToFirestore({
+      studentId: (typeof globalData !== 'undefined' && globalData) ? globalData.studentId : '?',
+      action: 'MOVE_LEARN',
+      score: 0, expGained: 0, coinsGained: 0, badgeChange: 0,
+      note: pkmnId + ':' + moveName + ':tier' + tier + ':' + role + ':v31'
+    });
+    saveEventToFirestore({
+      studentId: (typeof globalData !== 'undefined' && globalData) ? globalData.studentId : '?',
+      action: 'SP_ALLOCATE',
+      score: 0, expGained: 0, coinsGained: 0, badgeChange: 0,
+      note: pkmnId + ':' + role + ':' + cost + ':v31'
+    });
+  }
+
+  if (typeof toast === 'function') {
+    toast('✅ ' + (pkmn.baseName || pkmn.name || '寶可夢') + ' 學會了 ' + moveName + '！');
+  }
+
+  return { success: true, cost: cost, picks: picks + 1 };
+}
+
+window.getPkmnById = getPkmnById;
+window.findChoice = findChoice;
+window.countPicks = countPicks;
+window.getTreeTierV31 = getTreeTierV31;
+window.learnSkillTreeNodeV31 = learnSkillTreeNodeV31;
 
 function learnSkillTreeNode(nodeName) {
   if (!_skillTreePkmnId) return;
