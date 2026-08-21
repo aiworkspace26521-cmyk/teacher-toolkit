@@ -440,6 +440,7 @@
         <button class="admin-btn" onclick="sfx.click();devAdd('COIN',500)">💰 +500 幣</button>
         <button class="admin-btn" onclick="sfx.click();devAdd('BADGE',4)">🏅 +4 徽章</button>
         <button class="admin-btn" onclick="sfx.click();devAdd('EXP',2000)">✨ +2000 EXP</button>
+        <button class="admin-btn" id="v31ToggleBtn" style="background:#8e44ad;" onclick="sfx.click();toggleV31Flags()">⚡ v3.1系統: ON</button>
       </div>
     </div>
     <div id="eventBanner"></div><span id="leagueBadge" style="display:none;font-size:12px;color:#e74c3c;font-weight:900;">🔥 聯盟期間</span>
@@ -9475,7 +9476,8 @@ function renderSkillTree() {
     var osd = pkmn.skillTree && pkmn.skillTree[ot] ? pkmn.skillTree[ot] : { sp: 0, tier: 1 };
     var otier = getTreeTier(osd);
     var osp = osd.sp || 0;
-    var maxSp = TIER_SP_THRESHOLD[5] || 30;
+    var activeThresh = (window.V31_FLAGS && window.V31_FLAGS.SP_ECONOMY_90) ? (window.TIER_SP_THRESHOLD_V31 || { 1: 0, 2: 3, 3: 8, 4: 15, 5: 24 }) : (window.TIER_SP_THRESHOLD || { 1: 0, 2: 5, 3: 12, 4: 20, 5: 30 });
+    var maxSp = activeThresh[5] || 24;
     var pct = Math.min(100, Math.round((osp / maxSp) * 100));
     var activeCls = ot === _skillTreeActiveTab ? " active" : "";
     overviewHtml += "<div class='tree-badge " + ot + activeCls + "' onclick='sfx.click();selectSkillTreeTab(\"" + ot + "\")' title='" + badgeLabels[ot] + ": " + osp + " SP (T" + otier + ")'>" + badgeLabels[ot] + " T" + otier + " " + pct + "%</div>";
@@ -9499,7 +9501,8 @@ function renderSkillTree() {
   canvasHtml += "</div>";
 
   // Progress bar for this tree
-  var tierSpThresholds = [0, 0, 5, 12, 20, 30];
+  var activeThresh = (window.V31_FLAGS && window.V31_FLAGS.SP_ECONOMY_90) ? (window.TIER_SP_THRESHOLD_V31 || { 1: 0, 2: 3, 3: 8, 4: 15, 5: 24 }) : (window.TIER_SP_THRESHOLD || { 1: 0, 2: 5, 3: 12, 4: 20, 5: 30 });
+  var tierSpThresholds = [0, 0, activeThresh[2], activeThresh[3], activeThresh[4], activeThresh[5]];
   var nextTier = Math.min(currentTierVal + 1, 5);
   var nextThreshold = tierSpThresholds[nextTier];
   var prevThreshold = tierSpThresholds[currentTierVal];
@@ -9522,7 +9525,8 @@ function renderSkillTree() {
     var isTierUnlocked = currentTierVal >= t;
 
     canvasHtml += "<div style='margin-bottom:8px;opacity:" + (isTierLocked ? 0.35 : 1) + ";'>";
-    var tierSpNeeded = TIER_SP_THRESHOLD[t];
+    var activeThresh = (window.V31_FLAGS && window.V31_FLAGS.SP_ECONOMY_90) ? (window.TIER_SP_THRESHOLD_V31 || { 1: 0, 2: 3, 3: 8, 4: 15, 5: 24 }) : (window.TIER_SP_THRESHOLD || { 1: 0, 2: 5, 3: 12, 4: 20, 5: 30 });
+    var tierSpNeeded = activeThresh[t];
     canvasHtml += "<div class='st-tier-label'>" + tierLabels[t];
     if (isTierLocked) canvasHtml += " 🔒 (進化解鎖)";
     else if (!isTierUnlocked) canvasHtml += " 🔒 (需 " + tierSpNeeded + " SP 解鎖)";
@@ -9569,6 +9573,23 @@ function renderSkillTree() {
               var optRec = pkmn.learnedMoves[optName];
               var optLv = optRec ? (optRec.level || 1) : 1;
               canvasHtml += " <small style='color:#8e44ad;'>Lv." + optLv + "/5</small>";
+              if (optLv < 5) {
+                canvasHtml += " <button class='st-upgrade-btn' style='background:#3498db;color:white;margin-left:4px;' onclick='event.stopPropagation();upgradeMoveInSkillTreeV31("" + optName + "")'>+1SP 升級</button>";
+              } else if (window.V31_FLAGS && window.V31_FLAGS.LV5_MODIFIER) {
+                var modSelected = pkmn.modifiers && pkmn.modifiers[optName];
+                if (modSelected) {
+                  canvasHtml += " <span class='st-variant-name'>✨ " + modSelected + "</span>";
+                } else {
+                  var optSpec = typeof getMoveSpecV31 === "function" ? getMoveSpecV31(optName) : null;
+                  if (optSpec && optSpec.lv5_modifiers) {
+                    var branches = Object.keys(optSpec.lv5_modifiers);
+                    for (var bi = 0; bi < branches.length; bi++) {
+                      var bName = branches[bi];
+                      canvasHtml += " <button class='st-upgrade-btn' style='background:#9b59b6;color:white;margin-left:2px;' onclick='event.stopPropagation();applySkillModifierV31("" + optName + "", "" + bName + "")'>✨ " + bName + " (3SP)</button>";
+                    }
+                  }
+                }
+              }
             }
           }
           canvasHtml += "</div>";
