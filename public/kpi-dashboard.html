@@ -10115,6 +10115,40 @@ function applySkillModifierV31(moveName, branchName, pkmnOverride) {
 window.applySkillModifierV31 = applySkillModifierV31;
 window.applySkillModifier = applySkillModifierV31;
 
+function getEffectiveMoveV31(pkmn, moveName) {
+  if (!pkmn || !moveName) return null;
+  var dict = (typeof MOVE_SPECS_V31 !== 'undefined') ? MOVE_SPECS_V31 : (typeof window !== 'undefined' ? window.MOVE_SPECS_V31 : null);
+  var spec = dict ? dict[moveName] : null;
+  if (!spec) return null; // 未定義=v2 舊招，走舊邏輯
+
+  var rec = (pkmn.learnedMoves && pkmn.learnedMoves[moveName]) ? pkmn.learnedMoves[moveName] : null;
+  var lv = (rec && rec.level) || 1;
+  var i = Math.min(4, Math.max(0, lv - 1));
+
+  var eff = {
+    name: moveName,
+    type: spec.type,
+    category: spec.category,
+    power: spec.growth && spec.growth.power ? spec.growth.power[i] : null,
+    acc: spec.growth ? spec.growth.acc : 100,
+    burn: spec.growth && spec.growth.burn ? spec.growth.burn[i] : 0
+  };
+
+  if (lv >= 5 && pkmn.modifiers && pkmn.modifiers[moveName] && spec.lv5_modifiers) {
+    var modName = pkmn.modifiers[moveName];
+    var mod = spec.lv5_modifiers[modName];
+    if (mod) {
+      if (mod.damageMult) eff.power = Math.round((eff.power || 0) * mod.damageMult);
+      if (mod.multiHit) eff.multiHit = { count: mod.multiHit, perPower: mod.perHitPower };
+      if (mod.burnLayers) eff.burnLayers = mod.burnLayers;
+    }
+  }
+
+  return eff;
+}
+
+window.getEffectiveMoveV31 = getEffectiveMoveV31;
+
 function learnSkillTreeNode(nodeName) {
   if (!_skillTreePkmnId) return;
   var roster = globalData.roster || [];
