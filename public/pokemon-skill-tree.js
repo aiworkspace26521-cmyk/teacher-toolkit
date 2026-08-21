@@ -27,14 +27,32 @@ var MAX_TOTAL_SP_V31     = 90;                                    // 每寵總�
 // 以既有 SPECIES_LEARNSET 的 key（中文名）為索引；未上榜 = 無標籤 = 只能學通用招（安全預設）
 // 形態標籤辭典（v3.0 沿用）：BIPEDAL_CLAW/QUADRUPED_HOOF/QUADRUPED_CLAW/WINGED/SERPENTINE/BEAST/ARMORED/TAIL/HORN/LEGEND
 var SPECIES_TAGS = {
-  "小火龍": { tags: ['BIPEDAL_CLAW', 'TAIL'] },
-  "火恐龍": { tags: ['BIPEDAL_CLAW', 'TAIL'] },
-  "噴火龍": { tags: ['BIPEDAL_CLAW', 'TAIL', 'WINGED'] },
-  "小火馬": { tags: ['QUADRUPED_HOOF'] },
-  "烈焰馬": { tags: ['QUADRUPED_HOOF'] },
-  "席多藍恩": { tags: ['QUADRUPED_CLAW', 'ARMORED'] },
-  "鳳王":   { tags: ['WINGED', 'LEGEND'] },
-  // ...其餘依 3.4 檢查清單批次補完（分族模板，見 Step 5.1 生成器）
+  charmander: { tags: ['BIPEDAL_CLAW', 'TAIL'] },
+  charmeleon: { tags: ['BIPEDAL_CLAW', 'TAIL'] },
+  charizard:  { tags: ['BIPEDAL_CLAW', 'TAIL', 'WINGED'] },
+  ponyta:     { tags: ['QUADRUPED_HOOF'] },
+  rapidash:   { tags: ['QUADRUPED_HOOF'] },
+  heatran:    { tags: ['QUADRUPED_CLAW', 'ARMORED'] },
+  hooh:       { tags: ['WINGED', 'LEGEND'] },
+  eevee:      { tags: ['BEAST', 'QUADRUPED_CLAW', 'TAIL'] },
+  vaporeon:   { tags: ['SERPENTINE', 'TAIL', 'BEAST'] },
+  jolteon:    { tags: ['QUADRUPED_CLAW', 'BEAST'] },
+  flareon:    { tags: ['QUADRUPED_CLAW', 'BEAST'] },
+  espeon:     { tags: ['QUADRUPED_CLAW', 'TAIL', 'BEAST'] },
+  umbreon:    { tags: ['QUADRUPED_CLAW', 'TAIL', 'BEAST'] },
+  leafeon:    { tags: ['QUADRUPED_CLAW', 'TAIL', 'BEAST'] },
+  glaceon:    { tags: ['QUADRUPED_CLAW', 'TAIL', 'BEAST'] },
+  sylveon:    { tags: ['QUADRUPED_CLAW', 'TAIL', 'BEAST'] },
+  pikachu:    { tags: ['BIPEDAL_CLAW', 'TAIL'] },
+  raichu:     { tags: ['BIPEDAL_CLAW', 'TAIL'] },
+  bulbasaur:  { tags: ['QUADRUPED_CLAW'] },
+  ivysaur:    { tags: ['QUADRUPED_CLAW'] },
+  venusaur:   { tags: ['QUADRUPED_CLAW'] },
+  squirtle:   { tags: ['BIPEDAL_CLAW', 'TAIL', 'ARMORED'] },
+  wartortle:  { tags: ['BIPEDAL_CLAW', 'TAIL', 'ARMORED'] },
+  blastoise:  { tags: ['BIPEDAL_CLAW', 'TAIL', 'ARMORED'] },
+  mewtwo:     { tags: ['BIPEDAL_CLAW', 'TAIL', 'LEGEND'] },
+  mew:        { tags: ['BIPEDAL_CLAW', 'TAIL', 'LEGEND'] },
 };
 function getSpeciesTags(rawName) {   // 中文名→標籤，找不到回 []（通用招仍可學）
   var key = (rawName || '').replace(/[（(].*?[)）]/g, '').trim(); // 去括號系名（沿用現行正規化）
