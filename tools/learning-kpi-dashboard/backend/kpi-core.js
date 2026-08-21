@@ -605,6 +605,8 @@ async function recalculateStudentState(studentId) {
             }
           }
           state.roster[pid8].learnedMoves = {};
+          state.roster[pid8].modifiers = {};
+          state.roster[pid8].secondPicks = {};
         }
         state.memoryCapsules = Math.max(0, (state.memoryCapsules||0) - 1);
       }
