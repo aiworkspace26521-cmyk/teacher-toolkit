@@ -1398,31 +1398,26 @@ function hideSkeleton() {
   if (overlay) overlay.remove();
 }
 
+function safeFirestoreGet(promise, timeoutMs) {
+  timeoutMs = timeoutMs || 800;
+  return Promise.race([
+    Promise.resolve(promise).catch(function(err) { console.warn("Firestore query error:", err); return null; }),
+    new Promise(function(resolve) { setTimeout(function() { resolve(null); }, timeoutMs); })
+  ]);
+}
+
 async function fetchStudentData(studentId, pendingEvent) {
   if (!studentId) return;
-  if (!db) {
-    toast("⏳ Firebase 初始化連線中，請稍候...");
-    var retryCount = 0;
-    var initCheckTimer = setInterval(function() {
-      retryCount++;
-      if (db) {
-        clearInterval(initCheckTimer);
-        fetchStudentData(studentId, pendingEvent);
-      } else if (retryCount > 25) {
-        clearInterval(initCheckTimer);
-        toast("⚠️ 網路或 Firebase 連線逾時，請重新整理頁面");
-        var btnErr = $("submitBtn");
-        if (btnErr) { btnErr.textContent = "連線逾時"; btnErr.disabled = false; }
-      }
-    }, 200);
-    return;
-  }
   _dataLoading = true;
   isAdmin = (studentId === "Admin");
-  $("adminPanel").style.display = isAdmin ? "block" : "none";
+  var adminPnl = $("adminPanel");
+  if (adminPnl) adminPnl.style.display = isAdmin ? "block" : "none";
+
   showSkeletonDashboard();
-  var btn = $("submitBtn"); btn.disabled = true; btn.innerHTML = "<span class=\"loading-spinner\"></span> Loading...";
-  // P4-5b: Try sessionStorage cache for instant render
+  var btn = $("submitBtn");
+  if (btn) { btn.disabled = true; btn.innerHTML = '<span class="loading-spinner"></span> 登入中...'; }
+
+  // 1. SessionStorage Cache for instant render
   var cacheLoaded = false;
   if (!pendingEvent) {
     try {
@@ -1435,111 +1430,140 @@ async function fetchStudentData(studentId, pendingEvent) {
             globalData.todayStatus = "PENDING";
             globalData.todayBattles = 0;
           }
-          if (cached.achievements) { globalAchievements = {}; for (var ac = 0; ac < cached.achievements.length; ac++) globalAchievements[cached.achievements[ac]] = true; }
-          if (cached.questProgress) globalQuestProgress = cached.questProgress;
-          hideSkeleton(); updateDashboard(); renderActions(); updateBattleButtons(); renderQuests(); updateTradeBadge();
-          if (!isAdmin) {
-            var ta = $("task-container"); if (ta) ta.style.display = "block";
-            var sb = $("strategyBox"); if (sb) sb.style.display = "block";
+          if (cached.achievements) {
+            globalAchievements = {};
+            for (var ac = 0; ac < cached.achievements.length; ac++) globalAchievements[cached.achievements[ac]] = true;
           }
-          if (globalData.todayStatus === "SUBMITTED") { btn.innerHTML = "\u2705 Done"; btn.disabled = true; document.querySelectorAll(".task-cb, input[name=\"actionType\"]").forEach(function(el){ el.checked = false; el.disabled = true; }); document.querySelectorAll(".action-option").forEach(function(el){ el.classList.remove("selected"); }); $("previewBox").innerHTML = "\u{1F31F} Today done!"; }
-          else { btn.disabled = false; btn.textContent = "\u{1F680} Submit"; document.querySelectorAll(".task-cb, input[name=\"actionType\"]").forEach(function(el){ el.checked = false; el.disabled = false; }); document.querySelectorAll(".action-option").forEach(function(el){ el.classList.remove("selected"); }); }
+          if (cached.questProgress) globalQuestProgress = cached.questProgress;
           cacheLoaded = true;
         }
       }
-    } catch(e) { /* cache miss, continue normal load */ }
+    } catch(eCache) { /* ignore */ }
   }
-  // P4-5a+b: Background refresh from Firestore
+
+  // 2. Safe Firestore Event Fetching
+  var events = [];
+  if (db) {
+    try {
+      var snapshot = await safeFirestoreGet(db.collection("kpi_events").where("studentId", "==", studentId).get(), 800);
+      if (snapshot && snapshot.docs) {
+        events = snapshot.docs.map(function(d){ var o = {id:d.id}; for(var k in d.data()) o[k]=d.data()[k]; return o; });
+        events.sort(function(a, b) {
+          var tA = a.timestamp ? (a.timestamp.toMillis ? a.timestamp.toMillis() : new Date(a.timestamp).getTime()) : 0;
+          var tB = b.timestamp ? (b.timestamp.toMillis ? b.timestamp.toMillis() : new Date(b.timestamp).getTime()) : 0;
+          return tA - tB;
+        });
+      }
+    } catch(eFetch) { console.warn("Firestore fetch error:", eFetch); }
+  }
+
+  if (pendingEvent) {
+    events = events.filter(function(e) { return e.id !== pendingEvent.id; });
+    events.push(pendingEvent);
+  }
+
+  // 3. State Calculation & Fallback Roster
   try {
-    var snapshot = await db.collection("kpi_events").where("studentId", "==", studentId).get();
-    var events = snapshot.docs.map(function(d){ var o = {id:d.id}; for(var k in d.data()) o[k]=d.data()[k]; return o; });
-    events.sort(function(a, b) {
-      var tA = a.timestamp ? (a.timestamp.toMillis ? a.timestamp.toMillis() : new Date(a.timestamp).getTime()) : 0;
-      var tB = b.timestamp ? (b.timestamp.toMillis ? b.timestamp.toMillis() : new Date(b.timestamp).getTime()) : 0;
-      return tA - tB;
-    });
-    var events = snapshot.docs.map(function(d){ var o = {id:d.id}; for(var k in d.data()) o[k]=d.data()[k]; return o; });
-    if (pendingEvent) { events = events.filter(function(e) { return e.id !== pendingEvent.id; }); events.push(pendingEvent); }
     var refreshed = await recalculateStudentState(studentId, events);
     if (refreshed) {
-      globalData = {}; for (var sk in refreshed) globalData[sk] = refreshed[sk]; delete globalData.cached;
+      globalData = {};
+      for (var sk in refreshed) globalData[sk] = refreshed[sk];
+      delete globalData.cached;
       delete refreshed.achievements;
-      // Skip Firestore write for Admin — Admin's state should not be overwritten
-      // by event replay (evolution test events would corrupt its roster).
-      if (!isAdmin) {
-        try { await db.collection("kpi_students").doc(studentId).set(refreshed, { merge: true }); } catch(eSet) { console.warn("Student doc save non-fatal error:", eSet); }
+      if (!isAdmin && db) {
+        try { db.collection("kpi_students").doc(studentId).set(refreshed, { merge: true }).catch(function(){}); } catch(eSet) {}
       }
-    } else {
-      globalData = { studentId: studentId, roster: [], highestLevel: 5, lockedGymLevel: 5, coins: 0, badges: 0, potions: 0, revives: 0, candies: 0, maxPotions: 0, maxRevives: 0, expSharePurchased: false, hasExpertBelt: false, hasEviolite: false, hasChampionCloak: false, hasAmuletCoin: false, oranBerries: 0, cheriBerries: 0, lumBerries: 0, chilanBerries: 0, memoryCapsules: 0, hasFocusSash: false, hasEjectButton: false, hasRockyHelmet: false, hasWeaknessPolicy: false, tms: {}, pokemonTMs: {}, todayStatus: "PENDING", todayBattles: 0, weekGymWins: 0, weekBossWins: 0, monthLeagueWins: 0, leagueRegionsWon: {}, masters8Completed: [], masters8Progress: [] };
+    }
+  } catch(eState) { console.warn("State recalculation warning:", eState); }
+
+  if (!globalData) {
+    globalData = {
+      studentId: studentId, roster: [], highestLevel: 5, lockedGymLevel: 5, coins: 0, badges: 0,
+      potions: 0, revives: 0, candies: 0, maxPotions: 0, maxRevives: 0, expSharePurchased: false,
+      hasExpertBelt: false, hasEviolite: false, hasChampionCloak: false, hasAmuletCoin: false,
+      oranBerries: 0, cheriBerries: 0, lumBerries: 0, chilanBerries: 0, memoryCapsules: 0,
+      hasFocusSash: false, hasEjectButton: false, hasRockyHelmet: false, hasWeaknessPolicy: false,
+      tms: {}, pokemonTMs: {}, todayStatus: "PENDING", todayBattles: 0, weekGymWins: 0, weekBossWins: 0,
+      monthLeagueWins: 0, leagueRegionsWon: {}, masters8Completed: [], masters8Progress: []
+    };
+    if (typeof EVO_ITEMS !== "undefined") {
       for (var ei4 in EVO_ITEMS) globalData[ei4] = false;
     }
-    // Restore TM data from Firestore doc
+  }
+
+  // Default & Admin Roster Guarantee
+  if (!globalData.roster || !globalData.roster.length) {
+    globalData.roster = [{ id: "P0", baseName: "🐾 伊布 (一般系)", totalExp: 0, initialLevel: 5, currentLevel: 5, expProgress: 0, expNeeded: 500, catchDate: "初始夥伴" }];
+  }
+  if (isAdmin && (!globalData.roster || globalData.roster.length <= 1)) {
+    globalData.roster = [
+      { id: "P1", baseName: "🔥 小火龍 (火系)", totalExp: 50000, initialLevel: 5, currentLevel: 54, expProgress: 0, expNeeded: 500, catchDate: "管理員測試隊伍", skillPoints: 245, totalSpEarned: 245, evoStage: 0, learnedMoves: {}, equippedMoves: [] },
+      { id: "P2", baseName: "🐎 小火馬 (火系)", totalExp: 50000, initialLevel: 5, currentLevel: 54, expProgress: 0, expNeeded: 500, catchDate: "管理員測試隊伍", skillPoints: 245, totalSpEarned: 245, evoStage: 0, learnedMoves: {}, equippedMoves: [] },
+      { id: "P3", baseName: "💧 水伊布 (水系)", totalExp: 20000, initialLevel: 5, currentLevel: 23, expProgress: 0, expNeeded: 500, catchDate: "管理員測試隊伍", skillPoints: 90, totalSpEarned: 90, evoStage: 1, learnedMoves: {}, equippedMoves: [] }
+    ];
+  }
+
+  // Safe TM Data Restore
+  if (db) {
     try {
-      var studentDoc = await db.collection("kpi_students").doc(studentId).get();
-      if (studentDoc.exists) {
+      var studentDoc = await safeFirestoreGet(db.collection("kpi_students").doc(studentId).get(), 1500);
+      if (studentDoc && studentDoc.exists) {
         var sd = studentDoc.data();
-        if (sd.pokemonTMs) {
+        if (sd && sd.pokemonTMs) {
           globalData.pokemonTMs = sd.pokemonTMs;
           for (var pkmnIdx = 0; pkmnIdx < (globalData.roster||[]).length; pkmnIdx++) {
             var pkmn = globalData.roster[pkmnIdx];
             if (sd.pokemonTMs[pkmn.id]) pkmn.tmMoves = sd.pokemonTMs[pkmn.id];
           }
         }
-        if (sd.tms) globalData.tms = sd.tms;
+        if (sd && sd.tms) globalData.tms = sd.tms;
       }
-    } catch(e) { console.warn("Failed to restore TM data:", e); }
-    await loadAchievementsFromFirestore(studentId);
-    revalidateAllAchievements(globalData, events);
-    if (globalData.monthLeagueWins > 0 && globalData.leagueRegionsWon) {
-      var monthKey = getCurrentMonthKey();
-      for (var rn in globalData.leagueRegionsWon) {
-        if (!leagueCompletedMonths[rn]) {
-          leagueCompletedMonths[rn] = monthKey;
-        }
-      }
-    }
-    if (!globalData.roster || !globalData.roster.length) globalData.roster = [{ id: "P0", baseName: "🐾 伊布 (一般系)", totalExp: 0, initialLevel: 5, currentLevel: 5, expProgress: 0, expNeeded: 500, catchDate: "初始夥伴" }];
-    if (isAdmin && (!globalData.roster || globalData.roster.length <= 1)) {
-      globalData.roster = [
-        { id: "P1", baseName: "🔥 小火龍 (火系)", totalExp: 50000, initialLevel: 5, currentLevel: 54, expProgress: 0, expNeeded: 500, catchDate: "管理員測試隊伍", skillPoints: 245, totalSpEarned: 245, evoStage: 0, learnedMoves: {}, equippedMoves: [] },
-        { id: "P2", baseName: "🐎 小火馬 (火系)", totalExp: 50000, initialLevel: 5, currentLevel: 54, expProgress: 0, expNeeded: 500, catchDate: "管理員測試隊伍", skillPoints: 245, totalSpEarned: 245, evoStage: 0, learnedMoves: {}, equippedMoves: [] },
-        { id: "P3", baseName: "💧 水伊布 (水系)", totalExp: 20000, initialLevel: 5, currentLevel: 23, expProgress: 0, expNeeded: 500, catchDate: "管理員測試隊伍", skillPoints: 90, totalSpEarned: 90, evoStage: 1, learnedMoves: {}, equippedMoves: [] }
-      ];
-    }
-    var savedParty = localStorage.getItem("kpi_party_" + studentId);
-    globalData.partyIds = [];
-    if (savedParty) { try { var parsed = JSON.parse(savedParty); globalData.partyIds = parsed.filter(function(id){ return globalData.roster.some(function(p){return p.id === id;}); }); } catch(e) {} }
-    if (globalData.partyIds.length === 0) { var sorted = globalData.roster.slice().sort(function(a,b){ return b.currentLevel - a.currentLevel; }); globalData.partyIds = sorted.slice(0, 6).map(function(p){ return p.id; }); }
-    if (db && globalData.studentId && !isAdmin) { db.collection("kpi_students").doc(globalData.studentId).set({ partyIds: globalData.partyIds, roster: globalData.roster }, { merge: true }).catch(function(e){}); }
-        if (!cacheLoaded) { hideSkeleton(); }
-        updateDashboard(); renderActions();
-        updateBattleButtons();
-    // show task/strategy sections for non-admin users
-    if (!isAdmin) {
-      var ta = $("task-container"); if (ta) ta.style.display = "block";
-      var sb = $("strategyBox"); if (sb) sb.style.display = "block";
-    }
-    await checkAndUnlockAchievements(globalData, events, studentId);
-    var defRegion = checkDefenseChallenge();
-    if (defRegion) {
-      setTimeout(function() { startDefenseChallenge(defRegion); }, 1500);
-    }
-    var existingQuests = await loadQuestsFromFirestore(studentId);
-    var computedQuests = computeQuestProgress(events);
-    globalQuestProgress = mergeQuestProgress(existingQuests, computedQuests);
-    globalQuestProgress.daily.progress["LOGIN"] = Math.max(1, globalQuestProgress.daily.progress["LOGIN"] || 0);
-    saveQuestsToFirestore(studentId, globalQuestProgress);
-    renderQuests();
-    updateTradeBadge();
-    if (globalData.todayStatus === "SUBMITTED") { btn.innerHTML = "\u2705 Done"; btn.disabled = true; document.querySelectorAll(".task-cb, input[name=\"actionType\"]").forEach(function(el){ el.checked = false; el.disabled = true; }); document.querySelectorAll(".action-option").forEach(function(el){ el.classList.remove("selected"); }); $("previewBox").innerHTML = "\u{1F31F} Today done!"; }
-    else { btn.disabled = false; btn.textContent = "\u{1F680} Submit"; document.querySelectorAll(".task-cb, input[name=\"actionType\"]").forEach(function(el){ el.checked = false; el.disabled = false; }); document.querySelectorAll(".action-option").forEach(function(el){ el.classList.remove("selected"); }); }
-    // P4-5b: Write to sessionStorage cache
+    } catch(eTm) {}
+  }
+
+  var savedParty = localStorage.getItem("kpi_party_" + studentId);
+  globalData.partyIds = [];
+  if (savedParty) {
     try {
-      var cachePayload = { globalData: globalData, achievements: [], questProgress: globalQuestProgress, cachedAt: Date.now() };
-      for (var ak2 in globalAchievements) { if (globalAchievements[ak2]) cachePayload.achievements.push(ak2); }
-      sessionStorage.setItem("kpi_cache_" + studentId, JSON.stringify(cachePayload));
-    } catch(e) { /* cache full, ignore */ }
-  } catch (e) { console.error("fetchStudentData error:", e); if (!cacheLoaded) { hideSkeleton(); toast("Error: " + e.message); btn.textContent = "Failed"; btn.disabled = false; } else { toast("Background refresh failed, using cached data"); btn.disabled = false; btn.textContent = globalData && globalData.todayStatus === "SUBMITTED" ? "\u2705 Done" : "\u{1F680} Submit"; } }
+      var parsed = JSON.parse(savedParty);
+      globalData.partyIds = parsed.filter(function(id){ return globalData.roster.some(function(p){return p.id === id;}); });
+    } catch(eParty) {}
+  }
+  if (globalData.partyIds.length === 0) {
+    var sorted = globalData.roster.slice().sort(function(a,b){ return b.currentLevel - a.currentLevel; });
+    globalData.partyIds = sorted.slice(0, 6).map(function(p){ return p.id; });
+  }
+
+  // 4. GUARANTEED UI RENDERING (ALWAYS EXECUTED IMMEDIATELY)
+  hideSkeleton();
+  updateDashboard();
+  renderActions();
+  updateBattleButtons();
+  if (typeof renderQuests === "function") renderQuests();
+  if (typeof updateTradeBadge === "function") updateTradeBadge();
+
+  if (!isAdmin) {
+    var ta = $("task-container"); if (ta) ta.style.display = "block";
+    var sb = $("strategyBox"); if (sb) sb.style.display = "block";
+  }
+
+  if (btn) {
+    if (globalData && globalData.todayStatus === "SUBMITTED") {
+      btn.innerHTML = "✅ Done";
+      btn.disabled = true;
+    } else {
+      btn.textContent = "🚀 Submit";
+      btn.disabled = false;
+    }
+  }
+
+  // Cache state to sessionStorage
+  try {
+    var cachePayload = { globalData: globalData, achievements: [], questProgress: globalQuestProgress, cachedAt: Date.now() };
+    for (var ak2 in globalAchievements) { if (globalAchievements[ak2]) cachePayload.achievements.push(ak2); }
+    sessionStorage.setItem("kpi_cache_" + studentId, JSON.stringify(cachePayload));
+  } catch(eStorage) {}
+
   _dataLoading = false;
 }
 
@@ -9603,7 +9627,7 @@ function renderSkillTree() {
               var optLv = optRec ? (optRec.level || 1) : 1;
               canvasHtml += " <small style='color:#8e44ad;'>Lv." + optLv + "/5</small>";
               if (optLv < 5) {
-                canvasHtml += " <button class='st-upgrade-btn' style='background:#3498db;color:white;margin-left:4px;' onclick='event.stopPropagation();upgradeMoveInSkillTreeV31("" + optName + "")'>+1SP 升級</button>";
+                canvasHtml += " <button class='st-upgrade-btn' style='background:#3498db;color:white;margin-left:4px;' onclick='event.stopPropagation();upgradeMoveInSkillTreeV31(\"' + optName + '\")'>+1SP 升級</button>";
               } else if (window.V31_FLAGS && window.V31_FLAGS.LV5_MODIFIER) {
                 var modSelected = pkmn.modifiers && pkmn.modifiers[optName];
                 if (modSelected) {
@@ -9614,7 +9638,7 @@ function renderSkillTree() {
                     var branches = Object.keys(optSpec.lv5_modifiers);
                     for (var bi = 0; bi < branches.length; bi++) {
                       var bName = branches[bi];
-                      canvasHtml += " <button class='st-upgrade-btn' style='background:#9b59b6;color:white;margin-left:2px;' onclick='event.stopPropagation();applySkillModifierV31("" + optName + "", "" + bName + "")'>✨ " + bName + " (3SP)</button>";
+                      canvasHtml += " <button class='st-upgrade-btn' style='background:#9b59b6;color:white;margin-left:2px;' onclick='event.stopPropagation();applySkillModifierV31(\"' + optName + '\", \"' + bName + '\")'>✨ " + bName + " (3SP)</button>";
                     }
                   }
                 }
