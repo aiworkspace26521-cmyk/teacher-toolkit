@@ -1400,7 +1400,23 @@ function hideSkeleton() {
 
 async function fetchStudentData(studentId, pendingEvent) {
   if (!studentId) return;
-  if (!db) { toast("Firebase initializing..."); return; }
+  if (!db) {
+    toast("⏳ Firebase 初始化連線中，請稍候...");
+    var retryCount = 0;
+    var initCheckTimer = setInterval(function() {
+      retryCount++;
+      if (db) {
+        clearInterval(initCheckTimer);
+        fetchStudentData(studentId, pendingEvent);
+      } else if (retryCount > 25) {
+        clearInterval(initCheckTimer);
+        toast("⚠️ 網路或 Firebase 連線逾時，請重新整理頁面");
+        var btnErr = $("submitBtn");
+        if (btnErr) { btnErr.textContent = "連線逾時"; btnErr.disabled = false; }
+      }
+    }, 200);
+    return;
+  }
   _dataLoading = true;
   isAdmin = (studentId === "Admin");
   $("adminPanel").style.display = isAdmin ? "block" : "none";
@@ -1435,7 +1451,13 @@ async function fetchStudentData(studentId, pendingEvent) {
   }
   // P4-5a+b: Background refresh from Firestore
   try {
-    var snapshot = await db.collection("kpi_events").where("studentId", "==", studentId).orderBy("timestamp", "asc").get();
+    var snapshot = await db.collection("kpi_events").where("studentId", "==", studentId).get();
+    var events = snapshot.docs.map(function(d){ var o = {id:d.id}; for(var k in d.data()) o[k]=d.data()[k]; return o; });
+    events.sort(function(a, b) {
+      var tA = a.timestamp ? (a.timestamp.toMillis ? a.timestamp.toMillis() : new Date(a.timestamp).getTime()) : 0;
+      var tB = b.timestamp ? (b.timestamp.toMillis ? b.timestamp.toMillis() : new Date(b.timestamp).getTime()) : 0;
+      return tA - tB;
+    });
     var events = snapshot.docs.map(function(d){ var o = {id:d.id}; for(var k in d.data()) o[k]=d.data()[k]; return o; });
     if (pendingEvent) { events = events.filter(function(e) { return e.id !== pendingEvent.id; }); events.push(pendingEvent); }
     var refreshed = await recalculateStudentState(studentId, events);
@@ -1445,7 +1467,7 @@ async function fetchStudentData(studentId, pendingEvent) {
       // Skip Firestore write for Admin — Admin's state should not be overwritten
       // by event replay (evolution test events would corrupt its roster).
       if (!isAdmin) {
-        await db.collection("kpi_students").doc(studentId).set(refreshed, { merge: true });
+        try { await db.collection("kpi_students").doc(studentId).set(refreshed, { merge: true }); } catch(eSet) { console.warn("Student doc save non-fatal error:", eSet); }
       }
     } else {
       globalData = { studentId: studentId, roster: [], highestLevel: 5, lockedGymLevel: 5, coins: 0, badges: 0, potions: 0, revives: 0, candies: 0, maxPotions: 0, maxRevives: 0, expSharePurchased: false, hasExpertBelt: false, hasEviolite: false, hasChampionCloak: false, hasAmuletCoin: false, oranBerries: 0, cheriBerries: 0, lumBerries: 0, chilanBerries: 0, memoryCapsules: 0, hasFocusSash: false, hasEjectButton: false, hasRockyHelmet: false, hasWeaknessPolicy: false, tms: {}, pokemonTMs: {}, todayStatus: "PENDING", todayBattles: 0, weekGymWins: 0, weekBossWins: 0, monthLeagueWins: 0, leagueRegionsWon: {}, masters8Completed: [], masters8Progress: [] };
@@ -1476,7 +1498,14 @@ async function fetchStudentData(studentId, pendingEvent) {
         }
       }
     }
-    if (!globalData.roster || !globalData.roster.length) globalData.roster = [{ id: "P0", baseName: "\u{1F43E} \u4F0A\u5E03 (\u4E00\u822C\u7CFB)", totalExp: 0, initialLevel: 5, currentLevel: 5, expProgress: 0, expNeeded: 500, catchDate: "\u521D\u59CB\u5925\u4F34" }];
+    if (!globalData.roster || !globalData.roster.length) globalData.roster = [{ id: "P0", baseName: "🐾 伊布 (一般系)", totalExp: 0, initialLevel: 5, currentLevel: 5, expProgress: 0, expNeeded: 500, catchDate: "初始夥伴" }];
+    if (isAdmin && (!globalData.roster || globalData.roster.length <= 1)) {
+      globalData.roster = [
+        { id: "P1", baseName: "🔥 小火龍 (火系)", totalExp: 50000, initialLevel: 5, currentLevel: 54, expProgress: 0, expNeeded: 500, catchDate: "管理員測試隊伍", skillPoints: 245, totalSpEarned: 245, evoStage: 0, learnedMoves: {}, equippedMoves: [] },
+        { id: "P2", baseName: "🐎 小火馬 (火系)", totalExp: 50000, initialLevel: 5, currentLevel: 54, expProgress: 0, expNeeded: 500, catchDate: "管理員測試隊伍", skillPoints: 245, totalSpEarned: 245, evoStage: 0, learnedMoves: {}, equippedMoves: [] },
+        { id: "P3", baseName: "💧 水伊布 (水系)", totalExp: 20000, initialLevel: 5, currentLevel: 23, expProgress: 0, expNeeded: 500, catchDate: "管理員測試隊伍", skillPoints: 90, totalSpEarned: 90, evoStage: 1, learnedMoves: {}, equippedMoves: [] }
+      ];
+    }
     var savedParty = localStorage.getItem("kpi_party_" + studentId);
     globalData.partyIds = [];
     if (savedParty) { try { var parsed = JSON.parse(savedParty); globalData.partyIds = parsed.filter(function(id){ return globalData.roster.some(function(p){return p.id === id;}); }); } catch(e) {} }
