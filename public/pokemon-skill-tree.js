@@ -42,6 +42,212 @@ function getSpeciesTags(rawName) {   // 中文名→標籤，找不到回 []（�
   return rec ? rec.tags : [];
 }
 
+// ========== v3.1 招式規格 MOVE_SPECS_V31（Step 1.3） ==========
+var MOVE_SPECS_V31 = {
+  '火焰拳': {
+    category: 'ATK', type: '火',
+    required_tags: ['BIPEDAL_CLAW', 'QUADRUPED_CLAW'],
+    excluded_tags: ['QUADRUPED_HOOF', 'SERPENTINE'],
+    growth: { power: [70, 78, 88, 98, 105], burn: [0.08, 0.10, 0.12, 0.15, 0.18], acc: 100 },
+    lv5_modifiers: {
+      '熔核之拳': { damageMult: 1.10, burnLayers: 2 },
+      '雙連炎拳': { multiHit: 2, perHitPower: 0.55, critBonus: 2 }
+    }
+  },
+  '蓄能焰襲': {
+    category: 'ATK', type: '火',
+    required_tags: ['QUADRUPED_HOOF', 'WINGED'],
+    growth: { power: [45, 50, 55, 60, 65], speedStage: [1, 1, 1, 1, 2], burn: [0, 0, 0.05, 0.08, 0.10], acc: 100 },
+    lv5_modifiers: {
+      '焰蹄疾馳': { speedStage: 2, killFreeStage: 1 },
+      '焰風殘影': { dodgeChance: 0.30 }
+    }
+  },
+  '噴射火焰': {
+    category: 'SPA', type: '火',
+    required_tags: [],
+    growth: { power: [90, 98, 108, 118, 125], burn: [0.10, 0.12, 0.15, 0.18, 0.20], acc: 100 },
+    lv5_modifiers: {
+      '地獄業火': { burnMult: 1.5, ignoreDef: 0.20 },
+      '聚合爆焰': { splashDamage: 0.30 }
+    }
+  },
+  '大字爆': {
+    category: 'SPA', type: '火',
+    required_tags: [],
+    growth: { power: [110, 120, 130, 140, 150], burn: [0.15, 0.18, 0.20, 0.25, 0.30], acc: 85 },
+    lv5_modifiers: {
+      '大字灼陣': { fieldBurn: true, burnRounds: 3 },
+      '極致核爆': { damageMult: 1.25, selfRecoil: 0.10 }
+    }
+  },
+  '二連踢': {
+    category: 'ATK', type: '格鬥',
+    required_tags: ['QUADRUPED_HOOF', 'BIPEDAL_CLAW'],
+    growth: { power: [30, 34, 38, 42, 46], multiHit: [2, 2, 2, 2, 2], acc: 100 },
+    lv5_modifiers: {
+      '三連踹打': { multiHit: 3 },
+      '穿透強踢': { ignoreDef: 0.30 }
+    }
+  },
+  '烈焰爪': {
+    category: 'ATK', type: '火',
+    required_tags: ['BIPEDAL_CLAW'],
+    growth: { power: [75, 82, 90, 98, 105], critBonus: [1, 1, 1, 2, 2], acc: 95 },
+    lv5_modifiers: {
+      '熾熱裂傷': { critMult: 1.5, bleeding: true },
+      '炎爪連擊': { multiHit: 2, perHitPower: 0.55 }
+    }
+  },
+  '火焰輪': {
+    category: 'ATK', type: '火',
+    required_tags: ['QUADRUPED_CLAW', 'ARMORED'],
+    growth: { power: [60, 66, 72, 78, 85], burn: [0.10, 0.12, 0.15, 0.18, 0.20], acc: 100 },
+    lv5_modifiers: {
+      '烈焰碾壓': { stunChance: 0.20 },
+      '加速車輪': { speedStage: 1 }
+    }
+  },
+  '電光一閃': {
+    category: 'ATK', type: '一般',
+    required_tags: [],
+    growth: { power: [40, 44, 48, 52, 56], priority: [1, 1, 1, 1, 1], acc: 100 },
+    lv5_modifiers: {
+      '超速神速': { priority: 2 },
+      '閃電襲擊': { damageMult: 1.20 }
+    }
+  }
+};
+
+// 招式規格安全取得與補齊 Helper (確保所有在 TIER_MATRIX 登場之招式皆有完整規格)
+function getMoveSpecV31(moveName) {
+  if (MOVE_SPECS_V31[moveName]) return MOVE_SPECS_V31[moveName];
+  // 預設動態生成保底 spec
+  MOVE_SPECS_V31[moveName] = {
+    category: 'ATK', type: '火',
+    required_tags: [],
+    growth: { power: [60, 68, 76, 85, 95], acc: 100 },
+    lv5_modifiers: {
+      '強化打擊': { damageMult: 1.15 },
+      '疾速連發': { multiHit: 2, perHitPower: 0.60 }
+    }
+  };
+  return MOVE_SPECS_V31[moveName];
+}
+
+// ========== v3.1 6 招節點表 TIER_MATRIX_V31（Step 1.4） ==========
+var TIER_MATRIX_V31 = {
+  '火': {
+    ATK: {
+      T1: ['抓', '二連踢', '撞擊', '火花', '電光一閃', '甩尾'],
+      T2: ['火焰拳', '烈焰爪', '二連踢', '火焰輪', '蓄能焰襲', '電光一閃'],
+      T3: ['炎牙', '烈焰爪', '龍之俯衝', '火焰輪', '閃焰衝鋒', '摔打'],
+      T4: ['大鬧一番', '烈焰爪', '烈焰衝撞', '熔岩風暴', '閃焰衝鋒', '捨身衝撞'],
+      T5: ['V熱焰', '聖火俯衝', '熔岩衝擊', '爆炎衝擊', '焚焰繳械', '大爆炸']
+    },
+    SPA: {
+      T1: ['火花', '點燃', '火焰旋渦', '煙幕', '熱浪吐息', '覺醒力量'],
+      T2: ['噴射火焰', '魔法火焰', '火焰旋渦', '蓄能焰襲', '熱風', '高速星星'],
+      T3: ['大字爆', '噴射火焰', '熱浪', '過熱', '焚焰放射', '巨聲'],
+      T4: ['過熱', '大字爆', '熱風', '噴射火焰', '滅世爆焰', '破壞光線'],
+      T5: ['閃焰衝擊', '爆炸烈焰', '熔岩風暴', '過熱', '地獄業火', '破壞光線']
+    },
+    BUF: {
+      T1: ['瞪眼', '叫聲', '變硬', '搖尾巴', '煙幕', '影子分身'],
+      T2: ['大晴天', '蓄力', '變硬', '影子分身', '高速移動', '聚能'],
+      T3: ['健美', '劍舞', '大晴天', '替身', '蓄熱', '冥想'],
+      T4: ['腹鼓', '劍舞', '大晴天', '守住', '熱血沸騰', '替身'],
+      T5: ['極致蓄能', '太陽之力', '全燃燒', '腹鼓', '絕對防禦', '睡覺']
+    },
+    DIS: {
+      T1: ['煙幕', '瞪眼', '叫聲', '哈欠', '火焰旋渦', '接棒'],
+      T2: ['鬼火', '煙幕', '挑釁', '火焰旋渦', '清除之煙', '電磁波'],
+      T3: ['鬼火', '怪異之光', '挑釁', '黑霧', '熱沙壓制', '吹飛'],
+      T4: ['劇毒', '鬼火', '清除之煙', '吼叫', '熔岩封鎖', '黑霧'],
+      T5: ['滅亡之歌', '地獄焦土', '絕對封印', '劇毒', '終極壓制', '咆哮']
+    },
+    ULT: {
+      T1: ['聚能', '蓄火', '火焰旋渦', '焰火共鳴', '蓄力', '衝火'],
+      T2: ['蓄熱', '聚能爆發', '火焰旋渦', '熱浪脈衝', '過熱準備', '蓄力'],
+      T3: ['焚焰放射', '滅世爆焰', '蓄熱衝擊', '超新星爆發', '極致熱浪', '聚能'],
+      T4: ['滅世爆焰', '焚焰放射', '極致超新星', '核爆共鳴', '終焉之炎', '大爆炸'],
+      T5: ['滅世毀滅爆炎', '終極烈焰衝風', '太陽神核爆', '地獄神火', '創世炎皇點燃', '大爆炸']
+    }
+  }
+};
+
+// 初始化預先為所有在 TIER_MATRIX_V31 的招式補齊保底 spec
+Object.keys(TIER_MATRIX_V31).forEach(function(typeKey){
+  var typeLib = TIER_MATRIX_V31[typeKey];
+  Object.keys(typeLib).forEach(function(roleKey){
+    var track = typeLib[roleKey];
+    Object.keys(track).forEach(function(tKey){
+      var moves = track[tKey];
+      moves.forEach(function(mName){
+        getMoveSpecV31(mName);
+      });
+    });
+  });
+});
+
+// ========== v3.1 遮蔽判定 isEligible（Step 2.1） ==========
+function isEligible(speciesTags, spec) {
+  if (!spec) return true;
+  var tags = speciesTags || [];
+  var hasReq  = !spec.required_tags || spec.required_tags.length === 0 ||
+                spec.required_tags.some(function(t){ return tags.indexOf(t) !== -1; });
+  var notExcl = !spec.excluded_tags || !spec.excluded_tags.some(function(t){ return tags.indexOf(t) !== -1; });
+  return hasReq && notExcl;
+}
+
+// ========== v3.1 通用備援保底與動態技能樹解析器（Step 2.2） ==========
+var UTIL_FALLBACK = { ATK: '撞擊', SPA: '覺醒力量', BUF: '變硬', DIS: '煙幕', ULT: '聚能' };
+
+function resolveSkillTreeV31(pkmn) {
+  if (!pkmn) pkmn = {};
+  var rawName = pkmn.rawName || pkmn.name || '';
+  var tags = getSpeciesTags(rawName);
+  var type = pkmn.primaryType || pkmn.type || '火';
+  var lib = TIER_MATRIX_V31[type] || TIER_MATRIX_V31['火'];
+  var tree = { ATK: {}, SPA: {}, BUF: {}, DIS: {}, ULT: {} };
+  var roles = ['ATK', 'SPA', 'BUF', 'DIS', 'ULT'];
+
+  for (var r = 0; r < roles.length; r++) {
+    var role = roles[r];
+    for (var t = 1; t <= 5; t++) {
+      var tierKey = 'T' + t;
+      var six = lib[role] ? lib[role][tierKey] : null;
+      if (!six) {
+        tree[role][tierKey] = [];
+        continue;
+      }
+      var node = six.map(function(moveName) {
+        var spec = getMoveSpecV31(moveName);
+        var eligible = isEligible(tags, spec);
+        return {
+          name: moveName,
+          eligible: eligible,
+          lockReason: eligible ? null : 'MORPHOLOGY_MISMATCH',
+          pick: false
+        };
+      });
+      // 極端全遮蔽時補通用保底招
+      if (node.every(function(n) { return !n.eligible; })) {
+        node.push({
+          name: UTIL_FALLBACK[role] || '撞擊',
+          eligible: true,
+          pick: false,
+          fallback: true
+        });
+      }
+      tree[role][tierKey] = node;
+    }
+  }
+  return tree;
+}
+
+
+
 // ULT 招式新名稱映射（取代舊的 +Pro 規則）
 var ULT_MOVE_RENAME = {
   "噴射火焰": "焚焰放射",
@@ -2622,6 +2828,16 @@ window.MAX_TOTAL_SP_V31 = MAX_TOTAL_SP_V31;
 // v3.1 生理標籤（Step 1.2）
 window.SPECIES_TAGS = SPECIES_TAGS;
 window.getSpeciesTags = getSpeciesTags;
+// v3.1 招式規格（Step 1.3）
+window.MOVE_SPECS_V31 = MOVE_SPECS_V31;
+// v3.1 6 招節點表（Step 1.4）
+window.TIER_MATRIX_V31 = TIER_MATRIX_V31;
+window.getMoveSpecV31 = getMoveSpecV31;
+// Phase 2 遮蔽判定（Step 2.1）
+window.isEligible = isEligible;
+// Phase 2 動態技能樹解析器（Step 2.2）
+window.resolveSkillTreeV31 = resolveSkillTreeV31;
+window.UTIL_FALLBACK = UTIL_FALLBACK;
 // Phase 0 exports
 window.TYPE_SPEC_V2 = TYPE_SPEC_V2;
 window.TYPE_T5_SIGNATURES = TYPE_T5_SIGNATURES;
