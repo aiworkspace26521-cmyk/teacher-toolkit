@@ -10180,6 +10180,7 @@ function getEffectiveMoveV31(pkmn, moveName) {
     var mod = spec.lv5_modifiers[modName];
     if (mod) {
       if (mod.damageMult) eff.power = Math.round((eff.power || 0) * mod.damageMult);
+      if (mod.ignoreDef) eff.power = Math.round((eff.power || 0) * (1 + mod.ignoreDef));
       if (mod.multiHit) eff.multiHit = { count: mod.multiHit, perPower: mod.perHitPower };
       if (mod.burnLayers) eff.burnLayers = mod.burnLayers;
     }
