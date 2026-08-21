@@ -328,12 +328,12 @@ async function recalculateStudentState(studentId) {
     if (rowBadges > 0) state.lastBadgeTime = rowDate.getTime();
     state.coins += rowCoins;
 
-    if (!['商城兌換', '戰鬥消耗', '物品消耗', 'E', '系統測試', 'trade', '道具裝備', 'system', 'SP_ALLOCATE', 'MOVE_LEARN', 'MOVE_UPGRADE', 'MOVE_EQUIP', 'SKILL_RESET'].includes(rowAction)) {
+    if (!['商城兌換', '戰鬥消耗', '物品消耗', 'E', '系統測試', 'trade', '道具裝備', 'system', 'SP_ALLOCATE', 'MOVE_LEARN', 'MOVE_UPGRADE', 'MOVE_EQUIP', 'SKILL_RESET', 'SKILL_MODIFIER'].includes(rowAction)) {
       state.submitDates[rowDate.toDateString()] = true;
     }
 
     if (rowDate.toDateString() === todayStr &&
-        !['商城兌換', '戰鬥消耗', '物品消耗', 'E', '戰鬥勝利', '系統測試', 'trade', 'A', 'B', '道具裝備', 'PvP', 'system', '捕捉', '傳說挑戰', '糖果升級', 'SP_ALLOCATE', 'MOVE_LEARN', 'MOVE_UPGRADE', 'MOVE_EQUIP', 'SKILL_RESET'].includes(rowAction)) {
+        !['商城兌換', '戰鬥消耗', '物品消耗', 'E', '戰鬥勝利', '系統測試', 'trade', 'A', 'B', '道具裝備', 'PvP', 'system', '捕捉', '傳說挑戰', '糖果升級', 'SP_ALLOCATE', 'MOVE_LEARN', 'MOVE_UPGRADE', 'MOVE_EQUIP', 'SKILL_RESET', 'SKILL_MODIFIER'].includes(rowAction)) {
       state.todayStatus = "ACTIVE";
     }
     if (['每日提交', '捕捉', '傳說挑戰', '糖果升級'].includes(rowAction) && rowDate.toDateString() === todayStr) {
@@ -575,6 +575,24 @@ async function recalculateStudentState(studentId) {
         if (eqParts && state.roster[eqParts[1]]) {
           const pid7 = eqParts[1];
           state.roster[pid7].equippedMoves = eqParts[2].split(',').map(s => s.trim()).filter(s => s);
+        }
+      } else if (rowAction === 'SKILL_MODIFIER') {
+        const mdParts = safeNote.match(/^(\S+):([^:]+):(.+):(\d+)$/);
+        if (mdParts && state.roster[mdParts[1]]) {
+          const pidMod = mdParts[1];
+          if (!state.roster[pidMod].modifiers) state.roster[pidMod].modifiers = {};
+          state.roster[pidMod].modifiers[mdParts[2]] = mdParts[3];
+          const learnedRec = state.roster[pidMod].learnedMoves && state.roster[pidMod].learnedMoves[mdParts[2]];
+          const rawRole = learnedRec ? (learnedRec.source || learnedRec.role || 'atk') : 'atk';
+          const treeName = String(rawRole).toLowerCase();
+          if (state.roster[pidMod].skillTree && state.roster[pidMod].skillTree[treeName]) {
+            state.roster[pidMod].skillTree[treeName].sp += parseInt(mdParts[4]) || 3;
+            const totalSpMod = state.roster[pidMod].skillTree[treeName].sp;
+            if (totalSpMod >= 24) state.roster[pidMod].skillTree[treeName].tier = 5;
+            else if (totalSpMod >= 15) state.roster[pidMod].skillTree[treeName].tier = 4;
+            else if (totalSpMod >= 8)  state.roster[pidMod].skillTree[treeName].tier = 3;
+            else if (totalSpMod >= 3)  state.roster[pidMod].skillTree[treeName].tier = 2;
+          }
         }
       } else if (rowAction === 'SKILL_RESET') {
         const srParts = safeNote.match(/^(\S+):(.+)/);

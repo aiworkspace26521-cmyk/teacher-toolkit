@@ -1279,6 +1279,24 @@ async function recalculateStudentState(studentId, events) {
         var pid7 = eqParts[1];
         state.roster[pid7].equippedMoves = eqParts[2].split(",").map(function(s){return s.trim();}).filter(function(s){return s;});
       }
+    } else if (rowAction === "SKILL_MODIFIER") {
+      var mdParts = safeNote.match(/^(\S+):([^:]+):(.+):(\d+)$/);
+      if (mdParts && state.roster[mdParts[1]]) {
+        var pidMod = mdParts[1];
+        if (!state.roster[pidMod].modifiers) state.roster[pidMod].modifiers = {};
+        state.roster[pidMod].modifiers[mdParts[2]] = mdParts[3];
+        var learnedRec = state.roster[pidMod].learnedMoves && state.roster[pidMod].learnedMoves[mdParts[2]];
+        var rawRole = learnedRec ? (learnedRec.source || learnedRec.role || "atk") : "atk";
+        var treeName = String(rawRole).toLowerCase();
+        if (state.roster[pidMod].skillTree && state.roster[pidMod].skillTree[treeName]) {
+          state.roster[pidMod].skillTree[treeName].sp += parseInt(mdParts[4]) || 3;
+          var totalSpMod = state.roster[pidMod].skillTree[treeName].sp;
+          if (totalSpMod >= 24) state.roster[pidMod].skillTree[treeName].tier = 5;
+          else if (totalSpMod >= 15) state.roster[pidMod].skillTree[treeName].tier = 4;
+          else if (totalSpMod >= 8)  state.roster[pidMod].skillTree[treeName].tier = 3;
+          else if (totalSpMod >= 3)  state.roster[pidMod].skillTree[treeName].tier = 2;
+        }
+      }
     } else if (rowAction === "SKILL_RESET") {
       var srParts = safeNote.match(/^(\S+):(.+)/);
       if (srParts && state.roster[srParts[1]]) {
