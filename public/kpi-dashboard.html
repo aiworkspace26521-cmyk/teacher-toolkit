@@ -9901,7 +9901,7 @@ function learnSkillTreeNodeV31(moveName, tier, role, pkmnOverride) {
     return { success: false, reason: 'EVO_STAGE_LOCKED' };
   }
 
-  if (!pkmn.learnedMoves) pkmn.learnedMoves = {};
+  if (!pkmn.learnedMoves) pkmn.learnedMoves = {}; pkmn.secondPicks = {}; pkmn.modifiers = {};
   pkmn.learnedMoves[moveName] = { level: 1, learnedAt: Date.now(), tier: tier, role: role };
 
   pkmn.skillPoints = (pkmn.skillPoints || 0) - cost;
@@ -10036,6 +10036,85 @@ function upgradeMoveInSkillTreeV31(moveName, pkmnOverride) {
 
 window.upgradeMoveInSkillTreeV31 = upgradeMoveInSkillTreeV31;
 
+function applySkillModifierV31(moveName, branchName, pkmnOverride) {
+  var pkmnId = typeof _skillTreePkmnId !== 'undefined' ? _skillTreePkmnId : null;
+  var pkmn = pkmnOverride || (pkmnId ? getPkmnById(pkmnId) : null);
+  if (!pkmn) return { success: false, reason: 'NO_POKEMON' };
+  if (!pkmnId && pkmn.id) pkmnId = pkmn.id;
+
+  if (!pkmn.learnedMoves || !pkmn.learnedMoves[moveName]) {
+    if (typeof toast === 'function') toast('尚未學會此招式');
+    return { success: false, reason: 'NOT_LEARNED' };
+  }
+
+  var rec = pkmn.learnedMoves[moveName];
+  if ((rec.level || 1) < 5) {
+    if (typeof toast === 'function') toast('需先升至 Lv.5');
+    return { success: false, reason: 'NEED_LV5' };
+  }
+
+  var modifierCost = (typeof MODIFIER_SP_COST !== 'undefined') ? MODIFIER_SP_COST : 3;
+  if ((pkmn.skillPoints || 0) < modifierCost) {
+    if (typeof toast === 'function') toast('SP 不足');
+    return { success: false, reason: 'INSUFFICIENT_SP' };
+  }
+
+  if (!pkmn.modifiers) pkmn.modifiers = {};
+  if (pkmn.modifiers[moveName]) {
+    if (typeof toast === 'function') toast('已選擇質變分支');
+    return { success: false, reason: 'ALREADY_MODIFIED' };
+  }
+
+  var getSpecFn = (typeof getMoveSpecV31 === 'function') ? getMoveSpecV31 : (typeof window !== 'undefined' && typeof window.getMoveSpecV31 === 'function' ? window.getMoveSpecV31 : null);
+  var spec = getSpecFn ? getSpecFn(moveName) : (typeof MOVE_SPECS_V31 !== 'undefined' ? MOVE_SPECS_V31[moveName] : null);
+  if (spec && spec.lv5_modifiers && !spec.lv5_modifiers[branchName]) {
+    if (typeof toast === 'function') toast('無效的質變分支');
+    return { success: false, reason: 'INVALID_BRANCH' };
+  }
+
+  pkmn.modifiers[moveName] = branchName;
+  pkmn.skillPoints = (pkmn.skillPoints || 0) - modifierCost;
+
+  var role = rec.role || 'ATK';
+  if (!pkmn.skillTree) {
+    pkmn.skillTree = {
+      atk: { sp: 0, tier: 1 }, spa: { sp: 0, tier: 1 }, buf: { sp: 0, tier: 1 }, dis: { sp: 0, tier: 1 }, ult: { sp: 0, tier: 1 },
+      ATK: { sp: 0, tier: 1 }, SPA: { sp: 0, tier: 1 }, BUF: { sp: 0, tier: 1 }, DIS: { sp: 0, tier: 1 }, ULT: { sp: 0, tier: 1 }
+    };
+  }
+  var roleKeyLower = role.toLowerCase();
+  var roleKeyUpper = role.toUpperCase();
+  if (!pkmn.skillTree[roleKeyLower]) pkmn.skillTree[roleKeyLower] = { sp: 0, tier: 1 };
+
+  var treeObj = pkmn.skillTree[roleKeyLower];
+  treeObj.sp = (treeObj.sp || 0) + modifierCost; // rev.2 修正：質變 3 SP 亦計入樹存款
+  treeObj.tier = getTreeTierV31(treeObj.sp);
+  pkmn.skillTree[roleKeyUpper] = treeObj;
+
+  if (typeof _skillTreeDirty !== 'undefined') _skillTreeDirty = true;
+  if (typeof sfx !== 'undefined' && sfx.levelup) sfx.levelup();
+  if (typeof renderSkillTree === 'function') renderSkillTree();
+  if (typeof saveSkillTreeState === 'function') saveSkillTreeState();
+
+  if (typeof saveEventToFirestore !== 'undefined' && pkmnId) {
+    saveEventToFirestore({
+      studentId: (typeof globalData !== 'undefined' && globalData) ? globalData.studentId : '?',
+      action: 'SKILL_MODIFIER',
+      score: 0, expGained: 0, coinsGained: 0, badgeChange: 0,
+      note: pkmnId + ':' + moveName + ':' + branchName + ':' + modifierCost
+    });
+  }
+
+  if (typeof toast === 'function') {
+    toast('✨ ' + moveName + ' 解鎖質變分支【' + branchName + '】！');
+  }
+
+  return { success: true, branch: branchName, cost: modifierCost };
+}
+
+window.applySkillModifierV31 = applySkillModifierV31;
+window.applySkillModifier = applySkillModifierV31;
+
 function learnSkillTreeNode(nodeName) {
   if (!_skillTreePkmnId) return;
   var roster = globalData.roster || [];
@@ -10160,6 +10239,8 @@ function resetActiveSkillTree() {
     }
     pkmn.skillPoints = (pkmn.skillPoints || 0) + refundSp;
     pkmn.learnedMoves = {};
+    pkmn.secondPicks = {};
+    pkmn.modifiers = {};
     _skillTreeDirty = true;
     sfx.levelup();
     renderSkillTree();
