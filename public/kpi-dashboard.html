@@ -1476,12 +1476,43 @@ async function fetchStudentData(studentId, pendingEvent) {
     }
   } catch(eState) { console.warn("State recalculation warning:", eState); }
 
-  // Seamlessly merge saved skill tree state (learnedMoves, skillTree, skillPoints) into active roster
+  if (!globalData) {
+    globalData = { studentId: studentId, roster: [] };
+  }
+
+  // Normalize roster to Array
+  if (globalData.roster && !Array.isArray(globalData.roster)) {
+    var rosterArr = [];
+    for (var rk in globalData.roster) {
+      if (globalData.roster[rk] && typeof globalData.roster[rk] === 'object') {
+        rosterArr.push(globalData.roster[rk]);
+      }
+    }
+    globalData.roster = rosterArr;
+  }
+
+  // Default Roster Guarantee
+  if (!globalData.roster || globalData.roster.length === 0) {
+    globalData.roster = [{ id: "P0", baseName: "🐾 伊布 (一般系)", totalExp: 0, initialLevel: 5, currentLevel: 5, expProgress: 0, expNeeded: 500, catchDate: "初始夥伴", skillPoints: 100, totalSpEarned: 100, evoStage: 0, learnedMoves: {}, equippedMoves: [] }];
+  }
+
+  // Admin Roster Guarantee (Includes P0, P1, P2, P3, P4)
+  if (isAdmin && globalData.roster.length <= 1) {
+    globalData.roster = [
+      { id: "P0", baseName: "🐾 伊布 (一般系)", totalExp: 0, initialLevel: 5, currentLevel: 5, expProgress: 0, expNeeded: 500, catchDate: "初始夥伴", skillPoints: 100, totalSpEarned: 100, evoStage: 0, learnedMoves: {}, equippedMoves: [] },
+      { id: "P1", baseName: "🔥 小火龍 (火系)", totalExp: 50000, initialLevel: 5, currentLevel: 54, expProgress: 0, expNeeded: 500, catchDate: "管理員測試隊伍", skillPoints: 245, totalSpEarned: 245, evoStage: 0, learnedMoves: {}, equippedMoves: [] },
+      { id: "P2", baseName: "🐎 小火馬 (火系)", totalExp: 50000, initialLevel: 5, currentLevel: 54, expProgress: 0, expNeeded: 500, catchDate: "管理員測試隊伍", skillPoints: 245, totalSpEarned: 245, evoStage: 0, learnedMoves: {}, equippedMoves: [] },
+      { id: "P3", baseName: "💧 水伊布 (水系)", totalExp: 20000, initialLevel: 5, currentLevel: 23, expProgress: 0, expNeeded: 500, catchDate: "管理員測試隊伍", skillPoints: 90, totalSpEarned: 90, evoStage: 1, learnedMoves: {}, equippedMoves: [] },
+      { id: "P4", baseName: "⚡ 皮卡丘 (電系)", totalExp: 30000, initialLevel: 5, currentLevel: 35, expProgress: 0, expNeeded: 500, catchDate: "管理員測試隊伍", skillPoints: 120, totalSpEarned: 120, evoStage: 0, learnedMoves: {}, equippedMoves: [] }
+    ];
+  }
+
+  // Seamlessly merge saved skill tree state into active roster AFTER recalculation & guarantees
   var savedRosterStr = localStorage.getItem("kpi_roster_" + studentId);
-  if (savedRosterStr && globalData && globalData.roster && globalData.roster.length > 0) {
+  if (savedRosterStr && globalData && globalData.roster) {
     try {
       var savedRoster = JSON.parse(savedRosterStr);
-      if (Array.isArray(savedRoster)) {
+      if (Array.isArray(savedRoster) && savedRoster.length > 0) {
         for (var sRi = 0; sRi < savedRoster.length; sRi++) {
           var sPkmn = savedRoster[sRi];
           var matchPkmn = globalData.roster.find(function(p){
@@ -1494,49 +1525,12 @@ async function fetchStudentData(studentId, pendingEvent) {
             if (sPkmn.modifiers) matchPkmn.modifiers = sPkmn.modifiers;
             if (sPkmn.skillPoints !== undefined) matchPkmn.skillPoints = sPkmn.skillPoints;
             if (sPkmn.totalSpEarned !== undefined) matchPkmn.totalSpEarned = sPkmn.totalSpEarned;
+          } else {
+            globalData.roster.push(sPkmn);
           }
         }
       }
     } catch(eRoster) {}
-  }
-
-    if (!globalData) {
-    globalData = {
-      studentId: studentId, roster: [], highestLevel: 5, lockedGymLevel: 5, coins: 0, badges: 0,
-      potions: 0, revives: 0, candies: 0, maxPotions: 0, maxRevives: 0, expSharePurchased: false,
-      hasExpertBelt: false, hasEviolite: false, hasChampionCloak: false, hasAmuletCoin: false,
-      oranBerries: 0, cheriBerries: 0, lumBerries: 0, chilanBerries: 0, memoryCapsules: 0,
-      hasFocusSash: false, hasEjectButton: false, hasRockyHelmet: false, hasWeaknessPolicy: false,
-      tms: {}, pokemonTMs: {}, todayStatus: "PENDING", todayBattles: 0, weekGymWins: 0, weekBossWins: 0,
-      monthLeagueWins: 0, leagueRegionsWon: {}, masters8Completed: [], masters8Progress: []
-    };
-    if (typeof EVO_ITEMS !== "undefined") {
-      for (var ei4 in EVO_ITEMS) globalData[ei4] = false;
-    }
-  }
-
-  // Restore saved local roster if present BEFORE Admin default override
-  var savedRosterStr = localStorage.getItem("kpi_roster_" + studentId);
-  if (savedRosterStr) {
-    try {
-      var savedRoster = JSON.parse(savedRosterStr);
-      if (Array.isArray(savedRoster) && savedRoster.length > 0) {
-        globalData.roster = savedRoster;
-      }
-    } catch(eRoster) {}
-  }
-
-  // Default & Admin Roster Guarantee
-  if (!globalData.roster || !globalData.roster.length) {
-    globalData.roster = [{ id: "P0", baseName: "🐾 伊布 (一般系)", totalExp: 0, initialLevel: 5, currentLevel: 5, expProgress: 0, expNeeded: 500, catchDate: "初始夥伴" }];
-  }
-  if (isAdmin && (!globalData.roster || globalData.roster.length <= 1)) {
-    globalData.roster = [
-      { id: "P1", baseName: "🔥 小火龍 (火系)", totalExp: 50000, initialLevel: 5, currentLevel: 54, expProgress: 0, expNeeded: 500, catchDate: "管理員測試隊伍", skillPoints: 245, totalSpEarned: 245, evoStage: 0, learnedMoves: {}, equippedMoves: [] },
-      { id: "P2", baseName: "🐎 小火馬 (火系)", totalExp: 50000, initialLevel: 5, currentLevel: 54, expProgress: 0, expNeeded: 500, catchDate: "管理員測試隊伍", skillPoints: 245, totalSpEarned: 245, evoStage: 0, learnedMoves: {}, equippedMoves: [] },
-      { id: "P3", baseName: "💧 水伊布 (水系)", totalExp: 20000, initialLevel: 5, currentLevel: 23, expProgress: 0, expNeeded: 500, catchDate: "管理員測試隊伍", skillPoints: 90, totalSpEarned: 90, evoStage: 1, learnedMoves: {}, equippedMoves: [] },
-      { id: "P4", baseName: "⚡ 皮卡丘 (電系)", totalExp: 30000, initialLevel: 5, currentLevel: 35, expProgress: 0, expNeeded: 500, catchDate: "管理員測試隊伍", skillPoints: 120, totalSpEarned: 120, evoStage: 0, learnedMoves: {}, equippedMoves: [] }
-    ];
   }
 
   // Safe TM Data Restore
@@ -10010,7 +10004,8 @@ function getLearnedMoveRecord(pkmn, moveName, role) {
 
   var legacyRec = pkmn.learnedMoves[moveName];
   if (legacyRec) {
-    if (!legacyRec.role || String(legacyRec.role).toUpperCase() === roleUpper) {
+    var recRole = (legacyRec.role || legacyRec.source || '').toUpperCase();
+    if (!recRole || recRole === roleUpper) {
       return legacyRec;
     }
   }
@@ -10584,9 +10579,21 @@ function confirmStPkmnSwitch() {
 }
 
 function saveSkillTreeState() {
-  if (!_skillTreeDirty || !_skillTreePkmnId) return;
-  scheduleStudentFieldUpdate({ roster: globalData.roster });
-  _skillTreeDirty = false;
+  if (!globalData || !globalData.roster) return;
+  var sid = globalData.studentId || 'Admin';
+  try {
+    localStorage.setItem("kpi_roster_" + sid, JSON.stringify(globalData.roster));
+    sessionStorage.removeItem("kpi_cache_" + sid);
+  } catch(e) { console.warn("Local roster save error:", e); }
+  if (typeof db !== "undefined" && db && sid) {
+    try {
+      db.collection("kpi_students").doc(sid).set({ roster: globalData.roster }, { merge: true }).catch(function(){});
+    } catch(eDb) {}
+  }
+  if (typeof _skillTreeDirty !== "undefined") {
+    if (_skillTreeDirty) scheduleStudentFieldUpdate({ roster: globalData.roster });
+    _skillTreeDirty = false;
+  }
 }
 
 // ===== Phase 3: 戰鬥 FP 條 =====

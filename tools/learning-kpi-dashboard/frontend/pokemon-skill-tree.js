@@ -55,8 +55,12 @@ var SPECIES_TAGS = {
   mew:        { tags: ['BIPEDAL_CLAW', 'TAIL', 'LEGEND'] },
 };
 function getSpeciesTags(rawName) {   // 中文名→標籤，找不到回 []（通用招仍可學）
-  var key = (rawName || '').replace(/[（(].*?[)）]/g, '').trim(); // 去括號系名（沿用現行正規化）
+  var key = (typeof getRawName === 'function') ? getRawName(rawName) : (rawName || '').replace(/^[^一-龥a-zA-Z0-9]+/, '').replace(/[（(].*?[)）]/g, '').trim();
   var rec = SPECIES_TAGS[key] || SPECIES_TAGS[rawName];
+  if (!rec && key) {
+    var cleanName = key.replace(/[^a-zA-Z0-9一-龥]/g, '').trim();
+    rec = SPECIES_TAGS[cleanName];
+  }
   return rec ? rec.tags : [];
 }
 
