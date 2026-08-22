@@ -9605,7 +9605,8 @@ function renderSkillTree() {
           var opt = tierSixNodes[s];
           var optName = opt.name || "?";
           var isEligibleOpt = opt.eligible !== false;
-          var isPickedOpt = !!(pkmn.learnedMoves && pkmn.learnedMoves[optName]);
+          var optRec = getLearnedMoveRecord(pkmn, optName, activeRoleUpper);
+          var isPickedOpt = !!optRec;
           var optCls = "st-node move-opt";
           if (!isEligibleOpt) optCls += " locked";
           else if (isPickedOpt) optCls += " learned";
@@ -9623,7 +9624,7 @@ function renderSkillTree() {
             canvasHtml += optName;
             if (isPickedOpt) {
               canvasHtml += " <b>✓已選</b>";
-              var optRec = pkmn.learnedMoves[optName];
+              var optRec = getLearnedMoveRecord(pkmn, optName, activeRoleUpper);
               var optLv = optRec ? (optRec.level || 1) : 1;
               canvasHtml += " <small style='color:#8e44ad;'>Lv." + optLv + "/5</small>";
               if (optLv < 5) {
@@ -9970,6 +9971,21 @@ function findChoice(node, moveName) {
   return null;
 }
 
+
+function getLearnedMoveRecord(pkmn, moveName, role) {
+  if (!pkmn || !pkmn.learnedMoves) return null;
+  var roleUpper = (role || _skillTreeActiveTab || 'ATK').toUpperCase();
+  var scopedKey = roleUpper + ':' + moveName;
+  if (pkmn.learnedMoves[scopedKey]) return pkmn.learnedMoves[scopedKey];
+
+  // Legacy single key check: only if role matches
+  var legacyRec = pkmn.learnedMoves[moveName];
+  if (legacyRec && legacyRec.role && String(legacyRec.role).toUpperCase() === roleUpper) {
+    return legacyRec;
+  }
+  return null;
+}
+
 function countPicks(pkmn, role, tier) {
   if (!pkmn || !pkmn.learnedMoves) return 0;
   var count = 0;
@@ -10016,7 +10032,7 @@ function learnSkillTreeNodeV31(moveName, tier, role, pkmnOverride) {
     return { success: false, reason: 'MORPHOLOGY_MISMATCH' };
   }
 
-  if (pkmn.learnedMoves && pkmn.learnedMoves[moveName]) {
+  if (getLearnedMoveRecord(pkmn, moveName, role)) {
     if (typeof toast === 'function') toast('已學會此招式');
     return { success: false, reason: 'ALREADY_LEARNED' };
   }
@@ -10039,7 +10055,9 @@ function learnSkillTreeNodeV31(moveName, tier, role, pkmnOverride) {
   }
 
   if (!pkmn.learnedMoves) pkmn.learnedMoves = {}; pkmn.secondPicks = {}; pkmn.modifiers = {};
-  pkmn.learnedMoves[moveName] = { level: 1, learnedAt: Date.now(), tier: tier, role: role };
+  var scopedKey = role + ':' + moveName;
+  pkmn.learnedMoves[scopedKey] = { level: 1, learnedAt: Date.now(), tier: tier, role: role, name: moveName };
+  pkmn.learnedMoves[moveName] = pkmn.learnedMoves[scopedKey];
 
   pkmn.skillPoints = (pkmn.skillPoints || 0) - cost;
 
@@ -10103,7 +10121,9 @@ function upgradeMoveInSkillTreeV31(moveName, pkmnOverride) {
   if (!pkmn) return { success: false, reason: 'NO_POKEMON' };
   if (!pkmnId && pkmn.id) pkmnId = pkmn.id;
 
-  if (!pkmn.learnedMoves || !pkmn.learnedMoves[moveName]) {
+  var scopedKey = (_skillTreeActiveTab || 'ATK').toUpperCase() + ':' + moveName;
+  var rec = pkmn.learnedMoves ? (pkmn.learnedMoves[scopedKey] || pkmn.learnedMoves[moveName]) : null;
+  if (!rec) {
     if (typeof toast === 'function') toast('尚未學會此招式');
     return { success: false, reason: 'NOT_LEARNED' };
   }
@@ -10179,7 +10199,9 @@ function applySkillModifierV31(moveName, branchName, pkmnOverride) {
   if (!pkmn) return { success: false, reason: 'NO_POKEMON' };
   if (!pkmnId && pkmn.id) pkmnId = pkmn.id;
 
-  if (!pkmn.learnedMoves || !pkmn.learnedMoves[moveName]) {
+  var scopedKey = (_skillTreeActiveTab || 'ATK').toUpperCase() + ':' + moveName;
+  var rec = pkmn.learnedMoves ? (pkmn.learnedMoves[scopedKey] || pkmn.learnedMoves[moveName]) : null;
+  if (!rec) {
     if (typeof toast === 'function') toast('尚未學會此招式');
     return { success: false, reason: 'NOT_LEARNED' };
   }
