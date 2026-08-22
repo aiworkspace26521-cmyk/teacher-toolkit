@@ -577,7 +577,7 @@
     <div id="stCanvas" class="st-canvas"></div>
     <div id="stPreview" class="st-preview-card" style="display:none;"></div>
   </div>
-  <button class="close-btn" onclick="closeModal('skillTreeModal');saveSkillTreeState();">關閉</button>
+  <button class="close-btn" onclick="saveSkillTreeState();closeModal('skillTreeModal');">關閉</button>
 </div></div>
 
 <div id="trophyModal" class="modal"><div class="modal-content" style="border-color:#f39c12;">
@@ -9992,8 +9992,8 @@ function calculateMoveSynergyV33(learnedMovesMap, optName, tier, role, pkmnType)
     return nameStr.replace(/^(ATK|SPA|BUF|DIS|ULT):/, '');
   });
 
-  // 生存/輔助防禦招式（如守住、充電、變硬、替身）不顯示攻擊性連攜，保持介面乾淨
-  if (/^守住$|^替身$|^充電$|^變硬$|^影子分身$|^哈欠$|^叫聲$|^甩尾$/.test(optName)) {
+  // 生存/輔助防禦招式（如守住、變硬、替身）不顯示攻擊性連攜，保持介面乾淨
+  if (/^守住$|^替身$|^變硬$|^影子分身$|^哈欠$/.test(optName)) {
     return null;
   }
 
@@ -10023,10 +10023,18 @@ function calculateMoveSynergyV33(learnedMovesMap, optName, tier, role, pkmnType)
     return { badge: '🔗 彈射連攜 範圍+1', color: '#e67e22' };
   }
 
-  // 5. 流派五：【弱點干擾流】(前置：叫聲、甩尾、挑釁、煙幕)
-  var hasDebuffStance = learnedNames.some(function(n) { return /叫聲|甩尾|挑釁|煙幕/.test(n); });
-  if (hasDebuffStance && (role === 'DIS' || /電磁波|劇毒|清除之煙|黑霧|滅亡之歌|咆哮/.test(optName))) {
-    return { badge: '🔗 弱點壓制 控場+1回合', color: '#16a085' };
+  // 5. 流派五：【弱點降防流】(前置：甩尾、叫聲、挑釁、煙幕)
+  var hasDebuffStance = learnedNames.some(function(n) { return /甩尾|叫聲|挑釁|煙幕/.test(n); });
+  if (hasDebuffStance) {
+    if (/雷電拳|伏特攻擊|二連擊|瘋狂伏特|攀瀑|閃焰衝鋒|近身戰/.test(optName)) {
+      return { badge: '🔗 破防連攜 物理傷+20%', color: '#27ae60' };
+    }
+    if (/充電|光合作用|自我再生/.test(optName)) {
+      return { badge: '🔗 蓄能連攜 SP回復+1', color: '#8e44ad' };
+    }
+    if (role === 'DIS' || /電磁波|劇毒|清除之煙|黑霧|滅亡之歌|咆哮/.test(optName)) {
+      return { badge: '🔗 弱點壓制 控場+1回合', color: '#16a085' };
+    }
   }
 
   // 6. 領域場地專屬連攜
@@ -10110,7 +10118,7 @@ function learnSkillTreeNodeV31(moveName, tier, role, pkmnOverride) {
     return { success: false, reason: 'EVO_STAGE_LOCKED' };
   }
 
-  if (!pkmn.learnedMoves) pkmn.learnedMoves = {}; pkmn.secondPicks = {}; pkmn.modifiers = {};
+  if (!pkmn.learnedMoves) pkmn.learnedMoves = {}; if (!pkmn.secondPicks) pkmn.secondPicks = {}; if (!pkmn.modifiers) pkmn.modifiers = {};
   var scopedKey = role + ':' + moveName;
   pkmn.learnedMoves[scopedKey] = { level: 1, learnedAt: Date.now(), tier: tier, role: role, name: moveName };
   pkmn.learnedMoves[moveName] = pkmn.learnedMoves[scopedKey];
