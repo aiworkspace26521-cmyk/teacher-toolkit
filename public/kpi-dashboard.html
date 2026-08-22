@@ -9543,7 +9543,7 @@ function renderSkillTree() {
   var activeTree = tree.trees[_skillTreeActiveTab];
   if (!activeTree) { $("stCanvas").innerHTML = "暫無資料"; return; }
   var activeStData = pkmn.skillTree && pkmn.skillTree[_skillTreeActiveTab] ? pkmn.skillTree[_skillTreeActiveTab] : { sp: 0, tier: 1 };
-  var currentTierVal = getTreeTier(activeStData);
+  var currentTierVal = (window.V31_FLAGS && window.V31_FLAGS.SP_ECONOMY_90) ? getTreeTierV31(activeStData.sp || 0) : getTreeTier(activeStData);
   var currentSp = activeStData.sp || 0;
 
   var canvasHtml = "";
@@ -9645,13 +9645,17 @@ function renderSkillTree() {
               }
             }
           }
-                    // v3.3 Synergy Badge Rendering
+                    // v3.3 Synergy Badge Rendering (Complete T1->T2 Linking)
           if (isTierUnlocked && !isTierLocked && t >= 2 && pkmn.learnedMoves) {
             var learnedNames = Object.keys(pkmn.learnedMoves);
             if (learnedNames.includes('電擊') && (optName === '瘋狂伏特' || optName === '十萬伏特')) {
-              canvasHtml += ' <span style="font-size:10px;background:#f39c12;color:white;padding:1px 4px;border-radius:3px;margin-left:2px;">🔗 麻痺連攜 +25%</span>';
+              canvasHtml += ' <span style="font-size:10px;background:#f39c12;color:white;padding:1px 5px;border-radius:3px;margin-left:4px;font-weight:bold;">🔗 麻痺連攜 +25%</span>';
             } else if (learnedNames.includes('電光一閃') && (optName === '伏特交換' || optName === '電球')) {
-              canvasHtml += ' <span style="font-size:10px;background:#2980b9;color:white;padding:1px 4px;border-radius:3px;margin-left:2px;">🔗 速攻連攜 SP-1</span>';
+              canvasHtml += ' <span style="font-size:10px;background:#2980b9;color:white;padding:1px 5px;border-radius:3px;margin-left:4px;font-weight:bold;">🔗 速攻連攜 SP-1</span>';
+            } else if (learnedNames.includes('撞擊') && (optName === '雷電拳' || optName === '伏特攻擊')) {
+              canvasHtml += ' <span style="font-size:10px;background:#e74c3c;color:white;padding:1px 5px;border-radius:3px;margin-left:4px;font-weight:bold;">🔗 破甲連攜 防穿+20%</span>';
+            } else if (learnedNames.includes('甩尾') && (optName === '充電' || optName === '電氣場地')) {
+              canvasHtml += ' <span style="font-size:10px;background:#8e44ad;color:white;padding:1px 5px;border-radius:3px;margin-left:4px;font-weight:bold;">🔗 弱點連攜 回復+1</span>';
             }
           }
           canvasHtml += "</div>";
