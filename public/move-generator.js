@@ -139,7 +139,7 @@
 
     for (var i = 0; i < TYPES.length; i++) {
       var type = TYPES[i];
-      if (!window.TIER_MATRIX_V31[type] || type !== '火') {
+      if (!window.TIER_MATRIX_V31[type]) {
         window.TIER_MATRIX_V31[type] = generateMovesForType(type);
       }
     }
