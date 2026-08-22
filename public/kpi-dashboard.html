@@ -9988,47 +9988,58 @@ function calculateMoveSynergyV33(learnedMovesMap, optName, tier, role, pkmnType)
 
   var learnedNames = learnedKeys.map(function(k) {
     var rec = learnedMovesMap[k];
-    return (rec && rec.name) ? rec.name : k.replace(/^(ATK|SPA|BUF|DIS|ULT):/, '');
+    var nameStr = (rec && typeof rec === 'object' && rec.name) ? rec.name : String(k);
+    return nameStr.replace(/^(ATK|SPA|BUF|DIS|ULT):/, '');
   });
 
-  // 1. 先制速攻連攜 (Speed / Priority Link)
-  var hasSpeedPre = learnedNames.some(function(n) { return /電光一閃|水流噴射|影子分身|高速|二連擊|飛翔|疾風|電擊波|電球|神速|燕返/.test(n); });
-  if (hasSpeedPre && /雷電拳|伏特攻擊|二連擊|瘋狂伏特|伏特交換|電球|電漿閃光|水流尾|攀瀑|烈焰衝擊|飛葉快刀|劈開|泰山壓頂/.test(optName)) {
+  // 生存/輔助防禦招式（如守住、充電、變硬、替身）不顯示攻擊性連攜，保持介面乾淨
+  if (/^守住$|^替身$|^充電$|^變硬$|^影子分身$|^哈欠$|^叫聲$|^甩尾$/.test(optName)) {
+    return null;
+  }
+
+  // 1. 流派一：【先制速攻流】(前置：電光一閃、水流噴射、高速移動)
+  var hasSpeedStance = learnedNames.some(function(n) { return /電光一閃|水流噴射|高速移動|影子分身/.test(n); });
+  if (hasSpeedStance && /伏特攻擊|二連擊|伏特交換|電漿閃光|疾風|燕返|高速|十萬伏特/.test(optName)) {
     return { badge: '🔗 速攻連攜 SP-1', color: '#2980b9' };
   }
 
-  // 2. 元素控場連攜 (Element / Control Link)
-  var hasElemPre = learnedNames.some(function(n) { return /電擊|水槍|火花|細雪|藤鞭|念力|毒針|起風|大地|金屬|暗影|妖精|龍之|撞擊/.test(n); });
-  if (hasElemPre && /十萬伏特|打雷|瘋狂雷霆|水炮|大字爆|日光束|暴風雪|地震|加農光炮|精神強念|龍之波動|破壞光線|瘋狂伏特/.test(optName)) {
+  // 2. 流派二：【控場元素流】(前置：電擊、水槍、火花、細雪、藤鞭)
+  var hasControlStance = learnedNames.some(function(n) { return /電擊|水槍|火花|細雪|藤鞭|催眠粉/.test(n); });
+  if (hasControlStance && /瘋狂伏特|十萬伏特|打雷|瘋狂雷霆|水炮|大字爆|暴風雪|日光束/.test(optName)) {
     var elemPct = tier >= 4 ? '+30%' : '+25%';
-    return { badge: '🔗 元素連攜 ' + elemPct, color: '#f39c12' };
+    return { badge: '🔗 麻痺連攜 ' + elemPct, color: '#f39c12' };
   }
 
-  // 3. 破甲重擊連攜 (Armor Penetration / Heavy Physical Link)
-  var hasHeavyPre = learnedNames.some(function(n) { return /撞擊|抓|甩尾|叫聲|拍擊|泰山壓頂|劈開|猛撞|近身戰|地震/.test(n); });
-  if (hasHeavyPre && (role === 'ATK' || /雷電拳|伏特攻擊|瘋狂雷霆|雷霆爆發|攀瀑|水流裂破|閃焰衝鋒|近身戰|終極衝擊/.test(optName))) {
+  // 3. 流派三：【重擊破甲流】(前置：撞擊、抓、拍擊)
+  var hasHeavyStance = learnedNames.some(function(n) { return /撞擊|抓|拍擊/.test(n); });
+  if (hasHeavyStance && /雷電拳|攀瀑|閃焰衝鋒|近身戰|雷霆爆發|終極衝擊/.test(optName)) {
     var penPct = tier >= 4 ? '防穿+30%' : '防穿+20%';
     return { badge: '🔗 破甲連攜 ' + penPct, color: '#e74c3c' };
   }
 
-  // 4. 領域場地連攜 (Field / Terrain Link)
+  // 4. 流派四：【彈射爆破流】(前置：電球、水之波動、覺醒力量)
+  var hasBurstStance = learnedNames.some(function(n) { return /電球|水之波動|覺醒力量/.test(n); });
+  if (hasBurstStance && /伏特攻擊|十萬伏特|電弧脈衝|閃電爆裂|極致打雷|起源波動|水漩渦/.test(optName)) {
+    return { badge: '🔗 彈射連攜 範圍+1', color: '#e67e22' };
+  }
+
+  // 5. 流派五：【弱點干擾流】(前置：叫聲、甩尾、挑釁、煙幕)
+  var hasDebuffStance = learnedNames.some(function(n) { return /叫聲|甩尾|挑釁|煙幕/.test(n); });
+  if (hasDebuffStance && (role === 'DIS' || /電磁波|劇毒|清除之煙|黑霧|滅亡之歌|咆哮/.test(optName))) {
+    return { badge: '🔗 弱點壓制 控場+1回合', color: '#16a085' };
+  }
+
+  // 6. 領域場地專屬連攜
   if (/電氣場地|青草場地|薄霧場地|精神場地|求雨|大晴天|沙暴|雪景/.test(optName)) {
     return { badge: '🔗 領域連攜 全隊增傷+15%', color: '#8e44ad' };
   }
 
-  // 5. 干擾弱點連攜 (Debuff / Disruption Link)
-  var hasDebuffPre = learnedNames.some(function(n) { return /叫聲|甩尾|挑釁|煙幕|黑霧|劇毒|哈欠|怪異之光|黑色眼光/.test(n); });
-  if (hasDebuffPre && (role === 'DIS' || /電磁波|劇毒|挑釁|滅亡之歌|清除之煙|吹飛|咆哮|壓制/.test(optName))) {
-    return { badge: '🔗 弱點壓制 控場+1回合', color: '#16a085' };
-  }
-
-  // 6. 奧義共鳴連攜 (Ultimate Resonance Link)
-  if (tier === 5) {
+  // 7. 頂階奧義共鳴 (T5 專屬)
+  if (tier === 5 && (role === 'ULT' || /交錯閃電|千雷轟頂|交錯雷霆毀滅|起源水之毀滅|森林神毀滅|創世毀滅/.test(optName))) {
     return { badge: '🔗 奧義共鳴 傷害+35%', color: '#d35400' };
   }
 
-  // 預設通用屬性共鳴 (Fallback Type Resonance)
-  return { badge: '🔗 屬性連攜 威力+20%', color: '#f39c12' };
+  return null;
 }
 
 function countPicks(pkmn, role, tier) {
