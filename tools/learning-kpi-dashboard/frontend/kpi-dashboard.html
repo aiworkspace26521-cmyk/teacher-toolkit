@@ -9613,10 +9613,10 @@ function renderSkillTree() {
 
           var optOnClick = "";
           if (isEligibleOpt && !isPickedOpt && isTierUnlocked && !isTierLocked) {
-            optOnClick = "learnSkillTreeNodeV31('" + optName + "', " + t + ", '" + activeRoleUpper + "')";
+            optOnClick = "learnSkillTreeNodeV31('" + optName.replace(/'/g, "\\'") + "', " + t + ", '" + activeRoleUpper + "')";
           }
 
-          canvasHtml += "<div class='" + optCls + "' data-move='" + optName + "' onclick='sfx.click();" + optOnClick + "'>";
+          canvasHtml += '<div class="' + optCls + '" data-move="' + optName.replace(/"/g, '&quot;') + '" onclick="sfx.click(); ' + optOnClick + '">';
           if (!isEligibleOpt) {
             canvasHtml += "🔒 生理不符：" + optName;
           } else {
