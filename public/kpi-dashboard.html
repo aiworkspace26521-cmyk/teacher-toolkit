@@ -9646,17 +9646,25 @@ function renderSkillTree() {
               }
             }
           }
-                    // v3.3 Synergy Badge Rendering (Complete T1->T2 Linking)
+                    // v3.3 Dynamic Synergy Badge Rendering (T2~T5 Full Matrix Support)
           if (isTierUnlocked && !isTierLocked && t >= 2 && pkmn.learnedMoves) {
             var learnedNames = Object.keys(pkmn.learnedMoves);
-            if (learnedNames.includes('電擊') && (optName === '瘋狂伏特' || optName === '十萬伏特')) {
-              canvasHtml += ' <span style="font-size:10px;background:#f39c12;color:white;padding:1px 5px;border-radius:3px;margin-left:4px;font-weight:bold;">🔗 麻痺連攜 +25%</span>';
-            } else if (learnedNames.includes('電光一閃') && (optName === '伏特交換' || optName === '電球')) {
+            var hasElementControl = learnedNames.some(function(k){ return /電擊|水槍|火花|細雪|藤鞭/.test(k); });
+            var hasSpeed = learnedNames.some(function(k){ return /電光一閃|水流噴射|影子分身|高速/.test(k); });
+            var hasPhys = learnedNames.some(function(k){ return /撞擊|抓|雷電拳|二連擊/.test(k); });
+
+            if (hasElementControl && (optName === '瘋狂伏特' || optName === '十萬伏特' || optName === '打雷' || optName === '瘋狂雷霆' || optName === '水炮' || optName === '大字爆' || optName === '日光束')) {
+              var bonusPct = t >= 4 ? '+30%' : '+25%';
+              canvasHtml += ' <span style="font-size:10px;background:#f39c12;color:white;padding:1px 5px;border-radius:3px;margin-left:4px;font-weight:bold;">🔗 元素連攜 ' + bonusPct + '</span>';
+            } else if (hasSpeed && (optName === '伏特交換' || optName === '電球' || optName === '電漿閃光' || optName === '水流尾')) {
               canvasHtml += ' <span style="font-size:10px;background:#2980b9;color:white;padding:1px 5px;border-radius:3px;margin-left:4px;font-weight:bold;">🔗 速攻連攜 SP-1</span>';
-            } else if (learnedNames.includes('撞擊') && (optName === '雷電拳' || optName === '伏特攻擊')) {
-              canvasHtml += ' <span style="font-size:10px;background:#e74c3c;color:white;padding:1px 5px;border-radius:3px;margin-left:4px;font-weight:bold;">🔗 破甲連攜 防穿+20%</span>';
-            } else if (learnedNames.includes('甩尾') && (optName === '充電' || optName === '電氣場地')) {
-              canvasHtml += ' <span style="font-size:10px;background:#8e44ad;color:white;padding:1px 5px;border-radius:3px;margin-left:4px;font-weight:bold;">🔗 弱點連攜 回復+1</span>';
+            } else if (hasPhys && (optName === '雷電拳' || optName === '伏特攻擊' || optName === '雷霆爆發' || optName === '攀瀑')) {
+              var penPct = t >= 4 ? '防穿+30%' : '防穿+20%';
+              canvasHtml += ' <span style="font-size:10px;background:#e74c3c;color:white;padding:1px 5px;border-radius:3px;margin-left:4px;font-weight:bold;">🔗 破甲連攜 ' + penPct + '</span>';
+            } else if (optName === '電氣場地' || optName === '青草場地') {
+              canvasHtml += ' <span style="font-size:10px;background:#8e44ad;color:white;padding:1px 5px;border-radius:3px;margin-left:4px;font-weight:bold;">🔗 領域連攜 全隊增傷+15%</span>';
+            } else if (t === 5 && (optName === '交錯閃電' || optName === '千雷轟頂' || optName === '交錯雷霆毀滅' || optName === '起源波動')) {
+              canvasHtml += ' <span style="font-size:10px;background:#d35400;color:white;padding:1px 5px;border-radius:3px;margin-left:4px;font-weight:bold;">🔗 奧義共鳴 傷害+35%</span>';
             }
           }
           canvasHtml += "</div>";
