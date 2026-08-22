@@ -1534,7 +1534,8 @@ async function fetchStudentData(studentId, pendingEvent) {
     globalData.roster = [
       { id: "P1", baseName: "🔥 小火龍 (火系)", totalExp: 50000, initialLevel: 5, currentLevel: 54, expProgress: 0, expNeeded: 500, catchDate: "管理員測試隊伍", skillPoints: 245, totalSpEarned: 245, evoStage: 0, learnedMoves: {}, equippedMoves: [] },
       { id: "P2", baseName: "🐎 小火馬 (火系)", totalExp: 50000, initialLevel: 5, currentLevel: 54, expProgress: 0, expNeeded: 500, catchDate: "管理員測試隊伍", skillPoints: 245, totalSpEarned: 245, evoStage: 0, learnedMoves: {}, equippedMoves: [] },
-      { id: "P3", baseName: "💧 水伊布 (水系)", totalExp: 20000, initialLevel: 5, currentLevel: 23, expProgress: 0, expNeeded: 500, catchDate: "管理員測試隊伍", skillPoints: 90, totalSpEarned: 90, evoStage: 1, learnedMoves: {}, equippedMoves: [] }
+      { id: "P3", baseName: "💧 水伊布 (水系)", totalExp: 20000, initialLevel: 5, currentLevel: 23, expProgress: 0, expNeeded: 500, catchDate: "管理員測試隊伍", skillPoints: 90, totalSpEarned: 90, evoStage: 1, learnedMoves: {}, equippedMoves: [] },
+      { id: "P4", baseName: "⚡ 皮卡丘 (電系)", totalExp: 30000, initialLevel: 5, currentLevel: 35, expProgress: 0, expNeeded: 500, catchDate: "管理員測試隊伍", skillPoints: 120, totalSpEarned: 120, evoStage: 0, learnedMoves: {}, equippedMoves: [] }
     ];
   }
 
@@ -10007,10 +10008,11 @@ function getLearnedMoveRecord(pkmn, moveName, role) {
   var scopedKey = roleUpper + ':' + moveName;
   if (pkmn.learnedMoves[scopedKey]) return pkmn.learnedMoves[scopedKey];
 
-  // Legacy single key check: only if role matches
   var legacyRec = pkmn.learnedMoves[moveName];
-  if (legacyRec && legacyRec.role && String(legacyRec.role).toUpperCase() === roleUpper) {
-    return legacyRec;
+  if (legacyRec) {
+    if (!legacyRec.role || String(legacyRec.role).toUpperCase() === roleUpper) {
+      return legacyRec;
+    }
   }
   return null;
 }
