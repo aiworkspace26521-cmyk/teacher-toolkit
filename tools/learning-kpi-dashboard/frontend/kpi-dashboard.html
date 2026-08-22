@@ -9627,7 +9627,7 @@ function renderSkillTree() {
               var optLv = optRec ? (optRec.level || 1) : 1;
               canvasHtml += " <small style='color:#8e44ad;'>Lv." + optLv + "/5</small>";
               if (optLv < 5) {
-                canvasHtml += " <button class='st-upgrade-btn' style='background:#3498db;color:white;margin-left:4px;' onclick='event.stopPropagation();upgradeMoveInSkillTreeV31(\"' + optName + '\")'>+1SP 升級</button>";
+                canvasHtml += " <button class='st-upgrade-btn' style='background:#3498db;color:white;margin-left:4px;' onclick='event.stopPropagation();upgradeMoveInSkillTreeV31(\"" + optName + "\")'>+1SP 升級</button>";
               } else if (window.V31_FLAGS && window.V31_FLAGS.LV5_MODIFIER) {
                 var modSelected = pkmn.modifiers && pkmn.modifiers[optName];
                 if (modSelected) {
@@ -9638,11 +9638,20 @@ function renderSkillTree() {
                     var branches = Object.keys(optSpec.lv5_modifiers);
                     for (var bi = 0; bi < branches.length; bi++) {
                       var bName = branches[bi];
-                      canvasHtml += " <button class='st-upgrade-btn' style='background:#9b59b6;color:white;margin-left:2px;' onclick='event.stopPropagation();applySkillModifierV31(\"' + optName + '\", \"' + bName + '\")'>✨ " + bName + " (3SP)</button>";
+                      canvasHtml += " <button class='st-upgrade-btn' style='background:#9b59b6;color:white;margin-left:2px;' onclick='event.stopPropagation();applySkillModifierV31(\"" + optName + "\", \"" + bName + "\")'>✨ " + bName + " (3SP)</button>";
                     }
                   }
                 }
               }
+            }
+          }
+                    // v3.3 Synergy Badge Rendering
+          if (isTierUnlocked && !isTierLocked && t >= 2 && pkmn.learnedMoves) {
+            var learnedNames = Object.keys(pkmn.learnedMoves);
+            if (learnedNames.includes('電擊') && (optName === '瘋狂伏特' || optName === '十萬伏特')) {
+              canvasHtml += ' <span style="font-size:10px;background:#f39c12;color:white;padding:1px 4px;border-radius:3px;margin-left:2px;">🔗 麻痺連攜 +25%</span>';
+            } else if (learnedNames.includes('電光一閃') && (optName === '伏特交換' || optName === '電球')) {
+              canvasHtml += ' <span style="font-size:10px;background:#2980b9;color:white;padding:1px 4px;border-radius:3px;margin-left:2px;">🔗 速攻連攜 SP-1</span>';
             }
           }
           canvasHtml += "</div>";

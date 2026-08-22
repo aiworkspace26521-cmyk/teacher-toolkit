@@ -238,7 +238,7 @@ var allTypes18 = {
   },
   '電': {
     ATK: {
-      T1: ['電擊', '撞擊', '電光一閃', '火花', '甩尾', '叫聲'],
+      T1: ['電擊', '撞擊', '電光一閃', '電球', '甩尾', '叫聲'],
       T2: ['雷電拳', '伏特攻擊', '電球', '瘋狂伏特', '充電', '守住'],
       T3: ['十萬伏特', '伏特交換', '電磁波', '電擊波', '光牆', '替身'],
       T4: ['打雷', '瘋狂伏特', '電漿閃光', '電氣場地', '充能爆發', '黑霧'],
@@ -297,7 +297,10 @@ Object.keys(TIER_MATRIX_V31).forEach(function(typeKey){
 });
 
 // ========== v3.1 遮蔽判定 isEligible（Step 2.1） ==========
-function isEligible(speciesTags, spec) {
+function isEligible(speciesTags, spec, pokemonType) {
+  if (spec && spec.type && pokemonType && pokemonType !== '一般' && spec.type !== '一般' && spec.type !== pokemonType) {
+    return false;
+  }
   if (!spec) return true;
   var tags = speciesTags || [];
   var hasReq  = !spec.required_tags || spec.required_tags.length === 0 ||
