@@ -10351,10 +10351,17 @@ function calculateMoveSynergyV33(learnedMovesMap, optName, tier, role, pkmnType,
 
   // 2. 奧義共鳴 (T5 階層)
   if (tier === 5) {
-    var m1 = rawT1Name.match(/_T1_(\d+)$/);
+    var mPrevIndex = null;
+    for (var k = 0; k < learnedList.length; k++) {
+      var mP = learnedList[k].name.match(/_T\d+_(\d+)$/);
+      if (mP && learnedList[k].role === role) {
+        mPrevIndex = mP[1];
+        break;
+      }
+    }
     var m5 = optName.match(/_T5_(\d+)$/);
-    if (m1 && m5) {
-      if (m1[1] === m5[1] && pRole === role) {
+    if (mPrevIndex && m5) {
+      if (mPrevIndex === m5[1] && pRole === role) {
         return { badge: '🔗 ' + pName + '·奧義共鳴 傷害+35%', color: '#d35400' };
       }
       return null;

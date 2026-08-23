@@ -103,6 +103,40 @@ async function runE2EDomAudit() {
             reason: 'MULTI_OVERLAP_BADGES_IN_T3_DOM'
           });
         }
+
+        // Check T5 procedural move synergy badge alignment
+        const t3List = (roleTree.T3 || []).filter(n => (typeof n === 'object' && n) ? n.eligible !== false : true);
+        const t4List = (roleTree.T4 || []).filter(n => (typeof n === 'object' && n) ? n.eligible !== false : true);
+        const t3MoveName = t3List[0] ? (t3List[0].name || t3List[0]) : null;
+        const t4MoveName = t4List[0] ? (t4List[0].name || t4List[0]) : null;
+
+        if (t3MoveName && t4MoveName) {
+          learnSkillTreeNodeV31(t3MoveName, 3, role, dummyPkmn);
+          learnSkillTreeNodeV31(t4MoveName, 4, role, dummyPkmn);
+          renderSkillTree();
+
+          const htmlTextT5 = canvasEl.innerHTML;
+          const m1Idx = t1MoveName.match(/_T1_(\d+)$/);
+          if (m1Idx) {
+            const idxStr = m1Idx[1];
+            const opt1Name = t1MoveName.replace(/_T1_\d+$/, '_T5_1');
+            const targetOptName = t1MoveName.replace(/_T1_\d+$/, `_T5_${idxStr}`);
+            
+            const opt1Snippet = htmlTextT5.includes(`data-move="${opt1Name}"`) ? htmlTextT5.split(`data-move="${opt1Name}"`)[1].split('</div>')[0] : '';
+            const targetSnippet = htmlTextT5.includes(`data-move="${targetOptName}"`) ? htmlTextT5.split(`data-move="${targetOptName}"`)[1].split('</div>')[0] : '';
+
+            if (opt1Snippet.includes('🔗') && idxStr !== '1') {
+              failures.push({
+                name: dummyPkmn.baseName,
+                type: tName,
+                role: role,
+                t1: t1MoveName,
+                targetIndex: idxStr,
+                reason: 'T5_SYNERGY_BADGE_MISALIGNED_TO_OPTION_1'
+              });
+            }
+          }
+        }
       }
     }
 
