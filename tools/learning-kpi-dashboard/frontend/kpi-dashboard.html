@@ -3348,6 +3348,21 @@ function calculateMovePower(move, attacker, defender, isPlayerAttacker, weather)
   if (details.category !== "變化" && attacker.heldItem === "lifeOrb") {
     baseDamage = Math.floor(baseDamage * 1.3);
   }
+  // 技能樹連攜招式加成 (Move Synergy Multiplier: 奧義共鳴 +35%, 同屬連攜 +20%, 戰術連攜 +15%~25%)
+  if (isPlayerAttacker && attacker.learnedMoves && typeof calculateMoveSynergyV33 === "function") {
+    var rawMoveName = move.replace(/^(ATK|SPA|BUF|DIS|ULT):/, '');
+    var moveRec = (typeof getLearnedMoveRecord === 'function' ? getLearnedMoveRecord(attacker, rawMoveName) : null) || attacker.learnedMoves[move] || attacker.learnedMoves['ATK:' + rawMoveName];
+    if (moveRec && moveRec.tier) {
+      var primaryType = (attacker.type || attacker.baseName || '一般').replace(/^[^\w\u4e00-\u9fa5]+/, '').split(' ')[0].split('/')[0].trim();
+      var synInfo = calculateMoveSynergyV33(attacker.learnedMoves, rawMoveName, moveRec.tier, (moveRec.role || 'ATK').toUpperCase(), primaryType, attacker);
+      if (synInfo && synInfo.badge) {
+        if (synInfo.badge.indexOf('傷害+35%') !== -1) baseDamage = Math.floor(baseDamage * 1.35);
+        else if (synInfo.badge.indexOf('傷害+25%') !== -1) baseDamage = Math.floor(baseDamage * 1.25);
+        else if (synInfo.badge.indexOf('傷害+20%') !== -1) baseDamage = Math.floor(baseDamage * 1.20);
+        else if (synInfo.badge.indexOf('傷害+15%') !== -1) baseDamage = Math.floor(baseDamage * 1.15);
+      }
+    }
+  }
   var variance = 0.85 + Math.random() * 0.15;
   var finalDamage = Math.floor(baseDamage * variance);
   // 攜帶道具效果：焦點鏡（2倍會心率）+ 好感度會心率加成（每20點+0.75%）
