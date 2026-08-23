@@ -10023,17 +10023,18 @@ function calculateMoveSynergyV33(learnedMovesMap, optName, tier, role, pkmnType)
     var nameStr = (rec && typeof rec === 'object' && rec.name) ? rec.name : String(k);
     var cleanName = nameStr.replace(/^(ATK|SPA|BUF|DIS|ULT):/, '');
     var recRole = (rec && typeof rec === 'object' && rec.role) ? rec.role : (k.indexOf(':') !== -1 ? k.split(':')[0] : 'ATK');
-    return { name: cleanName, role: recRole ? recRole.toUpperCase() : 'ATK' };
+    var recTier = (rec && typeof rec === 'object' && rec.tier) ? rec.tier : 1;
+    return { name: cleanName, role: recRole ? recRole.toUpperCase() : 'ATK', tier: recTier };
   });
 
   var learnedNames = learnedList.map(function(item) { return item.name; });
 
-  // 生存/輔助防禦招式（如守住、充電、變硬、替身）不顯示攻擊性連攜，保持介面乾淨
-  if (/^守住$|^替身$|^充電$|^變硬$|^影子分身$|^哈欠$/.test(optName)) {
+  // 生存/輔助防禦招式（如守住、充電、變硬、替身、光牆）不顯示攻擊性連攜，保持介面乾淨
+  if (/^守住$|^替身$|^充電$|^變硬$|^影子分身$|^哈欠$|^光牆$/.test(optName)) {
     return null;
   }
 
-  var primaryLearned = learnedList[0];
+  var primaryLearned = learnedList[learnedList.length - 1] || learnedList[0];
   var pRole = primaryLearned ? primaryLearned.role : 'ATK';
   var rawT1Name = primaryLearned ? primaryLearned.name : '';
   var pName = rawT1Name.replace(/_T\d+_\d+$/, '');
@@ -10043,57 +10044,84 @@ function calculateMoveSynergyV33(learnedMovesMap, optName, tier, role, pkmnType)
     return { badge: '🔗 ' + pName + '·領域連攜 全隊增傷+15%', color: '#8e44ad' };
   }
 
-  // --- 專屬精確一對一流派連攜 (1-to-1 Exclusive Synergy Stream Mapping) ---
-  // A. 【叫聲 - 聲波脈衝流】(僅指向 1 個核心招式「二連擊」)
-  if (rawT1Name === '叫聲') {
+  // 2. 奧義共鳴 (T5 或 ULT 軌道)
+  if (tier === 5 || role === 'ULT' || /交錯閃電|千雷轟頂|交錯雷霆毀滅|起源水之毀滅|森林神毀滅|創世毀滅/.test(optName)) {
+    return { badge: '🔗 ' + pName + '·奧義共鳴 傷害+35%', color: '#d35400' };
+  }
+
+  // --- T2 / T3 / T4 專屬精確一對一流派連攜 (Multi-Tier Stream Mapping) ---
+  // A. 【叫聲 / 二連擊 ➡️ 聲波控場降防流】
+  if (learnedNames.indexOf('叫聲') !== -1 || learnedNames.indexOf('二連擊') !== -1) {
     if (optName === '二連擊') return { badge: '🔗 叫聲·音波降防 敵防-15%', color: '#16a085' };
-    return null;
+    if (optName === '電磁波' || (role === 'DIS' && tier === 3)) return { badge: '🔗 二連擊·音波麻痺 控場+1回合', color: '#16a085' };
+    if (tier >= 4 && (role === 'DIS' || role === 'ATK')) return { badge: '🔗 聲壓貫穿 敵防-25%', color: '#16a085' };
   }
 
-  // B. 【甩尾 - 尾擊破防流】(僅指向 1 個核心招式「二連擊」)
-  if (rawT1Name === '甩尾') {
-    if (optName === '二連擊') return { badge: '🔗 甩尾·破防連攜 物理傷+20%', color: '#27ae60' };
-    return null;
+  // B. 【甩尾 ➡️ 尾擊破防流】
+  if (learnedNames.indexOf('甩尾') !== -1) {
+    if (optName === '二連擊' || optName === '伏特攻擊') return { badge: '🔗 甩尾·破防連攜 物理傷+20%', color: '#27ae60' };
+    if (optName === '伏特交換' || (role === 'ATK' && tier === 3)) return { badge: '🔗 甩尾·破防追擊 物理傷+25%', color: '#27ae60' };
   }
 
-  // C. 【先制速攻流】(電光一閃 / 水流噴射 / 高速移動) -> 僅指向「伏特攻擊」
-  if (/^電光一閃$|^水流噴射$|^高速移動$/.test(rawT1Name)) {
-    if (optName === '伏特攻擊' || optName === '疾風' || optName === '燕返') return { badge: '🔗 ' + pName + '·速攻連攜 SP-1', color: '#2980b9' };
-    return null;
-  }
-
-  // D. 【重擊破甲流】(撞擊 / 抓 / 拍擊) -> 僅指向「雷電拳」
-  if (/^撞擊$|^抓$|^拍擊$/.test(rawT1Name)) {
+  // C. 【撞擊 / 抓 / 拍擊 ➡️ 雷電拳 / 破甲重擊流】
+  if (learnedNames.indexOf('撞擊') !== -1 || learnedNames.indexOf('雷電拳') !== -1 || learnedNames.indexOf('抓') !== -1 || learnedNames.indexOf('拍擊') !== -1) {
     if (optName === '雷電拳' || optName === '攀瀑' || optName === '閃焰衝鋒' || optName === '近身戰') {
-      var penPct = tier >= 4 ? '防穿+30%' : '防穿+20%';
-      return { badge: '🔗 ' + pName + '·破甲連攜 ' + penPct, color: '#e74c3c' };
+      return { badge: '🔗 撞擊·破甲連攜 防穿+20%', color: '#e74c3c' };
     }
-    return null;
+    if (optName === '伏特交換' || optName === '電擊波') {
+      return { badge: '🔗 雷電拳·破甲貫穿 防穿+25%', color: '#e74c3c' };
+    }
   }
 
-  // E. 【元素感電/控場流】(電擊 / 水槍 / 火花 / 細雪 / 藤鞭) -> 僅指向「瘋狂伏特」
-  if (/^電擊$|^水槍$|^火花$|^細雪$|^藤鞭$/.test(rawT1Name)) {
+  // D. 【電光一閃 / 水流噴射 ➡️ 伏特攻擊 / 先制速攻流】
+  if (learnedNames.indexOf('電光一閃') !== -1 || learnedNames.indexOf('伏特攻擊') !== -1 || learnedNames.indexOf('水流噴射') !== -1) {
+    if (optName === '伏特攻擊' || optName === '疾風' || optName === '燕返') {
+      return { badge: '🔗 電光一閃·速攻連攜 SP-1', color: '#2980b9' };
+    }
+    if (optName === '十萬伏特' && tier === 3) {
+      return { badge: '🔗 伏特攻擊·電光爆發 暴擊+15%', color: '#2980b9' };
+    }
+  }
+
+  // E. 【電擊 / 水槍 / 火花 ➡️ 瘋狂伏特 / 元素感電流】
+  if (learnedNames.indexOf('電擊') !== -1 || learnedNames.indexOf('瘋狂伏特') !== -1 || learnedNames.indexOf('水槍') !== -1 || learnedNames.indexOf('火花') !== -1) {
     if (optName === '瘋狂伏特' || optName === '十萬伏特' || optName === '打雷' || optName === '水炮' || optName === '大字爆') {
       var elemPct = tier >= 4 ? '+30%' : '+25%';
-      return { badge: '🔗 ' + pName + '·感電 ' + elemPct, color: '#f39c12' };
+      return { badge: '🔗 電擊·感電 ' + elemPct, color: '#f39c12' };
     }
-    return null;
+    if (optName === '電擊波' && tier === 3) {
+      return { badge: '🔗 瘋狂伏特·感電共鳴 傷害+20%', color: '#f39c12' };
+    }
   }
 
-  // F. 【彈射爆破流】(電球 / 水之波動 / 覺醒力量) -> 僅指向「十萬伏特」
-  if (/^電球$|^水之波動$|^覺醒力量$/.test(rawT1Name)) {
-    if (optName === '十萬伏特' || optName === '電弧脈衝' || optName === '閃電爆裂') return { badge: '🔗 ' + pName + '·彈射爆破 範圍+1', color: '#e67e22' };
-    return null;
+  // F. 【電球 ➡️ 十萬伏特 / 彈射爆破流】
+  if (learnedNames.indexOf('電球') !== -1) {
+    if (optName === '十萬伏特' || optName === '電弧脈衝') {
+      return { badge: '🔗 電球·彈射爆破 範圍+1', color: '#e67e22' };
+    }
   }
 
-  // --- 動態程序化招式索引一對一對應保底 (Procedural 1-to-1 Synergy Pairing) ---
-  var m1 = rawT1Name.match(/_T1_(\d+)$/);
-  var m2 = optName.match(/_T2_(\d+)$/);
-  if (m1 && m2) {
-    if (m1[1] === m2[1] && pRole === role) {
-      return { badge: '🔗 ' + pName + '·流派共鳴 傷害+20%', color: '#2980b9' };
+  // --- 動態程序化招式跨階層連攜保底 (Gen 2~9 Procedural Multi-Tier Synergy Matcher) ---
+  for (var i = learnedList.length - 1; i >= 0; i--) {
+    var lObj = learnedList[i];
+    var lRaw = lObj.name;
+    var lName = lRaw.replace(/_T\d+_\d+$/, '');
+    var mPrev = lRaw.match(/_T(\d+)_(\d+)$/);
+    var mCurr = optName.match(/_T(\d+)_(\d+)$/);
+
+    if (mPrev && mCurr) {
+      var prevTier = parseInt(mPrev[1], 10);
+      var currTier = parseInt(mCurr[1], 10);
+      var prevIdx = mPrev[2];
+      var currIdx = mCurr[2];
+
+      if (currTier === prevTier + 1 && prevIdx === currIdx && lObj.role === role) {
+        return { badge: '🔗 ' + lName + '·流派晉升 傷害+25%', color: '#2980b9' };
+      }
+      if (currTier > prevTier && prevIdx === currIdx && lObj.role === role) {
+        return { badge: '🔗 ' + lName + '·流派共鳴 傷害+20%', color: '#2980b9' };
+      }
     }
-    return null;
   }
 
   return null;
