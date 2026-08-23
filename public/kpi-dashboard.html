@@ -10063,46 +10063,55 @@ function calculateMoveSynergyV33(learnedMovesMap, optName, tier, role, pkmnType)
     return null;
   }
 
-  // --- 經典招式全屬性專屬一對一流牌連攜 (Universal Classic Move Synergy Matrix) ---
+  // --- 經典招式全屬性專屬一對一流牌連攜 (Universal Classic Multi-Tier Stream Matrix) ---
   // 水系 (Water Classic Stream)
-  if (learnedNames.indexOf('水之波動') !== -1) {
+  if (learnedNames.indexOf('水之波動') !== -1 || learnedNames.indexOf('水流噴射') !== -1) {
     if (optName === '水流噴射') return { badge: '🔗 水之波動·波動共鳴 傷害+20%', color: '#2980b9' };
+    if (optName === '攀瀑' || optName === '濁流') return { badge: '🔗 水流噴射·極速衝擊 傷害+25%', color: '#2980b9' };
+    if (optName === '水炮' || optName === '水流裂破') return { badge: '🔗 攀瀑·水龍怒濤 防穿+25%', color: '#2980b9' };
   }
-  if (learnedNames.indexOf('泡泡') !== -1 || learnedNames.indexOf('水槍') !== -1) {
+  if (learnedNames.indexOf('泡泡') !== -1 || learnedNames.indexOf('水槍') !== -1 || learnedNames.indexOf('泡沫光線') !== -1) {
     if (optName === '泡沫光線') return { badge: '🔗 水槍·衝擊連攜 傷害+20%', color: '#2980b9' };
+    if (optName === '水之誓約') return { badge: '🔗 泡沫光線·水浪共鳴 傷害+25%', color: '#2980b9' };
+    if (optName === '蒸氣爆炸') return { badge: '🔗 水之誓約·熱浪灼燒 傷害+30%', color: '#2980b9' };
   }
 
   // 電系 (Electric Classic Stream)
-  if (learnedNames.indexOf('叫聲') !== -1 || learnedNames.indexOf('二連擊') !== -1) {
+  if (learnedNames.indexOf('叫聲') !== -1 || learnedNames.indexOf('二連擊') !== -1 || learnedNames.indexOf('電磁波') !== -1) {
     if (optName === '二連擊') return { badge: '🔗 叫聲·音波降防 敵防-15%', color: '#16a085' };
     if (optName === '電磁波') return { badge: '🔗 二連擊·音波麻痺 控場+1回合', color: '#16a085' };
     if (optName === '黑霧' || optName === '咆哮') return { badge: '🔗 電磁波·聲壓貫穿 敵防-25%', color: '#16a085' };
   }
-  if (learnedNames.indexOf('甩尾') !== -1) {
+  if (learnedNames.indexOf('甩尾') !== -1 || learnedNames.indexOf('伏特攻擊') !== -1) {
     if (optName === '水之尾' || (optName === '伏特攻擊' && pkmnType.indexOf('電') !== -1)) return { badge: '🔗 甩尾·破防連攜 物理傷+20%', color: '#27ae60' };
+    if (optName === '伏特交換') return { badge: '🔗 伏特攻擊·破防追擊 物理傷+25%', color: '#27ae60' };
+    if (optName === '雷霆爆發') return { badge: '🔗 伏特交換·重擊破防 物理傷+30%', color: '#27ae60' };
   }
   if (learnedNames.indexOf('撞擊') !== -1 || learnedNames.indexOf('雷電拳') !== -1) {
     if (optName === '雷電拳' || optName === '貝殼刃') return { badge: '🔗 撞擊·破甲連攜 防穿+20%', color: '#e74c3c' };
+    if (optName === '電擊波') return { badge: '🔗 雷電拳·破甲貫穿 防穿+25%', color: '#e74c3c' };
   }
   if (learnedNames.indexOf('電光一閃') !== -1 || learnedNames.indexOf('伏特攻擊') !== -1) {
     if (optName === '伏特攻擊' || optName === '疾風') return { badge: '🔗 電光一閃·速攻連攜 SP-1', color: '#2980b9' };
+    if (optName === '十萬伏特' && tier === 3) return { badge: '🔗 伏特攻擊·電光爆發 暴擊+15%', color: '#2980b9' };
   }
   if (learnedNames.indexOf('電擊') !== -1 || learnedNames.indexOf('瘋狂伏特') !== -1) {
     if (optName === '瘋狂伏特') return { badge: '🔗 電擊·感電 +25%', color: '#f39c12' };
-  }
-  if (learnedNames.indexOf('電球') !== -1) {
-    if (optName === '十萬伏特') return { badge: '🔗 電球·彈射爆破 範圍+1', color: '#e67e22' };
+    if (optName === '打雷' || optName === '瘋狂雷霆') return { badge: '🔗 電擊波·元素過載 傷害+30%', color: '#f39c12' };
   }
 
   // 草系/火系/超能系/通用經典招式
   if (learnedNames.indexOf('藤鞭') !== -1 || learnedNames.indexOf('飛葉快刀') !== -1) {
     if (optName === '飛葉快刀') return { badge: '🔗 藤鞭·草木共鳴 傷害+20%', color: '#27ae60' };
+    if (optName === '終極吸取' || optName === '日光束') return { badge: '🔗 飛葉快刀·自然吸取 傷害+25%', color: '#27ae60' };
   }
   if (learnedNames.indexOf('火花') !== -1 || learnedNames.indexOf('噴射火焰') !== -1) {
     if (optName === '噴射火焰') return { badge: '🔗 火花·灼熱共鳴 傷害+20%', color: '#e74c3c' };
+    if (optName === '閃焰衝鋒' || optName === '大字爆') return { badge: '🔗 噴射火焰·爆炎爆破 傷害+25%', color: '#e74c3c' };
   }
   if (learnedNames.indexOf('念力') !== -1 || learnedNames.indexOf('精神強念') !== -1) {
     if (optName === '精神強念') return { badge: '🔗 念力·心靈貫穿 防穿+20%', color: '#9b59b6' };
+    if (optName === '幻象光線' || optName === '精神利刃') return { badge: '🔗 精神強念·念力爆發 傷害+25%', color: '#9b59b6' };
   }
 
   // --- 動態程序化招式跨階層連攜保底 (Gen 2~9 Procedural Multi-Tier Synergy Matcher) ---

@@ -5,7 +5,7 @@ const fs = require('fs');
 async function auditSynergyGraph() {
   const localFile = 'file:///' + path.resolve(__dirname, '../../../public/kpi-dashboard.html').replace(/\\/g, '/');
   console.log(`\n================================================================================`);
-  console.log(`🔍 [pokemon-move-synergy-auditor] 全 18 屬性 + 全圖鑑真實寶可夢 T1~T5 自動化稽核`);
+  console.log(`🔍 [pokemon-move-synergy-auditor] 全圖鑑漸進式流派升級 (T1➡️T2➡️T3➡️T4➡️T5) 自動化稽核`);
   console.log(`================================================================================`);
 
   const browser = await chromium.launch({ headless: true });
@@ -15,161 +15,87 @@ async function auditSynergyGraph() {
   await page.waitForTimeout(3000);
 
   const auditReport = await page.evaluate(() => {
-    const allTypes = Object.keys(TIER_MATRIX_V31);
-    const results = {};
     const roles = ['ATK', 'SPA', 'BUF', 'DIS', 'ULT'];
     const defRegex = /^守住$|^替身$|^充電$|^變硬$|^影子分身$|^哈欠$|^光牆$|^水流環$/;
-
-    // 1. Audit Tier Matrix across 18 Types
-    allTypes.forEach(typeName => {
-      const typeTree = TIER_MATRIX_V31[typeName] || {};
-      const report = {
-        typeName: typeName,
-        t1Moves: [],
-        movesByTier: { 2: [], 3: [], 4: [], 5: [] },
-        mTo1OverlapsByTier: { 2: [], 3: [], 4: [], 5: [] },
-        overCoverageByTier: { 2: [], 3: [], 4: [], 5: [] },
-        orphanMovesByTier: { 2: [], 3: [], 4: [], 5: [] }
-      };
-
-      for (let t = 1; t <= 5; t++) {
-        roles.forEach(r => {
-          const roleData = typeTree[r] || {};
-          const moves = roleData['T' + t] || [];
-          moves.forEach(m => {
-            if (t === 1) {
-              if (!report.t1Moves.some(existing => existing.name === m)) {
-                report.t1Moves.push({ name: m, role: r });
-              }
-            } else {
-              if (!report.movesByTier[t].some(existing => existing.name === m)) {
-                report.movesByTier[t].push({ name: m, role: r });
-              }
-            }
-          });
-        });
-      }
-
-      for (let t = 2; t <= 5; t++) {
-        const targetMoves = report.movesByTier[t];
-        const moveTriggeredCount = {};
-        targetMoves.forEach(m => moveTriggeredCount[m.name] = 0);
-
-        const t1ToSynergiesMap = {};
-
-        report.t1Moves.forEach(t1Obj => {
-          const t1Name = t1Obj.name;
-          t1ToSynergiesMap[t1Name] = [];
-          const fakeLearned = {};
-          fakeLearned[t1Obj.role + ':' + t1Name] = { name: t1Name, level: 3, tier: 1, role: t1Obj.role };
-
-          targetMoves.forEach(targetObj => {
-            const targetName = targetObj.name;
-            const syn = calculateMoveSynergyV33(fakeLearned, targetName, t, targetObj.role, typeName);
-            if (syn) {
-              t1ToSynergiesMap[t1Name].push({ target: targetName, role: targetObj.role, badge: syn.badge });
-              moveTriggeredCount[targetName] = (moveTriggeredCount[targetName] || 0) + 1;
-            }
-          });
-        });
-
-        Object.keys(moveTriggeredCount).forEach(targetName => {
-          if (moveTriggeredCount[targetName] === 0 && !defRegex.test(targetName)) {
-            report.orphanMovesByTier[t].push(targetName);
-          }
-        });
-
-        const badgeTargetMap = {};
-        Object.keys(t1ToSynergiesMap).forEach(t1Name => {
-          t1ToSynergiesMap[t1Name].forEach(synObj => {
-            const key = synObj.target + '::' + synObj.badge;
-            badgeTargetMap[key] = badgeTargetMap[key] || [];
-            badgeTargetMap[key].push(t1Name);
-          });
-        });
-
-        Object.keys(badgeTargetMap).forEach(key => {
-          const sources = badgeTargetMap[key];
-          if (sources.length > 1) {
-            const parts = key.split('::');
-            report.mTo1OverlapsByTier[t].push({ target: parts[0], badge: parts[1], sources: sources });
-          }
-        });
-
-        Object.keys(t1ToSynergiesMap).forEach(t1Name => {
-          const targets = t1ToSynergiesMap[t1Name];
-          if (targets.length > 2) {
-            report.overCoverageByTier[t].push({
-              t1Name: t1Name,
-              count: targets.length,
-              targets: targets.map(tgt => tgt.target + ' (' + tgt.badge + ')')
-            });
-          }
-        });
-      }
-
-      results[typeName] = report;
-    });
-
-    // 2. Audit Real Roster Pokemon Trees (Vaporeon, Pikachu, Flareon, Jolteon, etc.)
     const rosterOrphans = [];
+    const rosterMultiOverlaps = [];
+
     if (typeof POKEMON_DATABASE !== 'undefined') {
       Object.keys(POKEMON_DATABASE).forEach(pId => {
         const pkmn = POKEMON_DATABASE[pId];
-        const resolvedTree = typeof resolveSkillTreeV31 === 'function' ? resolveSkillTreeV31(pkmn) : null;
-        if (!resolvedTree) return;
+        const tree = typeof resolveSkillTreeV31 === 'function' ? resolveSkillTreeV31(pkmn) : null;
+        if (!tree) return;
 
         roles.forEach(r => {
-          const t1List = resolvedTree[r] ? resolvedTree[r].T1 : [];
-          const t2List = resolvedTree[r] ? resolvedTree[r].T2 : [];
+          const roleTree = tree[r] || {};
+          const t1List = roleTree.T1 || [];
 
           t1List.forEach(t1Opt => {
             const t1Name = t1Opt.name || t1Opt;
-            const fakeLearned = {};
-            fakeLearned[r + ':' + t1Name] = { name: t1Name, level: 3, tier: 1, role: r };
+            let currentLearned = {};
+            currentLearned[r + ':' + t1Name] = { name: t1Name, level: 3, tier: 1, role: r };
 
-            let triggeredCount = 0;
-            t2List.forEach(t2Opt => {
-              const t2Name = t2Opt.name || t2Opt;
-              if (defRegex.test(t2Name)) return;
-              const syn = calculateMoveSynergyV33(fakeLearned, t2Name, 2, r, pkmn.type || pkmn.types);
-              if (syn) triggeredCount++;
-            });
+            // Simulate progression through T2, T3, T4, T5
+            for (let tier = 2; tier <= 5; tier++) {
+              const tierList = roleTree['T' + tier] || [];
+              const validTargets = tierList.filter(m => !defRegex.test(m.name || m));
+              if (validTargets.length === 0) continue;
 
-            if (triggeredCount === 0) {
-              rosterOrphans.push({ pkmn: pkmn.name || pkmn.baseName, t1Name, role: r });
+              let matchedMoves = [];
+              validTargets.forEach(tOpt => {
+                const targetName = tOpt.name || tOpt;
+                const syn = calculateMoveSynergyV33(currentLearned, targetName, tier, r, pkmn.type || pkmn.types);
+                if (syn) {
+                  matchedMoves.push({ targetName, badge: syn.badge });
+                }
+              });
+
+              // Check 1: Must have AT LEAST 1 synergy move in target tier (No Orphans)
+              if (matchedMoves.length === 0) {
+                rosterOrphans.push({
+                  pkmn: pkmn.name || pkmn.baseName,
+                  role: r,
+                  tier: tier,
+                  learned: Object.keys(currentLearned)
+                });
+              }
+
+              // Check 2: Must NOT have > 2 synergy moves in target tier (No Over-coverage)
+              if (matchedMoves.length > 2) {
+                rosterMultiOverlaps.push({
+                  pkmn: pkmn.name || pkmn.baseName,
+                  role: r,
+                  tier: tier,
+                  count: matchedMoves.length,
+                  matches: matchedMoves
+                });
+              }
+
+              // Advance to next stream head (learn the first matched move for next tier test)
+              if (matchedMoves.length > 0) {
+                const nextHead = matchedMoves[0].targetName;
+                currentLearned[r + ':' + nextHead] = { name: nextHead, level: 3, tier: tier, role: r };
+              }
             }
           });
         });
       });
     }
 
-    return { typeResults: results, rosterOrphans };
+    return { rosterOrphans, rosterMultiOverlaps };
   });
 
-  // Print Summary Analysis
   console.log(`\n================================================================================`);
-  console.log(`📊 全 18 屬性與真實圖鑑寶可夢連攜審查結果:`);
+  console.log(`📊 全圖鑑真實寶可夢 (含水伊布、皮卡丘) 漸進式流派升級測試結果:`);
   console.log(`================================================================================`);
+  console.log(`  - 漸進解鎖無連攜 (Orphan Stream Steps): ${auditReport.rosterOrphans.length} 處`);
+  console.log(`  - 漸進解鎖過度發放 (Over-coverage Steps): ${auditReport.rosterMultiOverlaps.length} 處`);
 
-  let totalMTo1 = 0;
-  let totalOverCoverage = 0;
-  let totalOrphans = 0;
-
-  Object.keys(auditReport.typeResults).forEach(typeName => {
-    const rep = auditReport.typeResults[typeName];
-    for (let t = 2; t <= 5; t++) {
-      totalMTo1 += rep.mTo1OverlapsByTier[t].length;
-      totalOverCoverage += rep.overCoverageByTier[t].length;
-      totalOrphans += rep.orphanMovesByTier[t].length;
-    }
-  });
-
-  console.log(`  - 全 18 屬性矩陣多對一重複 (M-to-1): ${totalMTo1} 處`);
-  console.log(`  - 全 18 屬性矩陣過度發放 (Over-Coverage): ${totalOverCoverage} 處`);
-  console.log(`  - 全圖鑑真實寶可夢 (包含水伊布) 無連攜 T1 招式: ${auditReport.rosterOrphans.length} 個`);
   if (auditReport.rosterOrphans.length > 0) {
-    console.log(`    ⚠️ 真實寶可夢無連攜詳情:`, JSON.stringify(auditReport.rosterOrphans));
+    console.log(`    ⚠️ 無連攜步驟詳情:`, JSON.stringify(auditReport.rosterOrphans, null, 2));
+  }
+  if (auditReport.rosterMultiOverlaps.length > 0) {
+    console.log(`    ⚠️ 過度發放步驟詳情:`, JSON.stringify(auditReport.rosterMultiOverlaps, null, 2));
   }
 
   console.log(`================================================================================\n`);
@@ -178,7 +104,7 @@ async function auditSynergyGraph() {
 
   await browser.close();
 
-  return { totalMTo1, totalOverCoverage, rosterOrphansCount: auditReport.rosterOrphans.length };
+  return { orphanCount: auditReport.rosterOrphans.length, overCount: auditReport.rosterMultiOverlaps.length };
 }
 
 auditSynergyGraph();

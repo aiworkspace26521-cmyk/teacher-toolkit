@@ -4,7 +4,7 @@ const path = require('path');
 async function verifyVaporeonSynergyUiDom() {
   const localFile = 'file:///' + path.resolve(__dirname, '../../../../public/kpi-dashboard.html').replace(/\\/g, '/');
   console.log(`\n================================================================================`);
-  console.log(`🤖 [Task 3] 實機 DOM 驗證：水伊布 T1 水之波動 ➡️ T2 水流噴射 獨占連攜測試`);
+  console.log(`🤖 [Task 3] 實機 DOM 驗證：水伊布 T3 8 SP 解鎖 (水之波動 ➡️ 水流噴射 ➡️ 攀瀑/濁流連攜測試)`);
   console.log(`================================================================================`);
 
   const browser = await chromium.launch({ headless: true });
@@ -23,42 +23,50 @@ async function verifyVaporeonSynergyUiDom() {
       globalData.roster.push(p);
     }
     openSkillTree(p.id);
+    selectSkillTreeTab('atk');
 
     const pkmn = getPkmnById(_skillTreePkmnId);
     if (!pkmn) return { error: 'pkmn null' };
 
-    // Select the tab that contains 水之波動 (which is ATK in UI or SPA)
-    const tree = resolveSkillTreeV31(pkmn);
-    const atkRole = tree.ATK.T1.some(m => (m.name || m) === '水之波動') ? 'atk' : 'spa';
-    selectSkillTreeTab(atkRole);
+    // Set 8 SP invested so T3 is unlocked
+    pkmn.skillTree = {
+      atk: { sp: 8, tier: 3 },
+      ATK: { sp: 8, tier: 3 },
+      spa: { sp: 0, tier: 1 },
+      buf: { sp: 0, tier: 1 },
+      dis: { sp: 0, tier: 1 },
+      ult: { sp: 0, tier: 1 }
+    };
 
-    pkmn.skillTree = pkmn.skillTree || {};
-    pkmn.skillTree[atkRole] = { sp: 3, tier: 2 };
+    // Learn T1 Water Pulse (水之波動) + T2 Aqua Jet (水流噴射)
     pkmn.learnedMoves = {
       "ATK:水之波動": { name: "水之波動", level: 3, tier: 1, role: "ATK" },
-      "SPA:水之波動": { name: "水之波動", level: 3, tier: 1, role: "SPA" }
+      "ATK:水流噴射": { name: "水流噴射", level: 4, tier: 2, role: "ATK" }
     };
 
     renderSkillTree();
 
-    const nodes = Array.from(document.querySelectorAll('.st-node')).map(n => n.textContent.trim());
+    const nodeT2AquaJet = document.querySelector('.st-node[data-move="水流噴射"]');
+    const nodeT3Waterfall = document.querySelector('.st-node[data-move="攀瀑"]');
+    const nodeT3MuddyWater = document.querySelector('.st-node[data-move="濁流"]');
 
     return {
-      atkRole,
-      nodes,
-      tree
+      textT2AquaJet: nodeT2AquaJet ? nodeT2AquaJet.textContent : '',
+      textT3Waterfall: nodeT3Waterfall ? nodeT3Waterfall.textContent : '',
+      textT3MuddyWater: nodeT3MuddyWater ? nodeT3MuddyWater.textContent : ''
     };
   });
 
-  console.log(`  - 水伊布 技能樹頁籤:`, res.atkRole);
-  console.log(`  - 技能樹節點列表:`, res.nodes);
+  console.log(`  - 學習 水之波動(T1) + 水流噴射(T2) 後，T2 水流噴射 DOM:`, res.textT2AquaJet);
+  console.log(`  - 8 SP 解鎖 T3 後，T3 攀瀑 DOM:`, res.textT3Waterfall);
+  console.log(`  - 8 SP 解鎖 T3 後，T3 濁流 DOM:`, res.textT3MuddyWater);
 
-  const hasSynergy = res.nodes.some(text => text.includes('水之波動·波動共鳴') || text.includes('水槍·衝擊連攜') || text.includes('水之波動'));
-  console.log(`  - 水伊布 T2 連攜標籤 DOM 渲染測試: ${hasSynergy ? '✅ 100% PASS' : '❌ FAIL'}`);
+  const isPass = res.textT3Waterfall.includes('水流噴射·極速衝擊') || res.textT3MuddyWater.includes('水流噴射·極速衝擊');
+  console.log(`  - 水伊布 T3 漸進連攜標籤 DOM 渲染測試: ${isPass ? '✅ 100% PASS' : '❌ FAIL'}`);
 
   await browser.close();
 
-  if (!hasSynergy) throw new Error('水伊布水之波動連攜標籤未正確渲染在 T2 招式上！');
+  if (!isPass) throw new Error('水伊布 T3 攀瀑/濁流連攜標籤未正確渲染！');
 }
 
 verifyVaporeonSynergyUiDom();
