@@ -4,7 +4,7 @@ const path = require('path');
 async function verifySynergyUiDom() {
   const localFile = 'file:///' + path.resolve(__dirname, '../../../../public/kpi-dashboard.html').replace(/\\/g, '/');
   console.log(`\n================================================================================`);
-  console.log(`🤖 [Task 3] 實機 DOM 驗證：皮卡丘 T1 叫聲 + T2 二連擊 ➡️ T3 電磁波連攜遞延測試`);
+  console.log(`🤖 [Task 3] 實機 DOM 驗證：皮卡丘 T4 15 SP 解鎖精確 1對1 連攜測試`);
   console.log(`================================================================================`);
 
   const browser = await chromium.launch({ headless: true });
@@ -24,42 +24,46 @@ async function verifySynergyUiDom() {
     const pkmn = getPkmnById(_skillTreePkmnId);
     if (!pkmn) return { error: 'pkmn null' };
 
-    // Set 8 SP invested so T3 is unlocked
+    // Set 15 SP invested so T4 is unlocked
     pkmn.skillTree = {
-      atk: { sp: 8, tier: 3 },
-      ATK: { sp: 8, tier: 3 },
+      atk: { sp: 15, tier: 4 },
+      ATK: { sp: 15, tier: 4 },
       spa: { sp: 0, tier: 1 },
       buf: { sp: 0, tier: 1 },
       dis: { sp: 0, tier: 1 },
       ult: { sp: 0, tier: 1 }
     };
 
-    // Learn T1 Growl (叫聲) Lv3 & T2 Double Hit (二連擊) Lv4
+    // Learn T1 Growl (叫聲) + T2 Double Hit (二連擊) + T3 Electromagnetic Wave (電磁波)
     pkmn.learnedMoves = {
       "ATK:叫聲": { name: "叫聲", level: 3, tier: 1, role: "ATK" },
-      "ATK:二連擊": { name: "二連擊", level: 4, tier: 2, role: "ATK" }
+      "ATK:二連擊": { name: "二連擊", level: 4, tier: 2, role: "ATK" },
+      "ATK:電磁波": { name: "電磁波", level: 5, tier: 3, role: "ATK" }
     };
 
     renderSkillTree();
 
-    const nodeT2DoubleHit = document.querySelector('.st-node[data-move="二連擊"]');
-    const nodeT3Wave = document.querySelector('.st-node[data-move="電磁波"]');
+    const nodeT4Thunder = document.querySelector('.st-node[data-move="打雷"]');
+    const nodeT4Plasma = document.querySelector('.st-node[data-move="電漿閃光"]');
+    const nodeT4BlackFog = document.querySelector('.st-node[data-move="黑霧"]');
 
     return {
-      textT2DoubleHit: nodeT2DoubleHit ? nodeT2DoubleHit.textContent : '',
-      textT3Wave: nodeT3Wave ? nodeT3Wave.textContent : ''
+      textT4Thunder: nodeT4Thunder ? nodeT4Thunder.textContent : '',
+      textT4Plasma: nodeT4Plasma ? nodeT4Plasma.textContent : '',
+      textT4BlackFog: nodeT4BlackFog ? nodeT4BlackFog.textContent : ''
     };
   });
 
-  console.log(`  - 學習 T1「叫聲」+ T2「二連擊」後，T2 二連擊 DOM 標籤:`, res.textT2DoubleHit);
-  console.log(`  - 解鎖 8 SP (T3) 後，T3 電磁波 DOM 標籤:`, res.textT3Wave);
+  console.log(`  - 學習 叫聲/二連擊/電磁波 後，T4 打雷 DOM:`, res.textT4Thunder);
+  console.log(`  - 學習 叫聲/二連擊/電磁波 後，T4 電漿閃光 DOM:`, res.textT4Plasma);
+  console.log(`  - 學習 叫聲/二連擊/電磁波 後，T4 黑霧 DOM:`, res.textT4BlackFog);
 
-  const isT3Pass = res.textT3Wave.includes('二連擊·音波麻痺');
-  console.log(`  - 跨階層 T3 流派連攜繼承 DOM 渲染測試: ${isT3Pass ? '✅ 100% PASS' : '❌ FAIL'}`);
+  const isPass = !res.textT4Thunder.includes('聲壓貫穿') && res.textT4BlackFog.includes('電磁波·聲壓貫穿');
+  console.log(`  - T4 1對1 精確連攜不濫發 DOM 渲染測試: ${isPass ? '✅ 100% PASS' : '❌ FAIL'}`);
 
   await browser.close();
 
-  if (!isT3Pass) throw new Error('T3 DOM 渲染未正確顯示跨階層連攜！');
+  if (!isPass) throw new Error('T4 招式存在過度發放與重複連攜標籤！');
 }
 
 verifySynergyUiDom();
