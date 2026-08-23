@@ -9849,67 +9849,228 @@ function renderSkillTree() {
   renderEquipEditor(pkmn);
 }
 
+var _moveLibTab = 'all';
+var _showEquipEditor = false;
+
+function setMoveLibraryTab(tab) {
+  _moveLibTab = tab;
+  var roster = (globalData && globalData.roster) || [];
+  var pkmn = null;
+  for (var ri = 0; ri < roster.length; ri++) { if (roster[ri].id === _skillTreePkmnId) { pkmn = roster[ri]; break; } }
+  if (pkmn) renderEquipEditor(pkmn);
+}
+
+function moveEquipSlot(idx, direction) {
+  if (!_skillTreePkmnId) return;
+  var roster = (globalData && globalData.roster) || [];
+  var pkmn = null;
+  for (var ri = 0; ri < roster.length; ri++) { if (roster[ri].id === _skillTreePkmnId) { pkmn = roster[ri]; break; } }
+  if (!pkmn || !pkmn.equippedMoves) return;
+  var target = idx + direction;
+  if (target < 0 || target >= pkmn.equippedMoves.length) return;
+  var temp = pkmn.equippedMoves[idx];
+  pkmn.equippedMoves[idx] = pkmn.equippedMoves[target];
+  pkmn.equippedMoves[target] = temp;
+  _skillTreeDirty = true;
+  renderEquipEditor(pkmn);
+}
+
 function renderEquipEditor(pkmn) {
+  var equipped = pkmn.equippedMoves || [];
+  var effectiveMoves = getEffectivePokemonMoves(pkmn);
+  var maxFp = typeof calcMaxFp !== "undefined" ? calcMaxFp(pkmn.currentLevel || 5) : (100 + (pkmn.currentLevel || 5) * 3);
+  
+  // Calculate total FP cost of equipped moves
+  var totalFpCost = 0;
+  for (var fi = 0; fi < effectiveMoves.length; fi++) {
+    totalFpCost += typeof getMoveFpCostHelper !== "undefined" ? getMoveFpCostHelper(effectiveMoves[fi]) : 10;
+  }
+
+  // Gather move library
   var learnedMap = pkmn.learnedMoves || {};
   var tmKeys = pkmn.tmMoves || [];
-  var allMoveKeys = [];
-  var tmSet = {};
+  var nativeSet = getPokemonMoveset(pkmn.baseName, pkmn.currentLevel || 5);
+  
+  var moveLibrary = [];
   var seen = {};
 
-  Object.keys(learnedMap).forEach(function(k){
-    if (!learnedMap[k]) return;
-    var rec = learnedMap[k];
-    var moveName = rec.name || k.replace(/^[A-Za-z]+:/, '');
-    if (!seen[moveName]) {
-      seen[moveName] = true;
-      allMoveKeys.push(moveName);
+  // 1. Native species moves
+  nativeSet.forEach(function(m) {
+    if (!seen[m]) {
+      seen[m] = true;
+      moveLibrary.push({ name: m, source: 'native', sourceName: '天賦' });
     }
   });
 
-  tmKeys.forEach(function(k){
+  // 2. Skill Tree moves
+  Object.keys(learnedMap).forEach(function(k) {
+    if (!learnedMap[k]) return;
+    var rec = learnedMap[k];
+    var mName = rec.name || k.replace(/^[A-Za-z]+:/, '');
+    if (!seen[mName]) {
+      seen[mName] = true;
+      moveLibrary.push({ name: mName, source: 'tree', sourceName: '修煉' });
+    } else {
+      for (var lIdx = 0; lIdx < moveLibrary.length; lIdx++) {
+        if (moveLibrary[lIdx].name === mName) { moveLibrary[lIdx].source = 'tree'; moveLibrary[lIdx].sourceName = '修煉'; }
+      }
+    }
+  });
+
+  // 3. TM moves
+  tmKeys.forEach(function(k) {
     var cleanK = k.replace(/^[A-Za-z]+:/, '');
     if (!seen[cleanK]) {
       seen[cleanK] = true;
-      allMoveKeys.push(cleanK);
-      tmSet[cleanK] = true;
+      moveLibrary.push({ name: cleanK, source: 'tm', sourceName: 'TM' });
     }
   });
 
-  var equipped = pkmn.equippedMoves || [];
-  var eqHtml = "";
-  eqHtml += "<div style='margin-top:10px;border-top:2px dashed #ddd;padding-top:8px;'>";
-  eqHtml += "<div style='display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;'>";
-  eqHtml += "<strong style='font-size:13px;'>✋ 攜帶招式 <span style='font-size:11px;color:#888;'>(" + equipped.length + "/6)</span></strong>";
-  eqHtml += "<button class='st-sp-btn' style='background:#8e44ad;color:white;font-size:11px;' onclick=\"toggleEquipEditor()\">" + (_showEquipEditor ? "收起 ▲" : "編輯 ✏️") + "</button>";
-  eqHtml += "</div>";
-  eqHtml += "<div id='stEquipEditor' style='display:" + (_showEquipEditor ? "block" : "none") + ";'>";
-  if (allMoveKeys.length === 0) {
-    eqHtml += "<div style='font-size:12px;color:#999;padding:4px 0;'>尚未學習任何招式</div>";
-  } else {
-    eqHtml += "<div style='font-size:11px;color:#888;margin-bottom:4px;'>勾選欲攜帶的招式（最多 6 招）：</div>";
-    for (var ei = 0; ei < allMoveKeys.length; ei++) {
-      var mn = allMoveKeys[ei];
-      var isTm = tmSet[mn];
-      var isEq = equipped.indexOf(mn) !== -1;
-      var canSelect = !isEq && equipped.length >= 6;
-      var moveRec = (typeof getLearnedMoveRecord === 'function' ? getLearnedMoveRecord(pkmn, mn) : null) || (pkmn.learnedMoves && (pkmn.learnedMoves[mn] || pkmn.learnedMoves['ATK:' + mn] || pkmn.learnedMoves['SPA:' + mn]));
+  // Filter move library by _moveLibTab
+  var filteredLib = moveLibrary.filter(function(item) {
+    if (_moveLibTab === 'native') return item.source === 'native';
+    if (_moveLibTab === 'tree') return item.source === 'tree';
+    if (_moveLibTab === 'tm') return item.source === 'tm';
+    return true;
+  });
+
+  var typeColors = { "一般":"#a8a878","火":"#f08030","水":"#6890f0","草":"#78c850","電":"#f8d030","冰":"#98d8d8","格鬥":"#c03028","毒":"#a040a0","地面":"#e0c068","飛行":"#a890f0","超能力":"#f85888","蟲":"#a8b820","岩石":"#b8a038","幽靈":"#705898","龍":"#7038f8","惡":"#705848","鋼":"#b8b8d0","妖精":"#ee99ac" };
+  var catIcons = {"物理":"⚔️","特殊":"🔮","變化":"🔄"};
+
+  // ----------------------------------------------------
+  // HTML BUILD: SECTION 1 (6-SLOT MOVE DECK PANEL)
+  // ----------------------------------------------------
+  var deckSlotsHtml = "";
+  for (var slotIdx = 0; slotIdx < 6; slotIdx++) {
+    var isCustomEquipped = slotIdx < equipped.length;
+    var moveName = isCustomEquipped ? equipped[slotIdx] : (slotIdx < effectiveMoves.length ? effectiveMoves[slotIdx] : null);
+    
+    if (moveName) {
+      var md = typeof getMoveDetails !== "undefined" ? getMoveDetails(moveName) : { type: '一般', category: '物理', power: 40 };
+      var fpVal = typeof getMoveFpCostHelper !== "undefined" ? getMoveFpCostHelper(moveName) : 10;
+      var moveRec = (typeof getLearnedMoveRecord === 'function' ? getLearnedMoveRecord(pkmn, moveName) : null) || (pkmn.learnedMoves && (pkmn.learnedMoves[moveName] || pkmn.learnedMoves['ATK:' + moveName]));
       var moveLv = (moveRec && moveRec.level) || 1;
-      eqHtml += "<label style='display:flex;align-items:center;gap:6px;padding:3px 6px;border-radius:4px;font-size:12px;cursor:" + (canSelect ? "not-allowed" : "pointer") + ";background:" + (isEq ? "#eafaf1" : "transparent") + ";margin:2px 0;'>";
-      eqHtml += "<input type='checkbox' " + (isEq ? "checked" : "") + " " + (canSelect ? "disabled" : "") + " onchange=\"toggleEquipMove('" + mn + "', this.checked)\" style='accent-color:#8e44ad;'>";
-      eqHtml += mn + " <small style='color:#666;'>Lv." + moveLv + "</small>";
-      if (isTm) eqHtml += " <span style='color:#8e44ad;font-size:9px;font-weight:700;'>TM</span>";
-      eqHtml += "</label>";
+      var mtCol = typeColors[md.type] || '#999';
+
+      deckSlotsHtml += "<div style='background:white; border:1px solid " + (isCustomEquipped ? "#8e44ad" : "#ccc") + "; border-radius:6px; padding:5px 6px; font-size:11px; position:relative; box-shadow:0 1px 3px rgba(0,0,0,0.05);'>";
+      deckSlotsHtml += "<div style='font-size:9px; color:#888; display:flex; justify-content:space-between; margin-bottom:2px;'>";
+      deckSlotsHtml += "<span style='font-weight:700;'>SLOT " + (slotIdx + 1) + "</span>";
+      deckSlotsHtml += isCustomEquipped 
+        ? "<span style='color:#8e44ad; font-weight:700;'>⭐ 自訂裝備</span>" 
+        : "<span style='color:#7f8c8d;'>➕ 自動補足</span>";
+      deckSlotsHtml += "</div>";
+
+      deckSlotsHtml += "<div style='font-weight:700; font-size:12px; margin-bottom:2px; display:flex; justify-content:space-between; align-items:center;'>";
+      deckSlotsHtml += "<span style='color:#2c3e50;'>" + moveName + " <small style='color:#666;'>Lv." + moveLv + "</small></span>";
+      deckSlotsHtml += "<span style='background:#8e44ad; color:white; padding:0 4px; border-radius:3px; font-size:9px; font-weight:700;'>🔮 FP" + fpVal + "</span>";
+      deckSlotsHtml += "</div>";
+
+      deckSlotsHtml += "<div style='display:flex; justify-content:space-between; align-items:center;'>";
+      deckSlotsHtml += "<div><span style='background:" + mtCol + "; color:white; padding:0 4px; border-radius:3px; font-size:9px;'>" + md.type + "</span> <span style='font-size:9px; color:#666;'>" + (catIcons[md.category] || '') + "</span></div>";
+      
+      if (isCustomEquipped) {
+        deckSlotsHtml += "<div style='display:flex; gap:2px;'>";
+        if (slotIdx > 0) deckSlotsHtml += "<button onclick=\"moveEquipSlot(" + slotIdx + ", -1)\" style='border:none; background:#eee; font-size:9px; padding:1px 4px; border-radius:2px; cursor:pointer;'>◄</button>";
+        if (slotIdx < equipped.length - 1) deckSlotsHtml += "<button onclick=\"moveEquipSlot(" + slotIdx + ", 1)\" style='border:none; background:#eee; font-size:9px; padding:1px 4px; border-radius:2px; cursor:pointer;'>►</button>";
+        deckSlotsHtml += "<button onclick=\"toggleEquipMove('" + moveName + "', false)\" style='border:none; background:#e74c3c; color:white; font-size:9px; padding:1px 4px; border-radius:2px; cursor:pointer;' title='卸下招式'>✕</button>";
+        deckSlotsHtml += "</div>";
+      } else {
+        deckSlotsHtml += "<button onclick=\"toggleEquipMove('" + moveName + "', true)\" style='border:none; background:#8e44ad; color:white; font-size:9px; padding:1px 5px; border-radius:2px; cursor:pointer;'>⭐ 鎖定</button>";
+      }
+      deckSlotsHtml += "</div>";
+      deckSlotsHtml += "</div>";
+    } else {
+      deckSlotsHtml += "<div style='background:#f9f9f9; border:1px dashed #ccc; border-radius:6px; padding:6px; text-align:center; color:#aaa; font-size:10px; display:flex; flex-direction:column; justify-content:center; align-items:center;'>";
+      deckSlotsHtml += "<div style='font-weight:700;'>SLOT " + (slotIdx + 1) + "</div>";
+      deckSlotsHtml += "<div>➕ 未裝備</div>";
+      deckSlotsHtml += "</div>";
     }
   }
-  eqHtml += "</div></div>";
-  // Append to skill tree body (after stPreview)
+
+  // ----------------------------------------------------
+  // HTML BUILD: SECTION 2 (UNLOCKED MOVE LIBRARY PANEL)
+  // ----------------------------------------------------
+  var libCardsHtml = "";
+  for (var libIdx = 0; libIdx < filteredLib.length; libIdx++) {
+    var item = filteredLib[libIdx];
+    var mn = item.name;
+    var isEq = equipped.indexOf(mn) !== -1;
+    var canSelect = !isEq && equipped.length >= 6;
+    var md = typeof getMoveDetails !== "undefined" ? getMoveDetails(mn) : { type: '一般', category: '物理', power: 40 };
+    var fpVal = typeof getMoveFpCostHelper !== "undefined" ? getMoveFpCostHelper(mn) : 10;
+    var mtCol = typeColors[md.type] || '#999';
+
+    libCardsHtml += "<div style='background:" + (isEq ? "#eafaf1" : "#fafafa") + "; border:1px solid " + (isEq ? "#27ae60" : "#e0e0e0") + "; border-radius:6px; padding:6px; font-size:11px; display:flex; justify-content:space-between; align-items:center;'>";
+    libCardsHtml += "<div>";
+    libCardsHtml += "<div style='font-weight:700; font-size:12px; color:#2c3e50;'>";
+    libCardsHtml += mn + " <span style='font-size:9px; background:" + (item.source==='tree'?'#8e44ad':(item.source==='tm'?'#3498db':'#27ae60')) + "; color:white; padding:0 4px; border-radius:3px;'> " + item.sourceName + "</span>";
+    libCardsHtml += "</div>";
+    libCardsHtml += "<div style='display:flex; gap:4px; align-items:center; margin-top:2px;'>";
+    libCardsHtml += "<span style='background:" + mtCol + "; color:white; padding:0 4px; border-radius:3px; font-size:9px;'>" + md.type + "</span>";
+    libCardsHtml += "<span style='font-size:9px; color:#666;'>" + (catIcons[md.category]||'') + " " + md.category + "</span>";
+    if (md.power > 0) libCardsHtml += "<span style='font-size:9px; color:#555;'>威力:" + md.power + "</span>";
+    libCardsHtml += "<span style='color:#8e44ad; font-size:9px; font-weight:700;'>🔮 FP" + fpVal + "</span>";
+    libCardsHtml += "</div>";
+    libCardsHtml += "</div>";
+
+    libCardsHtml += "<div>";
+    if (isEq) {
+      libCardsHtml += "<button onclick=\"toggleEquipMove('" + mn + "', false)\" style='background:#e74c3c; color:white; border:none; border-radius:4px; font-size:10px; padding:3px 8px; cursor:pointer; font-weight:700;'>卸下 ✕</button>";
+    } else {
+      libCardsHtml += "<button onclick=\"toggleEquipMove('" + mn + "', true)\" " + (canSelect ? "disabled" : "") + " style='background:" + (canSelect ? "#ccc" : "#8e44ad") + "; color:white; border:none; border-radius:4px; font-size:10px; padding:3px 8px; cursor:" + (canSelect ? "not-allowed" : "pointer") + "; font-weight:700;'>裝備 ➕</button>";
+    }
+    libCardsHtml += "</div>";
+    libCardsHtml += "</div>";
+  }
+
+  // Main UI Shell
+  var mainHtml = "";
+  mainHtml += "<div style='margin-top:12px; border-top:2px dashed #ddd; padding-top:10px;'>";
+  
+  mainHtml += "<div style='display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;'>";
+  mainHtml += "<div style='display:flex; align-items:center; gap:8px;'>";
+  mainHtml += "<strong style='font-size:13px; color:#2c3e50;'>🎒 攜帶招式卡匣與庫存管理</strong>";
+  mainHtml += "<span style='font-size:11px; background:#8e44ad; color:white; padding:2px 8px; border-radius:12px; font-weight:700;'>" + equipped.length + "/6 招自訂裝備</span>";
+  mainHtml += "</div>";
+  mainHtml += "<button class='st-sp-btn' style='background:#8e44ad; color:white; font-size:11px; padding:3px 10px; border-radius:12px;' onclick=\"toggleEquipEditor()\">" + (_showEquipEditor ? "收起面板 ▲" : "開啟卡匣管理 ✏️") + "</button>";
+  mainHtml += "</div>";
+
+  mainHtml += "<div id='stEquipEditor' style='display:" + (_showEquipEditor ? "block" : "none") + ";'>";
+
+  // SECTION 1: DECK PANEL & FP BUDGET
+  mainHtml += "<div style='background:linear-gradient(135deg, #f8f9fa 0%, #ede7f6 100%); border:1px solid #d1c4e9; border-radius:10px; padding:10px; margin-bottom:12px; box-shadow:0 2px 6px rgba(142,68,173,0.08);'>";
+  mainHtml += "<div style='display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;'>";
+  mainHtml += "<div style='font-size:12px; font-weight:700; color:#4a148c;'>🎴 當前出戰卡匣 (Slot 1 ~ Slot 6)</div>";
+  mainHtml += "<div style='font-size:11px; font-weight:700; color:#6a1b9a; background:white; padding:2px 8px; border-radius:10px; border:1px solid #e1bee7;'>⚡ 總 FP 需求: <span style='color:" + (totalFpCost > maxFp ? "#e74c3c" : "#8e44ad") + "'>" + totalFpCost + "</span> / " + maxFp + " FP</div>";
+  mainHtml += "</div>";
+  mainHtml += "<div style='display:grid; grid-template-columns: repeat(3, 1fr); gap:6px;'>" + deckSlotsHtml + "</div>";
+  mainHtml += "</div>";
+
+  // SECTION 2: MOVE LIBRARY PANEL
+  mainHtml += "<div style='background:white; border:1px solid #e0e0e0; border-radius:10px; padding:10px;'>";
+  mainHtml += "<div style='display:flex; justify-content:space-between; align-items:center; margin-bottom:8px; flex-wrap:wrap; gap:4px;'>";
+  mainHtml += "<div style='font-size:12px; font-weight:700; color:#333;'>📚 已解鎖招式大庫 (<span style='color:#8e44ad;'>" + moveLibrary.length + "</span> 招可選)</div>";
+  
+  mainHtml += "<div style='display:flex; gap:4px;'>";
+  mainHtml += "<button onclick=\"setMoveLibraryTab('all')\" style='font-size:10px; padding:2px 8px; border-radius:10px; border:none; cursor:pointer; background:" + (_moveLibTab==='all'?'#8e44ad':'#eee') + "; color:" + (_moveLibTab==='all'?'white':'#555') + "; font-weight:700;'>全部</button>";
+  mainHtml += "<button onclick=\"setMoveLibraryTab('native')\" style='font-size:10px; padding:2px 8px; border-radius:10px; border:none; cursor:pointer; background:" + (_moveLibTab==='native'?'#8e44ad':'#eee') + "; color:" + (_moveLibTab==='native'?'white':'#555') + "; font-weight:700;'>🍃 天賦</button>";
+  mainHtml += "<button onclick=\"setMoveLibraryTab('tree')\" style='font-size:10px; padding:2px 8px; border-radius:10px; border:none; cursor:pointer; background:" + (_moveLibTab==='tree'?'#8e44ad':'#eee') + "; color:" + (_moveLibTab==='tree'?'white':'#555') + "; font-weight:700;'>🌳 修煉</button>";
+  mainHtml += "<button onclick=\"setMoveLibraryTab('tm')\" style='font-size:10px; padding:2px 8px; border-radius:10px; border:none; cursor:pointer; background:" + (_moveLibTab==='tm'?'#8e44ad':'#eee') + "; color:" + (_moveLibTab==='tm'?'white':'#555') + "; font-weight:700;'>💿 TM</button>";
+  mainHtml += "</div>";
+  mainHtml += "</div>";
+
+  mainHtml += "<div style='display:grid; grid-template-columns: 1fr 1fr; gap:6px; max-height:220px; overflow-y:auto; padding-right:4px;'>" + libCardsHtml + "</div>";
+  mainHtml += "</div>";
+
+  mainHtml += "</div></div>";
+
   var existingEditor = document.getElementById("stEquipContainer");
   if (!existingEditor) {
     var container = document.createElement("div");
     container.id = "stEquipContainer";
     $("skillTreeBody").appendChild(container);
   }
-  document.getElementById("stEquipContainer").innerHTML = eqHtml;
+  document.getElementById("stEquipContainer").innerHTML = mainHtml;
 }
 
 var _showEquipEditor = false;
