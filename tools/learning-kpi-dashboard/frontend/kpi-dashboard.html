@@ -5687,7 +5687,7 @@ function renderPCBoxContent() {
           evoBtnP = " <span title='進化!" + evoInfoP.nextName + "' style='font-size:10px;color:#e67e22;cursor:pointer;' onclick='event.stopPropagation();doEvolve(\"" + match.id + "\")'>⬆️進化</span>";
         }
       }
-      slot.innerHTML = match.baseName + " Lv." + match.currentLevel + heldIconP + (abilNameP ? " <span style=\"font-size:10px;color:#8e44ad;\">[" + abilNameP + "]</span>" : "") + (hParty > 0 ? " <span style=\"font-size:10px;color:#e74c3c;\">❤️ " + hParty + "/120</span>" : "") + evoBtnP + " <span title='檢視能力值詳情' style='cursor:pointer;font-size:12px;' onclick='event.stopPropagation();openPkmnDetail(\"" + match.id + "\")'>📊</span>";
+      slot.innerHTML = match.baseName + " Lv." + match.currentLevel + heldIconP + (abilNameP ? " <span style=\"font-size:10px;color:#8e44ad;\">[" + abilNameP + "]</span>" : "") + (hParty > 0 ? " <span style=\"font-size:10px;color:#e74c3c;\">❤️ " + hParty + "/120</span>" : "") + evoBtnP + " <span title='檢視能力值詳情' style='cursor:pointer;font-size:11px;background:#8e44ad;color:white;padding:2px 6px;border-radius:4px;margin-left:4px;display:inline-block;' onclick='event.stopPropagation();openPkmnDetail(\"" + match.id + "\")'>📊 詳情</span>";
       slot.dataset.pokemonId = match.id;
       slot.classList.add("pc-filled");
     } else {
@@ -5762,7 +5762,7 @@ function renderPCBoxContent() {
       var abilName3 = getPokemonAbility(boxed[j].baseName);
       var hBox = Math.min(boxed[j].happiness || 0, 120);
       var heldIconB = HELD_ITEM_ICONS[boxed[j].heldItem] ? " " + HELD_ITEM_ICONS[boxed[j].heldItem] : "";
-      slot2.innerHTML = boxed[j].baseName + " Lv." + boxed[j].currentLevel + heldIconB + (abilName3 ? " <span style=\"font-size:10px;color:#8e44ad;\">[" + abilName3 + "]</span>" : "") + (hBox > 0 ? " <span style=\"font-size:10px;color:#e74c3c;\">❤️ " + hBox + "/120</span>" : "") + " <span title='檢視能力值詳情' style='cursor:pointer;font-size:12px;' onclick='event.stopPropagation();openPkmnDetail(\"" + boxed[j].id + "\")'>📊</span>";
+      slot2.innerHTML = boxed[j].baseName + " Lv." + boxed[j].currentLevel + heldIconB + (abilName3 ? " <span style=\"font-size:10px;color:#8e44ad;\">[" + abilName3 + "]</span>" : "") + (hBox > 0 ? " <span style=\"font-size:10px;color:#e74c3c;\">❤️ " + hBox + "/120</span>" : "") + " <span title='檢視能力值詳情' style='cursor:pointer;font-size:11px;background:#8e44ad;color:white;padding:2px 6px;border-radius:4px;margin-left:4px;display:inline-block;' onclick='event.stopPropagation();openPkmnDetail(\"" + boxed[j].id + "\")'>📊 詳情</span>";
       slot2.dataset.pokemonId = boxed[j].id;
       slot2.classList.add("pc-filled");
     } else {
@@ -5782,6 +5782,7 @@ function openPkmnDetail(pokemonId) {
   if (!pkmn) return;
   var body = $("pkmnDetailBody");
   var stats = getPokemonStats(pkmn.baseName, pkmn.currentLevel);
+  var maxFpVal = typeof calcMaxFp !== "undefined" ? calcMaxFp(pkmn.currentLevel || 5) : (100 + (pkmn.currentLevel || 5) * 3);
   var types = getPokemonType(pkmn.baseName);
   var typeColors = { "一般":"#a8a878","火":"#f08030","水":"#6890f0","草":"#78c850","電":"#f8d030","冰":"#98d8d8","格鬥":"#c03028","毒":"#a040a0","地面":"#e0c068","飛行":"#a890f0","超能力":"#f85888","蟲":"#a8b820","岩石":"#b8a038","幽靈":"#705898","龍":"#7038f8","惡":"#705848","鋼":"#b8b8d0","妖精":"#ee99ac" };
   var typeChips = types.map(function(t){ return "<span style='display:inline-block;background:" + (typeColors[t]||"#999") + ";color:white;padding:1px 8px;border-radius:4px;font-size:11px;margin:0 2px;'>" + t + "</span>"; }).join("");
@@ -5798,14 +5799,29 @@ function openPkmnDetail(pokemonId) {
   var movesList = getPokemonMoveset(pkmn.baseName, pkmn.currentLevel);
   var catIcons = {"物理":"⚔️","特殊":"🔮","變化":"🔄"};
   var catColors = {"物理":"#e74c3c","特殊":"#3498db","變化":"#95a5a6"};
+
+  function getMoveFpCostHelper(moveName) {
+    if (typeof MOVE_SPECS_V31 !== "undefined" && MOVE_SPECS_V31[moveName] && MOVE_SPECS_V31[moveName].fpCost) {
+      return MOVE_SPECS_V31[moveName].fpCost;
+    }
+    var md = getMoveDetails(moveName);
+    if (md.category === "變化") return 5;
+    if (md.power >= 120) return 50;
+    if (md.power >= 90) return 35;
+    if (md.power >= 65) return 20;
+    if (md.power >= 40) return 10;
+    return 5;
+  }
+
   var movesHtml = "<div style='background:#f5f5f5;border-radius:8px;padding:10px;margin-bottom:8px;'>" +
     "<div style='font-size:12px;font-weight:700;color:#555;margin-bottom:4px;'>⚡ 招式</div>" +
     "<div style='display:grid;grid-template-columns:1fr 1fr;gap:4px;'>";
   for (var mi = 0; mi < movesList.length; mi++) {
     var md = getMoveDetails(movesList[mi]);
     var mtCol = typeColors[md.type] || "#999";
+    var fpCostVal = getMoveFpCostHelper(movesList[mi]);
     movesHtml += "<div style='background:white;border-radius:6px;padding:6px;border:1px solid #e0e0e0;font-size:11px;'>" +
-      "<div style='font-weight:700;font-size:12px;margin-bottom:2px;'>" + movesList[mi] + "</div>" +
+      "<div style='font-weight:700;font-size:12px;margin-bottom:2px;display:flex;justify-content:space-between;align-items:center;'><span>" + movesList[mi] + "</span><span style='background:#8e44ad;color:white;padding:0 5px;border-radius:3px;font-size:10px;font-weight:700;'>🔮 FP" + fpCostVal + "</span></div>" +
       "<div style='display:flex;gap:3px;align-items:center;margin-bottom:2px;'>" +
       "<span style='background:" + mtCol + ";color:white;padding:0 5px;border-radius:3px;font-size:10px;'>" + md.type + "</span>" +
       "<span style='color:" + (catColors[md.category]||"#999") + ";font-size:10px;'>" + (catIcons[md.category]||"") + " " + md.category + "</span>" +
@@ -5819,6 +5835,7 @@ function openPkmnDetail(pokemonId) {
     "<div style='display:flex;align-items:center;gap:8px;margin-bottom:8px;'>" +
       "<span style='font-size:20px;font-weight:700;'>" + pkmn.baseName + "</span>" +
       "<span style='font-size:16px;color:#555;'>Lv." + pkmn.currentLevel + "</span>" +
+      "<span style='font-size:11px;background:#8e44ad;color:white;padding:1px 6px;border-radius:4px;'>🔮 FP上限: " + maxFpVal + "</span>" +
       (inParty ? "<span style='font-size:11px;background:#3498db;color:white;padding:1px 6px;border-radius:4px;'>隊伍</span>" : "<span style='font-size:11px;background:#95a5a6;color:white;padding:1px 6px;border-radius:4px;'>電腦</span>") +
     "</div>" +
     "<div style='margin-bottom:8px;font-size:12px;'>" + typeChips + "</div>" +
