@@ -355,6 +355,14 @@ function getPokemonPrimaryType(pkmn) {
   if (!pkmn) return '一般';
   if (pkmn.primaryType && TIER_MATRIX_V31 && TIER_MATRIX_V31[pkmn.primaryType]) return pkmn.primaryType;
   if (pkmn.type && TIER_MATRIX_V31 && TIER_MATRIX_V31[pkmn.type]) return pkmn.type;
+  if (typeof pkmn.type === 'string' && pkmn.type.indexOf('/') !== -1) {
+    var p0 = pkmn.type.split('/')[0].trim();
+    if (TIER_MATRIX_V31 && TIER_MATRIX_V31[p0]) return p0;
+  }
+  if (pkmn.types && Array.isArray(pkmn.types) && pkmn.types.length > 0) {
+    var pArr0 = pkmn.types[0];
+    if (TIER_MATRIX_V31 && TIER_MATRIX_V31[pArr0]) return pArr0;
+  }
 
   var name = pkmn.baseName || pkmn.name || '';
 
