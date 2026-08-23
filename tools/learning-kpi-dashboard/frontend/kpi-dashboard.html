@@ -9678,7 +9678,8 @@ function renderSkillTree() {
           }
                     // v3.3 Universal Dynamic Synergy Engine
           if (isTierUnlocked && !isTierLocked && t >= 2 && pkmn.learnedMoves) {
-            var synResult = calculateMoveSynergyV33(pkmn.learnedMoves, optName, t, activeRoleUpper, pkmn.type || pkmn.types);
+            var pkmnPrimaryType = (typeof getPokemonPrimaryType === "function") ? getPokemonPrimaryType(pkmn) : (pkmn.primaryType || pkmn.type || (pkmn.types && pkmn.types[0]) || '水');
+            var synResult = calculateMoveSynergyV33(pkmn.learnedMoves, optName, t, activeRoleUpper, pkmnPrimaryType);
             if (synResult) {
               canvasHtml += ' <span style="font-size:10px;background:' + synResult.color + ';color:white;padding:1px 5px;border-radius:3px;margin-left:4px;font-weight:bold;">' + synResult.badge + '</span>';
             }
@@ -10049,10 +10050,11 @@ function getSection2Synergy(lastLearnedName, candidateOptName, tier, role, pkmnT
       if (candidateOptName === '攀瀑' && tier === 3) return { badge: '🔗 水流噴射·極速衝擊 傷害+25%', color: '#2980b9' };
       if (candidateOptName === '水炮' && tier === 4) return { badge: '🔗 攀瀑·水龍怒濤 防穿+25%', color: '#2980b9' };
     }
-    if (lastLearnedName === '泡泡' || lastLearnedName === '水槍' || lastLearnedName === '泡沫光線' || lastLearnedName === '水之誓約' || lastLearnedName === '撞擊' || lastLearnedName === '電光一閃' || lastLearnedName === '甩尾') {
+    if (lastLearnedName === '泡泡' || lastLearnedName === '水槍' || lastLearnedName === '泡沫光線' || lastLearnedName === '水之誓約' || lastLearnedName === '撞擊' || lastLearnedName === '電光一閃' || lastLearnedName === '甩尾' || lastLearnedName === '貝殼刃' || lastLearnedName === '水之尾') {
       if (candidateOptName === '泡沫光線' && tier === 2 && role === 'SPA') return { badge: '🔗 水槍·衝擊連攜 傷害+20%', color: '#2980b9' };
       if (candidateOptName === '貝殼刃' && tier === 2 && role === 'ATK') return { badge: '🔗 水槍·切削連攜 傷害+20%', color: '#2980b9' };
-      if (candidateOptName === '水之誓約' && tier === 3) return { badge: '🔗 泡沫光線·水浪共鳴 傷害+25%', color: '#2980b9' };
+      if (candidateOptName === '攀瀑' && tier === 3 && role === 'ATK') return { badge: '🔗 ' + lastLearnedName + '·極速衝擊 傷害+25%', color: '#2980b9' };
+      if (candidateOptName === '水之誓約' && tier === 3 && role === 'SPA') return { badge: '🔗 ' + lastLearnedName + '·水浪共鳴 傷害+25%', color: '#2980b9' };
       if (candidateOptName === '水炮' && tier === 4) return { badge: '🔗 水之誓約·水龍怒濤 防穿+25%', color: '#2980b9' };
       if (candidateOptName === '蒸氣爆炸' && tier === 5) return { badge: '🔗 水炮·極致奧義 傷害+30%', color: '#2980b9' };
     }
