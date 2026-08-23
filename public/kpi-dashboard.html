@@ -3209,30 +3209,46 @@ function createEnemyPokemon(name, level, isGym, isLeague) {
   };
 }
 
-function createPlayerPokemon(pokemon) {
-  var stats = getPokemonStats(pokemon.baseName, pokemon.currentLevel);
-  // 技能樹裝備招式優先，否則自動選擇
-  var finalMoves;
-  var moveLevels = {};
-  if (pokemon.equippedMoves && pokemon.equippedMoves.length > 0) {
-    finalMoves = pokemon.equippedMoves.slice(0, 6);
-    // 帶入招式等級
-    if (pokemon.learnedMoves) {
-      for (var mlName in pokemon.learnedMoves) {
-        if (pokemon.learnedMoves[mlName] && pokemon.learnedMoves[mlName].level) {
-          moveLevels[mlName] = pokemon.learnedMoves[mlName].level;
-        }
+function getEffectivePokemonMoves(pkmn) {
+  if (!pkmn) return [];
+  var defaultSet = getPokemonMoveset(pkmn.baseName, pkmn.currentLevel || 5);
+  var finalMoves = [];
+
+  if (pkmn.equippedMoves && pkmn.equippedMoves.length > 0) {
+    for (var i = 0; i < pkmn.equippedMoves.length; i++) {
+      var m = pkmn.equippedMoves[i];
+      if (m && finalMoves.indexOf(m) === -1) {
+        finalMoves.push(m);
+      }
+    }
+    // 自動補充種族預設招式至 4 招，保障初學階段不會因只勾選 1 招而失去其餘對戰能力
+    for (var j = 0; j < defaultSet.length; j++) {
+      if (finalMoves.length >= 4) break;
+      if (finalMoves.indexOf(defaultSet[j]) === -1) {
+        finalMoves.push(defaultSet[j]);
       }
     }
   } else {
-    var moveset = getPokemonMoveset(pokemon.baseName, pokemon.currentLevel);
-    var selectedMoves = moveset.slice(0, Math.min(4, moveset.length));
-    finalMoves = selectedMoves.slice(0, 4);
+    finalMoves = defaultSet.slice(0, Math.min(4, defaultSet.length));
   }
-  // TM 招式附加到現有招式之後（不覆蓋技能樹裝備招）
+  return finalMoves;
+}
+
+function createPlayerPokemon(pokemon) {
+  var stats = getPokemonStats(pokemon.baseName, pokemon.currentLevel);
+  var finalMoves = getEffectivePokemonMoves(pokemon);
+  var moveLevels = {};
+  if (pokemon.learnedMoves) {
+    for (var mlName in pokemon.learnedMoves) {
+      if (pokemon.learnedMoves[mlName] && pokemon.learnedMoves[mlName].level) {
+        moveLevels[mlName] = pokemon.learnedMoves[mlName].level;
+      }
+    }
+  }
+  // TM 招式附加到現有招式之後
   var tmMoves = pokemon.tmMoves || [];
   for (var tmIdx = 0; tmIdx < tmMoves.length; tmIdx++) {
-    if (finalMoves.length < 6) {
+    if (finalMoves.length < 6 && finalMoves.indexOf(tmMoves[tmIdx]) === -1) {
       finalMoves.push(tmMoves[tmIdx]);
       if (!moveLevels[tmMoves[tmIdx]]) moveLevels[tmMoves[tmIdx]] = 1;
     }
@@ -5796,9 +5812,7 @@ function openPkmnDetail(pokemonId) {
   var inParty = (globalData.partyIds || []).indexOf(pkmn.id) !== -1;
   function heldStatBonus(heldId) { if (heldId === "eviolite") return "DEF x1.5, SPDEF x1.5"; if (heldId === "assaultVest") return "SPDEF x1.5"; return ""; }
   var heldBonus = heldStatBonus(pkmn.heldItem);
-  var movesList = (pkmn.equippedMoves && pkmn.equippedMoves.length > 0)
-    ? pkmn.equippedMoves.slice(0, 6)
-    : getPokemonMoveset(pkmn.baseName, pkmn.currentLevel);
+  var movesList = getEffectivePokemonMoves(pkmn);
   var catIcons = {"物理":"⚔️","特殊":"🔮","變化":"🔄"};
   var catColors = {"物理":"#e74c3c","特殊":"#3498db","變化":"#95a5a6"};
 
