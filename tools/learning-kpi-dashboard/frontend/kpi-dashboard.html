@@ -10054,11 +10054,8 @@ function calculateMoveSynergyV33(learnedMovesMap, optName, tier, role, pkmnType)
       }
       return null;
     }
-    if (/交錯閃電|千雷轟頂|交錯雷霆毀滅|起源水之毀滅|森林神毀滅|創世毀滅/.test(optName)) {
-      if (optName === '交錯雷霆毀滅' || optName === '千雷轟頂' || optName === '起源水之毀滅') {
-        return { badge: '🔗 ' + pName + '·奧義共鳴 傷害+35%', color: '#d35400' };
-      }
-      return null;
+    if (pRole === role) {
+      return { badge: '🔗 ' + pName + '·頂階奧義 傷害+35%', color: '#d35400' };
     }
     return null;
   }
@@ -10135,6 +10132,14 @@ function calculateMoveSynergyV33(learnedMovesMap, optName, tier, role, pkmnType)
         return { badge: '🔗 ' + lName + '·流派共鳴 傷害+20%', color: '#2980b9' };
       }
     }
+  }
+
+  // 4. 【萬能全圖鑑與全雙屬性招式拓撲保底引擎 (Universal Stream Pairer Engine)】
+  // 無論任何寶可夢（單屬性18種、雙屬性所有153組合），同軌道招式皆能100%精確獲得連攜標籤
+  if (pRole === role) {
+    var effName = primaryLearned ? primaryLearned.name.replace(/_T\d+_\d+$/, '') : pName;
+    var suffix = tier === 2 ? '·流派共鳴 傷害+20%' : (tier === 3 ? '·流派晉升 傷害+25%' : (tier === 5 ? '·奧義共鳴 傷害+35%' : '·極致連攜 防穿+25%'));
+    return { badge: '🔗 ' + effName + suffix, color: '#2980b9' };
   }
 
   return null;
