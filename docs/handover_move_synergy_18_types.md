@@ -1,6 +1,6 @@
 # 📘 全 18 屬性寶可夢招式連攜拓撲重構與 Agent Skill 專案交接文件
 
-> **文件版本**：v3.4 (包含全圖鑑 2,034 組 DOM 實機自動化點擊驗證與 T5 奧義對齊修復)  
+> **文件版本**：v3.5 (包含全 18 屬性 Section 2 主題招式鏈擴展、雙屬性無縫銜接與 2,034 組 DOM 實機自動化點擊 100% PASS 驗證)  
 > **交接日期**：2026-08-23  
 > **專案名稱**：Teacher-Toolkit (Learning KPI Dashboard - Pokemon Move Synergy Topology)  
 > **線上發布 URL**：https://opencodefirebase.web.app  
