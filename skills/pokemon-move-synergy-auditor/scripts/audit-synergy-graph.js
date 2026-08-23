@@ -5,7 +5,7 @@ const fs = require('fs');
 async function auditSynergyGraph() {
   const localFile = 'file:///' + path.resolve(__dirname, '../../../public/kpi-dashboard.html').replace(/\\/g, '/');
   console.log(`\n================================================================================`);
-  console.log(`🔍 [pokemon-move-synergy-auditor] 18單屬性 + 153雙屬性組合 + 全圖鑑寶可夢 全矩陣驗證`);
+  console.log(`🔍 [pokemon-move-synergy-auditor] 18單屬性 + 153雙屬性組合 + 全圖鑑寶可夢 (無孤兒與無多發放) 100% 驗證`);
   console.log(`================================================================================`);
 
   const browser = await chromium.launch({ headless: true });
@@ -18,6 +18,7 @@ async function auditSynergyGraph() {
     const roles = ['ATK', 'SPA', 'BUF', 'DIS', 'ULT'];
     const defRegex = /^守住$|^替身$|^充電$|^變硬$|^影子分身$|^哈欠$|^光牆$|^水流環$|^絕對防禦$/;
     const rosterOrphans = [];
+    const rosterMultiOverlaps = [];
 
     function auditSkillTree(tree, pkmnName, pkmnTypeStr) {
       roles.forEach(r => {
@@ -43,7 +44,7 @@ async function auditSynergyGraph() {
               }
             });
 
-            // Check: EVERY STREAM STEP MUST HAVE AT LEAST 1 SYNERGY MOVE
+            // 檢驗 1: 漸進解鎖不能無連攜 (Orphan == 0)
             if (matchedMoves.length === 0) {
               rosterOrphans.push({
                 pkmn: pkmnName,
@@ -51,6 +52,18 @@ async function auditSynergyGraph() {
                 role: r,
                 tier: tier,
                 learned: Object.keys(currentLearned)
+              });
+            }
+
+            // 檢驗 2: 漸進解鎖連攜發放數必須 <= 1 (Over-coverage == 0，嚴格 1 對 1 獨占！)
+            if (matchedMoves.length > 1) {
+              rosterMultiOverlaps.push({
+                pkmn: pkmnName,
+                type: pkmnTypeStr,
+                role: r,
+                tier: tier,
+                count: matchedMoves.length,
+                matches: matchedMoves
               });
             }
 
@@ -100,17 +113,21 @@ async function auditSynergyGraph() {
       }
     }
 
-    return { auditedTreesCount, rosterOrphans };
+    return { auditedTreesCount, rosterOrphans, rosterMultiOverlaps };
   });
 
   console.log(`\n================================================================================`);
-  console.log(`📊 全圖鑑 + 18單屬性 + 153雙屬性組合 漸進式連攜稽核統計:`);
+  console.log(`📊 全圖鑑 + 18單屬性 + 153雙屬性組合 漸進式連攜 (1對1獨占) 稽核統計:`);
   console.log(`================================================================================`);
   console.log(`  - 總計校驗寶可夢與屬性樹數目: ${auditReport.auditedTreesCount} 棵技能樹`);
   console.log(`  - 漸進解鎖無連攜步驟 (Orphan Stream Steps): ${auditReport.rosterOrphans.length} 處`);
+  console.log(`  - 漸進解鎖多發放步驟 (Over-coverage Steps > 1): ${auditReport.rosterMultiOverlaps.length} 處`);
 
   if (auditReport.rosterOrphans.length > 0) {
-    console.log(`    ⚠️ 無連攜步驟詳情:`, JSON.stringify(auditReport.rosterOrphans.slice(0, 10), null, 2));
+    console.log(`    ⚠️ 無連攜步驟詳情:`, JSON.stringify(auditReport.rosterOrphans.slice(0, 5), null, 2));
+  }
+  if (auditReport.rosterMultiOverlaps.length > 0) {
+    console.log(`    ⚠️ 多發放步驟詳情:`, JSON.stringify(auditReport.rosterMultiOverlaps.slice(0, 5), null, 2));
   }
 
   console.log(`================================================================================\n`);
@@ -119,7 +136,7 @@ async function auditSynergyGraph() {
 
   await browser.close();
 
-  return { auditedTreesCount: auditReport.auditedTreesCount, orphanCount: auditReport.rosterOrphans.length };
+  return { auditedTreesCount: auditReport.auditedTreesCount, orphanCount: auditReport.rosterOrphans.length, overCount: auditReport.rosterMultiOverlaps.length };
 }
 
 auditSynergyGraph();
