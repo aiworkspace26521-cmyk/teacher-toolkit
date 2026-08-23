@@ -9833,12 +9833,31 @@ function renderSkillTree() {
 }
 
 function renderEquipEditor(pkmn) {
-  var learnedKeys = Object.keys(pkmn.learnedMoves || {});
+  var learnedMap = pkmn.learnedMoves || {};
   var tmKeys = pkmn.tmMoves || [];
   var allMoveKeys = [];
   var tmSet = {};
-  learnedKeys.forEach(function(k){ if (allMoveKeys.indexOf(k) === -1) allMoveKeys.push(k); });
-  tmKeys.forEach(function(k){ if (allMoveKeys.indexOf(k) === -1) { allMoveKeys.push(k); tmSet[k] = true; } });
+  var seen = {};
+
+  Object.keys(learnedMap).forEach(function(k){
+    if (!learnedMap[k]) return;
+    var rec = learnedMap[k];
+    var moveName = rec.name || k.replace(/^[A-Za-z]+:/, '');
+    if (!seen[moveName]) {
+      seen[moveName] = true;
+      allMoveKeys.push(moveName);
+    }
+  });
+
+  tmKeys.forEach(function(k){
+    var cleanK = k.replace(/^[A-Za-z]+:/, '');
+    if (!seen[cleanK]) {
+      seen[cleanK] = true;
+      allMoveKeys.push(cleanK);
+      tmSet[cleanK] = true;
+    }
+  });
+
   var equipped = pkmn.equippedMoves || [];
   var eqHtml = "";
   eqHtml += "<div style='margin-top:10px;border-top:2px dashed #ddd;padding-top:8px;'>";
@@ -9856,9 +9875,11 @@ function renderEquipEditor(pkmn) {
       var isTm = tmSet[mn];
       var isEq = equipped.indexOf(mn) !== -1;
       var canSelect = !isEq && equipped.length >= 6;
+      var moveRec = (typeof getLearnedMoveRecord === 'function' ? getLearnedMoveRecord(pkmn, mn) : null) || (pkmn.learnedMoves && (pkmn.learnedMoves[mn] || pkmn.learnedMoves['ATK:' + mn] || pkmn.learnedMoves['SPA:' + mn]));
+      var moveLv = (moveRec && moveRec.level) || 1;
       eqHtml += "<label style='display:flex;align-items:center;gap:6px;padding:3px 6px;border-radius:4px;font-size:12px;cursor:" + (canSelect ? "not-allowed" : "pointer") + ";background:" + (isEq ? "#eafaf1" : "transparent") + ";margin:2px 0;'>";
       eqHtml += "<input type='checkbox' " + (isEq ? "checked" : "") + " " + (canSelect ? "disabled" : "") + " onchange=\"toggleEquipMove('" + mn + "', this.checked)\" style='accent-color:#8e44ad;'>";
-      eqHtml += mn + " <small style='color:#666;'>Lv." + ((pkmn.learnedMoves && pkmn.learnedMoves[mn] && pkmn.learnedMoves[mn].level) || 1) + "</small>";
+      eqHtml += mn + " <small style='color:#666;'>Lv." + moveLv + "</small>";
       if (isTm) eqHtml += " <span style='color:#8e44ad;font-size:9px;font-weight:700;'>TM</span>";
       eqHtml += "</label>";
     }
