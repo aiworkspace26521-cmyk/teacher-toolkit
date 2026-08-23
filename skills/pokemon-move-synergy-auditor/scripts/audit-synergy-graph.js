@@ -5,7 +5,7 @@ const fs = require('fs');
 async function auditSynergyGraph() {
   const localFile = 'file:///' + path.resolve(__dirname, '../../../public/kpi-dashboard.html').replace(/\\/g, '/');
   console.log(`\n================================================================================`);
-  console.log(`🔍 [pokemon-move-synergy-auditor] 全 18 屬性連攜圖譜與孤兒招式自動化稽核`);
+  console.log(`🔍 [pokemon-move-synergy-auditor] 全 18 屬性連攜圖譜、單一T1解鎖上限與孤兒招式自動化稽核`);
   console.log(`================================================================================`);
 
   const browser = await chromium.launch({ headless: true });
@@ -28,7 +28,8 @@ async function auditSynergyGraph() {
         t2Moves: [],
         t1ToSynergiesMap: {},
         orphanT2Moves: [],
-        mTo1Overlaps: []
+        mTo1Overlaps: [],
+        overCoverageT1: []
       };
 
       roles.forEach(r => {
@@ -93,6 +94,18 @@ async function auditSynergyGraph() {
         }
       });
 
+      // 3. Find 1-to-N Over-coverage Violation (Single T1 move triggering > 2 T2 moves)
+      Object.keys(report.t1ToSynergiesMap).forEach(t1Name => {
+        const targets = report.t1ToSynergiesMap[t1Name];
+        if (targets.length > 2) {
+          report.overCoverageT1.push({
+            t1Name: t1Name,
+            count: targets.length,
+            targets: targets.map(t => t.target + ' (' + t.badge + ')')
+          });
+        }
+      });
+
       results[typeName] = report;
     });
 
@@ -106,6 +119,7 @@ async function auditSynergyGraph() {
 
   let totalMTo1Overlaps = 0;
   let totalOrphans = 0;
+  let totalOverCoverage = 0;
 
   Object.keys(auditReport).forEach(typeName => {
     const rep = auditReport[typeName];
@@ -113,15 +127,18 @@ async function auditSynergyGraph() {
     console.log(`  - T1 招式 (${rep.t1Moves.length} 個):`, rep.t1Moves.map(m => m.name).join(', '));
     console.log(`  - T2 招式 (${rep.t2Moves.length} 個):`, rep.t2Moves.map(m => m.name).join(', '));
     console.log(`  - 重複映射 (M-to-1 Overlaps: ${rep.mTo1Overlaps.length}):`, rep.mTo1Overlaps.length > 0 ? JSON.stringify(rep.mTo1Overlaps) : '無');
+    console.log(`  - 1對多泛濫連攜 (Over-Coverage >2: ${rep.overCoverageT1.length}):`, rep.overCoverageT1.length > 0 ? JSON.stringify(rep.overCoverageT1) : '無');
     console.log(`  - 孤兒 T2 招式 (Orphan T2: ${rep.orphanT2Moves.length}):`, rep.orphanT2Moves.length > 0 ? rep.orphanT2Moves.join(', ') : '無');
 
     totalMTo1Overlaps += rep.mTo1Overlaps.length;
+    totalOverCoverage += rep.overCoverageT1.length;
     totalOrphans += rep.orphanT2Moves.length;
   });
 
   console.log(`\n================================================================================`);
   console.log(`📈 總結統計: 全 18 屬性掃描完畢`);
   console.log(`   - 總計多對一重複映射 (M-to-1 Overlaps): ${totalMTo1Overlaps} 處`);
+  console.log(`   - 總計單一T1過度發放 (Over-Coverage >2): ${totalOverCoverage} 處`);
   console.log(`   - 總計無連攜孤兒 T2 招式 (Orphan T2 Moves): ${totalOrphans} 個`);
   console.log(`================================================================================\n`);
 
@@ -129,7 +146,7 @@ async function auditSynergyGraph() {
 
   await browser.close();
 
-  return { totalMTo1Overlaps, totalOrphans };
+  return { totalMTo1Overlaps, totalOverCoverage, totalOrphans };
 }
 
 auditSynergyGraph();

@@ -38,6 +38,11 @@ description: 寶可夢招式技能樹全 18 屬性與雙屬性連攜圖譜稽核
 ### 4. 雙屬性動態交叉連攜 (Dual-Type Cross-Synergy Support)
 - **原則**：雙屬性寶可夢（如 嗡蝠-飛行/龍、噴火龍-火/飛行）在學習次要屬性軌道招式時，系統應能動態識察並觸發次要屬性的專屬連攜。
 
+### 5. 單一 T1 連攜發放上限與防泛濫規範 (1-to-N Over-Coverage Limit)
+- **原則**：任意單一 T1 基礎招式，在 T2 中觸發連攜標籤的招式數量 **不可超過 1 個（極限 2 個）**。
+- **違規態樣**：玩家點了 1 個 T1 招式 (如 `叫聲`)，結果 T2 中 4 個攻擊招式 (如 `雷電拳`、`伏特攻擊`、`二連擊`、`瘋狂伏特`) 全部被同時亮起連攜 Badge。
+- **判定標準**：單一 T1 發放連攜數過度 (Over-Coverage > 2) 統計必須達到 **0 處**。
+
 ---
 
 ## 🛠️ 自動化工具與腳本 (Automation Scripts)
@@ -53,13 +58,13 @@ node skills/pokemon-move-synergy-auditor/scripts/audit-synergy-graph.js
 ### 預期產出：
 1. 終端機顯示全 18 屬性連攜統計報告。
 2. 產出 `audit_report_18_types.json` 數據檔。
-3. 判定 `M-to-1 Overlaps = 0` 且 `Orphan T2 Moves = 0` 始可通過。
+3. 判定 `M-to-1 Overlaps = 0`、`Over-Coverage > 2 = 0` 且 `Orphan T2 Moves = 0` 始可通過。
 
 ---
 
 ## 🔄 演算法重構與修復 Workflow
 
-1. **掃描現狀**：執行 `audit-synergy-graph.js` 獲取當前多對一與孤兒招式清單。
+1. **掃描現狀**：執行 `audit-synergy-graph.js` 獲取當前多對一、過度發放與孤兒招式清單。
 2. **拓撲引擎重構**：於 `kpi-dashboard.html` / `pokemon-skill-tree.js` 中更新 `calculateMoveSynergyV33`。
 3. **實機 E2E 校驗**：透過 Playwright 登入 Admin 帳號，於技能樹 Modal 點擊測試解鎖狀態。
 4. **發布與部署**：執行 `sync-public.ps1` 並部署至 Firebase Hosting。
