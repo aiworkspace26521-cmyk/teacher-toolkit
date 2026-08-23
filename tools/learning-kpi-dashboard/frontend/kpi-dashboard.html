@@ -9679,7 +9679,7 @@ function renderSkillTree() {
                     // v3.3 Universal Dynamic Synergy Engine
           if (isTierUnlocked && !isTierLocked && t >= 2 && pkmn.learnedMoves) {
             var pkmnPrimaryType = (typeof getPokemonPrimaryType === "function") ? getPokemonPrimaryType(pkmn) : (pkmn.primaryType || pkmn.type || (pkmn.types && pkmn.types[0]) || '水');
-            var synResult = calculateMoveSynergyV33(pkmn.learnedMoves, optName, t, activeRoleUpper, pkmnPrimaryType);
+            var synResult = calculateMoveSynergyV33(pkmn.learnedMoves, optName, t, activeRoleUpper, pkmnPrimaryType, pkmn);
             if (synResult) {
               canvasHtml += ' <span style="font-size:10px;background:' + synResult.color + ';color:white;padding:1px 5px;border-radius:3px;margin-left:4px;font-weight:bold;">' + synResult.badge + '</span>';
             }
@@ -10088,15 +10088,15 @@ function getSection2Synergy(lastLearnedName, candidateOptName, tier, role, pkmnT
 
   if (streamType === '火') {
     if (role === 'ATK') {
-      if (candidateOptName === '火焰拳' && tier === 2) return { badge: '🔗 火花·灼熱共鳴 傷害+20%', color: '#e74c3c' };
-      if (candidateOptName === '炎牙' && tier === 3) return { badge: '🔗 火焰拳·爆炎爆破 傷害+25%', color: '#e74c3c' };
-      if (candidateOptName === '閃焰衝鋒' && tier === 4) return { badge: '🔗 炎牙·熱核貫穿 防穿+25%', color: '#e74c3c' };
-      if (candidateOptName === 'V熱焰' && tier === 5) return { badge: '🔗 閃焰·極致神火 傷害+35%', color: '#e74c3c' };
+      if (candidateOptName === '火焰拳' && tier === 2 && (lastLearnedName === '火花' || lastLearnedName === '抓' || lastLearnedName === '撞擊')) return { badge: '🔗 ' + lastLearnedName + '·灼熱共鳴 傷害+20%', color: '#e74c3c' };
+      if (candidateOptName === '炎牙' && tier === 3 && (lastLearnedName === '火焰拳' || lastLearnedName === '火花')) return { badge: '🔗 ' + lastLearnedName + '·爆炎爆破 傷害+25%', color: '#e74c3c' };
+      if (candidateOptName === '閃焰衝鋒' && tier === 4 && (lastLearnedName === '炎牙' || lastLearnedName === '火焰拳')) return { badge: '🔗 ' + lastLearnedName + '·熱核貫穿 防穿+25%', color: '#e74c3c' };
+      if (candidateOptName === 'V熱焰' && tier === 5 && (lastLearnedName === '閃焰衝鋒' || lastLearnedName === '炎牙')) return { badge: '🔗 ' + lastLearnedName + '·極致神火 傷害+35%', color: '#e74c3c' };
     } else if (role === 'SPA') {
-      if (candidateOptName === '噴射火焰' && tier === 2) return { badge: '🔗 火花·灼熱共鳴 傷害+20%', color: '#e74c3c' };
-      if (candidateOptName === '大字爆' && tier === 3) return { badge: '🔗 噴射火焰·爆炎爆破 傷害+25%', color: '#e74c3c' };
-      if (candidateOptName === '過熱' && tier === 4) return { badge: '🔗 大字爆·熱核貫穿 防穿+25%', color: '#e74c3c' };
-      if (candidateOptName === '爆炸烈焰' && tier === 5) return { badge: '🔗 過熱·極致神火 傷害+35%', color: '#e74c3c' };
+      if (candidateOptName === '噴射火焰' && tier === 2 && (lastLearnedName === '火花' || lastLearnedName === '點燃')) return { badge: '🔗 ' + lastLearnedName + '·灼熱共鳴 傷害+20%', color: '#e74c3c' };
+      if (candidateOptName === '大字爆' && tier === 3 && (lastLearnedName === '噴射火焰' || lastLearnedName === '火花')) return { badge: '🔗 ' + lastLearnedName + '·爆炎爆破 傷害+25%', color: '#e74c3c' };
+      if (candidateOptName === '過熱' && tier === 4 && (lastLearnedName === '大字爆' || lastLearnedName === '噴射火焰')) return { badge: '🔗 ' + lastLearnedName + '·熱核貫穿 防穿+25%', color: '#e74c3c' };
+      if (candidateOptName === '爆炸烈焰' && tier === 5 && (lastLearnedName === '過熱' || lastLearnedName === '大字爆')) return { badge: '🔗 ' + lastLearnedName + '·極致神火 傷害+35%', color: '#e74c3c' };
     }
   }
 
@@ -10322,7 +10322,7 @@ function checkProceduralSynergy(learnedList, optName, role) {
   return null;
 }
 
-function calculateMoveSynergyV33(learnedMovesMap, optName, tier, role, pkmnType) {
+function calculateMoveSynergyV33(learnedMovesMap, optName, tier, role, pkmnType, pkmn) {
   if (!learnedMovesMap || tier < 2) return null;
   var learnedKeys = Object.keys(learnedMovesMap);
   if (learnedKeys.length === 0) return null;
@@ -10398,12 +10398,19 @@ function calculateMoveSynergyV33(learnedMovesMap, optName, tier, role, pkmnType)
     if (targetTree && targetTree[role] && targetTree[role]['T' + tier]) {
       var tList = targetTree[role]['T' + tier].filter(function(m) {
         var mName = (typeof m === 'object' && m && m.name) ? m.name : String(m);
-        return !/^守住$|^替身$|^充電$|^變硬$|^影子分身$|^哈欠$|^光牆$|^水流環$|^絕對防禦$|^溶化$|^睡覺$/.test(mName);
+        if (/^守住$|^替身$|^充電$|^變硬$|^影子分身$|^哈欠$|^光牆$|^水流環$|^絕對防禦$|^溶化$|^睡覺$/.test(mName)) return false;
+        if (pkmn) {
+          var rawN = pkmn.rawName || pkmn.name || pkmn.baseName || '';
+          var tgs = typeof getSpeciesTags === 'function' ? getSpeciesTags(rawN) : {};
+          var spc = typeof getMoveSpecV31 === 'function' ? getMoveSpecV31(mName) : null;
+          if (spc && typeof isEligible === 'function' && !isEligible(tgs, spc)) return false;
+        }
+        return true;
       });
       if (tList.length > 0) {
         var anySec2OrProcHandled = tList.some(function(m) {
           var mName = (typeof m === 'object' && m && m.name) ? m.name : String(m);
-          return getSection2Synergy(lastLearnedName, mName, tier, role, pkmnType) !== null || checkProceduralSynergy(learnedList, mName, role) !== null;
+          return getSection2Synergy(lastLearnedName, mName, tier, role, pkmnType) !== null;
         });
 
         if (anySec2OrProcHandled) {
