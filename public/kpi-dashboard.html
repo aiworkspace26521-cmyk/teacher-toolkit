@@ -10136,7 +10136,7 @@ function calculateMoveSynergyV33(learnedMovesMap, optName, tier, role, pkmnType)
 
   // 4. 【萬能全圖鑑與全雙屬性招式拓撲保底引擎 (Universal 1-to-1 Stream Matcher Engine)】
   // 無論任何寶可夢（單屬性18種、雙屬性所有153組合），同軌道招式皆能100%精確1對1獲得連攜標籤，絕不多發放！
-  var hasThemeStream = /水之波動|叫聲|二連擊|甩尾|撞擊|雷電拳|電光一閃|伏特攻擊|電擊|瘋狂伏特|電球|藤鞭|飛葉快刀|火花|噴射火焰|念力|精神強念/.test(learnedNames.join(';'));
+  var hasThemeStream = /水之波動|泡泡|水槍|冷水|叫聲|二連擊|甩尾|撞擊|雷電拳|電光一閃|伏特攻擊|電擊|瘋狂伏特|電球|藤鞭|飛葉快刀|火花|噴射火焰|念力|精神強念|咬住|咬碎|抓|拍擊/.test(learnedNames.join(';'));
   if (hasThemeStream) {
     return null;
   }
