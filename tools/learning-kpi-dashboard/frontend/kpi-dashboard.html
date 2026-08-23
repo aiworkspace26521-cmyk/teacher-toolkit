@@ -10165,126 +10165,126 @@ function getSection2Synergy(lastLearnedName, candidateOptName, tier, role, pkmnT
 
   if (streamType === '一般') {
     if (role === 'ATK') {
-      if (candidateOptName === '泰山壓頂' && tier === 2) return { badge: '🔗 撞擊·基礎貫穿 傷害+20%', color: '#95a5a6' };
-      if (candidateOptName === '捨身衝撞' && tier === 3) return { badge: '🔗 泰山壓頂·重壓打擊 傷害+25%', color: '#95a5a6' };
-      if (candidateOptName === '終極衝擊' && tier === 4) return { badge: '🔗 捨身衝撞·極致破壞 防穿+25%', color: '#95a5a6' };
-      if (candidateOptName === '創世衝擊' && tier === 5) return { badge: '🔗 破壞光線·創世極致 傷害+35%', color: '#95a5a6' };
+      if ((candidateOptName === '泰山壓頂' || candidateOptName === '猛撞' || candidateOptName === '劈開') && tier === 2) return { badge: '🔗 ' + lastLearnedName + '·基礎貫穿 傷害+20%', color: '#95a5a6' };
+      if ((candidateOptName === '捨身衝撞' || candidateOptName === '報恩') && tier === 3) return { badge: '🔗 ' + lastLearnedName + '·重壓打擊 傷害+25%', color: '#95a5a6' };
+      if ((candidateOptName === '終極衝擊' || candidateOptName === '破壞光線') && tier === 4) return { badge: '🔗 ' + lastLearnedName + '·極致破壞 防穿+25%', color: '#95a5a6' };
+      if ((candidateOptName === '創世衝擊' || candidateOptName === '極致破壞光線') && tier === 5) return { badge: '🔗 ' + lastLearnedName + '·創世極致 傷害+35%', color: '#95a5a6' };
     } else if (role === 'SPA') {
-      if (candidateOptName === '高速星星' && tier === 2) return { badge: '🔗 撞擊·基礎貫穿 傷害+20%', color: '#95a5a6' };
-      if (candidateOptName === '巨聲' && tier === 3) return { badge: '🔗 高速星星·重壓打擊 傷害+25%', color: '#95a5a6' };
-      if (candidateOptName === '破壞光線' && tier === 4) return { badge: '🔗 巨聲·極致破壞 防穿+25%', color: '#95a5a6' };
-      if (candidateOptName === '極致破壞光線' && tier === 5) return { badge: '🔗 破壞光線·創世極致 傷害+35%', color: '#95a5a6' };
+      if ((candidateOptName === '高速星星' || candidateOptName === '巨聲') && tier === 2) return { badge: '🔗 ' + lastLearnedName + '·基礎貫穿 傷害+20%', color: '#95a5a6' };
+      if ((candidateOptName === '巨聲' || candidateOptName === '破壞光線') && tier === 3) return { badge: '🔗 ' + lastLearnedName + '·重壓打擊 傷害+25%', color: '#95a5a6' };
+      if ((candidateOptName === '破壞光線' || candidateOptName === '終極衝擊') && tier === 4) return { badge: '🔗 ' + lastLearnedName + '·極致破壞 防穿+25%', color: '#95a5a6' };
+      if ((candidateOptName === '極致破壞光線' || candidateOptName === '創世衝擊') && tier === 5) return { badge: '🔗 ' + lastLearnedName + '·創世極致 傷害+35%', color: '#95a5a6' };
     }
   }
 
   if (streamType === '冰') {
     if (role === 'ATK') {
-      if (candidateOptName === '冰凍拳' && tier === 2) return { badge: '🔗 冰礫·極寒凍結 傷害+20%', color: '#74b9ff' };
-      if (candidateOptName === '冰錐' && tier === 3) return { badge: '🔗 冰凍拳·暴風雪湧 傷害+25%', color: '#74b9ff' };
-      if (candidateOptName === '冰柱墜擊' && tier === 4) return { badge: '🔗 冰錐·極光刺穿 防穿+25%', color: '#74b9ff' };
+      if ((candidateOptName === '冰凍拳' || candidateOptName === '冰柱墜擊') && tier === 2) return { badge: '🔗 ' + lastLearnedName + '·極寒凍結 傷害+20%', color: '#74b9ff' };
+      if ((candidateOptName === '冰錐' || candidateOptName === '冰凍牙') && tier === 3) return { badge: '🔗 ' + lastLearnedName + '·暴風雪湧 傷害+25%', color: '#74b9ff' };
+      if ((candidateOptName === '冰柱墜擊' || candidateOptName === '絕對零度') && tier === 4) return { badge: '🔗 ' + lastLearnedName + '·極光刺穿 防穿+25%', color: '#74b9ff' };
     } else if (role === 'SPA') {
-      if (candidateOptName === '冰凍光束' && tier === 2) return { badge: '🔗 冰凍之風·極寒凍結 傷害+20%', color: '#74b9ff' };
-      if (candidateOptName === '暴風雪' && tier === 3) return { badge: '🔗 冰凍光束·暴風雪湧 傷害+25%', color: '#74b9ff' };
-      if (candidateOptName === '冷凍光束' && tier === 4) return { badge: '🔗 暴風雪·極光刺穿 防穿+25%', color: '#74b9ff' };
+      if ((candidateOptName === '冰凍光束' || candidateOptName === '冰凍之風') && tier === 2) return { badge: '🔗 ' + lastLearnedName + '·極寒凍結 傷害+20%', color: '#74b9ff' };
+      if ((candidateOptName === '暴風雪' || candidateOptName === '冰凍光束') && tier === 3) return { badge: '🔗 ' + lastLearnedName + '·暴風雪湧 傷害+25%', color: '#74b9ff' };
+      if ((candidateOptName === '冷凍光束' || candidateOptName === '暴風雪') && tier === 4) return { badge: '🔗 ' + lastLearnedName + '·極光刺穿 防穿+25%', color: '#74b9ff' };
     }
   }
 
   if (streamType === '格鬥') {
     if (role === 'ATK') {
-      if (candidateOptName === '空手劈' && tier === 2) return { badge: '🔗 碎岩·戰技破甲 傷害+20%', color: '#e67e22' };
-      if (candidateOptName === '十字劈' && tier === 3) return { badge: '🔗 空手劈·氣勁爆發 傷害+25%', color: '#e67e22' };
-      if (candidateOptName === '近身戰' && tier === 4) return { badge: '🔗 十字劈·極致近身 防穿+25%', color: '#e67e22' };
+      if ((candidateOptName === '空手劈' || candidateOptName === '二連踢') && tier === 2) return { badge: '🔗 ' + lastLearnedName + '·戰技破甲 傷害+20%', color: '#e67e22' };
+      if ((candidateOptName === '十字劈' || candidateOptName === '近身戰') && tier === 3) return { badge: '🔗 ' + lastLearnedName + '·氣勁爆發 傷害+25%', color: '#e67e22' };
+      if ((candidateOptName === '近身戰' || candidateOptName === '爆裂拳') && tier === 4) return { badge: '🔗 ' + lastLearnedName + '·極致近身 防穿+25%', color: '#e67e22' };
     } else if (role === 'SPA') {
-      if (candidateOptName === '真氣彈' && tier === 2) return { badge: '🔗 碎岩·戰技破甲 傷害+20%', color: '#e67e22' };
-      if (candidateOptName === '波導彈' && tier === 3) return { badge: '🔗 真氣彈·氣勁爆發 傷害+25%', color: '#e67e22' };
+      if ((candidateOptName === '真氣彈' || candidateOptName === '真空波') && tier === 2) return { badge: '🔗 ' + lastLearnedName + '·戰技破甲 傷害+20%', color: '#e67e22' };
+      if ((candidateOptName === '波導彈' || candidateOptName === '氣合彈') && tier === 3) return { badge: '🔗 ' + lastLearnedName + '·氣勁爆發 傷害+25%', color: '#e67e22' };
     }
   }
 
   if (streamType === '毒') {
     if (role === 'ATK') {
-      if (candidateOptName === '毒擊' && tier === 2) return { badge: '🔗 毒針·劇毒侵蝕 傷害+20%', color: '#a29bfe' };
-      if (candidateOptName === '十字毒刃' && tier === 3) return { badge: '🔗 毒擊·腐蝕貫穿 傷害+25%', color: '#a29bfe' };
-      if (candidateOptName === '垃圾射擊' && tier === 4) return { badge: '🔗 污泥波·劇毒爆發 防穿+25%', color: '#a29bfe' };
+      if ((candidateOptName === '毒擊' || candidateOptName === '毒尾') && tier === 2) return { badge: '🔗 ' + lastLearnedName + '·劇毒侵蝕 傷害+20%', color: '#a29bfe' };
+      if ((candidateOptName === '十字毒刃' || candidateOptName === '毒擊') && tier === 3) return { badge: '🔗 ' + lastLearnedName + '·腐蝕貫穿 傷害+25%', color: '#a29bfe' };
+      if ((candidateOptName === '垃圾射擊' || candidateOptName === '十字毒刃') && tier === 4) return { badge: '🔗 ' + lastLearnedName + '·劇毒爆發 防穿+25%', color: '#a29bfe' };
     } else if (role === 'SPA') {
-      if (candidateOptName === '污泥炸彈' && tier === 2) return { badge: '🔗 溶解液·劇毒侵蝕 傷害+20%', color: '#a29bfe' };
-      if (candidateOptName === '污泥波' && tier === 3) return { badge: '🔗 污泥炸彈·腐蝕貫穿 傷害+25%', color: '#a29bfe' };
-      if (candidateOptName === '毒液衝擊' && tier === 4) return { badge: '🔗 污泥波·劇毒爆發 防穿+25%', color: '#a29bfe' };
+      if ((candidateOptName === '污泥炸彈' || candidateOptName === '毒液衝擊') && tier === 2) return { badge: '🔗 ' + lastLearnedName + '·劇毒侵蝕 傷害+20%', color: '#a29bfe' };
+      if ((candidateOptName === '污泥波' || candidateOptName === '污泥炸彈') && tier === 3) return { badge: '🔗 ' + lastLearnedName + '·腐蝕貫穿 傷害+25%', color: '#a29bfe' };
+      if ((candidateOptName === '毒液衝擊' || candidateOptName === '污泥波') && tier === 4) return { badge: '🔗 ' + lastLearnedName + '·劇毒爆發 防穿+25%', color: '#a29bfe' };
     }
   }
 
   if (streamType === '地面') {
     if (role === 'ATK') {
-      if (candidateOptName === '重踏' && tier === 2) return { badge: '🔗 潑沙·大地震盪 傷害+20%', color: '#d35400' };
-      if (candidateOptName === '直衝鑽' && tier === 3) return { badge: '🔗 重踏·蓋亞貫穿 傷害+25%', color: '#d35400' };
-      if (candidateOptName === '地震' && tier === 4) return { badge: '🔗 直衝鑽·地震裂破 防穿+25%', color: '#d35400' };
+      if ((candidateOptName === '重踏' || candidateOptName === '直衝鑽') && tier === 2) return { badge: '🔗 ' + lastLearnedName + '·大地震盪 傷害+20%', color: '#d35400' };
+      if ((candidateOptName === '直衝鑽' || candidateOptName === '地震') && tier === 3) return { badge: '🔗 ' + lastLearnedName + '·蓋亞貫穿 傷害+25%', color: '#d35400' };
+      if ((candidateOptName === '地震' || candidateOptName === '重踏') && tier === 4) return { badge: '🔗 ' + lastLearnedName + '·地震裂破 防穿+25%', color: '#d35400' };
     } else if (role === 'SPA') {
-      if (candidateOptName === '泥巴炸彈' && tier === 2) return { badge: '🔗 泥巴射擊·大地震盪 傷害+20%', color: '#d35400' };
-      if (candidateOptName === '大地之力' && tier === 3) return { badge: '🔗 泥巴炸彈·蓋亞貫穿 傷害+25%', color: '#d35400' };
-      if (candidateOptName === '熱沙大地' && tier === 4) return { badge: '🔗 大地之力·熱沙裂破 防穿+25%', color: '#d35400' };
+      if ((candidateOptName === '泥巴炸彈' || candidateOptName === '泥巴射擊') && tier === 2) return { badge: '🔗 ' + lastLearnedName + '·大地震盪 傷害+20%', color: '#d35400' };
+      if ((candidateOptName === '大地之力' || candidateOptName === '泥巴炸彈') && tier === 3) return { badge: '🔗 ' + lastLearnedName + '·蓋亞貫穿 傷害+25%', color: '#d35400' };
+      if ((candidateOptName === '熱沙大地' || candidateOptName === '大地之力') && tier === 4) return { badge: '🔗 ' + lastLearnedName + '·熱沙裂破 防穿+25%', color: '#d35400' };
     }
   }
 
   if (streamType === '飛行') {
     if (role === 'ATK') {
-      if (candidateOptName === '翅膀攻擊' && tier === 2) return { badge: '🔗 啄·疾風風切 傷害+20%', color: '#0984e3' };
-      if (candidateOptName === '燕返' && tier === 3) return { badge: '🔗 翅膀攻擊·燕返衝擊 傷害+25%', color: '#0984e3' };
-      if (candidateOptName === '啄鑽' && tier === 4) return { badge: '🔗 燕返·風暴貫穿 防穿+25%', color: '#0984e3' };
-      if (candidateOptName === '勇鳥猛攻' && tier === 5) return { badge: '🔗 啄鑽·神鳥奧義 傷害+35%', color: '#0984e3' };
+      if ((candidateOptName === '翅膀攻擊' || candidateOptName === '啄') && tier === 2) return { badge: '🔗 ' + lastLearnedName + '·疾風風切 傷害+20%', color: '#0984e3' };
+      if ((candidateOptName === '燕返' || candidateOptName === '翅膀攻擊') && tier === 3) return { badge: '🔗 ' + lastLearnedName + '·燕返衝擊 傷害+25%', color: '#0984e3' };
+      if ((candidateOptName === '啄鑽' || candidateOptName === '勇鳥猛攻') && tier === 4) return { badge: '🔗 ' + lastLearnedName + '·風暴貫穿 防穿+25%', color: '#0984e3' };
+      if ((candidateOptName === '勇鳥猛攻' || candidateOptName === '啄鑽') && tier === 5) return { badge: '🔗 ' + lastLearnedName + '·神鳥奧義 傷害+35%', color: '#0984e3' };
     } else if (role === 'SPA') {
-      if (candidateOptName === '空氣之刃' && tier === 2) return { badge: '🔗 起風·疾風風切 傷害+20%', color: '#0984e3' };
-      if (candidateOptName === '空氣斬' && tier === 3) return { badge: '🔗 空氣之刃·燕返衝擊 傷害+25%', color: '#0984e3' };
-      if (candidateOptName === '熱風' && tier === 4) return { badge: '🔗 空氣斬·風暴貫穿 防穿+25%', color: '#0984e3' };
-      if (candidateOptName === '暴風' && tier === 5) return { badge: '🔗 熱風·神鳥奧義 傷害+35%', color: '#0984e3' };
+      if ((candidateOptName === '空氣之刃' || candidateOptName === '起風') && tier === 2) return { badge: '🔗 ' + lastLearnedName + '·疾風風切 傷害+20%', color: '#0984e3' };
+      if ((candidateOptName === '空氣斬' || candidateOptName === '空氣之刃') && tier === 3) return { badge: '🔗 ' + lastLearnedName + '·燕返衝擊 傷害+25%', color: '#0984e3' };
+      if ((candidateOptName === '熱風' || candidateOptName === '暴風') && tier === 4) return { badge: '🔗 ' + lastLearnedName + '·風暴貫穿 防穿+25%', color: '#0984e3' };
+      if ((candidateOptName === '暴風' || candidateOptName === '熱風') && tier === 5) return { badge: '🔗 ' + lastLearnedName + '·神鳥奧義 傷害+35%', color: '#0984e3' };
     }
   }
 
   if (streamType === '蟲') {
     if (role === 'ATK') {
-      if (candidateOptName === '蟲咬' && tier === 2) return { badge: '🔗 連斬·複眼連擊 傷害+20%', color: '#00b894' };
-      if (candidateOptName === '十字剪' && tier === 3) return { badge: '🔗 蟲咬·蟲鳴共鳴 傷害+25%', color: '#00b894' };
-      if (candidateOptName === '急速折返' && tier === 4) return { badge: '🔗 十字剪·急速破甲 防穿+25%', color: '#00b894' };
+      if ((candidateOptName === '蟲咬' || candidateOptName === '連斬') && tier === 2) return { badge: '🔗 ' + lastLearnedName + '·複眼連擊 傷害+20%', color: '#00b894' };
+      if ((candidateOptName === '十字剪' || candidateOptName === '蟲咬') && tier === 3) return { badge: '🔗 ' + lastLearnedName + '·蟲鳴共鳴 傷害+25%', color: '#00b894' };
+      if ((candidateOptName === '急速折返' || candidateOptName === '十字剪') && tier === 4) return { badge: '🔗 ' + lastLearnedName + '·急速破甲 防穿+25%', color: '#00b894' };
     } else if (role === 'SPA') {
-      if (candidateOptName === '信號光束' && tier === 2) return { badge: '🔗 蟲之抵抗·複眼連擊 傷害+20%', color: '#00b894' };
-      if (candidateOptName === '蟲鳴' && tier === 3) return { badge: '🔗 信號光束·蟲鳴共鳴 傷害+25%', color: '#00b894' };
-      if (candidateOptName === '蟲群風暴' && tier === 4) return { badge: '🔗 蟲鳴·急速破甲 防穿+25%', color: '#00b894' };
+      if ((candidateOptName === '信號光束' || candidateOptName === '蟲之抵抗') && tier === 2) return { badge: '🔗 ' + lastLearnedName + '·複眼連擊 傷害+20%', color: '#00b894' };
+      if ((candidateOptName === '蟲鳴' || candidateOptName === '信號光束') && tier === 3) return { badge: '🔗 ' + lastLearnedName + '·蟲鳴共鳴 傷害+25%', color: '#00b894' };
+      if ((candidateOptName === '蟲群風暴' || candidateOptName === '蟲鳴') && tier === 4) return { badge: '🔗 ' + lastLearnedName + '·急速破甲 防穿+25%', color: '#00b894' };
     }
   }
 
   if (streamType === '岩石') {
     if (role === 'ATK') {
-      if (candidateOptName === '岩石封鎖' && tier === 2) return { badge: '🔗 落石·巨石衝擊 傷害+20%', color: '#636e72' };
-      if (candidateOptName === '岩崩' && tier === 3) return { badge: '🔗 岩石封鎖·山崩地裂 傷害+25%', color: '#636e72' };
-      if (candidateOptName === '尖石攻擊' && tier === 4) return { badge: '🔗 岩崩·尖石刺穿 防穿+25%', color: '#636e72' };
-      if (candidateOptName === '雙刃頭錘' && tier === 5) return { badge: '🔗 尖石攻擊·隕石砲轟 傷害+35%', color: '#636e72' };
+      if ((candidateOptName === '岩石封鎖' || candidateOptName === '落石') && tier === 2) return { badge: '🔗 ' + lastLearnedName + '·巨石衝擊 傷害+20%', color: '#636e72' };
+      if ((candidateOptName === '岩崩' || candidateOptName === '岩石封鎖') && tier === 3) return { badge: '🔗 ' + lastLearnedName + '·山崩地裂 傷害+25%', color: '#636e72' };
+      if ((candidateOptName === '尖石攻擊' || candidateOptName === '岩崩') && tier === 4) return { badge: '🔗 ' + lastLearnedName + '·尖石刺穿 防穿+25%', color: '#636e72' };
+      if ((candidateOptName === '雙刃頭錘' || candidateOptName === '尖石攻擊') && tier === 5) return { badge: '🔗 ' + lastLearnedName + '·隕石砲轟 傷害+35%', color: '#636e72' };
     } else if (role === 'SPA') {
-      if (candidateOptName === '原始之力' && tier === 2) return { badge: '🔗 落石·巨石衝擊 傷害+20%', color: '#636e72' };
-      if (candidateOptName === '力量寶石' && tier === 3) return { badge: '🔗 原始之力·山崩地裂 傷害+25%', color: '#636e72' };
+      if ((candidateOptName === '原始之力' || candidateOptName === '落石') && tier === 2) return { badge: '🔗 ' + lastLearnedName + '·巨石衝擊 傷害+20%', color: '#636e72' };
+      if ((candidateOptName === '力量寶石' || candidateOptName === '原始之力') && tier === 3) return { badge: '🔗 ' + lastLearnedName + '·山崩地裂 傷害+25%', color: '#636e72' };
     }
   }
 
   if (streamType === '幽靈') {
     if (role === 'ATK') {
-      if (candidateOptName === '暗影爪' && tier === 2) return { badge: '🔗 驚嚇·幽魂附體 傷害+20%', color: '#6c5ce7' };
-      if (candidateOptName === '潛靈奇襲' && tier === 3) return { badge: '🔗 暗影爪·噬魂爆發 傷害+25%', color: '#6c5ce7' };
-      if (candidateOptName === '縫影' && tier === 4) return { badge: '🔗 潛靈奇襲·詛咒連鎖 防穿+25%', color: '#6c5ce7' };
+      if ((candidateOptName === '暗影爪' || candidateOptName === '驚嚇') && tier === 2) return { badge: '🔗 ' + lastLearnedName + '·幽魂附體 傷害+20%', color: '#6c5ce7' };
+      if ((candidateOptName === '潛靈奇襲' || candidateOptName === '暗影爪') && tier === 3) return { badge: '🔗 ' + lastLearnedName + '·噬魂爆發 傷害+25%', color: '#6c5ce7' };
+      if ((candidateOptName === '縫影' || candidateOptName === '潛靈奇襲') && tier === 4) return { badge: '🔗 ' + lastLearnedName + '·詛咒連鎖 防穿+25%', color: '#6c5ce7' };
     } else if (role === 'SPA') {
-      if (candidateOptName === '黑夜魔影' && tier === 2) return { badge: '🔗 驚嚇·幽魂附體 傷害+20%', color: '#6c5ce7' };
-      if (candidateOptName === '暗影球' && tier === 3) return { badge: '🔗 黑夜魔影·噬魂爆發 傷害+25%', color: '#6c5ce7' };
-      if (candidateOptName === '禍不單行' && tier === 4) return { badge: '🔗 暗影球·詛咒連鎖 防穿+25%', color: '#6c5ce7' };
-      if (candidateOptName === '深淵暗影' && tier === 5) return { badge: '🔗 禍不單行·深淵極致 傷害+35%', color: '#6c5ce7' };
+      if ((candidateOptName === '黑夜魔影' || candidateOptName === '驚嚇') && tier === 2) return { badge: '🔗 ' + lastLearnedName + '·幽魂附體 傷害+20%', color: '#6c5ce7' };
+      if ((candidateOptName === '暗影球' || candidateOptName === '黑夜魔影') && tier === 3) return { badge: '🔗 ' + lastLearnedName + '·噬魂爆發 傷害+25%', color: '#6c5ce7' };
+      if ((candidateOptName === '禍不單行' || candidateOptName === '暗影球') && tier === 4) return { badge: '🔗 ' + lastLearnedName + '·詛咒連鎖 防穿+25%', color: '#6c5ce7' };
+      if ((candidateOptName === '深淵暗影' || candidateOptName === '禍不單行') && tier === 5) return { badge: '🔗 ' + lastLearnedName + '·深淵極致 傷害+35%', color: '#6c5ce7' };
     }
   }
 
   if (streamType === '惡') {
     if (role === 'ATK') {
-      if (candidateOptName === '出奇一擊' && tier === 2) return { badge: '🔗 咬住·陰謀突襲 傷害+20%', color: '#2d3436' };
-      if (candidateOptName === '咬碎' && tier === 3) return { badge: '🔗 出奇一擊·暗黑撕裂 傷害+25%', color: '#2d3436' };
-      if (candidateOptName === '暗襲要害' && tier === 4) return { badge: '🔗 咬碎·絕望撕咬 防穿+25%', color: '#2d3436' };
+      if ((candidateOptName === '出奇一擊' || candidateOptName === '咬住') && tier === 2) return { badge: '🔗 ' + lastLearnedName + '·陰謀突襲 傷害+20%', color: '#2d3436' };
+      if ((candidateOptName === '咬碎' || candidateOptName === '出奇一擊') && tier === 3) return { badge: '🔗 ' + lastLearnedName + '·暗黑撕裂 傷害+25%', color: '#2d3436' };
+      if ((candidateOptName === '暗襲要害' || candidateOptName === '咬碎') && tier === 4) return { badge: '🔗 ' + lastLearnedName + '·絕望撕咬 防穿+25%', color: '#2d3436' };
     } else if (role === 'SPA') {
-      if (candidateOptName === '惡之波動' && tier === 2) return { badge: '🔗 大聲咆哮·陰謀突襲 傷害+20%', color: '#2d3436' };
-      if (candidateOptName === '暗黑洞' && tier === 3) return { badge: '🔗 惡之波動·暗黑撕裂 傷害+25%', color: '#2d3436' };
-      if (candidateOptName === '絕望制裁' && tier === 4) return { badge: '🔗 暗黑洞·絕望撕咬 防穿+25%', color: '#2d3436' };
-      if (candidateOptName === '深淵波動' && tier === 5) return { badge: '🔗 絕望制裁·深淵極致 傷害+35%', color: '#2d3436' };
+      if ((candidateOptName === '惡之波動' || candidateOptName === '大聲咆哮') && tier === 2) return { badge: '🔗 ' + lastLearnedName + '·陰謀突襲 傷害+20%', color: '#2d3436' };
+      if ((candidateOptName === '暗黑洞' || candidateOptName === '惡之波動') && tier === 3) return { badge: '🔗 ' + lastLearnedName + '·暗黑撕裂 傷害+25%', color: '#2d3436' };
+      if ((candidateOptName === '絕望制裁' || candidateOptName === '暗黑洞') && tier === 4) return { badge: '🔗 ' + lastLearnedName + '·絕望撕咬 防穿+25%', color: '#2d3436' };
+      if ((candidateOptName === '深淵波動' || candidateOptName === '絕望制裁') && tier === 5) return { badge: '🔗 ' + lastLearnedName + '·深淵極致 傷害+35%', color: '#2d3436' };
     }
   }
 
