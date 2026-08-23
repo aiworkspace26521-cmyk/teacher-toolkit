@@ -10048,7 +10048,7 @@ function renderEquipEditor(pkmn) {
 
   // SECTION 2: MOVE LIBRARY PANEL
   mainHtml += "<div style='background:white; border:1px solid #e0e0e0; border-radius:10px; padding:10px;'>";
-  mainHtml += "<div style='display:flex; justify-content:space-between; align-items:center; margin-bottom:8px; flex-wrap:wrap; gap:4px;'>";
+  mainHtml += "<div style='display:flex; justify-content:space-between; align-items:center; margin-bottom:4px; flex-wrap:wrap; gap:4px;'>";
   mainHtml += "<div style='font-size:12px; font-weight:700; color:#333;'>📚 已解鎖招式大庫 (<span style='color:#8e44ad;'>" + moveLibrary.length + "</span> 招可選)</div>";
   
   mainHtml += "<div style='display:flex; gap:4px;'>";
@@ -10058,6 +10058,7 @@ function renderEquipEditor(pkmn) {
   mainHtml += "<button onclick=\"setMoveLibraryTab('tm')\" style='font-size:10px; padding:2px 8px; border-radius:10px; border:none; cursor:pointer; background:" + (_moveLibTab==='tm'?'#8e44ad':'#eee') + "; color:" + (_moveLibTab==='tm'?'white':'#555') + "; font-weight:700;'>💿 TM</button>";
   mainHtml += "</div>";
   mainHtml += "</div>";
+  mainHtml += "<div style='font-size:10px; color:#666; margin-bottom:8px;'>💡 <span style='color:#27ae60; font-weight:700;'>🍃天賦招式</span> 隨寶可夢等級 (Lv." + (pkmn.currentLevel || 5) + ") 自動學會，免 SP 即可直接裝備對戰！</div>";
 
   mainHtml += "<div style='display:grid; grid-template-columns: 1fr 1fr; gap:6px; max-height:220px; overflow-y:auto; padding-right:4px;'>" + libCardsHtml + "</div>";
   mainHtml += "</div>";
