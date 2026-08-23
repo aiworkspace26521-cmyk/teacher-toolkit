@@ -3221,15 +3221,16 @@ function getEffectivePokemonMoves(pkmn) {
         finalMoves.push(m);
       }
     }
-    // 自動補充種族預設招式至 4 招，保障初學階段不會因只勾選 1 招而失去其餘對戰能力
+    // 若手動裝備招數少於 4 招，自動由種族預設招式補足至 4 招；若手動裝備 5~6 招，完整保留 6 招槽位
+    var targetCount = Math.max(4, Math.min(6, pkmn.equippedMoves.length));
     for (var j = 0; j < defaultSet.length; j++) {
-      if (finalMoves.length >= 4) break;
+      if (finalMoves.length >= targetCount) break;
       if (finalMoves.indexOf(defaultSet[j]) === -1) {
         finalMoves.push(defaultSet[j]);
       }
     }
   } else {
-    finalMoves = defaultSet.slice(0, Math.min(4, defaultSet.length));
+    finalMoves = defaultSet.slice(0, Math.min(6, defaultSet.length));
   }
   return finalMoves;
 }
