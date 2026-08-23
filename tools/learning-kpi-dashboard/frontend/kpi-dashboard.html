@@ -5796,7 +5796,9 @@ function openPkmnDetail(pokemonId) {
   var inParty = (globalData.partyIds || []).indexOf(pkmn.id) !== -1;
   function heldStatBonus(heldId) { if (heldId === "eviolite") return "DEF x1.5, SPDEF x1.5"; if (heldId === "assaultVest") return "SPDEF x1.5"; return ""; }
   var heldBonus = heldStatBonus(pkmn.heldItem);
-  var movesList = getPokemonMoveset(pkmn.baseName, pkmn.currentLevel);
+  var movesList = (pkmn.equippedMoves && pkmn.equippedMoves.length > 0)
+    ? pkmn.equippedMoves.slice(0, 6)
+    : getPokemonMoveset(pkmn.baseName, pkmn.currentLevel);
   var catIcons = {"物理":"⚔️","特殊":"🔮","變化":"🔄"};
   var catColors = {"物理":"#e74c3c","特殊":"#3498db","變化":"#95a5a6"};
 
