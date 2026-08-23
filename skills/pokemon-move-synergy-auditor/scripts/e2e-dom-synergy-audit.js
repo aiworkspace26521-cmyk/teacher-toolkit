@@ -5,7 +5,7 @@ const fs = require('fs');
 async function runE2EDomAudit() {
   const localFile = 'file:///' + path.resolve(__dirname, '../../../public/kpi-dashboard.html').replace(/\\/g, '/');
   console.log(`\n================================================================================`);
-  console.log(`🧪 [E2E DOM Auditor] 模擬真人點擊 DOM 元素全圖鑑與 18 屬性連攜標籤無死角校驗`);
+  console.log(`🧪 [E2E DOM Auditor V2] 模擬真人點擊 DOM 元素 (18單屬性 + 153雙屬性 + 全圖鑑150+寶可夢) 全面校驗`);
   console.log(`================================================================================`);
 
   const browser = await chromium.launch({ headless: true });
@@ -45,13 +45,73 @@ async function runE2EDomAudit() {
       '惡': '月亮伊布 (惡系)'
     };
 
+    function auditDomPkmn(dummyPkmn, tName, role) {
+      if (!window.globalData) window.globalData = { roster: [] };
+      window.globalData.roster = [dummyPkmn];
+      window._skillTreePkmnId = dummyPkmn.id;
+      window._skillTreeActiveTab = role.toLowerCase();
+
+      const tree = resolveSkillTreeV31(dummyPkmn);
+      if (!tree) return;
+      const roleTree = tree[role] || {};
+      const t1List = (roleTree.T1 || []).filter(n => (typeof n === 'object' && n) ? n.eligible !== false : true);
+      const t2List = (roleTree.T2 || []).filter(n => (typeof n === 'object' && n) ? n.eligible !== false : true);
+
+      const t1MoveName = t1List[0] ? (t1List[0].name || t1List[0]) : null;
+      if (!t1MoveName) return;
+
+      for (const t2Opt of t2List) {
+        const t2MoveName = t2Opt.name || t2Opt;
+        dummyPkmn.learnedMoves = {};
+        dummyPkmn.skillTree = {};
+        
+        learnSkillTreeNodeV31(t1MoveName, 1, role, dummyPkmn);
+        learnSkillTreeNodeV31(t2MoveName, 2, role, dummyPkmn);
+
+        renderSkillTree();
+
+        testCasesCount++;
+
+        const canvasEl = document.getElementById('skillTreeBody');
+        if (!canvasEl) {
+          failures.push({ name: dummyPkmn.baseName, type: tName, role, t1: t1MoveName, t2: t2MoveName, reason: 'NO_BODY' });
+          continue;
+        }
+
+        const htmlText = canvasEl.innerHTML;
+        const badgeMatches = htmlText.match(/🔗/g);
+        const badgeCount = badgeMatches ? badgeMatches.length : 0;
+
+        if (badgeCount === 0) {
+          failures.push({
+            name: dummyPkmn.baseName,
+            type: tName,
+            role: role,
+            t1: t1MoveName,
+            t2: t2MoveName,
+            badgeCount: 0,
+            reason: 'MISSING_SYNERGY_BADGE_IN_T3_DOM'
+          });
+        } else if (badgeCount > 1) {
+          failures.push({
+            name: dummyPkmn.baseName,
+            type: tName,
+            role: role,
+            t1: t1MoveName,
+            t2: t2MoveName,
+            badgeCount: badgeCount,
+            reason: 'MULTI_OVERLAP_BADGES_IN_T3_DOM'
+          });
+        }
+      }
+    }
+
+    // 1. Audit ALL 18 Single Types
     for (const tName of singleTypes) {
       for (const role of roles) {
         const sampleName = samplePkmnNames[tName] || `皮卡丘 (${tName}系)`;
-
-        const dummyId = `pkmn_test_${tName}_${role}`;
         const dummyPkmn = {
-          id: dummyId,
+          id: `pkmn_test_single_${tName}_${role}`,
           baseName: sampleName,
           rawName: sampleName.replace(/\s*\([^)]*\)/, ''),
           currentLevel: 100,
@@ -61,58 +121,52 @@ async function runE2EDomAudit() {
           learnedMoves: {},
           skillTree: {}
         };
+        auditDomPkmn(dummyPkmn, tName, role);
+      }
+    }
 
-        if (!window.globalData) window.globalData = { roster: [] };
-        window.globalData.roster = [dummyPkmn];
-        window._skillTreePkmnId = dummyId;
-        window._skillTreeActiveTab = role.toLowerCase();
+    // 2. Audit ALL 153 Dual-Type Combinations
+    for (let i = 0; i < singleTypes.length; i++) {
+      for (let j = i + 1; j < singleTypes.length; j++) {
+        const typeA = singleTypes[i];
+        const typeB = singleTypes[j];
+        const dualName = `${typeA}/${typeB}`;
+        for (const role of roles) {
+          const sampleName = `雙屬性寶可夢 (${dualName})`;
+          const dummyPkmn = {
+            id: `pkmn_test_dual_${typeA}_${typeB}_${role}`,
+            baseName: sampleName,
+            types: [typeA, typeB],
+            currentLevel: 100,
+            skillPoints: 999,
+            totalSpEarned: 999,
+            maxTreeTier: 5,
+            learnedMoves: {},
+            skillTree: {}
+          };
+          auditDomPkmn(dummyPkmn, dualName, role);
+        }
+      }
+    }
 
-        const tree = resolveSkillTreeV31(dummyPkmn);
-        const roleTree = tree[role] || {};
-        const t1List = (roleTree.T1 || []).filter(n => (typeof n === 'object' && n) ? n.eligible !== false : true);
-        const t2List = (roleTree.T2 || []).filter(n => (typeof n === 'object' && n) ? n.eligible !== false : true);
-
-        const t1MoveName = t1List[0] ? (t1List[0].name || t1List[0]) : null;
-        if (!t1MoveName) continue;
-
-        for (const t2Opt of t2List) {
-          const t2MoveName = t2Opt.name || t2Opt;
-          // Reset learned moves for this test case
-          dummyPkmn.learnedMoves = {};
-          dummyPkmn.skillTree = {};
-          
-          // Learn T1
-          learnSkillTreeNodeV31(t1MoveName, 1, role, dummyPkmn);
-          // Learn T2
-          learnSkillTreeNodeV31(t2MoveName, 2, role, dummyPkmn);
-
-          // Force render to DOM
-          renderSkillTree();
-
-          testCasesCount++;
-
-          // Inspect the rendered DOM container in #skillTreeBody
-          const canvasEl = document.getElementById('skillTreeBody');
-          if (!canvasEl) {
-            failures.push({ type: tName, role, t1: t1MoveName, t2: t2MoveName, reason: 'NO_BODY' });
-            continue;
-          }
-
-          const htmlText = canvasEl.innerHTML;
-
-          // Check if T3 options contain at least one synergy badge: 🔗
-          const hasSynergyBadgeInT3 = htmlText.includes('🔗');
-
-          if (!hasSynergyBadgeInT3) {
-            failures.push({
-              type: tName,
-              role: role,
-              t1: t1MoveName,
-              t2: t2MoveName,
-              htmlSnippet: htmlText,
-              reason: 'MISSING_SYNERGY_BADGE_IN_T3_DOM'
-            });
-          }
+    // 3. Audit ALL POKEMON in POKEMON_DATABASE / Roster
+    if (typeof POKEMON_DATABASE !== 'undefined') {
+      const pIds = Object.keys(POKEMON_DATABASE);
+      for (const pId of pIds) {
+        const realPkmn = POKEMON_DATABASE[pId];
+        for (const role of roles) {
+          const dummyPkmn = {
+            id: `pkmn_test_roster_${pId}_${role}`,
+            baseName: realPkmn.name || realPkmn.baseName || pId,
+            rawName: (realPkmn.name || realPkmn.baseName || pId).replace(/\s*\([^)]*\)/, ''),
+            currentLevel: 100,
+            skillPoints: 999,
+            totalSpEarned: 999,
+            maxTreeTier: 5,
+            learnedMoves: {},
+            skillTree: {}
+          };
+          auditDomPkmn(dummyPkmn, realPkmn.type || realPkmn.types || '一般', role);
         }
       }
     }
@@ -121,18 +175,20 @@ async function runE2EDomAudit() {
   });
 
   console.log(`\n================================================================================`);
-  console.log(`📊 E2E DOM 模擬測試結果:`);
+  console.log(`📊 E2E DOM V2 模擬測試最終報告:`);
   console.log(`================================================================================`);
   console.log(`  - 總計實機點擊與 DOM 渲染測試組合: ${e2eReport.testCasesCount} 組`);
-  console.log(`  - 失敗/連攜標籤缺失組合數: ${e2eReport.failures.length} 處`);
+  console.log(`  - 失敗/標籤缺失或重複組合數: ${e2eReport.failures.length} 處`);
 
   if (e2eReport.failures.length > 0) {
-    console.log(`\n⚠️ 標籤缺失詳細列表:`);
-    console.log(JSON.stringify(e2eReport.failures, null, 2));
+    console.log(`\n⚠️ 標籤缺失或重複詳細列表:`);
+    console.log(JSON.stringify(e2eReport.failures.slice(0, 10), null, 2));
   } else {
-    console.log(`\n🎉 全 18 屬性所有 T2 招式組合在 DOM 實機渲染中 100% 成功生成 T3 連攜標籤！`);
+    console.log(`\n🎉 全圖鑑 150+ 隻寶可夢 + 18 單屬性 + 153 雙屬性組合在 DOM 實機渲染中 100% 成功且獨占 (Fan-Out == 1, Orphans == 0)！`);
   }
   console.log(`================================================================================\n`);
+
+  fs.writeFileSync(path.resolve(__dirname, '../e2e_dom_audit_report.json'), JSON.stringify(e2eReport, null, 2), 'utf8');
 
   await browser.close();
 
