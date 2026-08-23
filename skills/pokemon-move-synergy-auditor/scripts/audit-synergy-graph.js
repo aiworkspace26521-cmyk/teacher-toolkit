@@ -85,7 +85,8 @@ async function auditSynergyGraph() {
         const tree = typeof resolveSkillTreeV31 === 'function' ? resolveSkillTreeV31(pkmn) : null;
         if (!tree) return;
         auditedTreesCount++;
-        auditSkillTree(tree, pkmn.name || pkmn.baseName || pId, pkmn.type || pkmn.types || '一般');
+        const pType = typeof getPokemonPrimaryType === 'function' ? getPokemonPrimaryType(pkmn) : (pkmn.type || pkmn.types || '一般');
+        auditSkillTree(tree, pkmn.name || pkmn.baseName || pId, pType);
       });
     }
 
